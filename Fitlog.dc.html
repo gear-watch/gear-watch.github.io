@@ -9,14 +9,14 @@
 <x-dc>
 <helmet>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fitlog">
-<meta name="theme-color" content="#f5f5f7">
+<meta name="theme-color" content="#000000">
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <style>
-html,body{background:#f5f5f7;-webkit-tap-highlight-color:transparent;}
-a{color:#0066cc;text-decoration:none;}
+html,body{background:#000;-webkit-tap-highlight-color:transparent;}
+a{color:#ffd60a;text-decoration:none;}
 a:hover{text-decoration:underline;}
 input,button,textarea{font-family:inherit;}
 input:focus,textarea:focus{outline:2px solid #0071e3;outline-offset:0;}
@@ -31,7 +31,7 @@ input:focus,textarea:focus{outline:2px solid #0071e3;outline-offset:0;}
       <span style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.2;letter-spacing:-0.374px;">{{ profileName }}</span>
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="var(--fl-accent,#0066cc)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
     </button>
-    <button onClick="{{ openSettings }}" aria-label="Settings" style="width:36px;height:36px;border:0;border-radius:9999px;background:rgba(210,210,215,0.64);display:grid;place-items:center;cursor:pointer;color:var(--fl-ink,#1d1d1f);flex:none;" style-active="transform:scale(0.95);">
+    <button onClick="{{ openSettings }}" aria-label="Settings" style="width:36px;height:36px;border:0;border-radius:9999px;background:var(--fl-seg,rgba(210,210,215,0.64));display:grid;place-items:center;cursor:pointer;color:var(--fl-ink,#1d1d1f);flex:none;" style-active="transform:scale(0.95);">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg>
     </button>
   </div>
@@ -386,7 +386,10 @@ input:focus,textarea:focus{outline:2px solid #0071e3;outline-offset:0;}
 
 </div>
 
-<div style="flex:none;display:grid;grid-template-columns:repeat(3,1fr);background:var(--fl-bar,rgba(245,245,247,0.8));backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--fl-line,#e0e0e0);padding:6px 8px calc(6px + env(safe-area-inset-bottom) + {{ bottomInset }}px);">
+<div style="flex:none;display:grid;grid-template-columns:repeat(4,1fr);background:var(--fl-bar,rgba(245,245,247,0.8));backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--fl-line,#e0e0e0);padding:6px 8px calc(6px + env(safe-area-inset-bottom) + {{ bottomInset }}px);">
+  <a href="./" aria-label="Back to GearWatch" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;color:var(--fl-muted,#a1a1a6);font-size:10px;letter-spacing:-0.08px;text-decoration:none;" style-active="transform:scale(0.95);">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg><span>GearWatch</span>
+  </a>
   <button onClick="{{ tabHome.onTap }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;color:{{ tabHome.color }};font-size:10px;letter-spacing:-0.08px;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"></path></svg><span>Measurements</span>
   </button>
@@ -580,6 +583,7 @@ function migrate(data) {
     const have = new Set((b.images || []).map(i => i.id).concat(b.removedImgs || []));
     (sb.images || []).forEach(i => { if (!have.has(i.id)) { (b.images = b.images || []).push(Object.assign({}, i)); changed = true; } });
   });
+  if (!data.gwTheme) { data.theme = 'gearwatch'; data.gwTheme = true; changed = true; }
   data.imports = data.imports || [];
   (window.FITLOG_IMPORTS || []).forEach(im => { if (data.imports.includes(im.id)) return; let first = null;
     im.profiles.forEach(ip => { let p = data.profiles.find(x => (x.name || '').trim().toLowerCase() === ip.name.toLowerCase());
@@ -705,6 +709,7 @@ const RING_ON = 'inset 0 0 0 1px var(--fl-accent,#0066cc)', RING_OFF = 'none';
 const LIGHT = { onAccent: '#ffffff', bg: '#f5f5f7', card: '#ffffff', ink: '#1d1d1f', muted: '#6e6e73', line: '#e0e0e0', line2: '#f0f0f0', seg: '#ececf0', segOn: '#ffffff', bar: 'rgba(245,245,247,0.8)', green: '#248a3d', amber: '#b25000', red: '#d70015', scheme: 'light' };
 const DARK = { onAccent: '#000000', bg: '#000000', card: '#1c1c1e', ink: '#f5f5f7', muted: '#a1a1a6', line: '#2c2c2e', line2: '#2c2c2e', seg: '#2c2c2e', segOn: '#636366', bar: 'rgba(22,22,23,0.8)', green: '#30d158', amber: '#ff9f0a', red: '#ff453a', scheme: 'dark' };
 const THEMES = {
+  gearwatch: Object.assign({ name: 'GearWatch', accent: '#ffd60a' }, DARK),
   classic: Object.assign({ name: 'Classic', accent: '#0066cc' }, LIGHT),
   plum: Object.assign({ name: 'Plum', accent: '#8e3a75' }, LIGHT),
   gloss: Object.assign({ name: 'Gloss black', accent: '#2997ff' }, DARK),
@@ -738,7 +743,7 @@ function resizeImg(file, max, q) {
   });
 }
 
-function seed() { const brands = JSON.parse(JSON.stringify(window.FITLOG_BRANDS || [])); const me = { id: uid(), name: 'Me', sessions: [], orders: [] }; return { v: 2, seedV: 3, unit: 'cm', staleDays: 91, activeId: me.id, profiles: [me], brands, imports: (window.FITLOG_IMPORTS || []).map(i => i.id).concat('kinkfox-fix1') }; }
+function seed() { const brands = JSON.parse(JSON.stringify(window.FITLOG_BRANDS || [])); const me = { id: uid(), name: 'Me', sessions: [], orders: [] }; return { v: 2, seedV: 3, unit: 'cm', staleDays: 91, theme: 'gearwatch', gwTheme: true, activeId: me.id, profiles: [me], brands, imports: (window.FITLOG_IMPORTS || []).map(i => i.id).concat('kinkfox-fix1') }; }
 function seedSample() {
   const brands = JSON.parse(JSON.stringify(window.FITLOG_BRANDS || []));
   const s1 = uid(), s2 = uid();
@@ -752,7 +757,7 @@ function seedSample() {
   const sam = { id: uid(), name: 'Sam', sessions: [
     { id: uid(), date: isoAgo(130), values: { height: 181, neck: 41, chest: 102, waist: 84, hips: 100, torso: 159, ubend: 158, insideArm: 51, inseam: 72, armLength: 60, thigh: 56 } }
   ], orders: [] };
-  return { v: 2, seedV: 3, unit: 'cm', staleDays: 91, activeId: me.id, profiles: [me, sam], brands };
+  return { v: 2, seedV: 3, unit: 'cm', staleDays: 91, theme: 'gearwatch', gwTheme: true, activeId: me.id, profiles: [me, sam], brands };
 }
 
 class Component extends DCLogic {
@@ -921,11 +926,11 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state, d = s.data, tI = this.props.topInset ?? 0, bI = this.props.bottomInset ?? 0;
     const rootH = this.props.embedded ? '100%' : '100dvh';
-    if (!d) return { rootH, th: THEMES[this.props.theme] || THEMES.classic, scrollRef: this.scrollRef, topInset: tI, bottomInset: bI, tabHome: {}, tabMeasure: {}, tabBrands: {}, tabOrders: {} };
+    if (!d) return { rootH, th: THEMES[this.props.theme] || THEMES.gearwatch, scrollRef: this.scrollRef, topInset: tI, bottomInset: bI, tabHome: {}, tabMeasure: {}, tabBrands: {}, tabOrders: {} };
     const u = d.unit, prof = d.profiles.find(p => p.id === d.activeId) || d.profiles[0];
     const sess = [...prof.sessions].sort((a, b) => b.date.localeCompare(a.date));
     const latest = sess[0], prev = sess[1], lv = latest ? latest.values : {};
-    const themeKey = THEMES[this.props.theme] ? this.props.theme : THEMES[d.theme] ? d.theme : 'classic', thm = THEMES[themeKey];
+    const themeKey = THEMES[this.props.theme] ? this.props.theme : THEMES[d.theme] ? d.theme : 'gearwatch', thm = THEMES[themeKey];
     const mmOpen = s.measureMore != null ? s.measureMore : POINTS.some(p => !p.core && lv[p.id] != null);
     const brandById = id => d.brands.find(b => b.id === id);
 

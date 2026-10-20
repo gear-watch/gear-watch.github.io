@@ -383,6 +383,7 @@ input::placeholder{color:#6e6e73;}
     </sc-if>
 
     <div style="padding:20px 16px 0;display:flex;flex-direction:column;gap:12px;align-items:stretch;">
+      <button data-anim="up" onClick="{{ shareItem }}" style="border:0;background:#1c1c1e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:12px 16px;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" style-active="transform:scale(0.95);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3.5M7.5 8L12 3.5 16.5 8"></path><path d="M5 12v7.5h14V12"></path></svg><span>Share this item</span></button>
       <sc-if value="{{ d.hasUrl }}" hint-placeholder-val="{{ true }}"><a data-anim="up" href="{{ d.url }}" target="_blank" rel="noopener" style="display:block;text-align:center;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:12px 16px;font-size:17px;text-decoration:none;">Open in shop</a></sc-if>
       <button onClick="{{ deleteItem }}" style="border:0;background:none;color:#ff453a;font-size:17px;padding:8px;cursor:pointer;">{{ deleteLabel }}</button>
     </div>
@@ -521,6 +522,40 @@ input::placeholder{color:#6e6e73;}
         </div>
       </div>
     </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasShared }}" hint-placeholder-val="{{ false }}">
+  <div data-anim="fade" data-delay="0" style="position:absolute;inset:0;z-index:100;background:#000;overflow-y:auto;scrollbar-width:none;padding-bottom:40px;">
+    <div style="position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(env(safe-area-inset-top) + {{ topPad }}px) 16px 10px;background:rgba(0,0,0,0.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);">
+      <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ sh.fromTxt }}</span>
+      <button onClick="{{ closeShared }}" aria-label="Close" style="width:32px;height:32px;border:0;border-radius:9999px;background:#2c2c2e;color:#f5f5f7;display:grid;place-items:center;cursor:pointer;" style-active="transform:scale(0.95);"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l8 8M10 2l-8 8"></path></svg></button>
+    </div>
+    <sc-if value="{{ sh.hasPhotos }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;">
+        <sc-for list="{{ sh.photos }}" as="ph" hint-placeholder-count="1"><div style="flex:none;width:100%;scroll-snap-align:start;"><img data-anim="zoom" src="{{ ph.src }}" alt="" style="display:block;width:100%;aspect-ratio:4/5;object-fit:cover;object-position:top;background:#1c1c1e;"></div></sc-for>
+      </div>
+      <sc-if value="{{ sh.multi }}" hint-placeholder-val="{{ false }}"><div style="padding:8px 0 0;text-align:center;font-size:12px;color:#6e6e73;">Swipe for {{ sh.photoCount }} photos</div></sc-if>
+    </sc-if>
+    <div style="padding:16px 20px 0;display:flex;flex-direction:column;gap:4px;">
+      <span data-anim="up" style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ sh.brandCat }}</span>
+      <span data-anim="up" style="font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1.14;letter-spacing:-0.374px;text-wrap:pretty;">{{ sh.name }}</span>
+      <div data-anim="up" style="display:flex;align-items:baseline;gap:8px;margin-top:4px;flex-wrap:wrap;"><span style="font-family:var(--font-display);font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;">{{ sh.price }}</span><span style="font-size:14px;color:#a1a1a6;">{{ sh.eur }}</span></div>
+    </div>
+    <div data-anim="up" style="margin:20px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+      <sc-for list="{{ sh.rows }}" as="r" hint-placeholder-count="3"><div style="background:#1c1c1e;padding:12px 16px;display:flex;justify-content:space-between;align-items:baseline;gap:16px;"><span style="color:#a1a1a6;flex:none;">{{ r.k }}</span><span style="text-align:right;font-weight:600;text-wrap:pretty;">{{ r.v }}</span></div></sc-for>
+    </div>
+    <sc-if value="{{ sh.hasMeas }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="padding:24px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ sh.measTitle }}</div>
+      <div data-anim="up" style="margin:0 16px;background:#1c1c1e;border-radius:18px;padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;font-size:14px;letter-spacing:-0.224px;">
+        <sc-for list="{{ sh.meas }}" as="m" hint-placeholder-count="4"><span style="color:#a1a1a6;">{{ m.k }}</span><span style="text-align:right;font-weight:600;font-variant-numeric:tabular-nums;">{{ m.v }}</span></sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ sh.hasNote }}" hint-placeholder-val="{{ false }}"><div style="padding:10px 20px 0;font-size:12px;color:#6e6e73;line-height:1.4;">{{ sh.note }}</div></sc-if>
+    <div style="padding:24px 16px 0;display:flex;flex-direction:column;gap:12px;">
+      <sc-if value="{{ sh.hasUrl }}" hint-placeholder-val="{{ true }}"><a data-anim="up" href="{{ sh.url }}" target="_blank" rel="noopener" style="display:block;text-align:center;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:12px 16px;font-size:17px;font-weight:600;text-decoration:none;">Open in shop</a></sc-if>
+      <button data-anim="up" onClick="{{ addShared }}" style="border:0;background:#1c1c1e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:12px 16px;font-size:17px;cursor:pointer;" style-active="transform:scale(0.95);">Add to my wishlist</button>
+    </div>
   </div>
 </sc-if>
 
@@ -827,6 +862,9 @@ const BREEDWELL = () => [
     { id: 'bw-gagged', name: 'Gagged Body Harness', brand: 'Breedwell', category: 'Harness', url: 'https://breedwell.eu/products/gagged-body-harness?variant=48893641490667', photos: ['https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-8714342.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-9120655.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-9219584.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-8334535.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-8178980.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-9770628.jpg?v=1781774996&width=1200'], currency: '€', price: 70.8, history: [{ date: '2026-10-20', price: 70.8 }], rating: 3, status: 'wanted', size: 'XS', colour: 'Neon Pink', m2m: false, added: '2026-10-20', needs: { ids: ['chest'], note: 'Breedwell sizes by chest: XS 83–91 cm, S/M 91–104 cm.' } },
     { id: 'bw-boxer', name: 'Circuit Breaker Boxer Brief', brand: 'Breedwell', category: 'Underwear', url: 'https://breedwell.eu/products/circuit-breaker-boxer-brief', photos: ['https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-3777974.jpg?v=1777216532&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-2633288.jpg?v=1777216533&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-6001643.jpg?v=1777216533&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-9064242.jpg?v=1777216533&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-1925577.jpg?v=1777216533&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-1987066.jpg?v=1777216533&width=900'], currency: '€', price: 40.8, history: [{ date: '2026-10-20', price: 40.8 }], rating: 3, status: 'wanted', size: 'S', colour: 'Neon Pink', m2m: false, added: '2026-10-20', needs: { ids: ['waist'], note: 'Breedwell sizes by waist: S 71–76 cm, M 76–81 cm. Hygiene item: no returns once opened.' } }
   ];
+const b64e = o => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64d = s => { try { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return JSON.parse(decodeURIComponent(escape(atob(s)))); } catch (e) { return null; } };
+const readShare = () => { const m = (location.hash || '').match(/[#&]share=([^&]+)/); return m ? b64d(m[1]) : null; };
 function linkImports() {
   const KF = 'https://kinkfox.com/product/', KU = 'https://kinkfox.com/wp-content/uploads/', LX = 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/', d = '2026-10-20', h = p => [{ date: d, price: p }];
   const kfM2m = { ids: KF_FORM, note: 'From Kinkfox’s made-to-measure form. Price includes the +20% made-to-measure charge.' };
@@ -870,6 +908,8 @@ class Component extends DCLogic {
   }
   componentDidMount() {
     this.syncPrices();
+    const sh = readShare(); if (sh && sh.n) this.setState({ shared: sh });
+    this.onHash = () => { const s2 = readShare(); this.setState({ shared: s2 && s2.n ? s2 : null }); }; window.addEventListener('hashchange', this.onHash);
     if (!this.isFramed()) document.body.style.background = '#000';
     this.reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.seen = new WeakSet();
@@ -889,7 +929,7 @@ class Component extends DCLogic {
     if (this._pg !== undefined && this._pg !== s.group) this.replay('[data-row]', 'up');
     this._pg = s.group;
   }
-  componentWillUnmount() { clearInterval(this.tick); if (this.mo) this.mo.disconnect(); [this.t1, this.t2, this.t3, this.t4, this.t5].forEach(clearTimeout); }
+  componentWillUnmount() { if (this.onHash) window.removeEventListener('hashchange', this.onHash); clearInterval(this.tick); if (this.mo) this.mo.disconnect(); [this.t1, this.t2, this.t3, this.t4, this.t5].forEach(clearTimeout); }
 
   isFramed() { return !!this.props.framed && this.props.framed !== 'false'; }
   introOn() { return !(this.props.intro === false || this.props.intro === 'false'); }
@@ -1132,6 +1172,21 @@ class Component extends DCLogic {
       figTabs: FIG.map(g => ({ label: g.label, bg: st.figTab === g.id ? '#636366' : 'transparent', onTap: () => this.setState({ figTab: g.id }) })),
       bodyFigEl, tileGroups,
 
+      hasShared: !!st.shared, topPad: this.isFramed() ? 52 : 12,
+      sh: (() => { const s = st.shared || {}; const ph = (s.ph || []).filter(Boolean), cur = s.c || '€';
+        const rows = [['Size', s.s], ['Colour', s.col], ['Made to measure', s.m ? 'Yes' : null], ['Status', s.st === 'ordered' ? 'Already ordered' : s.st === 'owned' ? 'Already owned' : null]].filter(r => r[1]).map(([k, v]) => ({ k, v }));
+        return { fromTxt: (s.f ? s.f + ' wants this' : 'Shared from GearWatch'), name: s.n || '', brandCat: [s.b, s.cat].filter(Boolean).join(' · '), price: s.p == null ? 'No price yet' : money(cur, s.p), eur: s.p != null && cur !== '€' ? '≈ €' + Math.round(s.p * (FX[cur] || 1)) : '',
+          photos: ph.map(src => ({ src })), hasPhotos: !!ph.length, multi: ph.length > 1, photoCount: String(ph.length), rows,
+          meas: (s.ms || []).map(([k, v]) => ({ k, v })), hasMeas: !!(s.ms || []).length, measTitle: (s.f ? s.f + '’s' : 'Their') + ' measurements for this item', note: s.no || '', hasNote: !!s.no, url: s.u || '', hasUrl: !!s.u }; })(),
+      closeShared: () => { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; } this.setState({ shared: null }); },
+      addShared: () => { const s = st.shared; if (!s) return; this.mutate(p => { p.items.push({ id: uid(), name: s.n, brand: s.b || '', category: s.cat || '', url: s.u || '', photos: (s.ph || []).filter(Boolean), currency: s.c || '€', price: s.p == null ? null : s.p, history: s.p == null ? [] : [{ date: todayISO(), price: s.p }], rating: 3, status: 'wanted', size: s.s || '', colour: s.col || '', m2m: !!s.m, added: todayISO() }); }); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} this.setState({ shared: null }); this.toast('Added to your wishlist'); },
+      shareItem: e => { if (!dIt) return; this.bump(e.currentTarget, 1.04);
+        const ms = (d.needRows || []).filter(r => r.value !== 'Not measured').map(r => [r.label, r.value]);
+        const payload = { n: dIt.name, b: dIt.brand || undefined, cat: dIt.category || undefined, u: dIt.url || undefined, c: dIt.currency, p: dIt.price, s: dIt.size || undefined, col: dIt.colour || undefined, m: dIt.m2m ? 1 : undefined, st: dIt.status !== 'wanted' ? dIt.status : undefined, ph: (dIt.photos || []).filter(x => !/^data:/.test(x)).slice(0, 6).map(x => /^\.\//.test(x) ? new URL(x, location.href).href : x), ms: ms.length ? ms : undefined, f: p.name, no: (dIt.needs && dIt.needs.note) || undefined };
+        const url = location.origin + location.pathname + '#share=' + b64e(payload);
+        const title = dIt.name + (dIt.size ? ' · ' + dIt.size : '');
+        if (navigator.share) navigator.share({ title, text: (p.name || 'I') + ' wants this: ' + title, url }).catch(() => {});
+        else { try { navigator.clipboard.writeText(url); } catch (er) {} this.toast('Link copied'); } },
       hasDetail: !!dIt, d, closeDetail: () => this.closeDetail(), openEdit: () => dIt && this.openForm(dIt),
       carRef: this.carRef, carPrev: () => this.carGo(st.photoIdx - 1), carNext: () => this.carGo(st.photoIdx + 1),
       carDown: e => { if (e.pointerType !== 'mouse') return; const el = e.currentTarget; this.drag = { x: e.clientX, s: el.scrollLeft, moved: false }; el.style.scrollSnapType = 'none'; el.style.cursor = 'grabbing'; try { el.setPointerCapture(e.pointerId); } catch (er) {} },
