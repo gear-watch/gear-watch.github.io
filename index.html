@@ -17,6 +17,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
+<script src="./config.js"></script>
 <style>
 html,body{margin:0;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -1029,11 +1030,10 @@ class Component extends DCLogic {
   heroRef = React.createRef(); carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
   introRef = React.createRef(); bPanelRef = React.createRef(); toastRef = React.createRef(); figRef = React.createRef();
 
-  async syncPrices() {
-    let j; try { const r = await fetch('./prices.json', { cache: 'no-store' }); if (!r.ok) return; j = await r.json(); } catch (e) { return; }
-    const map = (j && j.items) || {}, data = JSON.parse(JSON.stringify(this.state.data)); let changed = false;
+  applyPrices(map) {
+    const data = JSON.parse(JSON.stringify(this.state.data)); let changed = false;
     data.profiles.forEach(p => p.items.forEach(it => {
-      const e = it.url && map[normUrl(it.url)]; if (!e || e.checked === it.checked) return; changed = true;
+      const e = it.url && map[normUrl(it.url)]; if (!e || !e.checked || (it.checked && e.checked <= it.checked)) return; changed = true;
       it.checked = e.checked; it.checkErr = null;
       if (!e.ok || e.price == null) { it.checkErr = 'Couldn’t read the price'; return; }
       if (e.currency && it.currency && e.currency !== it.currency) { it.checkErr = 'Shop shows ' + e.currency + e.price; return; }
@@ -1041,6 +1041,17 @@ class Component extends DCLogic {
       if (it.price !== np) { if (!(it.history || []).length && it.price != null) it.history = [{ date: it.added || e.checked.slice(0, 10), price: it.price }]; it.history = (it.history || []).concat({ date: e.checked.slice(0, 10), price: np }); it.price = np; }
     }));
     if (changed) this.save(data);
+  }
+  async syncPrices() {
+    try { const r = await fetch('./prices.json', { cache: 'no-store' }); if (r.ok) { const j = await r.json(); this.applyPrices((j && j.items) || {}); } } catch (e) {}
+    for (let i = 0; i < 20 && !('GW_PRICE_API' in window); i++) await new Promise(r => setTimeout(r, 100));
+    const api = (window.GW_PRICE_API || '').trim(); if (!api) return;
+    const now = Date.now(), seen = new Set(), list = [];
+    this.state.data.profiles.forEach(p => p.items.forEach(it => {
+      if (!it.url || it.status === 'owned') return; const k = normUrl(it.url); if (!k || seen.has(k)) return;
+      if (it.checked && now - new Date(it.checked).getTime() < 6 * 36e5) return; seen.add(k); list.push({ url: it.url, currency: it.currency }); }));
+    if (!list.length) return;
+    try { const r = await fetch(api, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ items: list }) }); if (r.ok) { const j = await r.json(); this.applyPrices((j && j.items) || {}); } } catch (e) {}
   }
   componentDidMount() {
     this.syncPrices();
