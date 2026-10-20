@@ -386,18 +386,12 @@ input:focus,textarea:focus{outline:2px solid #0071e3;outline-offset:0;}
 
 </div>
 
-<div style="flex:none;display:grid;grid-template-columns:repeat(4,1fr);background:var(--fl-bar,rgba(245,245,247,0.8));backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--fl-line,#e0e0e0);padding:6px 8px calc(6px + env(safe-area-inset-bottom) + {{ bottomInset }}px);">
+<div style="flex:none;display:grid;grid-template-columns:repeat(2,1fr);background:var(--fl-bar,rgba(245,245,247,0.8));backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--fl-line,#e0e0e0);padding:6px 8px calc(6px + env(safe-area-inset-bottom) + {{ bottomInset }}px);">
   <a href="./" aria-label="Back to GearWatch" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;color:var(--fl-muted,#a1a1a6);font-size:10px;letter-spacing:-0.08px;text-decoration:none;" style-active="transform:scale(0.95);">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg><span>GearWatch</span>
   </a>
   <button onClick="{{ tabHome.onTap }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;color:{{ tabHome.color }};font-size:10px;letter-spacing:-0.08px;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"></path></svg><span>Measurements</span>
-  </button>
-  <button onClick="{{ tabBrands.onTap }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;color:{{ tabBrands.color }};font-size:10px;letter-spacing:-0.08px;">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3.5 4h8l9 9-7.5 7.5-9-9z"></path><circle cx="8" cy="8.5" r="1.4"></circle></svg><span>Size check</span>
-  </button>
-  <button onClick="{{ tabOrders.onTap }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;color:{{ tabOrders.color }};font-size:10px;letter-spacing:-0.08px;">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M5 8.5h14l-1 12H6z"></path><path d="M9 8.5V6.5a3 3 0 016 0v2"></path></svg><span>Orders</span>
   </button>
 </div>
 

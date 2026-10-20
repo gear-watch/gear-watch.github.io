@@ -16,6 +16,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="stylesheet" href="./colors_and_type.css">
+<script src="./fitlog-data.js"></script>
 <style>
 html,body{margin:0;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -52,7 +53,39 @@ input::placeholder{color:#6e6e73;}
 
   <sc-if value="{{ showA }}" hint-placeholder-val="{{ true }}">
     <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ false }}">
-      <div data-anim="scale" onClick="{{ next.onOpen }}" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .2s;" style-active="transform:scale(0.98);">
+      <div ref="{{ heroRef }}" onScroll="{{ onHeroScroll }}" onPointerDown="{{ heroDown }}" onPointerMove="{{ heroMove }}" onPointerUp="{{ heroUp }}" onPointerCancel="{{ heroUp }}" onClickCapture="{{ heroClickCap }}" style="margin-top:16px;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;cursor:{{ heroCursor }};user-select:none;touch-action:pan-x pan-y;">
+        <sc-if value="{{ hasSale }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:none;width:100%;padding:0 16px;box-sizing:border-box;scroll-snap-align:center;">
+            <div data-anim="scale" draggable="false" onClick="{{ sale.onOpen }}" style="background:var(--gw-accent,#ffd60a);color:#000;border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .2s;" style-active="transform:scale(0.98);">
+              <div style="position:relative;overflow:hidden;">
+                <img data-anim="zoom" src="{{ sale.photo }}" alt="" draggable="false" style="display:block;width:100%;aspect-ratio:4/5;object-fit:cover;object-position:top;background:#e6c000;">
+                <span data-anim="pop" data-delay="300" style="position:absolute;top:12px;left:12px;background:#000;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:6px 12px;font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-0.3px;">{{ sale.pct }}</span>
+                <span style="position:absolute;top:14px;right:12px;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:4px 10px;font-size:12px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;">On sale</span>
+              </div>
+              <div style="padding:16px 20px 20px;display:flex;flex-direction:column;gap:4px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <span data-anim="right" style="font-size:12px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;">Price drop</span>
+                  <span style="font-size:12px;font-weight:600;color:rgba(0,0,0,0.7);">{{ sale.rankTxt }}</span>
+                </div>
+                <span data-anim="up" style="font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1.14;letter-spacing:-0.374px;text-wrap:pretty;">{{ sale.name }}</span>
+                <span data-anim="up" style="font-size:14px;color:rgba(0,0,0,0.7);letter-spacing:-0.224px;">{{ sale.meta }}</span>
+                <div data-anim="up" style="display:flex;align-items:baseline;gap:10px;margin-top:8px;flex-wrap:wrap;">
+                  <span style="font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-0.374px;">{{ sale.priceTxt }}</span>
+                  <span style="font-size:17px;color:rgba(0,0,0,0.6);text-decoration:line-through;">{{ sale.wasTxt }}</span>
+                  <span style="flex:1;"></span>
+                  <span style="display:flex;gap:2px;"><sc-for list="{{ sale.stars }}" as="s" hint-placeholder-count="5"><svg width="14" height="14" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}"></path></svg></sc-for></span>
+                </div>
+                <div data-anim="up" style="display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:12px;border-top:1px solid rgba(0,0,0,0.15);font-size:14px;letter-spacing:-0.224px;">
+                  <span style="font-weight:700;flex:none;">{{ sale.saveTxt }}</span>
+                  <span style="flex:1;color:rgba(0,0,0,0.75);">{{ sale.afford }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ showNextSlide }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:none;width:100%;padding:0 16px;box-sizing:border-box;scroll-snap-align:center;">
+            <div data-anim="scale" onClick="{{ next.onOpen }}" style="margin:0;background:#1c1c1e;border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .2s;" style-active="transform:scale(0.98);">
         <div style="overflow:hidden;"><img data-anim="zoom" src="{{ next.photo }}" alt="" style="display:block;width:100%;aspect-ratio:4/5;object-fit:cover;object-position:top;background:#2c2c2e;"></div>
         <div style="padding:16px 20px 20px;display:flex;flex-direction:column;gap:4px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
@@ -73,6 +106,14 @@ input::placeholder{color:#6e6e73;}
           </div>
         </div>
       </div>
+          </div>
+        </sc-if>
+      </div>
+      <sc-if value="{{ heroMulti }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;justify-content:center;gap:6px;padding-top:10px;">
+          <sc-for list="{{ heroDots }}" as="dt" hint-placeholder-count="2"><button onClick="{{ dt.onTap }}" aria-label="{{ dt.label }}" style="border:0;padding:4px 0;background:none;cursor:pointer;display:flex;"><span style="width:{{ dt.w }};height:7px;border-radius:9999px;background:{{ dt.bg }};transition:width .3s,background .3s;"></span></button></sc-for>
+        </div>
+      </sc-if>
     </sc-if>
   </sc-if>
 
@@ -194,6 +235,7 @@ input::placeholder{color:#6e6e73;}
 <sc-if value="{{ isCollection }}" hint-placeholder-val="{{ false }}">
   <div data-anim="fade" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ profileName }}</div>
   <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Collection</div>
+  <div data-anim="up" style="padding:12px 16px 0;display:flex;"><button onClick="{{ openAddOwned }}" style="border:0;background:#1c1c1e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:8px 16px;font-size:14px;letter-spacing:-0.224px;cursor:pointer;display:flex;align-items:center;gap:6px;" style-active="transform:scale(0.95);"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 2v10M2 7h10"></path></svg><span>Add something you own</span></button></div>
   <sc-if value="{{ hasOnWay }}" hint-placeholder-val="{{ true }}">
     <div data-anim="right" style="padding:24px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">On the way</div>
     <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
@@ -216,13 +258,73 @@ input::placeholder{color:#6e6e73;}
         <div data-anim="scale" onClick="{{ it.onOpen }}" style="display:flex;flex-direction:column;gap:2px;cursor:pointer;min-width:0;" style-active="transform:scale(0.97);">
           <div style="border-radius:18px;overflow:hidden;margin-bottom:8px;"><img data-anim="zoom" src="{{ it.photo }}" alt="" style="display:block;width:100%;aspect-ratio:1/1;object-fit:cover;object-position:top;background:#1c1c1e;"></div>
           <span style="font-size:14px;font-weight:600;letter-spacing:-0.224px;line-height:1.29;">{{ it.name }}</span>
-          <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ it.brand }}</span>
+          <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ it.ownSub }}</span>
         </div>
       </sc-for>
     </div>
   </sc-if>
   <sc-if value="{{ noOwned }}" hint-placeholder-val="{{ true }}">
-    <div data-anim="up" style="margin:0 16px;background:#1c1c1e;border-radius:18px;padding:20px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Nothing here yet. Mark an order as received and it moves here.</div>
+    <div data-anim="up" style="margin:0 16px;background:#1c1c1e;border-radius:18px;padding:20px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Nothing here yet. Add gear you already have, or mark an order as received and it moves here.</div>
+  </sc-if>
+</sc-if>
+
+<sc-if value="{{ isSize }}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{ szList }}" hint-placeholder-val="{{ true }}">
+    <div data-anim="fade" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ profileName }}</div>
+    <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Size check</div>
+    <div data-anim="up" style="padding:4px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Your best size at each brand, from your latest measurements.</div>
+    <sc-if value="{{ szNoMeas }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;"><span style="font-weight:600;">No measurements yet.</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Measure once in Fitlog and every brand gets a size.</span><a href="./Fitlog.dc.html" style="margin-top:4px;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;text-decoration:none;">Open Fitlog</a></div>
+    </sc-if>
+    <div style="margin:16px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+      <sc-for list="{{ szBrands }}" as="b" hint-placeholder-count="5">
+        <button data-anim="up" onClick="{{ b.onOpen }}" style="border:0;background:#1c1c1e;padding:14px 16px;display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;color:#f5f5f7;">
+          <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+            <span style="font-weight:600;">{{ b.name }}</span>
+            <span style="display:flex;align-items:center;gap:6px;font-size:14px;letter-spacing:-0.224px;"><span style="width:8px;height:8px;border-radius:9999px;background:{{ b.color }};flex:none;"></span>{{ b.line }}</span>
+            <span style="font-size:12px;letter-spacing:-0.12px;color:#a1a1a6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ b.sub }}</span>
+          </span>
+          <span style="font-family:var(--font-display);font-size:24px;font-weight:600;">{{ b.size }}</span>
+          <span style="color:#6e6e73;">›</span>
+        </button>
+      </sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{ szDetail }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:4px 8px 0;"><button onClick="{{ szBack }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">‹ Size check</button></div>
+    <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">{{ sz.name }}</div>
+    <div data-anim="up" style="padding:4px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">{{ sz.note }}</div>
+    <sc-if value="{{ sz.hasG }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:16px 16px 2px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;">
+        <sc-for list="{{ sz.garments }}" as="g" hint-placeholder-count="3"><button onClick="{{ g.onTap }}" style="flex:none;border:0;border-radius:9999px;padding:7px 14px;font-size:14px;letter-spacing:-0.224px;cursor:pointer;white-space:nowrap;background:{{ g.bg }};color:{{ g.fg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ g.label }}</button></sc-for>
+      </div>
+      <div data-anim="scale" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;align-items:center;gap:16px;">
+        <div style="width:72px;height:72px;flex:none;border-radius:9999px;border:2px solid {{ sz.color }};display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:{{ sz.sizeFont }};font-weight:600;letter-spacing:-0.374px;">{{ sz.best }}</div>
+        <div style="display:flex;flex-direction:column;gap:2px;min-width:0;"><span style="font-weight:600;line-height:1.24;">{{ sz.title }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">{{ sz.text }}</span></div>
+      </div>
+      <div style="padding:24px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Compare a size</div>
+      <div style="display:flex;gap:8px;overflow-x:auto;padding:2px 16px;scrollbar-width:none;">
+        <sc-for list="{{ sz.sizes }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.onTap }}" style="flex:none;min-width:52px;border:0;box-shadow:{{ c.ring }};background:#1c1c1e;border-radius:9999px;padding:8px 14px;font-size:17px;color:#f5f5f7;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.1;"><span>{{ c.label }}</span><span style="font-size:10px;color:var(--gw-accent,#ffd60a);">{{ c.tag }}</span></button></sc-for>
+      </div>
+      <div style="margin:12px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+        <sc-for list="{{ sz.rows }}" as="r" hint-placeholder-count="6">
+          <div style="background:#1c1c1e;padding:12px 16px;display:flex;align-items:center;gap:12px;">
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;"><span>{{ r.label }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">You {{ r.you }} · Chart {{ r.chart }}</span></div>
+            <span style="display:flex;align-items:center;gap:6px;font-size:14px;letter-spacing:-0.224px;white-space:nowrap;"><span style="width:8px;height:8px;border-radius:9999px;background:{{ r.color }};"></span>{{ r.status }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ sz.noG }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:8px;"><span style="font-family:var(--font-display);font-size:21px;font-weight:600;">Made to measure.</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">{{ sz.m2mText }}</span></div>
+    </sc-if>
+    <sc-if value="{{ sz.hasImages }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:28px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">From {{ sz.name }}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0 16px;">
+        <sc-for list="{{ sz.images }}" as="im" hint-placeholder-count="3"><a href="{{ im.src }}" target="_blank" rel="noopener" style="display:flex;flex-direction:column;gap:4px;text-decoration:none;"><img src="{{ im.src }}" alt="{{ im.label }}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:#1c1c1e;display:block;"><span style="font-size:12px;color:#a1a1a6;">{{ im.label }}</span></a></sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ sz.hasUrl }}" hint-placeholder-val="{{ true }}"><div style="padding:20px 16px 0;"><a href="{{ sz.url }}" target="_blank" rel="noopener" style="display:block;text-align:center;background:#1c1c1e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:12px 16px;font-size:17px;text-decoration:none;">Open their size chart</a></div></sc-if>
   </sc-if>
 </sc-if>
 
@@ -271,7 +373,7 @@ input::placeholder{color:#6e6e73;}
 </sc-if>
 </div>
 
-<div style="position:absolute;left:0;right:0;bottom:0;z-index:10;background:rgba(22,22,23,0.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid #2c2c2e;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 0 calc(env(safe-area-inset-bottom) + {{ tabPadB }});">
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:10;background:rgba(22,22,23,0.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid #2c2c2e;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px 0 calc(env(safe-area-inset-bottom) + {{ tabPadB }});">
   <button onClick="{{ goWish }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabWish }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg>
     <span>Wishlist</span>
@@ -283,6 +385,10 @@ input::placeholder{color:#6e6e73;}
   <button onClick="{{ goMeasure }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabMeas }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="1.5"></rect><path d="M6.5 8v3M10 8v4M13.5 8v3M17 8v4"></path></svg>
     <span>Measurements</span>
+  </button>
+  <button onClick="{{ goSize }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabSize }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3.5 4h8l9 9-7.5 7.5-9-9z"></path><circle cx="8" cy="8.5" r="1.4"></circle></svg>
+    <span>Size check</span>
   </button>
 </div>
 
@@ -568,15 +674,6 @@ input::placeholder{color:#6e6e73;}
   </div>
 </sc-if>
 
-<div onClick="{{ openNotif }}" style="position:absolute;top:8px;left:8px;right:8px;z-index:60;background:rgba(44,44,46,0.92);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-radius:18px;padding:12px 14px;display:flex;gap:12px;align-items:center;cursor:pointer;transform:translateY({{ notifY }});transition:transform .55s cubic-bezier(.2,1.2,.3,1);">
-  <span style="width:38px;height:38px;border-radius:9px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;flex:none;">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg>
-  </span>
-  <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
-    <div style="display:flex;justify-content:space-between;gap:8px;"><span style="font-size:14px;font-weight:600;letter-spacing:-0.224px;">Price drop</span><span style="font-size:12px;color:#a1a1a6;">now</span></div>
-    <span style="font-size:14px;letter-spacing:-0.224px;line-height:1.3;color:#e5e5ea;">{{ notifText }}</span>
-  </div>
-</div>
 
 <sc-if value="{{ showIntro }}" hint-placeholder-val="{{ false }}">
   <div ref="{{ introRef }}" data-anim="fade" data-delay="0" style="position:absolute;inset:0;z-index:80;background:#000;display:flex;flex-direction:column;padding-top:{{ topPad }};">
@@ -862,6 +959,45 @@ const BREEDWELL = () => [
     { id: 'bw-gagged', name: 'Gagged Body Harness', brand: 'Breedwell', category: 'Harness', url: 'https://breedwell.eu/products/gagged-body-harness?variant=48893641490667', photos: ['https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-8714342.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-9120655.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-9219584.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-8334535.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-8178980.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-9770628.jpg?v=1781774996&width=1200'], currency: '€', price: 70.8, history: [{ date: '2026-10-20', price: 70.8 }], rating: 3, status: 'wanted', size: 'XS', colour: 'Neon Pink', m2m: false, added: '2026-10-20', needs: { ids: ['chest'], note: 'Breedwell sizes by chest: XS 83–91 cm, S/M 91–104 cm.' } },
     { id: 'bw-boxer', name: 'Circuit Breaker Boxer Brief', brand: 'Breedwell', category: 'Underwear', url: 'https://breedwell.eu/products/circuit-breaker-boxer-brief', photos: ['https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-3777974.jpg?v=1777216532&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-2633288.jpg?v=1777216533&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-6001643.jpg?v=1777216533&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-9064242.jpg?v=1777216533&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-1925577.jpg?v=1777216533&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-1987066.jpg?v=1777216533&width=900'], currency: '€', price: 40.8, history: [{ date: '2026-10-20', price: 40.8 }], rating: 3, status: 'wanted', size: 'S', colour: 'Neon Pink', m2m: false, added: '2026-10-20', needs: { ids: ['waist'], note: 'Breedwell sizes by waist: S 71–76 cm, M 76–81 cm. Hygiene item: no returns once opened.' } }
   ];
+const SZ_LEN = new Set(['height','torso','ubend','insideArm','inseam','armLength','shoulder','napeWaist','crotch','waistKnee','waistAnkle','foot']);
+const SZ_ORDER = ['height','neck','chest','underbust','waist','waistHip','hips','torso','ubend','insideArm','inseam','armLength','thigh','shoulder','napeWaist','crotch','waistKnee','waistAnkle','armpit','upperArm','elbow','forearm','wrist','palm','knee','calf','ankle','head','foot','shoe'];
+const SZ_LABEL = id => (PT[id] && PT[id].label) || ({ palm: 'Hand', foot: 'Foot length', napeWaist: 'Nape to waist', crotch: 'Crotch length', waistKnee: 'Waist to knee' })[id] || id;
+const SZC = { green: '#30d158', amber: '#ff9f0a', red: '#ff453a', grey: '#8e8e93', acc: ACC };
+function szRow(id, rng, you, tol) {
+  const len = SZ_LEN.has(id);
+  if (you == null) return { k: 'none', label: 'Not measured', color: SZC.grey, score: 0, dist: 0 };
+  const mn = rng[0], mx = rng[1];
+  if (you >= mn && you <= mx) return { k: 'fits', label: 'Fits', color: SZC.green, score: 0, dist: 0 };
+  if (you > mx) { const o = you - mx; return o <= tol ? { k: 'snug', label: len ? 'Short side' : 'Snug', color: SZC.amber, score: 1, dist: o } : { k: 'tight', label: len ? 'Too short' : 'Too tight', color: SZC.red, score: 3, dist: o }; }
+  const o = mn - you; return o <= tol ? { k: 'fits', label: 'Fits', color: SZC.green, score: 0.2, dist: o } : { k: 'loose', label: len ? 'Too long' : 'Loose', color: SZC.red, score: 2.5, dist: o };
+}
+function szEval(size, vals, tol) {
+  const rows = SZ_ORDER.filter(id => size.values[id]).map(id => ({ id, rng: size.values[id], you: vals[id], f: szRow(id, size.values[id], vals[id], tol) }));
+  const m = rows.filter(r => r.f.k !== 'none');
+  return { rows, measured: m.length, score: rows.reduce((a, r) => a + r.f.score, 0), dist: rows.reduce((a, r) => a + r.f.dist, 0), bad: m.filter(r => r.f.k === 'tight' || r.f.k === 'loose'), snug: m.filter(r => r.f.k === 'snug') };
+}
+function szBest(g, vals, tol) { let bi = -1, b = null; g.sizes.forEach((s, i) => { const e = szEval(s, vals, tol); if (!e.measured) return; if (!b || e.score < b.score || (e.score === b.score && e.dist < b.dist)) { b = e; bi = i; } }); return bi; }
+const SZ_M2M = { kinkfox: 1, kinkprojects: 1, latexforever: 1, latexartisan: 1 };
+function szVerdict(e, label, m2m) {
+  if (!e || !e.measured) return { title: 'Nothing to compare', text: 'None of your measurements are on this chart yet.', color: SZC.grey, size: '—' };
+  const names = a => a.map(r => SZ_LABEL(r.id).toLowerCase()).join(', ');
+  if (e.bad.length) return { title: m2m ? 'Size ' + label + ' or made to measure' : 'Closest: size ' + label, text: e.bad.length + (e.bad.length === 1 ? ' point falls' : ' points fall') + ' outside ' + label + ': ' + names(e.bad) + '.' + (m2m ? ' Made to measure fixes that, but ' + label + ' is the closest standard size.' : ' This brand doesn’t make to measure, so check the fit there.'), color: SZC.red, size: label, alt: m2m };
+  if (e.snug.length) return { title: 'Size ' + label, text: 'Snug at ' + names(e.snug) + '. Within the stretch allowance.', color: SZC.amber, size: label };
+  return { title: 'Size ' + label, text: 'Every measured point is inside the range.', color: SZC.green, size: label };
+}
+const szLen = n => { const m = /· (Petite|Regular|Tall|Extra Tall)$/.exec(n || ''); return m ? m[1] : ''; };
+const szWithLen = (v, n) => { const l = szLen(n); return l && !v.alt ? v.title + ' · ' + l : v.title; };
+function szAuto(b, vals) {
+  let list = b.garments.map((g, i) => ({ g, i })); const cs = list.filter(x => /catsuit/i.test(x.g.name)); if (cs.length) list = cs;
+  let best = null; list.forEach(({ g, i }) => { const si = szBest(g, vals, b.tol); if (si < 0) return; const e = szEval(g.sizes[si], vals, b.tol); if (!best || e.score < best.e.score || (e.score === best.e.score && e.dist < best.e.dist)) best = { gi: i, si, e }; });
+  return best;
+}
+function szSummary(b, vals) {
+  if (!b.garments.length) { const mm = b.m2mOnly || !!b.m2mForm; return { size: '', line: mm ? 'Made-to-measure brand' : 'No chart loaded yet', color: mm ? SZC.acc : SZC.grey, sub: mm ? 'Send your measurements with the order' : 'Check their website' }; }
+  const a = szAuto(b, vals); if (!a) return { size: '—', line: 'Nothing to compare', color: SZC.grey, sub: b.garments[0].name };
+  const g = b.garments[a.gi], v = szVerdict(a.e, g.sizes[a.si].label, !!SZ_M2M[b.id]);
+  return { size: g.sizes[a.si].label, line: szWithLen(v, g.name), color: v.color, sub: 'Best match: ' + g.name };
+}
 const b64e = o => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const b64d = s => { try { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return JSON.parse(decodeURIComponent(escape(atob(s)))); } catch (e) { return null; } };
 const readShare = () => { const m = (location.hash || '').match(/[#&]share=([^&]+)/); return m ? b64d(m[1]) : null; };
@@ -890,7 +1026,7 @@ function readPhoto(file) {
 
 class Component extends DCLogic {
   state = { data: load(), tab: 'wish', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null };
-  carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
+  heroRef = React.createRef(); carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
   introRef = React.createRef(); bPanelRef = React.createRef(); toastRef = React.createRef(); figRef = React.createRef();
 
   async syncPrices() {
@@ -908,6 +1044,7 @@ class Component extends DCLogic {
   }
   componentDidMount() {
     this.syncPrices();
+    if (!window.FITLOG_BRANDS) { let n = 0; this.brPoll = setInterval(() => { if (window.FITLOG_BRANDS || ++n > 50) { clearInterval(this.brPoll); this.forceUpdate(); } }, 100); }
     const sh = readShare(); if (sh && sh.n) this.setState({ shared: sh });
     this.onHash = () => { const s2 = readShare(); this.setState({ shared: s2 && s2.n ? s2 : null }); }; window.addEventListener('hashchange', this.onHash);
     if (!this.isFramed()) document.body.style.background = '#000';
@@ -1014,9 +1151,9 @@ class Component extends DCLogic {
   goTab(t, e) { if (e) this.bump(e.currentTarget.firstElementChild, 1.25); if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; if (t === this.state.tab && !this.state.detail) return; this.setState({ tab: t, detail: null }); }
   fval(vals, id) { const v = vals[id]; if (v == null) return null; if (id === 'shoe') return { v: String(v), u: 'EU' }; return this.state.unit === 'in' ? { v: (v / 2.54).toFixed(1), u: 'in' } : { v: num(v), u: 'cm' }; }
   setF(k, v) { this.setState(s => ({ form: Object.assign({}, s.form, { [k]: v }) })); }
-  openForm(it) {
+  openForm(it, status) {
     const f = it ? { id: it.id, url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, photos: (it.photos || []).slice() }
-      : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: '€', size: '', colour: '', m2m: false, rating: 3, photos: [] };
+      : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: '€', size: '', colour: '', m2m: false, rating: 3, photos: [], status: status || 'wanted' };
     f.found = [];
     this.setState({ sheet: 'form', form: f, fetchMsg: '', fetching: false, newCatOpen: false, sizeOpen: false });
   }
@@ -1052,9 +1189,10 @@ class Component extends DCLogic {
         if (!isNew) { const it = p.items.find(x => x.id === f.id); if (!it) return;
           if (price != null && (price !== it.price || f.currency !== it.currency)) { it.history = (it.history || []).filter(h => h.date !== t); if (f.currency !== it.currency) it.history = []; it.history.push({ date: t, price }); }
           Object.assign(it, base, { price }); }
+        else if (f.status === 'owned') p.items.push(Object.assign({ id: uid(), status: 'owned', added: t, ownedOn: t, history: [] }, base, { price, paid: price, paidCur: f.currency }));
         else p.items.push(Object.assign({ id: uid(), status: 'wanted', added: t, history: price != null ? [{ date: t, price }] : [] }, base, { price }));
       });
-      this.toast(isNew ? 'Added to your wishlist' : 'Saved');
+      this.toast(isNew ? (f.status === 'owned' ? 'Added to your collection' : 'Added to your wishlist') : 'Saved');
     });
   }
   setStatus(id, s) {
@@ -1094,7 +1232,7 @@ class Component extends DCLogic {
     const onWay = onWayIt.map(it => Object.assign(this.vm(it), {
       orderedTxt: 'Ordered ' + fmtD(it.orderedOn) + (it.paid != null ? ' · ' + money(it.paidCur || '€', it.paid) + ' paid' : ''),
       onReceived: e => { const row = e.currentTarget.closest('[data-row]'); this.animOut(row, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(60px)' }], 300, () => { this.setStatus(it.id, 'owned'); this.toast('Moved to Owned'); }); } }));
-    const owned = ownedIt.map(it => this.vm(it));
+    const owned = ownedIt.map(it => Object.assign(this.vm(it), { ownSub: [it.brand, it.size && it.size !== 'Made to measure' ? 'Size ' + it.size : it.size].filter(Boolean).join(' · ') }));
     const dropIt = this.dropItem();
 
     const vals = (p.session && p.session.values) || {}, hasSession = !!(p.session && Object.keys(vals).length);
@@ -1137,7 +1275,7 @@ class Component extends DCLogic {
     }
 
     const f = st.form || {};
-    const sheetMeta = { form: [f.id ? 'Edit item' : 'Add gear', 'Save'], budget: ['Monthly budget', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null] }[st.sheet] || ['', null];
+    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: ['Monthly budget', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null] }[st.sheet] || ['', null];
     const canSave = st.sheet === 'form' ? !!(f.name || '').trim() : st.sheet === 'budget' ? toNum(st.budgetIn) > 0 : true;
     const pv = st.pointId ? this.fval(vals, st.pointId) : null;
     const chips = (cur, set) => BUDGET_CHIPS.map(n => { const on = toNum(cur) === n; return { label: '€' + n, bg: on ? ACC : '#1c1c1e', color: on ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.12); set(String(n)); } }; });
@@ -1151,7 +1289,27 @@ class Component extends DCLogic {
       accent: this.props.accent || '#ffd60a',
       isWish: st.tab === 'wish', isCollection: st.tab === 'coll', isMeasure: st.tab === 'meas',
       tabWish: st.tab === 'wish' ? ACC : '#8e8e93', tabColl: st.tab === 'coll' ? ACC : '#8e8e93', tabMeas: st.tab === 'meas' ? ACC : '#8e8e93',
-      goWish: e => this.goTab('wish', e), goCollection: e => this.goTab('coll', e), goMeasure: e => this.goTab('meas', e),
+      goWish: e => this.goTab('wish', e), goCollection: e => this.goTab('coll', e), goMeasure: e => this.goTab('meas', e), goSize: e => { this.setState({ szBrand: null }); this.goTab('size', e); },
+      isSize: st.tab === 'size', tabSize: st.tab === 'size' ? ACC : '#8e8e93',
+      ...(() => { const BR = window.FITLOG_BRANDS || [], sb = st.szBrand ? BR.find(b => b.id === st.szBrand) : null, inch = st.unit === 'in';
+        const fm = c => c == null ? '—' : inch ? (c / 2.54).toFixed(1) : String(Math.round(c * 10) / 10), fr = r => r[0] === r[1] ? fm(r[0]) : fm(r[0]) + '–' + fm(r[1]), un = inch ? 'in' : 'cm';
+        const top = () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; };
+        const out = { szList: !sb, szDetail: !!sb, szNoMeas: !hasSession, szBack: () => { this.setState({ szBrand: null }); top(); },
+          szBrands: BR.map(b => Object.assign({ name: b.name, onOpen: () => { this.setState({ szBrand: b.id, szG: null, szS: null }); top(); } }, szSummary(b, vals))), sz: { garments: [], sizes: [], rows: [], images: [] } };
+        if (sb) { const auto = st.szG == null ? szAuto(sb, vals) : null, gi = st.szG != null && sb.garments[st.szG] ? st.szG : auto ? auto.gi : 0, g = sb.garments[gi];
+          const best = g ? szBest(g, vals, sb.tol) : -1, si = g ? (st.szS != null && g.sizes[st.szS] ? st.szS : Math.max(0, best)) : 0;
+          const e = g && g.sizes[si] ? szEval(g.sizes[si], vals, sb.tol) : null, vb = g && best >= 0 ? szVerdict(szEval(g.sizes[best], vals, sb.tol), g.sizes[best].label, !!SZ_M2M[sb.id]) : szVerdict(null);
+          const bs = vb.size;
+          out.sz = { name: sb.name, note: sb.note || '', url: sb.url || '', hasUrl: !!sb.url, hasG: !!sb.garments.length, noG: !sb.garments.length,
+            m2mText: sb.m2mForm ? sb.name + ' has its own made-to-measure form. Open an item from ' + sb.name + ' in your wishlist to see the measurements it needs.' : 'This brand makes to your measurements. Send them your numbers from the Measurements tab.',
+            garments: sb.garments.map((x, i) => ({ label: x.name, bg: i === gi ? '#f5f5f7' : '#1c1c1e', fg: i === gi ? '#000' : '#f5f5f7', onTap: () => this.setState({ szG: i, szS: null }) })),
+            best: bs, sizeFont: bs.length > 2 ? '22px' : '28px', title: g ? szWithLen(vb, g.name) : vb.title, text: vb.text, color: vb.color,
+            sizes: g ? g.sizes.map((x, i) => ({ label: x.label, tag: i === best ? 'Best' : ' ', ring: i === si ? 'inset 0 0 0 2px ' + ACC : 'inset 0 0 0 1px #3a3a3c', onTap: () => this.setState({ szS: i }) })) : [],
+            rows: e ? e.rows.map(r => ({ label: SZ_LABEL(r.id), you: r.you != null ? fm(r.you) : '—', chart: fr(r.rng) + ' ' + un, status: r.f.label, color: r.f.color })) : [],
+            images: (sb.images || []).map(im => ({ src: im.src, label: im.kind === 'guide' ? 'Measuring guide' : 'Size chart' })), hasImages: !!(sb.images || []).length };
+        }
+        return out; })(),
+      openAddOwned: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.openForm(null, 'owned'); },
       profileName: p.name,
       showA: mode === 'A', showB: mode === 'B', showC: mode === 'C', showList: mode !== 'C', showGrid: mode === 'C',
       hasNext: !!nextIt, next, nextAfford: af.txt, affordDot: af.dot, progressPct: Math.round(af.pct * 100) + '%',
@@ -1250,6 +1408,21 @@ class Component extends DCLogic {
       pointFig: st.pointId ? bodyFig({ single: true, lines: [{ id: st.pointId }] }) : null,
       pointVal: pv ? pv.v : '—', pointUnit: pv ? pv.u : '', pointHint: st.pointId && PT[st.pointId] ? PT[st.pointId].hint : '', pointDate: hasSession ? 'Measured ' + fmtD(p.session.date) : '',
       hasToast: !!st.toast, toastText: st.toast || '',
+      heroRef: this.heroRef,
+      ...(() => { const s = dropIt, showNext = !s || !nextIt || s.id !== nextIt.id, multi = !!s && showNext, hi = multi ? (st.heroIdx || 0) : 0;
+        const go = i => { const el = this.heroRef.current; if (el) el.scrollTo({ left: i * el.clientWidth, behavior: this.reduce ? 'auto' : 'smooth' }); this.setState({ heroIdx: i }); };
+        let sale = { stars: [] };
+        if (s) { const hist = s.history || [], was = Math.max.apply(null, hist.slice(0, -1).map(x => x.price)), sa = this.afford(s, bi), rank = wanted.indexOf(s) + 1;
+          sale = Object.assign(this.vm(s), { pct: '−' + Math.round(dropOf(s) * 100) + '%', wasTxt: money(s.currency, was), saveTxt: 'Save ' + money(s.currency, was - s.price),
+            afford: sa.txt, rankTxt: rank === 1 ? 'Next up' : '#' + rank + ' on your list', stars: [1, 2, 3, 4, 5].map(n => ({ fill: n <= (s.rating || 0) ? '#000' : 'rgba(0,0,0,0.2)' })), onOpen: () => this.openDetail(s.id) }); }
+        return { hasSale: !!s, sale, showNextSlide: showNext, heroMulti: multi,
+          heroDots: multi ? [0, 1].map(i => ({ label: i ? 'Next up' : 'On sale', bg: i === hi ? '#f5f5f7' : 'rgba(245,245,247,0.35)', w: i === hi ? '18px' : '7px', onTap: () => go(i) })) : [],
+          heroCursor: multi ? 'grab' : 'auto',
+          heroDown: e => { if (!multi || e.pointerType !== 'mouse') return; const el = e.currentTarget; this.hDrag = { x: e.clientX, s: el.scrollLeft, moved: false }; el.style.scrollSnapType = 'none'; },
+          heroMove: e => { const g = this.hDrag; if (!g) return; const dx = e.clientX - g.x; if (Math.abs(dx) > 4 && !g.moved) { g.moved = true; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (er) {} } if (g.moved) e.currentTarget.scrollLeft = g.s - dx; },
+          heroUp: e => { const g = this.hDrag; if (!g) return; this.hDrag = null; const el = e.currentTarget, w = el.clientWidth, dx = e.clientX - g.x; this.hMoved = g.moved; let i = Math.round(g.s / w); if (dx < -w * 0.12) i++; else if (dx > w * 0.12) i--; i = Math.max(0, Math.min(1, i)); el.scrollTo({ left: i * w, behavior: 'smooth' }); setTimeout(() => { el.style.scrollSnapType = 'x mandatory'; }, 400); if (i !== (st.heroIdx || 0)) this.setState({ heroIdx: i }); },
+          heroClickCap: e => { if (this.hMoved) { this.hMoved = false; e.stopPropagation(); e.preventDefault(); } },
+          onHeroScroll: e => { if (this.hDrag) return; const el = e.currentTarget, i = Math.round(el.scrollLeft / el.clientWidth); if (i !== (st.heroIdx || 0)) this.setState({ heroIdx: i }); } }; })(),
       notifY: st.notif ? '0%' : '-160%', notifText: dropIt ? dropIt.name + ' dropped to ' + money(dropIt.currency, dropIt.price) + ' (−' + Math.round(dropOf(dropIt) * 100) + '%).' : '',
       openNotif: () => { if (dropIt) this.setState({ tab: 'wish', notif: false }, () => this.openDetail(dropIt.id)); },
 
