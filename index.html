@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GearWatch">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="stylesheet" href="./colors_and_type.css">
+<style>
+html,body{margin:0;-webkit-tap-highlight-color:transparent;}
+a{color:#ffd60a;text-decoration:none;}
+a:hover{text-decoration:underline;}
+input,button,textarea{font-family:inherit;}
+input:focus,textarea:focus{outline:2px solid #ffd60a;outline-offset:0;}
+input::placeholder{color:#6e6e73;}
+</style>
+</helmet>
+<div ref="{{ rootRef }}" style="position:relative;height:{{ rootH }};--gw-accent:{{ accent }};color-scheme:dark;max-width:{{ maxW }};margin:0 auto;display:flex;flex-direction:column;overflow:hidden;background:#000;color:#f5f5f7;font-family:var(--font-text);font-size:17px;line-height:1.47;letter-spacing:-0.374px;">
+
+<sc-if value="{{ framed }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;top:0;left:0;right:0;height:44px;z-index:90;display:flex;align-items:center;padding:0 28px;font-size:15px;font-weight:600;letter-spacing:-0.2px;pointer-events:none;">9:41</div>
+</sc-if>
+
+<div ref="{{ scrollRef }}" style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-top:{{ topPad }};padding-bottom:104px;">
+
+<sc-if value="{{ isWish }}" hint-placeholder-val="{{ true }}">
+  <div style="padding:8px 16px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <button data-anim="fade" onClick="{{ openProfiles }}" style="border:0;background:none;padding:0;display:flex;align-items:center;gap:6px;cursor:pointer;color:#a1a1a6;font-size:14px;letter-spacing:-0.224px;">
+      <span>{{ profileName }}</span>
+      <svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </button>
+    <button data-anim="pop" onClick="{{ openAdd }}" aria-label="Add item" style="width:36px;height:36px;border:0;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;cursor:pointer;flex:none;" style-active="transform:scale(0.95);">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg>
+    </button>
+  </div>
+  <div style="padding:0 16px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <span data-anim="up" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Wishlist</span>
+    <sc-if value="{{ showBudgetPill }}" hint-placeholder-val="{{ false }}">
+      <button data-anim="pop" onClick="{{ openBudget }}" style="border:0;background:#1c1c1e;border-radius:9999px;padding:6px 12px;display:flex;gap:6px;align-items:baseline;color:#a1a1a6;font-size:14px;letter-spacing:-0.224px;cursor:pointer;flex:none;" style-active="transform:scale(0.95);"><span style="color:{{ availColor }};font-weight:600;font-variant-numeric:tabular-nums;">{{ availEl }}</span><span>to spend</span></button>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ showA }}" hint-placeholder-val="{{ true }}">
+    <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="scale" onClick="{{ next.onOpen }}" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .2s;" style-active="transform:scale(0.98);">
+        <div style="overflow:hidden;"><img data-anim="zoom" src="{{ next.photo }}" alt="" style="display:block;width:100%;aspect-ratio:4/5;object-fit:cover;object-position:top;background:#2c2c2e;"></div>
+        <div style="padding:16px 20px 20px;display:flex;flex-direction:column;gap:4px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <span data-anim="right" style="font-size:12px;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;color:var(--gw-accent,#ffd60a);">Next up</span>
+            <sc-if value="{{ next.drop }}" hint-placeholder-val="{{ false }}"><span data-anim="pop" style="font-size:12px;font-weight:600;color:#000;background:var(--gw-accent,#ffd60a);border-radius:9999px;padding:2px 8px;">Price drop {{ next.dropTxt }}</span></sc-if>
+          </div>
+          <span data-anim="up" style="font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1.14;letter-spacing:-0.374px;text-wrap:pretty;">{{ next.name }}</span>
+          <span data-anim="up" style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ next.meta }}</span>
+          <div data-anim="up" style="display:flex;align-items:baseline;gap:8px;margin-top:8px;">
+            <span style="font-family:var(--font-display);font-size:21px;font-weight:600;">{{ next.priceTxt }}</span>
+            <span style="font-size:14px;color:#a1a1a6;">{{ next.eurTxt }}</span>
+            <span style="flex:1;"></span>
+            <span style="display:flex;gap:2px;"><sc-for list="{{ next.stars }}" as="s" hint-placeholder-count="5"><svg data-anim="pop" width="14" height="14" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}"></path></svg></sc-for></span>
+          </div>
+          <div data-anim="up" style="display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:12px;border-top:1px solid #2c2c2e;font-size:14px;letter-spacing:-0.224px;color:#d1d1d6;">
+            <span data-anim="pulse" style="width:8px;height:8px;border-radius:9999px;background:{{ affordDot }};flex:none;"></span>
+            <span style="flex:1;">{{ nextAfford }}</span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <sc-if value="{{ showB }}" hint-placeholder-val="{{ false }}">
+    <div ref="{{ bPanelRef }}" data-anim="scale" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;">
+      <sc-if value="{{ hasBudget }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Available to spend</span>
+          <button onClick="{{ openBudget }}" style="border:0;background:none;padding:0;color:var(--gw-accent,#ffd60a);font-size:14px;cursor:pointer;">Edit</button>
+        </div>
+        <span style="font-family:var(--font-display);font-size:48px;font-weight:600;line-height:1.08;letter-spacing:-0.6px;color:{{ availColor }};font-variant-numeric:tabular-nums;">{{ availEl }}</span>
+        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ budgetSub }}</span>
+      </sc-if>
+      <sc-if value="{{ noBudget }}" hint-placeholder-val="{{ true }}">
+        <span data-anim="up" style="font-family:var(--font-display);font-size:24px;font-weight:600;line-height:1.17;">Set a monthly budget.</span>
+        <span data-anim="up" style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;margin-top:4px;">See when you can afford what’s next. Unused budget carries over.</span>
+        <button data-anim="pop" onClick="{{ openBudget }}" style="align-self:flex-start;margin-top:12px;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Set budget</button>
+      </sc-if>
+      <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="up" onClick="{{ next.onOpen }}" style="margin-top:20px;padding-top:16px;border-top:1px solid #2c2c2e;display:flex;gap:12px;align-items:center;cursor:pointer;">
+          <img src="{{ next.photo }}" alt="" style="width:64px;height:64px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;">
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+            <span style="font-size:12px;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;color:var(--gw-accent,#ffd60a);">Next up</span>
+            <span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ next.name }}</span>
+            <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ next.priceTxt }} {{ next.eurTxt }}</span>
+          </div>
+          <sc-if value="{{ next.drop }}" hint-placeholder-val="{{ false }}"><span data-anim="pop" style="font-size:12px;font-weight:600;color:#000;background:var(--gw-accent,#ffd60a);border-radius:9999px;padding:2px 8px;flex:none;">{{ next.dropTxt }}</span></sc-if>
+        </div>
+        <div style="margin-top:12px;height:6px;border-radius:9999px;background:#2c2c2e;overflow:hidden;"><div style="height:100%;width:{{ progressPct }};"><div data-anim="grow" style="height:100%;background:var(--gw-accent,#ffd60a);border-radius:9999px;transform-origin:left center;"></div></div></div>
+        <span data-anim="fade" style="margin-top:8px;font-size:14px;color:#d1d1d6;letter-spacing:-0.224px;">{{ nextAfford }}</span>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showC }}" hint-placeholder-val="{{ false }}">
+    <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ next.onOpen }}" style="margin-top:16px;cursor:pointer;">
+        <div style="overflow:hidden;"><img data-anim="zoom" src="{{ next.photo }}" alt="" style="display:block;width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top;background:#1c1c1e;"></div>
+        <div style="padding:16px 20px 0;display:flex;flex-direction:column;gap:4px;">
+          <div data-anim="right" style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:12px;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;color:var(--gw-accent,#ffd60a);">Next up</span>
+            <sc-if value="{{ next.drop }}" hint-placeholder-val="{{ false }}"><span data-anim="pop" style="font-size:12px;font-weight:600;color:#000;background:var(--gw-accent,#ffd60a);border-radius:9999px;padding:2px 8px;">Price drop {{ next.dropTxt }}</span></sc-if>
+          </div>
+          <span data-anim="up" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.12;letter-spacing:-0.374px;text-wrap:pretty;">{{ next.name }}</span>
+          <div data-anim="up" style="display:flex;align-items:baseline;gap:8px;">
+            <span style="font-size:21px;font-weight:600;">{{ next.priceTxt }}</span>
+            <span style="font-size:14px;color:#a1a1a6;">{{ next.eurTxt }} · {{ next.brand }}</span>
+          </div>
+          <span data-anim="up" style="font-size:14px;color:#d1d1d6;letter-spacing:-0.224px;">{{ nextAfford }}</span>
+        </div>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <sc-if value="{{ hasRest }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:28px 20px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <span data-anim="up" style="font-family:var(--font-display);font-size:21px;font-weight:600;">After that</span>
+      <div data-anim="fade" style="display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;">
+        <sc-for list="{{ groupTabs }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.onTap }}" style="border:0;border-radius:7px;padding:4px 10px;font-size:13px;cursor:pointer;color:#f5f5f7;background:{{ t.bg }};transition:background .25s;">{{ t.label }}</button></sc-for>
+      </div>
+    </div>
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="1">
+      <sc-if value="{{ g.hasTitle }}" hint-placeholder-val="{{ false }}"><div data-anim="right" data-row="1" style="padding:12px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ g.title }}</div></sc-if>
+      <sc-if value="{{ showList }}" hint-placeholder-val="{{ true }}">
+        <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
+            <div data-anim="up" data-row="1" onClick="{{ it.onOpen }}" style="background:#1c1c1e;display:flex;gap:12px;align-items:center;padding:12px 16px 12px 12px;cursor:pointer;transition:background .2s;" style-active="background:#2c2c2e;">
+              <span style="width:18px;text-align:center;font-size:14px;color:#6e6e73;flex:none;">{{ it.rank }}</span>
+              <sc-if value="{{ it.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ it.photo }}" alt="" style="width:56px;height:56px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;"></sc-if>
+              <sc-if value="{{ it.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="width:56px;height:56px;border-radius:8px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-weight:600;flex:none;">{{ it.initial }}</span></sc-if>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+                <span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.name }}</span>
+                <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.brand }}</span>
+                <span style="display:flex;gap:2px;align-items:center;"><sc-for list="{{ it.stars }}" as="s" hint-placeholder-count="5"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}"></path></svg></sc-for></span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;flex:none;">
+                <span style="font-weight:600;">{{ it.priceTxt }}</span>
+                <span style="font-size:12px;color:#a1a1a6;">{{ it.eurTxt }}</span>
+                <sc-if value="{{ it.drop }}" hint-placeholder-val="{{ false }}"><span data-anim="pop" style="margin-top:2px;font-size:12px;font-weight:600;color:var(--gw-accent,#ffd60a);">{{ it.dropTxt }}</span></sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px;padding:0 16px;">
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
+            <div data-anim="scale" data-row="1" onClick="{{ it.onOpen }}" style="display:flex;flex-direction:column;gap:2px;cursor:pointer;min-width:0;" style-active="transform:scale(0.97);">
+              <div style="position:relative;margin-bottom:8px;border-radius:18px;overflow:hidden;">
+                <sc-if value="{{ it.hasPhoto }}" hint-placeholder-val="{{ false }}"><img data-anim="zoom" src="{{ it.photo }}" alt="" style="display:block;width:100%;aspect-ratio:1/1;object-fit:cover;object-position:top;background:#1c1c1e;"></sc-if>
+                <sc-if value="{{ it.noPhoto }}" hint-placeholder-val="{{ false }}"><div style="width:100%;aspect-ratio:1/1;background:#1c1c1e;display:grid;place-items:center;color:#6e6e73;font-size:28px;font-weight:600;">{{ it.initial }}</div></sc-if>
+                <span style="position:absolute;top:8px;left:8px;min-width:24px;height:24px;border-radius:9999px;background:rgba(28,28,30,0.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:grid;place-items:center;font-size:12px;font-weight:600;">{{ it.rank }}</span>
+                <sc-if value="{{ it.drop }}" hint-placeholder-val="{{ false }}"><span data-anim="pop" style="position:absolute;top:8px;right:8px;font-size:12px;font-weight:600;color:#000;background:var(--gw-accent,#ffd60a);border-radius:9999px;padding:2px 8px;">{{ it.dropTxt }}</span></sc-if>
+              </div>
+              <span style="font-size:14px;font-weight:600;line-height:1.29;letter-spacing:-0.224px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ it.name }}</span>
+              <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ it.priceTxt }} {{ it.eurTxt }}</span>
+              <span style="display:flex;gap:2px;"><sc-for list="{{ it.stars }}" as="s" hint-placeholder-count="5"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}"></path></svg></sc-for></span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </sc-for>
+    <div data-anim="fade" style="padding:8px 20px 0;font-size:12px;color:#6e6e73;letter-spacing:-0.12px;">Ranked by your stars. Price drops move items up.</div>
+  </sc-if>
+
+  <sc-if value="{{ wishEmpty }}" hint-placeholder-val="{{ false }}">
+    <div data-anim="scale" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:28px 24px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;">
+      <span style="font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1.14;">Nothing on your list yet.</span>
+      <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Paste a shop link or add a piece by hand.</span>
+      <button data-anim="pop" onClick="{{ openAdd }}" style="margin-top:8px;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Add gear</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ hasOnWay }}" hint-placeholder-val="{{ true }}">
+    <button data-anim="up" onClick="{{ goCollection }}" style="width:calc(100% - 32px);margin:24px 16px 0;border:0;background:#1c1c1e;border-radius:18px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;font-size:17px;color:#f5f5f7;cursor:pointer;text-align:left;" style-active="transform:scale(0.98);"><span>On the way</span><span style="color:#a1a1a6;">{{ onWayCount }} ›</span></button>
+  </sc-if>
+</sc-if>
+
+<sc-if value="{{ isCollection }}" hint-placeholder-val="{{ false }}">
+  <div data-anim="fade" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ profileName }}</div>
+  <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Collection</div>
+  <sc-if value="{{ hasOnWay }}" hint-placeholder-val="{{ true }}">
+    <div data-anim="right" style="padding:24px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">On the way</div>
+    <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+      <sc-for list="{{ onWay }}" as="it" hint-placeholder-count="2">
+        <div data-anim="up" data-row="1" style="background:#1c1c1e;display:flex;gap:12px;align-items:center;padding:12px 16px 12px 12px;">
+          <img onClick="{{ it.onOpen }}" src="{{ it.photo }}" alt="" style="width:56px;height:56px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;cursor:pointer;">
+          <div onClick="{{ it.onOpen }}" style="flex:1;min-width:0;display:flex;flex-direction:column;cursor:pointer;">
+            <span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.name }}</span>
+            <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ it.orderedTxt }}</span>
+          </div>
+          <button onClick="{{ it.onReceived }}" style="flex:none;border:0;background:#2c2c2e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:6px 12px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Received</button>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+  <div data-anim="right" style="padding:24px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Owned</div>
+  <sc-if value="{{ hasOwned }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px;padding:0 16px;">
+      <sc-for list="{{ owned }}" as="it" hint-placeholder-count="2">
+        <div data-anim="scale" onClick="{{ it.onOpen }}" style="display:flex;flex-direction:column;gap:2px;cursor:pointer;min-width:0;" style-active="transform:scale(0.97);">
+          <div style="border-radius:18px;overflow:hidden;margin-bottom:8px;"><img data-anim="zoom" src="{{ it.photo }}" alt="" style="display:block;width:100%;aspect-ratio:1/1;object-fit:cover;object-position:top;background:#1c1c1e;"></div>
+          <span style="font-size:14px;font-weight:600;letter-spacing:-0.224px;line-height:1.29;">{{ it.name }}</span>
+          <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ it.brand }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{ noOwned }}" hint-placeholder-val="{{ true }}">
+    <div data-anim="up" style="margin:0 16px;background:#1c1c1e;border-radius:18px;padding:20px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Nothing here yet. Mark an order as received and it moves here.</div>
+  </sc-if>
+</sc-if>
+
+<sc-if value="{{ isMeasure }}" hint-placeholder-val="{{ false }}">
+  <div data-anim="fade" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ profileName }}</div>
+  <div style="padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <span data-anim="up" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Measurements</span>
+    <div data-anim="fade" style="display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;flex:none;">
+      <button onClick="{{ setCm }}" style="border:0;border-radius:7px;padding:4px 10px;font-size:13px;cursor:pointer;color:#f5f5f7;background:{{ cmBg }};transition:background .25s;">cm</button>
+      <button onClick="{{ setIn }}" style="border:0;border-radius:7px;padding:4px 10px;font-size:13px;cursor:pointer;color:#f5f5f7;background:{{ inBg }};transition:background .25s;">in</button>
+    </div>
+  </div>
+  <sc-if value="{{ hasSession }}" hint-placeholder-val="{{ true }}">
+    <div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:14px 16px 14px 20px;display:flex;align-items:center;gap:14px;">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+        <span style="font-weight:600;line-height:1.24;">{{ measuredAgo }}</span>
+        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ measuredSub }}</span>
+      </div>
+      <a href="./Fitlog.dc.html" style="flex:none;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;letter-spacing:-0.224px;text-decoration:none;">Update</a>
+    </div>
+    <div data-anim="scale" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:12px 8px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;">
+      <div style="display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;max-width:100%;overflow-x:auto;">
+        <sc-for list="{{ figTabs }}" as="t" hint-placeholder-count="4"><button onClick="{{ t.onTap }}" style="border:0;border-radius:7px;padding:4px 10px;font-size:13px;cursor:pointer;color:#f5f5f7;background:{{ t.bg }};white-space:nowrap;transition:background .25s;">{{ t.label }}</button></sc-for>
+      </div>
+      <div ref="{{ figRef }}" style="width:100%;max-width:380px;">{{ bodyFigEl }}</div>
+    </div>
+    <sc-for list="{{ tileGroups }}" as="grp" hint-placeholder-count="2">
+      <div data-anim="right" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ grp.title }}</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 16px;">
+        <sc-for list="{{ grp.items }}" as="m" hint-placeholder-count="4">
+          <button data-anim="pop" onClick="{{ m.onOpen }}" style="border:0;background:#1c1c1e;border-radius:18px;padding:12px 16px;display:flex;flex-direction:column;gap:2px;text-align:left;cursor:pointer;color:#f5f5f7;min-width:0;" style-active="transform:scale(0.95);">
+            <span style="font-size:14px;letter-spacing:-0.224px;color:#a1a1a6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ m.label }}</span>
+            <span style="display:flex;align-items:baseline;gap:4px;"><span style="font-family:var(--font-display);font-size:24px;font-weight:600;line-height:1.17;">{{ m.value }}</span><span style="font-size:14px;color:#a1a1a6;">{{ m.unit }}</span></span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-for>
+  </sc-if>
+  <sc-if value="{{ noSession }}" hint-placeholder-val="{{ false }}">
+    <div data-anim="scale" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;">
+      <span style="font-family:var(--font-display);font-size:24px;font-weight:600;">No measurements yet.</span>
+      <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Measure once in Fitlog. Made-to-measure items here will pick them up.</span>
+      <a href="./Fitlog.dc.html" style="margin-top:8px;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;text-decoration:none;">Open Fitlog</a>
+    </div>
+  </sc-if>
+</sc-if>
+</div>
+
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:10;background:rgba(22,22,23,0.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid #2c2c2e;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 0 calc(env(safe-area-inset-bottom) + {{ tabPadB }});">
+  <button onClick="{{ goWish }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabWish }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg>
+    <span>Wishlist</span>
+  </button>
+  <button onClick="{{ goCollection }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabColl }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8V6.5a3 3 0 016 0V8"></path></svg>
+    <span>Collection</span>
+  </button>
+  <button onClick="{{ goMeasure }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabMeas }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="1.5"></rect><path d="M6.5 8v3M10 8v4M13.5 8v3M17 8v4"></path></svg>
+    <span>Measurements</span>
+  </button>
+</div>
+
+<sc-if value="{{ hasDetail }}" hint-placeholder-val="{{ false }}">
+  <div ref="{{ detailRef }}" data-anim="push" data-delay="0" style="position:absolute;inset:0;z-index:20;background:#000;overflow-y:auto;scrollbar-width:none;padding-bottom:40px;box-shadow:-20px 0 40px rgba(0,0,0,0.5);">
+    <div style="position:relative;">
+      <sc-if value="{{ d.hasPhotos }}" hint-placeholder-val="{{ false }}">
+        <div ref="{{ carRef }}" onScroll="{{ onCarScroll }}" onPointerDown="{{ carDown }}" onPointerMove="{{ carMove }}" onPointerUp="{{ carUp }}" onPointerCancel="{{ carUp }}" style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;cursor:grab;user-select:none;touch-action:pan-x pan-y;">
+          <sc-for list="{{ d.photos }}" as="ph" hint-placeholder-count="1"><div style="flex:none;width:100%;overflow:hidden;scroll-snap-align:start;"><img data-anim="zoom" data-delay="120" src="{{ ph.src }}" alt="" draggable="false" style="display:block;width:100%;aspect-ratio:4/5;object-fit:cover;object-position:top;background:#1c1c1e;pointer-events:none;"></div></sc-for>
+        </div>
+        <sc-if value="{{ d.multi }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ d.canPrev }}" hint-placeholder-val="{{ false }}"><button onClick="{{ carPrev }}" aria-label="Previous photo" style="position:absolute;left:10px;top:50%;margin-top:-18px;width:36px;height:36px;border:0;border-radius:9999px;background:rgba(28,28,30,0.72);color:#f5f5f7;display:grid;place-items:center;cursor:pointer;" style-active="transform:scale(0.95);"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"></path></svg></button></sc-if>
+          <sc-if value="{{ d.canNext }}" hint-placeholder-val="{{ true }}"><button onClick="{{ carNext }}" aria-label="Next photo" style="position:absolute;right:10px;top:50%;margin-top:-18px;width:36px;height:36px;border:0;border-radius:9999px;background:rgba(28,28,30,0.72);color:#f5f5f7;display:grid;place-items:center;cursor:pointer;" style-active="transform:scale(0.95);"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"></path></svg></button></sc-if>
+          <div style="position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:6px;">
+            <sc-for list="{{ d.dots }}" as="dt" hint-placeholder-count="2"><button onClick="{{ dt.onTap }}" aria-label="Go to photo" style="border:0;padding:6px 0;background:none;cursor:pointer;display:flex;"><span style="width:{{ dt.w }};height:7px;border-radius:9999px;background:{{ dt.bg }};transition:width .3s,background .3s;"></span></button></sc-for>
+          </div>
+        </sc-if>
+      </sc-if>
+      <sc-if value="{{ d.noPhotos }}" hint-placeholder-val="{{ false }}">
+        <div style="aspect-ratio:4/3;background:#1c1c1e;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#a1a1a6;font-size:14px;">
+          <span>No photos yet.</span>
+          <button onClick="{{ openEdit }}" style="border:0;background:#2c2c2e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;">Add photos</button>
+        </div>
+      </sc-if>
+      <button data-anim="pop" data-delay="300" onClick="{{ closeDetail }}" aria-label="Back" style="position:absolute;top:{{ chipTop }};left:16px;width:36px;height:36px;border:0;border-radius:9999px;background:rgba(28,28,30,0.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#f5f5f7;display:grid;place-items:center;cursor:pointer;" style-active="transform:scale(0.95);">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L4 7l5 5"></path></svg>
+      </button>
+      <button data-anim="pop" data-delay="360" onClick="{{ openEdit }}" style="position:absolute;top:{{ chipTop }};right:16px;height:36px;border:0;border-radius:9999px;background:rgba(28,28,30,0.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#f5f5f7;padding:0 14px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Edit</button>
+    </div>
+
+    <div style="padding:20px 20px 0;display:flex;flex-direction:column;gap:4px;">
+      <span data-anim="up" style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ d.meta }}</span>
+      <span data-anim="up" style="font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1.14;letter-spacing:-0.374px;text-wrap:pretty;">{{ d.name }}</span>
+      <div data-anim="up" style="display:flex;align-items:baseline;gap:8px;margin-top:4px;flex-wrap:wrap;">
+        <span style="font-family:var(--font-display);font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;">{{ d.priceEl }}</span>
+        <span style="font-size:14px;color:#a1a1a6;">{{ d.eurTxt }}</span>
+        <sc-if value="{{ d.drop }}" hint-placeholder-val="{{ false }}"><span data-anim="pop" data-delay="500" style="font-size:12px;font-weight:600;color:#000;background:var(--gw-accent,#ffd60a);border-radius:9999px;padding:2px 8px;align-self:center;">Price drop {{ d.dropTxt }}</span></sc-if>
+      </div>
+      <span data-anim="fade" style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;letter-spacing:-0.12px;color:{{ d.checkColor }};"><span style="width:6px;height:6px;border-radius:9999px;background:{{ d.checkColor }};flex:none;"></span>{{ d.checkTxt }}</span>
+    </div>
+
+    <div data-anim="up" style="margin:20px 16px 0;background:#1c1c1e;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">How much you want it</span>
+        <div style="display:flex;gap:4px;">
+          <sc-for list="{{ d.stars }}" as="s" hint-placeholder-count="5"><button data-anim="pop" onClick="{{ s.onTap }}" aria-label="{{ s.label }}" style="border:0;background:none;padding:2px;cursor:pointer;display:grid;"><svg width="26" height="26" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}" style="transition:fill .25s;"></path></svg></button></sc-for>
+        </div>
+      </div>
+      <div style="display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;">
+        <sc-for list="{{ d.statusTabs }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.onTap }}" style="flex:1;border:0;border-radius:7px;padding:6px 0;font-size:14px;cursor:pointer;color:#f5f5f7;background:{{ t.bg }};transition:background .25s;">{{ t.label }}</button></sc-for>
+      </div>
+      <sc-if value="{{ d.isWanted }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:8px;font-size:14px;letter-spacing:-0.224px;color:#d1d1d6;">
+          <span data-anim="pulse" style="width:8px;height:8px;border-radius:9999px;background:{{ d.affordDot }};flex:none;"></span>
+          <span style="flex:1;">{{ d.afford }}</span>
+          <sc-if value="{{ d.needBudget }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openBudget }}" style="border:0;background:none;padding:0;color:var(--gw-accent,#ffd60a);font-size:14px;cursor:pointer;flex:none;">Set</button></sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{ d.hasOrderInfo }}" hint-placeholder-val="{{ false }}"><span data-anim="fade" style="font-size:14px;color:#d1d1d6;letter-spacing:-0.224px;">{{ d.orderInfo }}</span></sc-if>
+    </div>
+
+    <sc-if value="{{ d.hasHist }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+          <span style="font-weight:600;">Price history</span>
+          <span style="font-size:12px;color:#a1a1a6;">{{ d.histRange }}</span>
+        </div>
+        <svg viewBox="0 0 300 84" width="100%" style="display:block;margin-top:12px;overflow:visible;">
+          <line x1="0" y1="78" x2="300" y2="78" stroke="#2c2c2e" stroke-width="1"></line>
+          <polyline data-anim="draw" data-delay="450" points="{{ d.histPts }}" fill="none" stroke="var(--gw-accent,#ffd60a)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>
+          <circle data-anim="pop" data-delay="1500" cx="{{ d.histX }}" cy="{{ d.histY }}" r="4" fill="var(--gw-accent,#ffd60a)" style="transform-box:fill-box;transform-origin:center;"></circle>
+        </svg>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:#6e6e73;"><span>{{ d.histFrom }}</span><span>{{ d.histTo }}</span></div>
+      </div>
+    </sc-if>
+
+    <div style="margin:12px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+      <sc-for list="{{ d.rows }}" as="r" hint-placeholder-count="4">
+        <div data-anim="up" style="background:#1c1c1e;padding:12px 16px;display:flex;justify-content:space-between;gap:12px;"><span style="color:#a1a1a6;">{{ r.k }}</span><span style="text-align:right;">{{ r.v }}</span></div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ d.m2m }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+          <span style="font-weight:600;">Your measurements for {{ d.brand }}</span>
+          <span style="font-size:12px;color:#a1a1a6;flex:none;">{{ d.needCount }}</span>
+        </div>
+        <span style="font-size:12px;color:#a1a1a6;letter-spacing:-0.12px;">{{ d.needNote }}</span>
+        <div style="display:flex;gap:16px;align-items:flex-start;margin-top:12px;">
+          <div data-anim="scale" style="width:84px;flex:none;">{{ d.needFig }}</div>
+          <div style="flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;font-size:14px;letter-spacing:-0.224px;">
+            <sc-for list="{{ d.needRows }}" as="n" hint-placeholder-count="5"><span data-anim="right" style="color:#a1a1a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ n.label }}</span><span data-anim="fade" style="text-align:right;color:{{ n.color }};">{{ n.value }}</span></sc-for>
+          </div>
+        </div>
+        <button onClick="{{ copyNeeds }}" style="align-self:flex-start;margin-top:12px;border:0;background:#2c2c2e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">{{ copyLabel }}</button>
+      </div>
+    </sc-if>
+
+    <div style="padding:20px 16px 0;display:flex;flex-direction:column;gap:12px;align-items:stretch;">
+      <sc-if value="{{ d.hasUrl }}" hint-placeholder-val="{{ true }}"><a data-anim="up" href="{{ d.url }}" target="_blank" rel="noopener" style="display:block;text-align:center;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:12px 16px;font-size:17px;text-decoration:none;">Open in shop</a></sc-if>
+      <button onClick="{{ deleteItem }}" style="border:0;background:none;color:#ff453a;font-size:17px;padding:8px;cursor:pointer;">{{ deleteLabel }}</button>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasSheet }}" hint-placeholder-val="{{ false }}">
+  <div ref="{{ backdropRef }}" data-anim="fade" data-delay="0" onClick="{{ closeSheet }}" style="position:absolute;inset:0;z-index:40;background:rgba(0,0,0,0.6);"></div>
+  <div ref="{{ sheetRef }}" data-anim="sheet" data-delay="0" style="position:absolute;left:0;right:0;bottom:0;z-index:41;max-height:92%;overflow-y:auto;scrollbar-width:none;background:#1c1c1e;border-radius:18px 18px 0 0;padding:0 0 32px;">
+    <div style="position:sticky;top:0;z-index:1;background:#1c1c1e;padding:8px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;">
+      <button onClick="{{ closeSheet }}" style="justify-self:start;border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">{{ cancelLabel }}</button>
+      <span style="font-weight:600;">{{ sheetTitle }}</span>
+      <sc-if value="{{ hasSheetAction }}" hint-placeholder-val="{{ false }}"><button onClick="{{ sheetAction }}" style="justify-self:end;border:0;background:none;color:{{ actionColor }};font-size:17px;font-weight:600;padding:8px;cursor:pointer;transition:color .25s;">{{ actionLabel }}</button></sc-if>
+    </div>
+
+    <sc-if value="{{ isSheetForm }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="margin:4px 16px 0;display:flex;gap:8px;">
+        <input value="{{ f.url }}" onChange="{{ fUrl }}" placeholder="Paste a shop link" inputmode="url" style="flex:1;min-width:0;background:#2c2c2e;border:0;border-radius:8px;padding:10px 12px;font-size:17px;color:#f5f5f7;">
+        <button onClick="{{ fillFromLink }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:8px;padding:0 14px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Fill in</button>
+      </div>
+      <div style="padding:6px 20px 0;font-size:12px;color:#a1a1a6;min-height:18px;display:flex;align-items:center;gap:6px;">
+        <sc-if value="{{ fetching }}" hint-placeholder-val="{{ false }}"><span data-anim="spin" style="width:10px;height:10px;border-radius:9999px;border:2px solid #48484a;border-top-color:var(--gw-accent,#ffd60a);flex:none;"></span></sc-if>
+        <span>{{ fetchMsg }}</span>
+      </div>
+
+      <sc-if value="{{ hasFound }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="up" style="padding:12px 20px 0;display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+          <span style="font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Photos from the page</span>
+          <span style="font-size:12px;color:#6e6e73;">{{ foundSub }}</span>
+        </div>
+        <div style="padding:8px 16px 4px;display:flex;gap:10px;overflow-x:auto;">
+          <sc-for list="{{ fFound }}" as="ph" hint-placeholder-count="1">
+            <button data-anim="pop" onClick="{{ ph.onTap }}" style="position:relative;flex:none;border:0;padding:0;background:none;cursor:pointer;border-radius:8px;">
+              <img src="{{ ph.src }}" alt="" style="width:88px;height:88px;border-radius:8px;object-fit:cover;object-position:top;display:block;opacity:{{ ph.opacity }};box-shadow:{{ ph.ring }};transition:opacity .25s,box-shadow .25s;">
+              <span style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:9999px;background:{{ ph.checkBg }};color:#000;display:grid;place-items:center;transition:background .25s;"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:{{ ph.checkOp }};transition:opacity .2s;"><path d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg></span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="padding:0 20px;font-size:12px;color:#6e6e73;">Tap a photo to leave it out. Add your own below.</div>
+      </sc-if>
+
+      <div data-anim="up" style="padding:12px 16px 0;display:flex;gap:8px;overflow-x:auto;">
+        <sc-for list="{{ fPhotos }}" as="ph" hint-placeholder-count="0">
+          <div data-anim="pop" style="position:relative;flex:none;">
+            <img src="{{ ph.src }}" alt="" style="width:72px;height:72px;border-radius:8px;object-fit:cover;object-position:top;display:block;">
+            <button onClick="{{ ph.onRemove }}" aria-label="Remove photo" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:9999px;border:0;background:#48484a;color:#f5f5f7;font-size:13px;line-height:1;cursor:pointer;">×</button>
+          </div>
+        </sc-for>
+        <label style="flex:none;width:72px;height:72px;border-radius:8px;border:1px dashed #48484a;display:grid;place-items:center;color:#a1a1a6;font-size:12px;cursor:pointer;text-align:center;line-height:1.2;">Add<br>photos<input type="file" accept="image/*" multiple onChange="{{ onPhotos }}" style="display:none;"></label>
+      </div>
+
+      <div data-anim="up" style="margin:16px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#38383a;">
+        <div style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;gap:12px;"><span style="flex:none;width:72px;color:#a1a1a6;">Name</span><input value="{{ f.name }}" onChange="{{ fName }}" placeholder="Required" style="flex:1;min-width:0;background:none;border:0;font-size:17px;color:#f5f5f7;padding:0;"></div>
+        <div style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;gap:12px;"><span style="flex:none;width:72px;color:#a1a1a6;">Brand</span><input value="{{ f.brand }}" onChange="{{ fBrand }}" placeholder="Kinkfox" style="flex:1;min-width:0;background:none;border:0;font-size:17px;color:#f5f5f7;padding:0;"></div>
+        <div style="background:#2c2c2e;padding:8px 16px;display:flex;align-items:center;gap:12px;">
+          <span style="flex:none;width:72px;color:#a1a1a6;">Price</span>
+          <input value="{{ f.price }}" onChange="{{ fPrice }}" placeholder="0" inputmode="decimal" style="flex:1;min-width:0;background:none;border:0;font-size:17px;color:#f5f5f7;padding:0;">
+          <div style="display:flex;background:#1c1c1e;border-radius:8px;padding:2px;gap:2px;flex:none;">
+            <sc-for list="{{ curTabs }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.onTap }}" style="border:0;border-radius:7px;padding:4px 10px;font-size:14px;cursor:pointer;color:#f5f5f7;background:{{ c.bg }};transition:background .25s;">{{ c.label }}</button></sc-for>
+          </div>
+        </div>
+        <div style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;gap:12px;">
+          <span style="flex:none;width:72px;color:#a1a1a6;">Size</span>
+          <sc-if value="{{ sizeLocked }}" hint-placeholder-val="{{ false }}"><span data-anim="fade" style="flex:1;min-width:0;color:var(--gw-accent,#ffd60a);display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="1.5"></rect><path d="M6.5 8v3M10 8v4M13.5 8v3M17 8v4"></path></svg><span>Made to measure</span></span></sc-if>
+          <sc-if value="{{ sizeFree }}" hint-placeholder-val="{{ true }}">
+            <button data-anim="fade" onClick="{{ toggleSize }}" style="flex:1;min-width:0;border:0;background:none;padding:0;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:17px;color:{{ sizeColor }};cursor:pointer;text-align:left;">
+              <span>{{ sizeLabel }}</span>
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="color:#a1a1a6;transform:rotate({{ sizeRot }});transition:transform .3s cubic-bezier(.2,.8,.2,1);flex:none;"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </button>
+          </sc-if>
+        </div>
+        <sc-if value="{{ sizeOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2c2c2e;padding:4px 12px 12px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;">
+            <sc-for list="{{ sizeOpts }}" as="o" hint-placeholder-count="8"><button data-anim="pop" onClick="{{ o.onTap }}" style="border:0;border-radius:8px;padding:8px 0;font-size:14px;cursor:pointer;background:{{ o.bg }};color:{{ o.color }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ o.v }}</button></sc-for>
+          </div>
+        </sc-if>
+        <div style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;gap:12px;"><span style="flex:none;width:72px;color:#a1a1a6;">Colour</span><input value="{{ f.colour }}" onChange="{{ fColour }}" placeholder="Black, yellow trim" style="flex:1;min-width:0;background:none;border:0;font-size:17px;color:#f5f5f7;padding:0;"></div>
+        <div onClick="{{ toggleM2M }}" style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;">
+          <span style="display:flex;flex-direction:column;"><span>Made to measure</span><span style="font-size:12px;color:#a1a1a6;letter-spacing:-0.12px;">Uses your measurements instead of a size</span></span>
+          <span style="width:51px;height:31px;border-radius:9999px;background:{{ m2mTrack }};position:relative;flex:none;transition:background .25s;"><span style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:9999px;background:#fff;transform:translateX({{ m2mKnob }});transition:transform .3s cubic-bezier(.2,.8,.2,1);"></span></span>
+        </div>
+      </div>
+
+      <div data-anim="up" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Category</div>
+      <div style="padding:0 16px;display:flex;flex-wrap:wrap;gap:8px;">
+        <sc-for list="{{ catChips }}" as="c" hint-placeholder-count="10"><button data-anim="pop" onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for>
+        <button data-anim="pop" onClick="{{ toggleNewCat }}" style="border:1px dashed #48484a;border-radius:9999px;padding:5px 14px;font-size:14px;cursor:pointer;color:var(--gw-accent,#ffd60a);background:none;display:flex;align-items:center;gap:6px;" style-active="transform:scale(0.95);"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg><span>New</span></button>
+      </div>
+      <sc-if value="{{ newCatOpen }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="up" style="margin:10px 16px 0;display:flex;gap:8px;">
+          <input value="{{ newCat }}" onChange="{{ onNewCat }}" placeholder="Category name, e.g. Collars" style="flex:1;min-width:0;background:#2c2c2e;border:0;border-radius:8px;padding:10px 12px;font-size:17px;color:#f5f5f7;">
+          <button onClick="{{ addCat }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:8px;padding:0 16px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Add</button>
+        </div>
+      </sc-if>
+
+      <div data-anim="up" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">How much you want it</div>
+      <div style="padding:0 16px;display:flex;gap:4px;">
+        <sc-for list="{{ fStars }}" as="s" hint-placeholder-count="5"><button data-anim="pop" onClick="{{ s.onTap }}" aria-label="{{ s.label }}" style="border:0;background:none;padding:2px;cursor:pointer;display:grid;"><svg width="30" height="30" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}" style="transition:fill .25s;"></path></svg></button></sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isSheetBudget }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="margin:8px 16px 0;background:#2c2c2e;border-radius:18px;padding:12px 16px;display:flex;align-items:center;gap:8px;">
+        <span style="font-family:var(--font-display);font-size:34px;font-weight:600;color:#a1a1a6;">€</span>
+        <input value="{{ budgetIn }}" onChange="{{ onBudgetIn }}" placeholder="150" inputmode="decimal" style="flex:1;min-width:0;background:none;border:0;font-family:var(--font-display);font-size:34px;font-weight:600;color:#f5f5f7;padding:0;">
+        <span style="color:#a1a1a6;">a month</span>
+      </div>
+      <div style="padding:12px 16px 0;display:flex;gap:8px;flex-wrap:wrap;">
+        <sc-for list="{{ sheetChips }}" as="c" hint-placeholder-count="4"><button data-anim="pop" onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;background:{{ c.bg }};color:{{ c.color }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for>
+      </div>
+      <div data-anim="up" style="padding:12px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Unused budget carries over to the next month. Orders you mark from today count against it. Prices in $ and £ are converted at an approximate rate.</div>
+      <sc-if value="{{ hasBudget }}" hint-placeholder-val="{{ false }}"><button onClick="{{ clearBudget }}" style="margin:16px 12px 0;border:0;background:none;color:#ff453a;font-size:17px;padding:8px;cursor:pointer;">Remove budget</button></sc-if>
+    </sc-if>
+
+    <sc-if value="{{ isSheetProfiles }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:8px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#38383a;">
+        <sc-for list="{{ profileRows }}" as="p" hint-placeholder-count="1">
+          <button data-anim="up" onClick="{{ p.onTap }}" style="border:0;background:#2c2c2e;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:17px;color:#f5f5f7;cursor:pointer;text-align:left;"><span>{{ p.name }}</span><span style="font-size:14px;color:{{ p.color }};">{{ p.sub }}</span></button>
+        </sc-for>
+      </div>
+      <div data-anim="up" style="margin:16px 16px 0;display:flex;gap:8px;">
+        <input value="{{ newProfile }}" onChange="{{ onNewProfile }}" placeholder="New profile name" style="flex:1;min-width:0;background:#2c2c2e;border:0;border-radius:8px;padding:10px 12px;font-size:17px;color:#f5f5f7;">
+        <button onClick="{{ addProfile }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:8px;padding:0 16px;font-size:14px;cursor:pointer;">Add</button>
+      </div>
+      <button data-anim="up" onClick="{{ copyWatch }}" style="width:calc(100% - 32px);margin:16px 16px 0;border:0;background:#2c2c2e;border-radius:18px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:17px;color:#f5f5f7;cursor:pointer;text-align:left;"><span style="display:flex;flex-direction:column;gap:2px;"><span>Copy watch list</span><span style="font-size:12px;color:#a1a1a6;">Paste into watchlist.json so daily price checks include new items.</span></span><span style="color:#a1a1a6;">›</span></button>
+      <button data-anim="up" onClick="{{ replayIntro }}" style="width:calc(100% - 32px);margin:16px 16px 0;border:0;background:#2c2c2e;border-radius:18px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:17px;color:#f5f5f7;cursor:pointer;text-align:left;"><span>Show the intro again</span><span style="color:#a1a1a6;">›</span></button>
+    </sc-if>
+
+    <sc-if value="{{ isSheetPoint }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:8px 20px 0;display:flex;gap:20px;align-items:center;">
+        <div data-anim="scale" style="width:96px;flex:none;">{{ pointFig }}</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <span data-anim="up" style="display:flex;align-items:baseline;gap:4px;"><span style="font-family:var(--font-display);font-size:40px;font-weight:600;line-height:1.1;">{{ pointVal }}</span><span style="color:#a1a1a6;">{{ pointUnit }}</span></span>
+          <span data-anim="up" style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">{{ pointHint }}</span>
+          <span data-anim="up" style="font-size:12px;color:#6e6e73;">{{ pointDate }}</span>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;left:0;right:0;bottom:{{ toastBottom }};z-index:65;display:flex;justify-content:center;pointer-events:none;">
+    <div ref="{{ toastRef }}" data-anim="pop" data-delay="0" style="background:#2c2c2e;border-radius:9999px;padding:10px 16px;display:flex;align-items:center;gap:8px;font-size:14px;letter-spacing:-0.224px;box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+      <span style="width:20px;height:20px;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;flex:none;"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path data-anim="draw" data-delay="200" d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg></span>
+      <span>{{ toastText }}</span>
+    </div>
+  </div>
+</sc-if>
+
+<div onClick="{{ openNotif }}" style="position:absolute;top:8px;left:8px;right:8px;z-index:60;background:rgba(44,44,46,0.92);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-radius:18px;padding:12px 14px;display:flex;gap:12px;align-items:center;cursor:pointer;transform:translateY({{ notifY }});transition:transform .55s cubic-bezier(.2,1.2,.3,1);">
+  <span style="width:38px;height:38px;border-radius:9px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;flex:none;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg>
+  </span>
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+    <div style="display:flex;justify-content:space-between;gap:8px;"><span style="font-size:14px;font-weight:600;letter-spacing:-0.224px;">Price drop</span><span style="font-size:12px;color:#a1a1a6;">now</span></div>
+    <span style="font-size:14px;letter-spacing:-0.224px;line-height:1.3;color:#e5e5ea;">{{ notifText }}</span>
+  </div>
+</div>
+
+<sc-if value="{{ showIntro }}" hint-placeholder-val="{{ false }}">
+  <div ref="{{ introRef }}" data-anim="fade" data-delay="0" style="position:absolute;inset:0;z-index:80;background:#000;display:flex;flex-direction:column;padding-top:{{ topPad }};">
+    <div style="padding:8px 20px 0;display:flex;align-items:center;justify-content:space-between;height:36px;">
+      <div style="display:flex;gap:6px;">
+        <sc-for list="{{ introDots }}" as="dt" hint-placeholder-count="4"><span style="height:7px;width:{{ dt.w }};border-radius:9999px;background:{{ dt.bg }};transition:width .4s cubic-bezier(.2,.8,.2,1),background .4s;"></span></sc-for>
+      </div>
+      <sc-if value="{{ introNotLast }}" hint-placeholder-val="{{ true }}"><button onClick="{{ introSkip }}" style="border:0;background:none;color:#a1a1a6;font-size:17px;padding:4px 0;cursor:pointer;">Skip</button></sc-if>
+    </div>
+
+    <div style="flex:1;position:relative;overflow:hidden;">
+      <sc-if value="{{ introP0 }}" hint-placeholder-val="{{ true }}">
+        <div data-anim="right" data-delay="0" style="position:absolute;inset:0;display:flex;flex-direction:column;padding:0 24px 8px;">
+          <div style="flex:1;display:grid;place-items:center;">
+            <div style="position:relative;width:170px;height:228px;">
+              <div data-anim="fanL" data-delay="350" style="position:absolute;inset:0;transform:translate(-78px,18px) rotate(-10deg);"><img src="./assets/gear/kinkfox-alpha-pup.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top;border-radius:18px;display:block;box-shadow:0 0 0 1px #2c2c2e;"></div>
+              <div data-anim="fanR" data-delay="450" style="position:absolute;inset:0;transform:translate(78px,18px) rotate(10deg);"><img src="./assets/gear/blue-wolf-harness.png" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:18px;display:block;box-shadow:0 0 0 1px #2c2c2e;"></div>
+              <div data-anim="fanC" data-delay="150" style="position:absolute;inset:0;"><div data-anim="float" data-delay="1200" style="width:100%;height:100%;"><img src="./assets/gear/kinkfox-alpha-husky.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top;border-radius:18px;display:block;box-shadow:0 12px 40px rgba(0,0,0,0.6),0 0 0 1px #2c2c2e;"></div></div>
+              <span data-anim="pop" data-delay="1000" style="position:absolute;top:-12px;right:-14px;width:40px;height:40px;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg></span>
+            </div>
+          </div>
+          <span data-anim="up" data-delay="500" style="font-family:var(--font-display);font-size:40px;font-weight:600;line-height:1.1;letter-spacing:-0.6px;">GearWatch.</span>
+          <span data-anim="up" data-delay="600" style="margin-top:8px;font-size:17px;color:#a1a1a6;line-height:1.41;text-wrap:pretty;">Every piece you want, in the order you want it. Photos, links and prices in one list.</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ introP1 }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="right" data-delay="0" style="position:absolute;inset:0;display:flex;flex-direction:column;padding:0 24px 8px;">
+          <div style="flex:1;display:grid;place-items:center;">
+            <div data-anim="scale" data-delay="100" style="position:relative;width:100%;max-width:320px;height:208px;">
+              <div data-anim="rankA" style="position:absolute;left:0;right:0;top:0;height:64px;background:#1c1c1e;border-radius:18px;display:flex;align-items:center;gap:12px;padding:8px 14px 8px 8px;box-sizing:border-box;">
+                <img src="./assets/gear/blue-wolf-harness.png" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex:none;">
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;"><span style="font-size:14px;font-weight:600;letter-spacing:-0.224px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Service Animal Harness</span><span style="color:var(--gw-accent,#ffd60a);font-size:12px;letter-spacing:1px;">★★★★★</span></div>
+                <span style="font-size:14px;font-weight:600;">€360</span>
+              </div>
+              <div data-anim="rankB" style="position:absolute;left:0;right:0;top:72px;height:64px;background:#1c1c1e;border-radius:18px;display:flex;align-items:center;gap:12px;padding:8px 14px 8px 8px;box-sizing:border-box;">
+                <img src="./assets/gear/kinkfox-alpha-pup.jpg" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;object-position:top;flex:none;">
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;"><span style="font-size:14px;font-weight:600;letter-spacing:-0.224px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Alpha Pup Latex Suit</span><span style="font-size:12px;letter-spacing:1px;"><span style="color:var(--gw-accent,#ffd60a);">★★★★</span><span style="color:#48484a;">★</span></span></div>
+                <span style="font-size:14px;font-weight:600;">$85</span>
+              </div>
+              <div data-anim="rankC" style="position:absolute;left:0;right:0;top:144px;height:64px;background:#1c1c1e;border-radius:18px;display:flex;align-items:center;gap:12px;padding:8px 14px 8px 8px;box-sizing:border-box;z-index:1;">
+                <img src="./assets/gear/kinkfox-alpha-husky.jpg" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;object-position:top;flex:none;">
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;"><span style="font-size:14px;font-weight:600;letter-spacing:-0.224px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Latex Alpha Husky Suit</span><span style="font-size:12px;letter-spacing:1px;"><span style="color:var(--gw-accent,#ffd60a);">★★★</span><span style="color:#48484a;">★★</span></span></div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;"><span style="font-size:14px;font-weight:600;">$136</span><span data-anim="badge" style="font-size:11px;font-weight:600;color:#000;background:var(--gw-accent,#ffd60a);border-radius:9999px;padding:1px 6px;">−14%</span></div>
+              </div>
+            </div>
+          </div>
+          <span data-anim="up" data-delay="300" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.12;letter-spacing:-0.374px;">Rate it. It ranks itself.</span>
+          <span data-anim="up" data-delay="400" style="margin-top:8px;font-size:17px;color:#a1a1a6;line-height:1.41;text-wrap:pretty;">Your stars set the order. When a price drops, that piece moves up.</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ introP2 }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="right" data-delay="0" style="position:absolute;inset:0;display:flex;flex-direction:column;padding:0 24px 8px;">
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;max-width:340px;width:100%;margin:0 auto;">
+            <div data-anim="notifLoop" style="background:rgba(44,44,46,0.92);border-radius:18px;padding:12px 14px;display:flex;gap:12px;align-items:center;">
+              <span style="width:34px;height:34px;border-radius:8px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;flex:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg></span>
+              <div style="display:flex;flex-direction:column;min-width:0;"><span style="font-size:14px;font-weight:600;letter-spacing:-0.224px;">Price drop</span><span style="font-size:14px;color:#e5e5ea;letter-spacing:-0.224px;">Latex Alpha Husky Suit is now $136.</span></div>
+            </div>
+            <div data-anim="scale" data-delay="150" style="background:#1c1c1e;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;gap:12px;align-items:center;">
+                <img src="./assets/gear/kinkfox-alpha-husky.jpg" alt="" style="width:56px;height:56px;border-radius:8px;object-fit:cover;object-position:top;flex:none;">
+                <div style="flex:1;display:flex;flex-direction:column;">
+                  <span style="font-weight:600;line-height:1.24;">Latex Alpha Husky Suit</span>
+                  <div style="display:flex;align-items:baseline;gap:10px;">
+                    <span style="position:relative;color:#a1a1a6;font-size:17px;">$151<span data-anim="strike" style="position:absolute;left:-2px;right:-2px;top:52%;height:2px;background:#ff453a;transform-origin:left center;"></span></span>
+                    <span data-anim="newPrice" style="font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--gw-accent,#ffd60a);">$136</span>
+                  </div>
+                </div>
+              </div>
+              <svg viewBox="0 0 300 70" width="100%" style="display:block;overflow:visible;">
+                <line x1="0" y1="66" x2="300" y2="66" stroke="#2c2c2e" stroke-width="1"></line>
+                <polyline data-anim="drawLoop" points="0,8 120,22 220,30 300,62" fill="none" stroke="var(--gw-accent,#ffd60a)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+              </svg>
+            </div>
+          </div>
+          <span data-anim="up" data-delay="300" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.12;letter-spacing:-0.374px;">Know when prices drop.</span>
+          <span data-anim="up" data-delay="400" style="margin-top:8px;font-size:17px;color:#a1a1a6;line-height:1.41;text-wrap:pretty;">GearWatch keeps a price history for every piece and tells you when something gets cheaper.</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ introP3 }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="right" data-delay="0" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 24px 8px;gap:8px;">
+          <span data-anim="pop" data-delay="100" style="width:56px;height:56px;border-radius:18px;background:#1c1c1e;color:var(--gw-accent,#ffd60a);display:grid;place-items:center;margin-bottom:12px;font-family:var(--font-display);font-size:28px;font-weight:600;">€</span>
+          <span data-anim="up" data-delay="200" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.12;letter-spacing:-0.374px;">Set a monthly budget.</span>
+          <span data-anim="up" data-delay="300" style="font-size:17px;color:#a1a1a6;line-height:1.41;text-wrap:pretty;">Unused money carries over. GearWatch tells you when the next piece fits.</span>
+          <div data-anim="scale" data-delay="400" style="margin-top:20px;background:#1c1c1e;border-radius:18px;padding:14px 20px;display:flex;align-items:baseline;gap:8px;">
+            <span style="font-family:var(--font-display);font-size:40px;font-weight:600;color:#6e6e73;">€</span>
+            <input value="{{ introBudget }}" onChange="{{ onIntroBudget }}" placeholder="0" inputmode="decimal" style="flex:1;min-width:0;background:none;border:0;font-family:var(--font-display);font-size:40px;font-weight:600;color:#f5f5f7;padding:0;outline:none;">
+            <span style="color:#a1a1a6;flex:none;">a month</span>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+            <sc-for list="{{ introChips }}" as="c" hint-placeholder-count="4"><button data-anim="pop" onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:8px 16px;font-size:14px;cursor:pointer;background:{{ c.bg }};color:{{ c.color }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="padding:16px 24px {{ introPadB }};display:flex;flex-direction:column;gap:4px;">
+      <sc-if value="{{ introNotLast }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ introNext }}" style="height:50px;border:0;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;font-size:17px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">Continue</button>
+        <div style="height:44px;"></div>
+      </sc-if>
+      <sc-if value="{{ introLast }}" hint-placeholder-val="{{ false }}">
+        <button data-anim="up" data-delay="500" onClick="{{ introSetBudget }}" style="height:50px;border:0;border-radius:9999px;background:{{ introBtnBg }};color:{{ introBtnColor }};font-size:17px;font-weight:600;cursor:pointer;transition:background .3s,color .3s;" style-active="transform:scale(0.95);">Set budget</button>
+        <button data-anim="fade" data-delay="600" onClick="{{ introSkipBudget }}" style="height:44px;border:0;background:none;color:#a1a1a6;font-size:17px;cursor:pointer;">Skip for now</button>
+      </sc-if>
+    </div>
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;landing&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Auto&quot;, &quot;Next up&quot;, &quot;Budget&quot;, &quot;Gallery&quot;], &quot;default&quot;: &quot;Auto&quot;, &quot;tsType&quot;: &quot;'Auto' | 'Next up' | 'Budget' | 'Gallery'&quot;}, &quot;intro&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;}, &quot;accent&quot;: {&quot;editor&quot;: &quot;color&quot;, &quot;options&quot;: [&quot;#ffd60a&quot;, &quot;#2997ff&quot;, &quot;#ff9f0a&quot;], &quot;default&quot;: &quot;#ffd60a&quot;, &quot;tsType&quot;: &quot;string&quot;}, &quot;saleAlert&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;}, &quot;framed&quot;: {&quot;editor&quot;: null, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;}}">
+const KEY = 'gearwatch.v1';
+const ACC = 'var(--gw-accent,#ffd60a)';
+const EASE = 'cubic-bezier(.2,.8,.2,1)';
+const FX = { '€': 1, '$': 0.86, '£': 1.15 };
+const CURS = ['€', '$', '£'];
+const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Socks', 'Cuffs', 'Gags', 'Accessory'];
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const BUDGET_CHIPS = [50, 100, 150, 250];
+const KF_FORM = ['chest','underbust','waist','waistHip','hips','thigh','knee','calf','ankle','armpit','upperArm','elbow','forearm','wrist','armLength','neck','inseam','waistAnkle','torso','shoulder','head','height','shoe'];
+const NEEDS = {
+  kinkfox: { ids: KF_FORM, note: 'From Kinkfox’s made-to-measure form.' },
+  'blue wolf collective': { ids: ['neck','chest','underbust','waist','shoulder'], note: 'Typical for a harness. Check the shop’s order form.' },
+  libidex: { ids: ['waist','hips','thigh'], note: 'Typical for shorts. Check Libidex’s size chart.' }
+};
+const DEF_NEEDS = { ids: ['chest','waist','hips','torso','inseam'], note: 'Common catsuit measurements. Check the shop’s form.' };
+const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'One size'];
+const KNOWN_PHOTOS = {
+  'latex-alpha-husky-suit': ['./assets/gear/kinkfox-alpha-husky.jpg'],
+  'alpha-pup-latex-suit': ['./assets/gear/kinkfox-alpha-pup.jpg'],
+  'black-red-stripe-latex-catsuit': ['./assets/gear/kinkfox-red-stripe.jpg'],
+  'blue-service-animal-harness-made-to-order-copy': ['./assets/gear/blue-wolf-harness.png'],
+  'cock-crusher-inflatable-shorts': ['./assets/gear/libidex-shorts.png']
+};
+const KNOWN = { 'alpha-pup-latex-suit': 85, 'latex-alpha-husky-suit': 136, 'pup-play-latex-catsuit': 108 };
+
+const ANIM = {
+  up: [[{ opacity: 0, transform: 'translateY(18px)' }, { opacity: 1, transform: 'none' }], 560],
+  fade: [[{ opacity: 0 }, { opacity: 1 }], 450],
+  right: [[{ opacity: 0, transform: 'translateX(32px)' }, { opacity: 1, transform: 'none' }], 520],
+  scale: [[{ opacity: 0, transform: 'scale(.92)' }, { opacity: 1, transform: 'none' }], 640],
+  pop: [[{ opacity: 0, transform: 'scale(.4)' }, { opacity: 1, transform: 'scale(1.14)', offset: 0.65 }, { opacity: 1, transform: 'none' }], 460],
+  zoom: [[{ transform: 'scale(1.16)' }, { transform: 'scale(1)' }], 1600],
+  grow: [[{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], 1100],
+  push: [[{ transform: 'translateX(100%)' }, { transform: 'none' }], 480],
+  sheet: [[{ transform: 'translateY(100%)' }, { transform: 'none' }], 480],
+  fanL: [[{ opacity: 0, transform: 'translate(0,50px) rotate(0)' }, { opacity: 1, transform: 'translate(-78px,18px) rotate(-10deg)' }], 900],
+  fanR: [[{ opacity: 0, transform: 'translate(0,50px) rotate(0)' }, { opacity: 1, transform: 'translate(78px,18px) rotate(10deg)' }], 900],
+  fanC: [[{ opacity: 0, transform: 'translateY(70px) scale(.85)' }, { opacity: 1, transform: 'none' }], 900]
+};
+const R = (to) => [[{ transform: 'translateY(0)' }, { transform: 'translateY(0)', offset: 0.38 }, { transform: 'translateY(' + to + 'px)', offset: 0.52 }, { transform: 'translateY(' + to + 'px)', offset: 0.9 }, { transform: 'translateY(0)' }], { duration: 4200, iterations: Infinity, easing: EASE }];
+const LOOP = {
+  float: [[{ transform: 'translateY(0) rotate(0)' }, { transform: 'translateY(-10px) rotate(-1.5deg)' }], { duration: 2600, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out' }],
+  pulse: [[{ boxShadow: '0 0 0 0 currentColor', opacity: 1 }, { boxShadow: '0 0 0 6px transparent', opacity: 0.7 }], { duration: 1600, iterations: Infinity, easing: 'ease-out' }],
+  spin: [[{ transform: 'rotate(0)' }, { transform: 'rotate(360deg)' }], { duration: 700, iterations: Infinity }],
+  scan: [[{ transform: 'translateY(-4%)' }, { transform: 'translateY(100%)' }], { duration: 1800, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out' }],
+  breathe: [[{ opacity: 0.55 }, { opacity: 1 }], { duration: 1100, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out' }],
+  rankA: R(72), rankB: R(72), rankC: R(-144),
+  badge: [[{ opacity: 0, transform: 'scale(.4)' }, { opacity: 0, transform: 'scale(.4)', offset: 0.2 }, { opacity: 1, transform: 'scale(1.25)', offset: 0.28 }, { opacity: 1, transform: 'none', offset: 0.34 }, { opacity: 1, transform: 'none', offset: 0.9 }, { opacity: 0, transform: 'scale(.4)' }], { duration: 4200, iterations: Infinity }],
+  notifLoop: [[{ opacity: 0, transform: 'translateY(-60px) scale(.96)' }, { opacity: 1, transform: 'none', offset: 0.14 }, { opacity: 1, transform: 'none', offset: 0.82 }, { opacity: 0, transform: 'translateY(-60px) scale(.96)' }], { duration: 4200, iterations: Infinity, easing: EASE }],
+  strike: [[{ transform: 'scaleX(0)' }, { transform: 'scaleX(0)', offset: 0.22 }, { transform: 'scaleX(1)', offset: 0.32 }, { transform: 'scaleX(1)', offset: 0.86 }, { transform: 'scaleX(0)' }], { duration: 4200, iterations: Infinity, easing: EASE }],
+  newPrice: [[{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 0, transform: 'translateY(8px)', offset: 0.3 }, { opacity: 1, transform: 'none', offset: 0.4 }, { opacity: 1, transform: 'none', offset: 0.86 }, { opacity: 0, transform: 'translateY(8px)' }], { duration: 4200, iterations: Infinity, easing: EASE }]
+};
+
+const POINTS = [
+  ['height','Height','Barefoot, back against a wall.'], ['neck','Neck','Around the base of the neck, where a collar sits.'],
+  ['chest','Chest','Fullest part, across the nipples. Keep the tape level.'], ['underbust','Underbust','Directly under the chest, snug and level.'],
+  ['waist','Waist','Narrowest point, usually just above the navel.'], ['waistHip','Between waist and hip','Halfway between waist and the fullest part of the hips.'],
+  ['hips','Hips','Fullest part of the seat, feet together.'], ['torso','Torso girth','Shoulder, down the front, through the crotch, up the back to the same point.'],
+  ['ubend','U-bend','Breastbone, between the legs, up to the base of the neck.'], ['insideArm','Inside arm','Armpit to wrist bone, arm relaxed.'],
+  ['inseam','Inside leg','Crotch to ankle bone, inside of the leg.'], ['armLength','Arm length','Shoulder bone to wrist bone, arm slightly bent.'],
+  ['thigh','Thigh','Just below the crotch, fullest part.'], ['shoulder','Shoulder width','Across the back, shoulder bone to shoulder bone.'],
+  ['waistAnkle','Waist to ankle','Down the side, waist to ankle bone.'], ['armpit','Around the armpit','Top of the shoulder, under the armpit and back up.'],
+  ['upperArm','Bicep','Fullest part of the upper arm, relaxed.'], ['elbow','Elbow','Around the elbow, arm bent.'], ['forearm','Forearm','Fullest part, just below the elbow.'],
+  ['wrist','Wrist','Around the wrist bone.'], ['knee','Knee','Middle of the knee, leg straight.'], ['calf','Calf','Fullest part of the calf.'],
+  ['ankle','Ankle','Narrowest point, above the ankle bone.'], ['head','Head','Around the forehead and back of the head.'], ['shoe','Shoe size','Your usual shoe size, EU sizing.']
+];
+const PT = Object.fromEntries(POINTS.map(p => [p[0], { label: p[1], hint: p[2] }]));
+const FIG = [
+  { id: 'body', label: 'Body', title: 'Body', ids: ['neck','chest','underbust','waist','waistHip','hips','shoulder'] },
+  { id: 'len', label: 'Lengths', title: 'Lengths', ids: ['height','torso','armLength','inseam','waistAnkle'] },
+  { id: 'limbs', label: 'Limbs', title: 'Arms and legs', ids: ['armpit','upperArm','elbow','forearm','wrist','thigh','knee','calf','ankle'] },
+  { id: 'head', label: 'Head & feet', title: 'Head and feet', ids: ['head','shoe'] }
+];
+const FL = (() => {
+  const G = (x1, x2, y, b, side) => ({ d: 'M' + x1 + ' ' + y + ' Q' + (x1 + x2) / 2 + ' ' + (y + b) + ' ' + x2 + ' ' + y, ends: [[x1, y], [x2, y]], a: side === 'L' ? [x1, y] : [x2, y], side });
+  const L = (pts, side, a, dash) => ({ d: pts.map((p, i) => (i ? 'L' : 'M') + p[0] + ' ' + p[1]).join(' '), ends: [pts[0], pts[pts.length - 1]], a: a || pts[Math.floor(pts.length / 2)], side, dash });
+  const across = (p, q, t, w) => { const dx = q[0] - p[0], dy = q[1] - p[1], n = Math.hypot(dx, dy), nx = dy / n, ny = -dx / n, cx = p[0] + dx * t, cy = p[1] + dy * t, hw = w / 2;
+    const i = [+(cx - nx * hw).toFixed(1), +(cy - ny * hw).toFixed(1)], o = [+(cx + nx * hw).toFixed(1), +(cy + ny * hw).toFixed(1)]; return L([i, o], 'R', o); };
+  const A0 = [141, 96], A1 = [154, 176], A2 = [162, 244];
+  const foot = L([[109, 424], [134, 424]], 'R', [134, 424]);
+  return {
+    head: G(82, 118, 24, 3, 'L'), neck: G(91, 109, 64, 3, 'L'), shoulder: L([[60, 80], [140, 80]], 'R', [140, 80]),
+    chest: G(67, 133, 118, 6, 'L'), underbust: G(70, 130, 138, 5, 'R'), waist: G(80, 120, 170, 4, 'L'), waistHip: G(75, 125, 192, 5, 'R'), hips: G(66, 134, 214, 6, 'L'),
+    height: L([[190, 14], [190, 422]], 'R', [190, 218]),
+    armpit: L([[128, 104], [147, 86]], 'R', [147, 86]), upperArm: across(A0, A1, 0.45, 22), elbow: across(A0, A1, 1, 19), forearm: across(A1, A2, 0.3, 16), wrist: across(A1, A2, 0.95, 13),
+    thigh: G(66, 100, 238, 5, 'L'), knee: G(72, 94, 318, 3, 'L'), calf: G(72, 96, 348, 3, 'L'), ankle: G(77, 91, 398, 2, 'L'),
+    shoe: foot, inseam: L([[96, 242], [91, 404]], 'L', [93, 320]),
+    torso: L([[118, 80], [114, 150], [108, 215], [100, 238]], 'R', [114, 150]),
+    armLength: L([[150, 82], [168, 176], [176, 244]], 'R'),
+    waistAnkle: L([[124, 172], [146, 214], [144, 318], [132, 404]], 'R', [144, 318])
+  };
+})();
+const SHORT = { underbust: 'Underbust', waistHip: 'Waist–hip', armpit: 'Armhole', upperArm: 'Bicep', waistAnkle: 'Waist–ankle', armLength: 'Arm length', inseam: 'Inside leg', torso: 'Torso girth', shoulder: 'Shoulders', shoe: 'Shoe', chest: 'Chest' };
+const shortLabel = id => SHORT[id] || (PT[id] ? PT[id].label : id);
+function bodyFig(o) {
+  const h = React.createElement, X = 90, ink = '#f5f5f7', mut = '#a1a1a6', fill = '#3a3a3c';
+  const bare = !!o.bare, single = !!o.single || bare, lines = (o.lines || []).filter(l => FL[l.id]);
+  const cap = { strokeLinecap: 'round', stroke: fill };
+  const half = k => h('g', { key: k, transform: k === 'l' ? 'matrix(-1 0 0 1 200 0)' : undefined },
+    h('line', Object.assign({ x1: 141, y1: 96, x2: 154, y2: 176, strokeWidth: 22 }, cap)),
+    h('line', Object.assign({ x1: 154, y1: 176, x2: 162, y2: 244, strokeWidth: 16 }, cap)),
+    h('ellipse', { cx: 164, cy: 258, rx: 8, ry: 12, fill }),
+    h('line', Object.assign({ x1: 117, y1: 226, x2: 117, y2: 318, strokeWidth: 34 }, cap)),
+    h('line', Object.assign({ x1: 117, y1: 318, x2: 116, y2: 402, strokeWidth: 22 }, cap)),
+    h('ellipse', { cx: 116.5, cy: 352, rx: 12.5, ry: 28, fill }),
+    h('ellipse', { cx: 121, cy: 414, rx: 12, ry: 7, fill }));
+  const fig = [half('r'), half('l'),
+    h('path', { key: 't', fill, d: 'M92 72 L108 72 C120 76 134 78 140 88 C142 96 136 102 134 110 C133 130 122 150 120 170 C120 186 134 196 134 214 C134 228 118 238 100 238 C82 238 66 228 66 214 C66 196 80 186 80 170 C78 150 67 130 66 110 C64 102 58 96 60 88 C66 78 80 76 92 72 Z' }),
+    h('rect', { key: 'n', x: 91, y: 52, width: 18, height: 24, rx: 6, fill }),
+    h('ellipse', { key: 'h', cx: 100, cy: 34, rx: 18, ry: 22, fill })];
+  lines.forEach((l, i) => { const f = FL[l.id], col = single ? ACC : ink, w = bare ? 2.5 : single ? 3.5 : 1.75;
+    fig.push(h('path', { key: 'p' + l.id, 'data-fig-line': '1', d: f.d, fill: 'none', stroke: col, strokeWidth: w, strokeLinecap: 'round', strokeLinejoin: 'round', strokeDasharray: f.dash ? '3 4' : undefined }));
+    f.ends.forEach((e, j) => fig.push(h('circle', { key: 'e' + l.id + '-' + j, cx: e[0], cy: e[1], r: bare ? 2.5 : single ? 3.5 : 2.25, fill: col }))); });
+  const out = [h('g', { key: 'fig', transform: 'translate(' + X + ' 0)' }, fig)];
+  if (!single) {
+    ['L', 'R'].forEach(side => {
+      const items = lines.filter(l => FL[l.id].side === side).map(l => ({ l, ax: FL[l.id].a[0] + X, ay: FL[l.id].a[1] })).sort((a, b) => a.ay - b.ay);
+      let prev = -1e9; items.forEach(it => { it.y = Math.max(it.ay, prev + 34, 16); prev = it.y; });
+      let lim = 420; for (let i = items.length - 1; i >= 0; i--) { if (items[i].y > lim) items[i].y = lim; lim = items[i].y - 34; }
+      items.forEach(it => { const Lft = side === 'L', tx = Lft ? 80 : 300, x0 = Lft ? 84 : 296;
+        out.push(h('g', { key: side + it.l.id, onClick: it.l.onTap, style: { cursor: it.l.onTap ? 'pointer' : 'default' } },
+          h('rect', { x: Lft ? 0 : 292, y: it.y - 12, width: 88, height: 34, fill: 'transparent' }),
+          h('line', { x1: x0, y1: it.y + 3, x2: it.ax, y2: it.ay, stroke: mut, strokeWidth: 0.75, opacity: 0.55 }),
+          h('text', { x: tx, y: it.y, textAnchor: Lft ? 'end' : 'start', fontSize: 11, fill: mut }, shortLabel(it.l.id)),
+          h('text', { x: tx, y: it.y + 16, textAnchor: Lft ? 'end' : 'start', fontSize: 14, fontWeight: 600, fill: ink }, it.l.value || ''))); });
+    });
+  }
+  return h('svg', { viewBox: single ? '112 6 178 432' : '0 0 380 440', width: '100%', style: { display: 'block', overflow: 'visible', fontFamily: 'inherit' }, role: 'img', 'aria-label': 'Body diagram' }, out);
+}
+function CountUp(props) {
+  const [v, setV] = React.useState(props.from != null ? props.from : 0);
+  const cur = React.useRef(v);
+  React.useEffect(() => {
+    const a = cur.current, b = props.value, t0 = performance.now(), dur = props.dur || 1000; let raf;
+    const step = t => { const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3), x = a + (b - a) * e; cur.current = x; setV(x); if (p < 1) raf = requestAnimationFrame(step); };
+    raf = requestAnimationFrame(step); return () => cancelAnimationFrame(raf);
+  }, [props.value]);
+  const dec = props.dec || 0;
+  return (v < -0.5 ? '−' : '') + (props.prefix || '') + Math.abs(v).toFixed(dec);
+}
+
+const uid = () => Math.random().toString(36).slice(2, 10);
+const pad = n => String(n).padStart(2, '0');
+const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const fmtD = s => { const d = new Date(s + 'T12:00:00'); return d.getDate() + ' ' + MON[d.getMonth()]; };
+const num = v => (Math.round(v * 100) % 100 ? v.toFixed(2) : String(Math.round(v)));
+const money = (c, v) => c + num(v);
+const eurOf = it => it.price == null ? null : it.price * (FX[it.currency] || 1);
+const paidEur = it => it.paid != null ? it.paid * (FX[it.paidCur || '€'] || 1) : (eurOf(it) || 0);
+function dropOf(it) { const h = it.history || []; if (h.length < 2 || it.price == null) return 0; const max = Math.max.apply(null, h.slice(0, -1).map(x => x.price)); return max > it.price ? (max - it.price) / max : 0; }
+const scoreOf = it => (it.rating || 0) + Math.min(1.5, dropOf(it) * 10);
+const toNum = s => { const n = parseFloat(String(s || '').replace(',', '.')); return isNaN(n) ? 0 : n; };
+
+function seed() {
+  const KF = 'https://kinkfox.com/product/';
+  return { v: 1, onboarded: false, activeId: 'kevin', profiles: [{ id: 'kevin', name: 'Kevin', budget: { amount: null, since: null },
+    session: { date: '2026-10-18', values: { chest: 87, underbust: 82, waist: 75.5, waistHip: 83, hips: 92.5, thigh: 54, knee: 37.5, calf: 34.5, ankle: 22.5, armpit: 42.5, upperArm: 27, elbow: 25, forearm: 26.5, wrist: 17, armLength: 59, neck: 38, inseam: 74.5, waistAnkle: 103, torso: 162, shoulder: 42, head: 58.5, height: 181, shoe: 42.5 } },
+    items: [
+      { id: 'harness', name: 'Service Animal Harness', brand: 'Blue Wolf Collective', category: 'Harness', url: 'https://mybluewolf.com/products/blue-service-animal-harness-made-to-order-copy?variant=53061676761451', photos: ['https://mybluewolf.com/cdn/shop/files/PXL_20250703_200222769.MP.jpg?v=1776358796&width=1024', 'https://mybluewolf.com/cdn/shop/files/PXL_20250703_200240447.MP.jpg?v=1776360428&width=1024', 'https://mybluewolf.com/cdn/shop/files/PXL_20250703_200234537.MP.jpg?v=1762895576&width=1024', 'https://mybluewolf.com/cdn/shop/files/PXL_20250703_200307370.MP.jpg?v=1776360547&width=1024', 'https://mybluewolf.com/cdn/shop/files/PXL_20250703_200258424.MP.jpg?v=1776360570&width=1024', 'https://mybluewolf.com/cdn/shop/files/PXL_20250703_200248293.MP.jpg?v=1776360456&width=1024', 'https://mybluewolf.com/cdn/shop/files/PXL_20250703_200322724.jpg?v=1776360499&width=1024', 'https://mybluewolf.com/cdn/shop/files/IMG_3075_9ac78ba9-f9d4-41ac-8454-81c4b8544b86.jpg?v=1776360597&width=1024'], currency: '€', price: 360, history: [{ date: '2026-09-12', price: 360 }], rating: 5, status: 'wanted', size: 'Made to order', colour: 'Blue', m2m: true, added: '2026-09-12' },
+      { id: 'husky', name: 'Latex Alpha Husky Suit', brand: 'Kinkfox', category: 'Catsuit', url: KF + 'latex-alpha-husky-suit', photos: ['./assets/gear/kinkfox-alpha-husky.jpg'], currency: '$', price: 136, history: [{ date: '2026-08-20', price: 159 }, { date: '2026-09-24', price: 151 }, { date: '2026-10-19', price: 136 }], rating: 4, status: 'wanted', size: 'Made to measure', colour: 'Black, white trim', m2m: true, added: '2026-08-20' },
+      { id: 'shorts', name: 'Cock Crusher Inflatable Shorts', brand: 'Libidex', category: 'Shorts', url: 'https://libidex.com/cock-crusher-inflatable-shorts.html', photos: ['https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/c/o/cock_crusher_shorts_prod3.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/_/d/_daf1810_pro_1.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/c/o/cock_crusher_shorts_prod4.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/_/d/_daf1700_pro.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/c/o/cock_crusher_shorts_prod2.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/_/d/_daf1739_pro.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/c/o/cock_crusher_shorts_prod.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/_/d/_daf1845_pro.png'], currency: '£', price: 107.96, history: [{ date: '2026-10-02', price: 119.95 }, { date: '2026-10-20', price: 107.96 }], rating: 3, status: 'wanted', size: 'M', colour: 'Black', m2m: false, added: '2026-10-02' },
+      { id: 'pup', name: 'Alpha Pup Latex Suit', brand: 'Kinkfox', category: 'Catsuit', url: KF + 'alpha-pup-latex-suit', photos: ['./assets/gear/kinkfox-alpha-pup.jpg'], currency: '$', price: 85, history: [{ date: '2026-10-01', price: 85 }], rating: 5, status: 'ordered', orderedOn: '2026-10-18', paid: 93.79, paidCur: '€', size: 'Made to measure', colour: 'Black, yellow trim', m2m: true, added: '2026-10-01' },
+      { id: 'stripe', name: 'Black Red Stripe Latex Catsuit', brand: 'Kinkfox', category: 'Catsuit', url: KF + 'black-red-stripe-latex-catsuit', photos: ['./assets/gear/kinkfox-red-stripe.jpg'], currency: '€', price: 120.59, history: [], rating: 4, status: 'ordered', orderedOn: '2026-10-18', paid: 120.59, paidCur: '€', size: 'Made to measure', colour: 'Black, white trim', m2m: true, added: '2026-10-01' }
+    ] }] };
+}
+const normUrl = u => { try { const x = new URL(u); const q = ['product_id', 'variant'].filter(k => x.searchParams.get(k)).map(k => k + '=' + x.searchParams.get(k)).join('&'); return x.hostname.replace(/^www\./, '') + x.pathname.replace(/\/+$/, '') + (q ? '?' + q : ''); } catch (e) { return null; } };
+const agoTxt = iso => { const days = Math.floor((Date.now() - new Date(iso).getTime()) / 864e5); return days <= 0 ? 'today' : days === 1 ? 'yesterday' : days + ' days ago'; };
+const BREEDWELL = () => [
+    { id: 'bw-gagged', name: 'Gagged Body Harness', brand: 'Breedwell', category: 'Harness', url: 'https://breedwell.eu/products/gagged-body-harness?variant=48893641490667', photos: ['https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-8714342.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-9120655.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-9219584.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-8334535.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-8178980.jpg?v=1781774996&width=1200', 'https://breedwell.eu/cdn/shop/files/gagged-body-harness2604-108breedwell-9770628.jpg?v=1781774996&width=1200'], currency: '€', price: 70.8, history: [{ date: '2026-10-20', price: 70.8 }], rating: 3, status: 'wanted', size: 'XS', colour: 'Neon Pink', m2m: false, added: '2026-10-20', needs: { ids: ['chest'], note: 'Breedwell sizes by chest: XS 83–91 cm, S/M 91–104 cm.' } },
+    { id: 'bw-boxer', name: 'Circuit Breaker Boxer Brief', brand: 'Breedwell', category: 'Underwear', url: 'https://breedwell.eu/products/circuit-breaker-boxer-brief', photos: ['https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-3777974.jpg?v=1777216532&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-2633288.jpg?v=1777216533&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-6001643.jpg?v=1777216533&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-9064242.jpg?v=1777216533&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-1925577.jpg?v=1777216533&width=900', 'https://breedwell.eu/cdn/shop/files/circuit-breaker-boxer-brief2504-047breedwell-1987066.jpg?v=1777216533&width=900'], currency: '€', price: 40.8, history: [{ date: '2026-10-20', price: 40.8 }], rating: 3, status: 'wanted', size: 'S', colour: 'Neon Pink', m2m: false, added: '2026-10-20', needs: { ids: ['waist'], note: 'Breedwell sizes by waist: S 71–76 cm, M 76–81 cm. Hygiene item: no returns once opened.' } }
+  ];
+function linkImports() {
+  const KF = 'https://kinkfox.com/product/', KU = 'https://kinkfox.com/wp-content/uploads/', LX = 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/', d = '2026-10-20', h = p => [{ date: d, price: p }];
+  const kfM2m = { ids: KF_FORM, note: 'From Kinkfox’s made-to-measure form. Price includes the +20% made-to-measure charge.' };
+  return [
+    { id: 'afc-handle', name: 'Handle Harness – Premium', brand: 'Andrewfoxcrafts', category: 'Harness', url: 'https://www.andrewfoxcrafts.com/product-page/handle-harness-premium', photos: ['https://static.wixstatic.com/media/ef1966_b1d8e035d9fa4d218f895c2928c76223~mv2.jpg/v1/fill/w_980,h_1470,al_c,q_85/file.jpg', 'https://static.wixstatic.com/media/ef1966_f7076eac26c345b082e4bfcb0c1649b9~mv2.jpg/v1/fill/w_980,h_653,al_c,q_85/file.jpg', 'https://static.wixstatic.com/media/ef1966_4f45fcc69c76453ca3edc58a46db8be8~mv2.jpg/v1/fill/w_980,h_653,al_c,q_85/file.jpg'], currency: '€', price: 450, history: h(450), rating: 3, status: 'wanted', size: 'Made to order', colour: 'Choose main and lining colour', m2m: true, added: d, needs: { ids: ['neck', 'chest', 'underbust', 'waist', 'shoulder'], note: 'Typical for a harness. The shop asks for measurements when you commission. Made in 4 weeks.' } },
+    { id: 'kf-neonpaw', name: 'Neon Paw Latex Catsuit', brand: 'Kinkfox', category: 'Catsuit', url: KF + 'neon-paw-latex-catsuit/', photos: [KU + '2026/02/IMG_4442-rotated-e1771039463296-600x778.jpg', KU + '2026/02/IMG_4424-600x900.jpg', KU + '2026/02/IMG_4427-600x900.jpg', KU + '2026/02/IMG_4445-600x900.jpg'], currency: '$', price: 139.2, history: h(139.2), rating: 3, status: 'wanted', size: 'Made to measure', colour: 'Black, neon green trim', m2m: true, surcharge: 0.2, added: d, needs: kfM2m },
+    { id: 'lx-stirrup', name: 'Stirrup Tights', brand: 'Libidex', category: 'Tights', url: 'https://libidex.com/stirrup-tights.html', photos: [LX + '_/t/_twb6970x_prod2.png', LX + '_/t/_twb6970x_prod.png', LX + '_/d/_daf4300_pro.png'], currency: '£', price: 119.95, history: h(119.95), rating: 3, status: 'wanted', size: 'M', colour: 'Black', m2m: false, added: d, needs: { ids: ['waist', 'hips', 'thigh', 'calf', 'ankle', 'inseam', 'height'], note: 'Check Libidex’s size chart. They also offer Petite, Regular and Tall lengths.' } },
+    { id: 'lx-avril', name: 'Avril Skater Skirt', brand: 'Libidex', category: 'Skirt', url: 'https://libidex.com/avril-skater-skirt.html', photos: [LX + '_/d/_daf4613x_prod3.png', LX + '_/d/_daf4657_pro.png', LX + '_/d/_daf4639x_prod.png'], currency: '£', price: 109.95, history: h(109.95), rating: 3, status: 'wanted', size: 'M', colour: 'Black', m2m: false, added: d, needs: { ids: ['waist', 'hips'], note: 'Check Libidex’s size chart. Length is about 40–43 cm in sizes XXS–M.' } },
+    { id: 'cf-gauntlets', name: 'Fingerless Long Latex Gauntlets', brand: 'Latex Catfish', category: 'Gloves', url: 'https://www.latexcatfish.com/woman/woman-accessories?product_id=4072', photos: ['https://www.latexcatfish.com/image/catalog/products_2024/NB4CtPaRgrEZ3phpc0MSFcIliCj3wnqX1.jpg', 'https://www.latexcatfish.com/image/catalog/products_2024/wUfPjnolnF6OaXGSkX0mJ9OylRTLwpNzC.jpg', 'https://www.latexcatfish.com/image/catalog/products_2024/6ZP661dbCtNIpngKdE6vL7TJg29zRzNRbCi.jpg'], currency: '$', price: 29, history: h(29), rating: 3, status: 'wanted', size: 'M', colour: 'Black', m2m: false, added: d, needs: { ids: ['upperArm', 'elbow', 'forearm', 'wrist', 'armLength'], note: 'Typical for long gauntlets. Made to measure is +20% at Latex Catfish.' } },
+    { id: 'kf-voltage', name: 'Black Voltage', brand: 'Kinkfox', category: 'Leotard', url: KF + 'black-voltage/', photos: [KU + '2025/06/IMG_4561-rotated-e1750584199250-600x903.jpg', KU + '2025/06/IMG_4546-scaled-600x900.jpg', KU + '2025/06/IMG_4552-scaled-600x900.jpg'], currency: '$', price: 78, history: h(78), rating: 3, status: 'wanted', size: 'Made to measure', colour: 'Metallic black', m2m: true, surcharge: 0.2, added: d, needs: kfM2m },
+    { id: 'kf-sprint', name: 'A Midnight Sprint', brand: 'Kinkfox', category: 'Trousers', url: KF + 'midnight-sprint/', photos: [KU + '2025/10/AIG-3522-1-scaled-e1789480971228-600x744.jpg', KU + '2025/10/AIG-3506-%E6%8B%B7%E8%B4%9D-2-1-600x900.jpg', KU + '2025/10/AIG-3511-%E6%8B%B7%E8%B4%9D-2-1-600x900.jpg'], currency: '$', price: 81.6, history: h(81.6), rating: 3, status: 'wanted', size: 'Made to measure', colour: 'Dark blue, white stripes', m2m: true, surcharge: 0.2, added: d, needs: kfM2m },
+    { id: 'kf-mask', name: 'A Black Latex Mask', brand: 'Kinkfox', category: 'Hood', url: KF + 'black-latex-mask/', photos: ['./assets/gear/kinkfox-black-mask.png', './assets/gear/kinkfox-black-mask-back.png'], currency: '$', price: 36, history: h(36), rating: 3, status: 'wanted', size: 'One size', colour: 'Black', m2m: false, added: d, needs: { ids: ['head', 'neck'], note: 'Hoods usually fit by head and neck circumference.' } },
+    ...BREEDWELL(),
+    { id: 'etsy-cuffs', name: 'Leather Wrist & Ankle Cuffs Set', brand: 'G8DBOY', category: 'Cuffs', url: 'https://www.etsy.com/listing/1263268610/customizable-bdsm-leather-wrist-ankle', photos: ['./assets/gear/g8dboy-cuffs.png', './assets/gear/g8dboy-cuffs-yellow.png'], currency: '$', price: 214.3, history: h(214.3), rating: 3, status: 'wanted', size: 'Made to measure', colour: 'Black, blue lining', m2m: true, added: d, needs: { ids: ['wrist', 'ankle'], note: 'From the Etsy listing: each pair is made to your wrist and ankle size.' } }
+  ];
+}
+function load() { try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.v === 1 && d.profiles && d.profiles.length) { if (!d.imp1) { const p = d.profiles.find(x => x.id === 'kevin') || d.profiles[0], have = new Set(p.items.map(i => i.id)); linkImports().forEach(i => { if (!have.has(i.id)) p.items.push(i); }); d.imp1 = true; try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} } if (!d.imp2) { const fix = { 'kf-mask': ['./assets/gear/kinkfox-black-mask.png'], 'etsy-cuffs': ['./assets/gear/g8dboy-cuffs.png'] }; d.profiles.forEach(p => p.items.forEach(i => { if (fix[i.id] && !(i.photos || []).length) { i.photos = fix[i.id]; if (i.id === 'etsy-cuffs' && i.colour === 'Custom') i.colour = 'Black, blue lining'; } })); d.imp2 = true; try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} } if (!d.imp3) { const add = { 'kf-mask': './assets/gear/kinkfox-black-mask-back.png', 'etsy-cuffs': './assets/gear/g8dboy-cuffs-yellow.png' }; d.profiles.forEach(p => p.items.forEach(i => { if (add[i.id]) { i.photos = i.photos || []; if (!i.photos.includes(add[i.id])) i.photos.push(add[i.id]); } })); d.imp3 = true; try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} } if (!d.imp4) { d.profiles.forEach(p => p.items.forEach(i => { if (i.id === 'harness') i.photos = ['https://mybluewolf.com/cdn/shop/files/PXL_20250703_200222769.MP.jpg?v=1776358796&width=1024', 'https://mybluewolf.com/cdn/shop/files/PXL_20250703_200240447.MP.jpg?v=1776360428&width=1024', 'https://mybluewolf.com/cdn/shop/files/PXL_20250703_200234537.MP.jpg?v=1762895576&width=1024', 'https://mybluewolf.com/cdn/shop/files/PXL_20250703_200307370.MP.jpg?v=1776360547&width=1024', 'https://mybluewolf.com/cdn/shop/files/PXL_20250703_200258424.MP.jpg?v=1776360570&width=1024', 'https://mybluewolf.com/cdn/shop/files/PXL_20250703_200248293.MP.jpg?v=1776360456&width=1024', 'https://mybluewolf.com/cdn/shop/files/PXL_20250703_200322724.jpg?v=1776360499&width=1024', 'https://mybluewolf.com/cdn/shop/files/IMG_3075_9ac78ba9-f9d4-41ac-8454-81c4b8544b86.jpg?v=1776360597&width=1024']; })); d.imp4 = true; try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} } if (!d.imp5) { d.profiles.forEach(p => p.items.forEach(i => { if (i.id === 'shorts') { i.photos = ['https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/c/o/cock_crusher_shorts_prod3.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/_/d/_daf1810_pro_1.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/c/o/cock_crusher_shorts_prod4.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/_/d/_daf1700_pro.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/c/o/cock_crusher_shorts_prod2.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/_/d/_daf1739_pro.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/c/o/cock_crusher_shorts_prod.png', 'https://libidex.com/media/catalog/product/cache/a08b7570fb6c6c9c737ea1f69eaf284c/_/d/_daf1845_pro.png']; i.url = 'https://libidex.com/cock-crusher-inflatable-shorts.html'; if (i.price == null || i.price !== 107.96) { i.history = (i.history || []).length ? i.history.concat({ date: '2026-10-20', price: 107.96 }) : [{ date: '2026-10-02', price: 119.95 }, { date: '2026-10-20', price: 107.96 }]; i.price = 107.96; } if (!i.size) i.size = 'M'; i.needs = { ids: ['waist', 'hips', 'thigh'], note: 'Check Libidex’s size chart. On sale: £107.96, down from £119.95.' }; } })); d.imp5 = true; try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} } if (!d.imp6) { d.profiles.forEach(p => p.items.forEach(i => { if (['kf-neonpaw', 'kf-voltage', 'kf-sprint'].includes(i.id)) i.surcharge = 0.2; })); d.imp6 = true; try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} } if (!d.imp7) { const p = d.profiles.find(x => x.id === 'kevin') || d.profiles[0], have = new Set(p.items.map(i => i.id)); BREEDWELL().forEach(i => { if (!have.has(i.id)) p.items.push(i); }); d.imp7 = true; try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} } return d; } } catch (e) {} const s = seed(); s.profiles[0].items.push(...linkImports()); s.imp1 = true; return s; }
+function readPhoto(file) {
+  return new Promise(res => { const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => {
+    const s = Math.min(1, 900 / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', 0.82)); }; img.onerror = () => res(null); img.src = r.result; }; r.readAsDataURL(file); });
+}
+
+class Component extends DCLogic {
+  state = { data: load(), tab: 'wish', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null };
+  carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
+  introRef = React.createRef(); bPanelRef = React.createRef(); toastRef = React.createRef(); figRef = React.createRef();
+
+  async syncPrices() {
+    let j; try { const r = await fetch('./prices.json', { cache: 'no-store' }); if (!r.ok) return; j = await r.json(); } catch (e) { return; }
+    const map = (j && j.items) || {}, data = JSON.parse(JSON.stringify(this.state.data)); let changed = false;
+    data.profiles.forEach(p => p.items.forEach(it => {
+      const e = it.url && map[normUrl(it.url)]; if (!e || e.checked === it.checked) return; changed = true;
+      it.checked = e.checked; it.checkErr = null;
+      if (!e.ok || e.price == null) { it.checkErr = 'Couldn’t read the price'; return; }
+      if (e.currency && it.currency && e.currency !== it.currency) { it.checkErr = 'Shop shows ' + e.currency + e.price; return; }
+      const np = Math.round(e.price * (1 + (it.surcharge || 0)) * 100) / 100;
+      if (it.price !== np) { if (!(it.history || []).length && it.price != null) it.history = [{ date: it.added || e.checked.slice(0, 10), price: it.price }]; it.history = (it.history || []).concat({ date: e.checked.slice(0, 10), price: np }); it.price = np; }
+    }));
+    if (changed) this.save(data);
+  }
+  componentDidMount() {
+    this.syncPrices();
+    if (!this.isFramed()) document.body.style.background = '#000';
+    this.reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.seen = new WeakSet();
+    const root = this.rootRef.current;
+    if (root && !this.reduce) {
+      this.scan([root]);
+      this.mo = new MutationObserver(ms => { const added = []; ms.forEach(m => m.addedNodes.forEach(n => added.push(n))); if (added.length) this.scan(added); });
+      this.mo.observe(root, { childList: true, subtree: true });
+    }
+    if (!this.introVisible()) this.scheduleNotif(1200);
+    this._pf = this.state.figTab; this._pt = this.state.tab; this._pg = this.state.group;
+    this.drawFig();
+  }
+  componentDidUpdate() {
+    const s = this.state;
+    if (this._pf !== s.figTab || this._pt !== s.tab) { this._pf = s.figTab; this._pt = s.tab; this.drawFig(); }
+    if (this._pg !== undefined && this._pg !== s.group) this.replay('[data-row]', 'up');
+    this._pg = s.group;
+  }
+  componentWillUnmount() { clearInterval(this.tick); if (this.mo) this.mo.disconnect(); [this.t1, this.t2, this.t3, this.t4, this.t5].forEach(clearTimeout); }
+
+  isFramed() { return !!this.props.framed && this.props.framed !== 'false'; }
+  introOn() { return !(this.props.intro === false || this.props.intro === 'false'); }
+  introVisible() { return this.introOn() && !this.state.data.onboarded; }
+  scan(nodes) {
+    const list = [];
+    nodes.forEach(n => { if (n.nodeType !== 1) return; if (n.hasAttribute('data-anim')) list.push(n); n.querySelectorAll('[data-anim]').forEach(x => list.push(x)); });
+    let i = 0;
+    list.forEach(el => { if (this.seen.has(el)) return; this.seen.add(el); const nm = el.getAttribute('data-anim'); this.animateEl(el, LOOP[nm] ? 0 : i++); });
+  }
+  animateEl(el, i) {
+    if (this.reduce || !el.animate) return;
+    const nm = el.getAttribute('data-anim'), dly = el.hasAttribute('data-delay') ? +el.getAttribute('data-delay') : Math.min(i * 50, 650);
+    if (LOOP[nm]) { el.animate(LOOP[nm][0], Object.assign({ delay: dly }, LOOP[nm][1])); return; }
+    if (nm === 'draw' || nm === 'drawLoop') {
+      const len = el.getTotalLength ? Math.ceil(el.getTotalLength()) + 2 : 300;
+      if (nm === 'draw') el.animate([{ strokeDasharray: len, strokeDashoffset: len }, { strokeDasharray: len, strokeDashoffset: 0 }], { duration: 1100, delay: dly, easing: EASE, fill: 'backwards' });
+      else el.animate([{ strokeDasharray: len, strokeDashoffset: len, opacity: 1 }, { strokeDasharray: len, strokeDashoffset: 0, opacity: 1, offset: 0.45 }, { strokeDasharray: len, strokeDashoffset: 0, opacity: 1, offset: 0.85 }, { strokeDasharray: len, strokeDashoffset: 0, opacity: 0 }], { duration: 4200, delay: dly, iterations: Infinity, easing: EASE });
+      return;
+    }
+    const a = ANIM[nm]; if (!a) return;
+    el.animate(a[0], { duration: a[1], delay: dly, easing: EASE, fill: 'backwards' });
+  }
+  replay(sel, nm) {
+    const root = this.scrollRef.current; if (!root || this.reduce) return; let i = 0;
+    root.querySelectorAll(sel).forEach(el => { const k = nm || el.getAttribute('data-anim'); if (!ANIM[k]) return; el.animate(ANIM[k][0], { duration: ANIM[k][1], delay: Math.min(i++ * 50, 650), easing: EASE, fill: 'backwards' }); });
+  }
+  drawFig() {
+    setTimeout(() => { const f = this.figRef.current; if (!f || this.reduce) return;
+      f.querySelectorAll('[data-fig-line]').forEach((p, i) => { const len = Math.ceil(p.getTotalLength()) + 2; p.animate([{ strokeDasharray: len, strokeDashoffset: len }, { strokeDasharray: len, strokeDashoffset: 0 }], { duration: 700, delay: i * 70, easing: EASE, fill: 'backwards' }); });
+      f.querySelectorAll('text').forEach((t, i) => t.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: 200 + i * 35, fill: 'backwards' })); }, 0);
+  }
+  animOut(el, k, dur, cb) { if (!el || this.reduce || !el.animate) { cb(); return; } const a = el.animate(k, { duration: dur, easing: 'cubic-bezier(.4,0,.7,.2)', fill: 'forwards' }); a.onfinish = cb; }
+  bump(el, s) { if (!el || this.reduce || !el.animate) return; el.animate([{ transform: 'scale(1)' }, { transform: 'scale(' + (s || 1.35) + ')', offset: 0.4 }, { transform: 'scale(1)' }], { duration: 420, easing: EASE }); }
+  scheduleNotif(ms) {
+    if (this.props.saleAlert === false || this.props.saleAlert === 'false') return;
+    clearTimeout(this.t1); clearTimeout(this.t2);
+    this.t1 = setTimeout(() => { if (this.dropItem()) { this.setState({ notif: true }); this.t2 = setTimeout(() => this.setState({ notif: false }), 6000); } }, ms);
+  }
+  toast(text) {
+    clearTimeout(this.t4); this.setState({ toast: text });
+    this.t4 = setTimeout(() => this.animOut(this.toastRef.current, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(16px) scale(.9)' }], 260, () => this.setState({ toast: null })), 2600);
+  }
+
+  save(data) { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} this.setState({ data }); }
+  prof() { const d = this.state.data; return d.profiles.find(p => p.id === d.activeId) || d.profiles[0]; }
+  mutate(fn) { const data = JSON.parse(JSON.stringify(this.state.data)); const p = data.profiles.find(x => x.id === data.activeId) || data.profiles[0]; fn(p, data); this.save(data); }
+  mutItem(id, fn) { this.mutate(p => { const it = p.items.find(x => x.id === id); if (it) fn(it, p); }); }
+  dropItem() { return this.prof().items.filter(i => i.status === 'wanted' && dropOf(i) > 0).sort((a, b) => dropOf(b) - dropOf(a))[0]; }
+  budgetInfo(p) {
+    const b = p.budget || {}; if (!b.amount) return null;
+    const s = new Date(b.since + 'T12:00:00'), n = new Date();
+    const months = Math.max(1, (n.getFullYear() - s.getFullYear()) * 12 + n.getMonth() - s.getMonth() + 1);
+    const spent = p.items.filter(i => i.orderedOn && i.orderedOn >= b.since).reduce((a, i) => a + paidEur(i), 0);
+    return { amount: b.amount, months, spent, avail: b.amount * months - spent };
+  }
+  afford(it, bi) {
+    const e = eurOf(it);
+    if (e == null) return { txt: 'Add a price to see when you can buy this.', dot: '#636366', pct: 0 };
+    if (!bi) return { txt: 'Set a monthly budget to see when you can buy this.', dot: '#636366', pct: 0, need: true };
+    const pct = Math.max(0, Math.min(1, bi.avail / e));
+    if (bi.avail >= e) return { txt: 'You can buy this now. €' + Math.round(bi.avail - e) + ' left after.', dot: '#30d158', pct };
+    const m = Math.ceil((e - Math.max(0, bi.avail)) / bi.amount), d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + m);
+    return { txt: 'Affordable in ' + m + (m === 1 ? ' month' : ' months') + ', ' + MON[d.getMonth()] + ' ' + d.getFullYear() + '.', dot: '#ff9f0a', pct };
+  }
+  stars(r) { return [1, 2, 3, 4, 5].map(n => ({ fill: n <= r ? ACC : '#48484a' })); }
+  vm(it, rank) {
+    const e = eurOf(it), dr = dropOf(it), ph = it.photos || [];
+    return { id: it.id, rank, name: it.name, brand: it.brand || 'No brand', meta: [it.brand, it.category].filter(Boolean).join(' · '),
+      photo: ph[0] || '', hasPhoto: !!ph.length, noPhoto: !ph.length, initial: (it.name || '?').charAt(0).toUpperCase(),
+      priceTxt: it.price == null ? 'No price' : money(it.currency, it.price), eurTxt: it.price != null && it.currency !== '€' ? '≈ €' + Math.round(e) : '',
+      stars: this.stars(it.rating), drop: dr > 0, dropTxt: '−' + Math.round(dr * 100) + '%', onOpen: () => this.openDetail(it.id) };
+  }
+  carGo(i) { const el = this.carRef.current; if (!el) return; const n = el.children.length, j = Math.max(0, Math.min(n - 1, i)); el.scrollTo({ left: j * el.clientWidth, behavior: this.reduce ? 'auto' : 'smooth' }); this.setState({ photoIdx: j }); }
+  openDetail(id) { this.setState({ detail: id, photoIdx: 0, delArm: false, copied: false, notif: false }); }
+  closeDetail(cb) { this.animOut(this.detailRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ detail: null, delArm: false }); if (cb) cb(); }); }
+  closeSheet(cb) {
+    const done = () => { this.setState({ sheet: null, form: null }); if (cb) cb(); };
+    if (this.backdropRef.current && !this.reduce) this.backdropRef.current.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' });
+    this.animOut(this.sheetRef.current, [{ transform: 'none' }, { transform: 'translateY(100%)' }], 300, done);
+  }
+  goTab(t, e) { if (e) this.bump(e.currentTarget.firstElementChild, 1.25); if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; if (t === this.state.tab && !this.state.detail) return; this.setState({ tab: t, detail: null }); }
+  fval(vals, id) { const v = vals[id]; if (v == null) return null; if (id === 'shoe') return { v: String(v), u: 'EU' }; return this.state.unit === 'in' ? { v: (v / 2.54).toFixed(1), u: 'in' } : { v: num(v), u: 'cm' }; }
+  setF(k, v) { this.setState(s => ({ form: Object.assign({}, s.form, { [k]: v }) })); }
+  openForm(it) {
+    const f = it ? { id: it.id, url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, photos: (it.photos || []).slice() }
+      : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: '€', size: '', colour: '', m2m: false, rating: 3, photos: [] };
+    f.found = [];
+    this.setState({ sheet: 'form', form: f, fetchMsg: '', fetching: false, newCatOpen: false, sizeOpen: false });
+  }
+  fillFromLink() {
+    const raw = (this.state.form.url || '').trim(); if (!raw) { this.setState({ fetchMsg: 'Paste a link first.' }); return; }
+    this.setState({ fetchMsg: 'Looking up the page…', fetching: true });
+    setTimeout(() => {
+      let host = '', slug = '';
+      try { const x = new URL(/^https?:/.test(raw) ? raw : 'https://' + raw); host = x.hostname.replace(/^www\./, ''); slug = (x.pathname.split('/').filter(Boolean).pop() || '').replace(/\.html?$/, ''); }
+      catch (e) { this.setState({ fetchMsg: 'That doesn’t look like a link.', fetching: false }); return; }
+      const s = slug.toLowerCase();
+      const brand = /kinkfox/.test(host) ? 'Kinkfox' : /libidex/.test(host) ? 'Libidex' : /bluewolf/.test(host) ? 'Blue Wolf Collective' : /kinkprojects/.test(host) ? 'Kinkprojects' : /regulation/.test(host) ? 'Regulation' : host.split('.')[0].replace(/^\w/, c => c.toUpperCase());
+      const cur = /libidex|regulation/.test(host) ? '£' : /kinkfox|kinkprojects/.test(host) ? '$' : '€';
+      const name = s.replace(/-copy$/, '').split('-').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      const category = /hood|mask/.test(s) ? 'Hood' : /harness/.test(s) ? 'Harness' : /gag/.test(s) ? 'Gags' : /cuff|restraint/.test(s) ? 'Cuffs' : /short|brief/.test(s) ? 'Shorts' : /glove/.test(s) ? 'Gloves' : /sock|stocking/.test(s) ? 'Socks' : /surf/.test(s) ? 'Surfsuit' : /suit/.test(s) ? 'Catsuit' : 'Accessory';
+      const price = KNOWN[s], pics = KNOWN_PHOTOS[s] || [];
+      const missing = [price == null ? 'price' : null, pics.length ? null : 'photos'].filter(Boolean);
+      this.setState(st => ({ fetching: false, form: Object.assign({}, st.form, { name: st.form.name || name, brand, currency: cur, category, price: price != null ? String(price) : st.form.price, m2m: st.form.m2m || /made-to-(order|measure)/.test(s) || /kinkfox|kinkprojects/.test(host),
+          found: pics.filter(src => !(st.form.photos || []).includes(src)).map(src => ({ src, on: true })) }),
+        fetchMsg: 'Filled in from ' + host + '.' + (missing.length ? ' No ' + missing.join(' or ') + ' found, add ' + (missing.length > 1 ? 'them' : 'it') + ' below.' : '') }));
+    }, 900);
+  }
+  saveForm() {
+    const f = this.state.form; if (!f.name.trim()) return;
+    const pr = f.price.trim() === '' ? null : parseFloat(f.price.replace(',', '.'));
+    const price = pr == null || isNaN(pr) ? null : pr, t = todayISO();
+    const photos = (f.found || []).filter(x => x.on).map(x => x.src).concat(f.photos || []);
+    const size = f.m2m ? 'Made to measure' : (f.size === 'Made to measure' ? '' : f.size);
+    const base = { url: f.url.trim(), name: f.name.trim(), brand: f.brand.trim(), category: f.category, currency: f.currency, size, colour: f.colour, m2m: f.m2m, rating: f.rating, photos };
+    const isNew = !f.id;
+    this.closeSheet(() => {
+      this.mutate(p => {
+        if (!isNew) { const it = p.items.find(x => x.id === f.id); if (!it) return;
+          if (price != null && (price !== it.price || f.currency !== it.currency)) { it.history = (it.history || []).filter(h => h.date !== t); if (f.currency !== it.currency) it.history = []; it.history.push({ date: t, price }); }
+          Object.assign(it, base, { price }); }
+        else p.items.push(Object.assign({ id: uid(), status: 'wanted', added: t, history: price != null ? [{ date: t, price }] : [] }, base, { price }));
+      });
+      this.toast(isNew ? 'Added to your wishlist' : 'Saved');
+    });
+  }
+  setStatus(id, s) {
+    this.mutItem(id, it => { if (it.status === s) return; it.status = s;
+      if (s === 'wanted') { delete it.orderedOn; delete it.paid; delete it.paidCur; delete it.ownedOn; }
+      else { if (!it.orderedOn) { it.orderedOn = todayISO(); if (it.price != null) { it.paid = it.price; it.paidCur = it.currency; } } if (s === 'owned') it.ownedOn = todayISO(); else delete it.ownedOn; } });
+  }
+  commitBudget(amt, extra) {
+    this.mutate((p, data) => { p.budget = { amount: amt, since: (p.budget && p.budget.amount && p.budget.since) || todayISO() }; if (extra) extra(p, data); });
+  }
+  finishIntro(amt) {
+    this.animOut(this.introRef.current, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(1.08)' }], 420, () => {
+      if (amt > 0) this.commitBudget(amt, (p, data) => { data.onboarded = true; });
+      else this.mutate((p, data) => { data.onboarded = true; });
+      this.setState({ introPage: 0, tab: 'wish', detail: null });
+      setTimeout(() => { this.replay('[data-anim]'); if (amt > 0) this.toast('Budget set. €' + num(amt) + ' a month.'); }, 30);
+      this.scheduleNotif(2400);
+    });
+  }
+
+  renderVals() {
+    const st = this.state, p = this.prof(), framed = this.isFramed();
+    const L = this.props.landing || 'Auto';
+    const bi = this.budgetInfo(p);
+    const mode = /budget/i.test(L) ? 'B' : /gallery/i.test(L) ? 'C' : /next/i.test(L) ? 'A' : (bi ? 'A' : 'B');
+    const wanted = p.items.filter(i => i.status === 'wanted').map((it, i) => ({ it, s: scoreOf(it), i })).sort((a, b) => b.s - a.s || a.i - b.i).map(x => x.it);
+    const ranked = wanted.map((it, i) => this.vm(it, i + 1));
+    const next = ranked[0] || { stars: [], name: '', photo: '' }, nextIt = wanted[0];
+    const af = nextIt ? this.afford(nextIt, bi) : { txt: '', dot: '#636366', pct: 0 };
+    const rest = ranked.slice(1), restIt = wanted.slice(1);
+    let groups;
+    if (st.group === 'rank') groups = [{ title: '', hasTitle: false, items: rest }];
+    else { const key = st.group === 'brand' ? (it => it.brand || 'No brand') : (it => it.category || 'Other'); const map = new Map();
+      restIt.forEach((it, i) => { const k = key(it); if (!map.has(k)) map.set(k, []); map.get(k).push(rest[i]); });
+      groups = Array.from(map.entries()).map(([title, items]) => ({ title, hasTitle: true, items })); }
+    const onWayIt = p.items.filter(i => i.status === 'ordered'), ownedIt = p.items.filter(i => i.status === 'owned');
+    const onWay = onWayIt.map(it => Object.assign(this.vm(it), {
+      orderedTxt: 'Ordered ' + fmtD(it.orderedOn) + (it.paid != null ? ' · ' + money(it.paidCur || '€', it.paid) + ' paid' : ''),
+      onReceived: e => { const row = e.currentTarget.closest('[data-row]'); this.animOut(row, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(60px)' }], 300, () => { this.setStatus(it.id, 'owned'); this.toast('Moved to Owned'); }); } }));
+    const owned = ownedIt.map(it => this.vm(it));
+    const dropIt = this.dropItem();
+
+    const vals = (p.session && p.session.values) || {}, hasSession = !!(p.session && Object.keys(vals).length);
+    const ft = FIG.find(f => f.id === st.figTab) || FIG[0];
+    const bodyFigEl = bodyFig({ lines: ft.ids.filter(id => vals[id] != null).map(id => { const f = this.fval(vals, id); return { id, value: f.u === 'EU' ? 'EU ' + f.v : f.v + ' ' + f.u, onTap: () => this.setState({ sheet: 'point', pointId: id }) }; }) });
+    const tileGroups = FIG.map(g => ({ title: g.title, items: g.ids.filter(id => vals[id] != null).map(id => { const f = this.fval(vals, id); return { label: PT[id].label, value: f.v, unit: f.u, onOpen: () => this.setState({ sheet: 'point', pointId: id }) }; }) })).filter(g => g.items.length);
+    const days = hasSession ? Math.round((new Date(todayISO() + 'T12:00:00') - new Date(p.session.date + 'T12:00:00')) / 864e5) : 0;
+
+    let d = { stars: [], statusTabs: [], rows: [], photos: [], dots: [], needRows: [] }, dIt = null;
+    if (st.detail) dIt = p.items.find(x => x.id === st.detail);
+    if (dIt) {
+      const v = this.vm(dIt), ph = dIt.photos || [], a = this.afford(dIt, bi), h = dIt.history || [];
+      const nd = dIt.needs || NEEDS[(dIt.brand || '').toLowerCase()] || DEF_NEEDS;
+      const needRows = nd.ids.map(id => { const f = this.fval(vals, id); return { label: PT[id] ? PT[id].label : id, value: f ? (f.u === 'EU' ? 'EU ' + f.v : f.v + ' ' + f.u) : 'Not measured', color: f ? '#f5f5f7' : '#ff9f0a' }; });
+      const rec = nd.ids.filter(id => vals[id] != null).length;
+      let histPts = '', histX = 0, histY = 0;
+      if (h.length >= 2) { const ps = h.map(x => x.price), mn = Math.min.apply(null, ps), mx = Math.max.apply(null, ps);
+        const pts = h.map((x, i) => [Math.round(i / (h.length - 1) * 300), Math.round(72 - (mx === mn ? 0.5 : (x.price - mn) / (mx - mn)) * 60)]);
+        histPts = pts.map(q => q.join(',')).join(' '); histX = pts[pts.length - 1][0]; histY = pts[pts.length - 1][1]; }
+      const rows = [{ k: 'Size', v: dIt.size || '—' }, { k: 'Colour', v: dIt.colour || '—' }, { k: 'Made to measure', v: dIt.m2m ? 'Yes' : 'No' }];
+      if (dIt.added) rows.push({ k: 'On your list since', v: fmtD(dIt.added) });
+      d = Object.assign({}, v, {
+        priceEl: dIt.price == null ? 'No price' : React.createElement(CountUp, { value: dIt.price, prefix: dIt.currency, dec: dIt.price % 1 ? 2 : 0, from: 0, dur: 900 }),
+        photos: ph.map(src => ({ src })), hasPhotos: !!ph.length, noPhotos: !ph.length, multi: ph.length > 1,
+        canPrev: st.photoIdx > 0, canNext: st.photoIdx < ph.length - 1,
+        dots: ph.map((_, i) => ({ onTap: () => this.carGo(i), bg: i === st.photoIdx ? '#f5f5f7' : 'rgba(245,245,247,0.4)', w: i === st.photoIdx ? '18px' : '7px' })),
+        stars: [1, 2, 3, 4, 5].map(n => ({ fill: n <= dIt.rating ? ACC : '#48484a', label: n + ' stars', onTap: e => { this.bump(e.currentTarget, 1.45); this.mutItem(dIt.id, it => { it.rating = n; }); } })),
+        statusTabs: [['wanted', 'Wanted'], ['ordered', 'Ordered'], ['owned', 'Owned']].map(([k, l]) => ({ label: l, bg: dIt.status === k ? '#636366' : 'transparent', onTap: e => { this.bump(e.currentTarget, 1.06); this.setStatus(dIt.id, k); } })),
+        checkTxt: !dIt.url ? 'No link, so the price isn’t checked' : !dIt.checked ? 'Price not checked yet' : dIt.checkErr ? dIt.checkErr + ' · tried ' + agoTxt(dIt.checked) : 'Price checked ' + agoTxt(dIt.checked) + (dIt.surcharge ? ' · incl. +' + Math.round(dIt.surcharge * 100) + '% made to measure' : ''),
+        checkColor: dIt.checked && !dIt.checkErr ? '#30d158' : dIt.checkErr ? '#ff9f0a' : '#6e6e73',
+        isWanted: dIt.status === 'wanted', afford: a.txt, affordDot: a.dot, needBudget: !!a.need,
+        hasOrderInfo: dIt.status !== 'wanted' && !!dIt.orderedOn,
+        orderInfo: dIt.status === 'owned' ? 'Received' + (dIt.ownedOn ? ' ' + fmtD(dIt.ownedOn) : '') + '. Ordered ' + fmtD(dIt.orderedOn) + (dIt.paid != null ? ' for ' + money(dIt.paidCur || '€', dIt.paid) : '') + '.' : 'Ordered ' + fmtD(dIt.orderedOn) + (dIt.paid != null ? ' for ' + money(dIt.paidCur || '€', dIt.paid) : '') + '.',
+        hasHist: h.length >= 2, histPts, histX, histY, histFrom: h.length ? fmtD(h[0].date) : '', histTo: h.length ? fmtD(h[h.length - 1].date) : '',
+        histRange: h.length >= 2 ? 'Highest ' + money(dIt.currency, Math.max.apply(null, h.map(x => x.price))) + ' · Now ' + money(dIt.currency, dIt.price) : '',
+        rows, m2m: !!dIt.m2m, brand: dIt.brand || 'this shop', needNote: nd.note, needCount: hasSession ? rec + ' of ' + nd.ids.length + ' measured' : 'Not measured yet', needRows,
+        needFig: bodyFig({ bare: true, lines: nd.ids.filter(id => vals[id] != null).map(id => ({ id })) }),
+        hasUrl: !!dIt.url, url: dIt.url,
+      });
+    }
+
+    const f = st.form || {};
+    const sheetMeta = { form: [f.id ? 'Edit item' : 'Add gear', 'Save'], budget: ['Monthly budget', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null] }[st.sheet] || ['', null];
+    const canSave = st.sheet === 'form' ? !!(f.name || '').trim() : st.sheet === 'budget' ? toNum(st.budgetIn) > 0 : true;
+    const pv = st.pointId ? this.fval(vals, st.pointId) : null;
+    const chips = (cur, set) => BUDGET_CHIPS.map(n => { const on = toNum(cur) === n; return { label: '€' + n, bg: on ? ACC : '#1c1c1e', color: on ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.12); set(String(n)); } }; });
+    const ip = st.introPage, introAmt = toNum(st.introBudget);
+
+    return {
+      rootRef: this.rootRef, scrollRef: this.scrollRef, detailRef: this.detailRef, sheetRef: this.sheetRef, backdropRef: this.backdropRef, introRef: this.introRef, bPanelRef: this.bPanelRef, toastRef: this.toastRef, figRef: this.figRef,
+      framed, rootH: framed ? '100%' : '100dvh', maxW: framed ? 'none' : '430px', topPad: framed ? '44px' : 'calc(env(safe-area-inset-top) + 8px)',
+      chipTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 12px)', tabPadB: framed ? '24px' : '8px', introPadB: framed ? '40px' : 'calc(env(safe-area-inset-bottom) + 16px)',
+      toastBottom: framed ? '108px' : 'calc(env(safe-area-inset-bottom) + 92px)',
+      accent: this.props.accent || '#ffd60a',
+      isWish: st.tab === 'wish', isCollection: st.tab === 'coll', isMeasure: st.tab === 'meas',
+      tabWish: st.tab === 'wish' ? ACC : '#8e8e93', tabColl: st.tab === 'coll' ? ACC : '#8e8e93', tabMeas: st.tab === 'meas' ? ACC : '#8e8e93',
+      goWish: e => this.goTab('wish', e), goCollection: e => this.goTab('coll', e), goMeasure: e => this.goTab('meas', e),
+      profileName: p.name,
+      showA: mode === 'A', showB: mode === 'B', showC: mode === 'C', showList: mode !== 'C', showGrid: mode === 'C',
+      hasNext: !!nextIt, next, nextAfford: af.txt, affordDot: af.dot, progressPct: Math.round(af.pct * 100) + '%',
+      hasBudget: !!bi, noBudget: !bi, showBudgetPill: !!bi && mode !== 'B',
+      availEl: bi ? React.createElement(CountUp, { value: Math.round(bi.avail), prefix: '€' }) : '', availColor: bi && bi.avail < 0 ? '#ff453a' : ACC,
+      budgetSub: bi ? '€' + num(bi.amount) + ' a month · unused budget carries over' : '',
+      hasRest: rest.length > 0, groups, wishEmpty: !wanted.length,
+      groupTabs: [['rank', 'Rank'], ['brand', 'Brand'], ['cat', 'Category']].map(([k, l]) => ({ label: l, bg: st.group === k ? '#636366' : 'transparent', onTap: () => this.setState({ group: k }) })),
+      hasOnWay: onWay.length > 0, onWay, onWayCount: onWay.length, hasOwned: owned.length > 0, noOwned: !owned.length, owned,
+      openAdd: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.15); this.openForm(null); },
+      openProfiles: () => this.setState({ sheet: 'profiles', newProfile: '' }),
+      openBudget: () => this.setState({ sheet: 'budget', budgetIn: p.budget && p.budget.amount ? String(p.budget.amount) : '' }),
+
+      hasSession, noSession: !hasSession, measuredAgo: days <= 0 ? 'Measured today' : days === 1 ? 'Measured yesterday' : 'Measured ' + days + ' days ago',
+      measuredSub: hasSession ? fmtD(p.session.date) + ' · ' + Object.keys(vals).length + ' measurements' : '',
+      cmBg: st.unit === 'cm' ? '#636366' : 'transparent', inBg: st.unit === 'in' ? '#636366' : 'transparent',
+      setCm: () => { this.setState({ unit: 'cm' }); this.replay('[data-anim="pop"]'); }, setIn: () => { this.setState({ unit: 'in' }); this.replay('[data-anim="pop"]'); },
+      figTabs: FIG.map(g => ({ label: g.label, bg: st.figTab === g.id ? '#636366' : 'transparent', onTap: () => this.setState({ figTab: g.id }) })),
+      bodyFigEl, tileGroups,
+
+      hasDetail: !!dIt, d, closeDetail: () => this.closeDetail(), openEdit: () => dIt && this.openForm(dIt),
+      carRef: this.carRef, carPrev: () => this.carGo(st.photoIdx - 1), carNext: () => this.carGo(st.photoIdx + 1),
+      carDown: e => { if (e.pointerType !== 'mouse') return; const el = e.currentTarget; this.drag = { x: e.clientX, s: el.scrollLeft, moved: false }; el.style.scrollSnapType = 'none'; el.style.cursor = 'grabbing'; try { el.setPointerCapture(e.pointerId); } catch (er) {} },
+      carMove: e => { const g = this.drag; if (!g) return; const dx = e.clientX - g.x; if (Math.abs(dx) > 3) g.moved = true; e.currentTarget.scrollLeft = g.s - dx; },
+      carUp: e => { const g = this.drag; if (!g) return; this.drag = null; const el = e.currentTarget, w = el.clientWidth, dx = e.clientX - g.x; el.style.cursor = 'grab'; let i = Math.round(g.s / w); if (dx < -w * 0.15) i++; else if (dx > w * 0.15) i--; i = Math.max(0, Math.min(el.children.length - 1, i)); el.scrollTo({ left: i * w, behavior: 'smooth' }); setTimeout(() => { el.style.scrollSnapType = 'x mandatory'; }, 400); this.setState({ photoIdx: i }); },
+      onCarScroll: e => { if (this.drag) return; const el = e.currentTarget, i = Math.round(el.scrollLeft / el.clientWidth); if (i !== st.photoIdx) this.setState({ photoIdx: i }); },
+      copyLabel: st.copied ? 'Copied' : 'Copy as list',
+      copyNeeds: e => { if (!dIt) return; this.bump(e.currentTarget, 1.08); const txt = p.name + ' · ' + (dIt.brand || '') + ' · ' + dIt.name + '\n' + d.needRows.map(r => r.label + ': ' + r.value).join('\n');
+        try { navigator.clipboard.writeText(txt); } catch (err) {} this.setState({ copied: true }); clearTimeout(this.t3); this.t3 = setTimeout(() => this.setState({ copied: false }), 1600); },
+      deleteLabel: st.delArm ? 'Tap again to delete' : 'Delete item',
+      deleteItem: () => { if (!st.delArm) { this.setState({ delArm: true }); return; } const id = st.detail; this.closeDetail(() => { this.mutate(pp => { pp.items = pp.items.filter(x => x.id !== id); }); this.toast('Deleted'); }); },
+
+      hasSheet: !!st.sheet, closeSheet: () => this.closeSheet(), sheetTitle: sheetMeta[0], hasSheetAction: !!sheetMeta[1], actionLabel: sheetMeta[1] || '',
+      cancelLabel: sheetMeta[1] ? 'Cancel' : 'Done', actionColor: canSave ? ACC : '#636366',
+      sheetAction: () => {
+        if (!canSave) return;
+        if (st.sheet === 'form') { this.saveForm(); return; }
+        if (st.sheet === 'budget') {
+          const amt = toNum(st.budgetIn), morph = !bi && mode === 'B' && !/budget/i.test(L);
+          this.closeSheet(() => {
+            const go = () => { this.commitBudget(amt); this.toast(morph ? 'Budget set. Here’s what’s next.' : 'Budget set. €' + num(amt) + ' a month.'); };
+            if (morph && this.bPanelRef.current) this.animOut(this.bPanelRef.current, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.9) translateY(-20px)' }], 360, go); else go();
+          });
+        }
+      },
+      isSheetForm: st.sheet === 'form', isSheetBudget: st.sheet === 'budget', isSheetProfiles: st.sheet === 'profiles', isSheetPoint: st.sheet === 'point',
+      f, fetchMsg: st.fetchMsg, fetching: st.fetching,
+      fUrl: e => this.setF('url', e.target.value), fName: e => this.setF('name', e.target.value), fBrand: e => this.setF('brand', e.target.value),
+      fPrice: e => this.setF('price', e.target.value), fSize: e => this.setF('size', e.target.value), fColour: e => this.setF('colour', e.target.value),
+      fillFromLink: e => { this.bump(e.currentTarget, 1.08); this.fillFromLink(); }, toggleM2M: () => this.setF('m2m', !f.m2m),
+      m2mTrack: f.m2m ? ACC : '#39393d', m2mKnob: f.m2m ? '20px' : '0px',
+      curTabs: CURS.map(c => ({ label: c, bg: f.currency === c ? '#636366' : 'transparent', onTap: () => this.setF('currency', c) })),
+      newCatOpen: !!st.newCatOpen, newCat: st.newCat || '',
+      onNewCat: e => this.setState({ newCat: e.target.value }),
+      toggleNewCat: e => { this.bump(e.currentTarget, 1.1); this.setState({ newCatOpen: !st.newCatOpen, newCat: '' }); },
+      addCat: () => { const n = (st.newCat || '').trim(); if (!n) return; const name = n.charAt(0).toUpperCase() + n.slice(1);
+        const all = CATS.concat(st.data.customCats || []), hit = all.find(c => c.toLowerCase() === name.toLowerCase());
+        if (!hit) this.save(Object.assign({}, st.data, { customCats: (st.data.customCats || []).concat(name) }));
+        this.setF('category', hit || name); this.setState({ newCatOpen: false, newCat: '' }); },
+      catChips: CATS.concat(st.data.customCats || []).map(c => ({ label: c, bg: f.category === c ? ACC : '#2c2c2e', color: f.category === c ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.1); this.setF('category', c); } })),
+      fStars: [1, 2, 3, 4, 5].map(n => ({ fill: n <= (f.rating || 0) ? ACC : '#48484a', label: n + ' stars', onTap: e => { this.bump(e.currentTarget, 1.45); this.setF('rating', n); } })),
+      hasFound: !!(f.found || []).length,
+      foundSub: (f.found || []).filter(x => x.on).length + ' of ' + (f.found || []).length + ' selected',
+      fFound: (f.found || []).map((x, i) => ({ src: x.src, opacity: x.on ? '1' : '0.35', ring: x.on ? '0 0 0 2px ' + ACC : '0 0 0 1px #48484a', checkBg: x.on ? ACC : 'rgba(28,28,30,0.72)', checkOp: x.on ? '1' : '0',
+        onTap: e => { this.bump(e.currentTarget, 1.06); this.setF('found', f.found.map((y, j) => j === i ? Object.assign({}, y, { on: !y.on }) : y)); } })),
+      sizeOpts: (f.size && !SIZES.includes(f.size) && f.size !== 'Made to measure' ? [f.size] : []).concat(SIZES).map(o => { const on = f.size === o; return { v: o, bg: on ? ACC : '#1c1c1e', color: on ? '#000' : '#f5f5f7',
+        onTap: e => { this.bump(e.currentTarget, 1.1); this.setF('size', o); setTimeout(() => this.setState({ sizeOpen: false }), 180); } }; }),
+      sizeLocked: !!f.m2m, sizeFree: !f.m2m, sizeOpen: !f.m2m && !!st.sizeOpen,
+      sizeLabel: f.size && f.size !== 'Made to measure' ? f.size : 'Choose a size', sizeColor: f.size && f.size !== 'Made to measure' ? '#f5f5f7' : '#6e6e73',
+      sizeRot: st.sizeOpen ? '180deg' : '0deg', toggleSize: () => this.setState({ sizeOpen: !st.sizeOpen }),
+      fPhotos: (f.photos || []).map((src, i) => ({ src, onRemove: () => this.setF('photos', f.photos.filter((_, j) => j !== i)) })),
+      onPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await Promise.all(files.map(readPhoto))).filter(Boolean); this.setState(s => ({ form: Object.assign({}, s.form, { photos: (s.form.photos || []).concat(out) }) })); },
+      budgetIn: st.budgetIn, onBudgetIn: e => this.setState({ budgetIn: e.target.value }),
+      sheetChips: chips(st.budgetIn, v => this.setState({ budgetIn: v })).map(c => Object.assign(c, { bg: c.bg === '#1c1c1e' ? '#2c2c2e' : c.bg })),
+      clearBudget: () => this.closeSheet(() => this.mutate(pp => { pp.budget = { amount: null, since: null }; })),
+      profileRows: st.data.profiles.map(pp => { const n = pp.items.filter(i => i.status === 'wanted').length; return { name: pp.name, sub: pp.id === p.id ? '✓' : n + (n === 1 ? ' item' : ' items'), color: pp.id === p.id ? ACC : '#a1a1a6', onTap: () => this.closeSheet(() => { this.save(Object.assign({}, this.state.data, { activeId: pp.id })); this.setState({ detail: null }); }) }; }),
+      newProfile: st.newProfile, onNewProfile: e => this.setState({ newProfile: e.target.value }),
+      addProfile: () => { const n = st.newProfile.trim(); if (!n) return; this.closeSheet(() => { const data = JSON.parse(JSON.stringify(this.state.data)), id = uid(); data.profiles.push({ id, name: n, budget: { amount: null, since: null }, session: null, items: [] }); data.activeId = id; this.save(data); this.setState({ newProfile: '' }); this.toast('Profile added'); }); },
+      copyWatch: () => { const seen = new Set(), list = []; this.state.data.profiles.forEach(pp => pp.items.forEach(it => { const k = it.url && normUrl(it.url); if (!k || seen.has(k)) return; seen.add(k); list.push({ url: it.url, currency: it.currency }); })); try { navigator.clipboard.writeText(JSON.stringify(list, null, 2)); } catch (e) {} this.closeSheet(() => this.toast('Watch list copied (' + list.length + ' links)')); },
+      replayIntro: () => this.closeSheet(() => { this.save(Object.assign({}, this.state.data, { onboarded: false })); this.setState({ introPage: 0, introBudget: '' }); }),
+      pointFig: st.pointId ? bodyFig({ single: true, lines: [{ id: st.pointId }] }) : null,
+      pointVal: pv ? pv.v : '—', pointUnit: pv ? pv.u : '', pointHint: st.pointId && PT[st.pointId] ? PT[st.pointId].hint : '', pointDate: hasSession ? 'Measured ' + fmtD(p.session.date) : '',
+      hasToast: !!st.toast, toastText: st.toast || '',
+      notifY: st.notif ? '0%' : '-160%', notifText: dropIt ? dropIt.name + ' dropped to ' + money(dropIt.currency, dropIt.price) + ' (−' + Math.round(dropOf(dropIt) * 100) + '%).' : '',
+      openNotif: () => { if (dropIt) this.setState({ tab: 'wish', notif: false }, () => this.openDetail(dropIt.id)); },
+
+      showIntro: this.introVisible(), introP0: ip === 0, introP1: ip === 1, introP2: ip === 2, introP3: ip === 3, introNotLast: ip < 3, introLast: ip === 3,
+      introDots: [0, 1, 2, 3].map(i => ({ w: i === ip ? '22px' : '7px', bg: i === ip ? ACC : '#48484a' })),
+      introNext: () => this.setState({ introPage: Math.min(3, ip + 1) }), introSkip: () => this.setState({ introPage: 3 }),
+      introBudget: st.introBudget, onIntroBudget: e => this.setState({ introBudget: e.target.value }),
+      introChips: chips(st.introBudget, v => this.setState({ introBudget: v })),
+      introBtnBg: introAmt > 0 ? ACC : '#2c2c2e', introBtnColor: introAmt > 0 ? '#000' : '#6e6e73',
+      introSetBudget: e => { if (introAmt <= 0) { const el = e.currentTarget; if (el.animate && !this.reduce) el.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(0)' }], { duration: 360 }); return; } this.finishIntro(introAmt); },
+      introSkipBudget: () => this.finishIntro(0)
+    };
+  }
+}
+</script>
+</body>
+</html>

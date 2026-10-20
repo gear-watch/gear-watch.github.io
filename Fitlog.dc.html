@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Fitlog">
+<meta name="theme-color" content="#f5f5f7">
+<link rel="stylesheet" href="./colors_and_type.css">
+<script src="./fitlog-data.js"></script>
+<style>
+html,body{background:#f5f5f7;-webkit-tap-highlight-color:transparent;}
+a{color:#0066cc;text-decoration:none;}
+a:hover{text-decoration:underline;}
+input,button,textarea{font-family:inherit;}
+input:focus,textarea:focus{outline:2px solid #0071e3;outline-offset:0;}
+</style>
+</helmet>
+<div style="position:relative;height:{{ rootH }};--fl-accent:{{ th.accent }};--fl-onaccent:{{ th.onAccent }};--fl-bg:{{ th.bg }};--fl-card:{{ th.card }};--fl-ink:{{ th.ink }};--fl-muted:{{ th.muted }};--fl-line:{{ th.line }};--fl-line2:{{ th.line2 }};--fl-seg:{{ th.seg }};--fl-segon:{{ th.segOn }};--fl-bar:{{ th.bar }};--fl-green:{{ th.green }};--fl-amber:{{ th.amber }};--fl-red:{{ th.red }};color-scheme:{{ th.scheme }};max-width:430px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;background:var(--fl-bg,#f5f5f7);color:var(--fl-ink,#1d1d1f);font-family:var(--font-text);font-size:17px;line-height:1.47;letter-spacing:-0.374px;">
+<div ref="{{ scrollRef }}" style="flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:calc(env(safe-area-inset-top) + {{ topInset }}px);padding-bottom:32px;">
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+  <div style="padding:20px 20px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <button onClick="{{ openProfiles }}" style="border:0;background:none;padding:0;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--fl-ink,#1d1d1f);text-align:left;min-width:0;">
+      <span style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.2;letter-spacing:-0.374px;">{{ profileName }}</span>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="var(--fl-accent,#0066cc)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </button>
+    <button onClick="{{ openSettings }}" aria-label="Settings" style="width:36px;height:36px;border:0;border-radius:9999px;background:rgba(210,210,215,0.64);display:grid;place-items:center;cursor:pointer;color:var(--fl-ink,#1d1d1f);flex:none;" style-active="transform:scale(0.95);">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg>
+    </button>
+  </div>
+
+  <sc-if value="{{ hasHomeCover }}" hint-placeholder-val="{{ false }}"><img src="{{ homeCover }}" alt="" style="display:block;width:calc(100% - 32px);margin:16px 16px 0;aspect-ratio:16/9;object-fit:cover;border-radius:18px;"></sc-if>
+
+  <div style="margin:16px 16px 0;background:var(--fl-card,#fff);border-radius:18px;padding:16px 16px 16px 20px;display:flex;align-items:center;gap:14px;">
+    <span style="width:10px;height:10px;border-radius:9999px;background:{{ statusColor }};flex:none;"></span>
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+      <span style="font-weight:600;line-height:1.24;">{{ summaryTitle }}</span>
+      <span style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);line-height:1.43;">{{ summarySub }}</span>
+    </div>
+    <button onClick="{{ goMeasure }}" style="flex:none;border:0;background:var(--fl-accent,#0066cc);color:var(--fl-onaccent,#fff);border-radius:9999px;padding:8px 16px;font-size:14px;letter-spacing:-0.224px;cursor:pointer;" style-active="transform:scale(0.95);">{{ measureCta }}</button>
+  </div>
+
+  <sc-if value="{{ hasSessions }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:28px 20px 4px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div style="font-family:var(--font-display);font-size:21px;font-weight:600;letter-spacing:0.231px;">Your measurements</div>
+      <div style="display:flex;background:var(--fl-seg,#ececf0);border-radius:8px;padding:2px;gap:2px;">
+        <button onClick="{{ setCm }}" style="border:0;border-radius:7px;padding:5px 12px;font-size:14px;cursor:pointer;color:var(--fl-ink,#1d1d1f);background:{{ cmBg }};">cm</button>
+        <button onClick="{{ setIn }}" style="border:0;border-radius:7px;padding:5px 12px;font-size:14px;cursor:pointer;color:var(--fl-ink,#1d1d1f);background:{{ inBg }};">in</button>
+      </div>
+    </div>
+    <div style="padding:0 20px;font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">Tap a measurement to see how it has changed.</div>
+    <div style="margin:12px 16px 0;background:var(--fl-card,#fff);border-radius:18px;padding:12px 8px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;">
+      <div style="display:flex;background:var(--fl-seg,#ececf0);border-radius:8px;padding:2px;gap:2px;max-width:100%;overflow-x:auto;">
+        <sc-for list="{{ figTabs }}" as="t" hint-placeholder-count="4"><button onClick="{{ t.onTap }}" style="border:0;border-radius:7px;padding:5px 12px;font-size:14px;cursor:pointer;color:var(--fl-ink,#1d1d1f);background:{{ t.bg }};white-space:nowrap;">{{ t.label }}</button></sc-for>
+      </div>
+      <div style="width:100%;max-width:380px;">{{ bodyFig }}</div>
+    </div>
+    <sc-for list="{{ overview }}" as="grp" hint-placeholder-count="3">
+      <div style="padding:20px 20px 8px;font-size:14px;font-weight:600;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">{{ grp.title }}</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 16px;">
+        <sc-for list="{{ grp.items }}" as="m" hint-placeholder-count="4">
+          <button onClick="{{ m.onOpen }}" style="border:0;background:var(--fl-card,#fff);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;text-align:left;cursor:pointer;color:var(--fl-ink,#1d1d1f);min-width:0;" style-active="transform:scale(0.95);">
+            <span style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ m.label }}</span>
+            <span style="display:flex;align-items:baseline;gap:4px;"><span style="font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1.14;letter-spacing:-0.374px;">{{ m.value }}</span><span style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">{{ m.unit }}</span></span>
+            <span style="font-size:12px;letter-spacing:-0.12px;color:var(--fl-muted,#7a7a7a);">{{ m.note }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-for>
+    <div style="margin-top:24px;margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+      <button onClick="{{ openM2M }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;font-size:17px;color:var(--fl-ink,#1d1d1f);cursor:pointer;text-align:left;"><span>Share as made-to-measure sheet</span><span style="color:var(--fl-muted,#7a7a7a);">›</span></button>
+      <button onClick="{{ openHistory }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;font-size:17px;color:var(--fl-ink,#1d1d1f);cursor:pointer;text-align:left;"><span>All measuring sessions</span><span style="color:var(--fl-muted,#7a7a7a);">{{ sessionCount }} ›</span></button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ noSessions }}" hint-placeholder-val="{{ false }}">
+    <div style="margin:16px 16px 0;background:var(--fl-card,#fff);border-radius:18px;padding:28px 24px;display:flex;flex-direction:column;gap:8px;">
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1.14;">No measurements yet.</div>
+      <div style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);line-height:1.43;">Grab a soft tape measure. Start with the ones most size charts use. It takes about ten minutes.</div>
+    </div>
+  </sc-if>
+</sc-if>
+
+<sc-if value="{{ isMeasure }}" hint-placeholder-val="{{ false }}">
+  <div style="padding:12px 12px 0;"><button onClick="{{ cancelMeasure }}" style="border:0;background:none;color:var(--fl-accent,#0066cc);font-size:17px;padding:8px;cursor:pointer;">‹ {{ profileName }}</button></div>
+  <div style="padding:0 20px 4px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;">
+    <div style="display:flex;flex-direction:column;">
+      <div style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.2;letter-spacing:-0.374px;">New measurements</div>
+    </div>
+    <button onClick="{{ saveSession }}" style="border:0;background:none;color:var(--fl-accent,#0066cc);font-size:17px;font-weight:600;padding:6px 0;cursor:pointer;">Save</button>
+  </div>
+  <div style="padding:4px 20px 0;color:var(--fl-muted,#7a7a7a);font-size:14px;letter-spacing:-0.224px;line-height:1.43;">Only fill in what you measure today. Grey numbers are from last time. Tap How for where to put the tape.</div>
+  <div style="margin:20px 16px 0;border-radius:18px;overflow:hidden;background:var(--fl-card,#fff);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <span>Date</span>
+    <input type="date" value="{{ draftDate }}" onChange="{{ onDraftDate }}" style="border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px 10px;font-size:17px;color:var(--fl-ink,#1d1d1f);">
+  </div>
+  <div style="padding:24px 20px 8px;font-size:14px;font-weight:600;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">Used by most size charts</div>
+  <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+    <sc-for list="{{ coreRows }}" as="row" hint-placeholder-count="10">
+      <div style="background:var(--fl-card,#fff);padding:8px 16px;display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button onClick="{{ row.toggleHint }}" style="flex:1;border:0;background:none;padding:0;text-align:left;display:flex;align-items:center;gap:6px;font-size:17px;letter-spacing:-0.374px;color:var(--fl-ink,#1d1d1f);cursor:pointer;min-height:44px;"><span>{{ row.label }}</span><span style="color:var(--fl-accent,#0066cc);font-size:14px;">{{ row.hintMark }}</span></button>
+          <input value="{{ row.val }}" onChange="{{ row.onChange }}" placeholder="{{ row.placeholder }}" inputMode="decimal" style="width:84px;border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px 10px;text-align:right;font-size:17px;color:var(--fl-ink,#1d1d1f);">
+          <span style="width:22px;font-size:14px;color:var(--fl-muted,#7a7a7a);">{{ row.unit }}</span>
+        </div>
+        <sc-if value="{{ row.hintOpen }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:12px;align-items:center;padding-bottom:6px;"><div style="width:52px;flex:none;">{{ row.fig }}</div><div style="font-size:14px;line-height:1.43;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">{{ row.hint }}</div></div></sc-if>
+      </div>
+    </sc-for>
+  </div>
+  <button onClick="{{ toggleMeasureMore }}" style="margin:24px 16px 0;width:calc(100% - 32px);border:0;background:var(--fl-card,#fff);border-radius:18px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;cursor:pointer;color:var(--fl-ink,#1d1d1f);font-size:17px;">
+    <span style="display:flex;flex-direction:column;"><span>Made-to-measure extras</span><span style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">{{ moreCount }} more points for a custom catsuit</span></span>
+    <span style="color:var(--fl-accent,#0066cc);font-size:14px;">{{ measureMoreLabel }}</span>
+  </button>
+  <sc-if value="{{ measureMore }}" hint-placeholder-val="{{ false }}">
+    <div style="margin:12px 16px 0;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+      <sc-for list="{{ moreRows }}" as="row" hint-placeholder-count="15">
+        <div style="background:var(--fl-card,#fff);padding:8px 16px;display:flex;flex-direction:column;gap:4px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button onClick="{{ row.toggleHint }}" style="flex:1;border:0;background:none;padding:0;text-align:left;display:flex;align-items:center;gap:6px;font-size:17px;letter-spacing:-0.374px;color:var(--fl-ink,#1d1d1f);cursor:pointer;min-height:44px;"><span>{{ row.label }}</span><span style="color:var(--fl-accent,#0066cc);font-size:14px;">{{ row.hintMark }}</span></button>
+            <input value="{{ row.val }}" onChange="{{ row.onChange }}" placeholder="{{ row.placeholder }}" inputMode="decimal" style="width:84px;border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px 10px;text-align:right;font-size:17px;color:var(--fl-ink,#1d1d1f);">
+            <span style="width:22px;font-size:14px;color:var(--fl-muted,#7a7a7a);">{{ row.unit }}</span>
+          </div>
+          <sc-if value="{{ row.hintOpen }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:12px;align-items:center;padding-bottom:6px;"><div style="width:52px;flex:none;">{{ row.fig }}</div><div style="font-size:14px;line-height:1.43;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">{{ row.hint }}</div></div></sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+  <div style="padding:28px 16px 0;display:flex;flex-direction:column;gap:10px;">
+    <button onClick="{{ saveSession }}" style="border:0;background:var(--fl-accent,#0066cc);color:var(--fl-onaccent,#fff);border-radius:9999px;padding:14px 20px;font-size:17px;cursor:pointer;" style-active="transform:scale(0.95);">Save measurements</button>
+    <div style="text-align:center;font-size:14px;color:var(--fl-muted,#7a7a7a);letter-spacing:-0.224px;">{{ draftCountLabel }}</div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isBrandList }}" hint-placeholder-val="{{ false }}">
+  <div style="padding:20px 20px 4px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;">
+    <div style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.2;letter-spacing:-0.374px;">Brands</div>
+    <button onClick="{{ addBrand }}" style="border:0;background:none;color:var(--fl-accent,#0066cc);font-size:17px;padding:6px 0;cursor:pointer;">Add brand</button>
+  </div>
+  <div style="padding:4px 20px 0;color:var(--fl-muted,#7a7a7a);font-size:14px;letter-spacing:-0.224px;line-height:1.43;">Your best size at each brand, from your latest measurements.</div>
+  <div style="margin-top:20px;margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+    <sc-for list="{{ brandList }}" as="b" hint-placeholder-count="6">
+      <button onClick="{{ b.onOpen }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;color:var(--fl-ink,#1d1d1f);">
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+          <span style="font-weight:600;">{{ b.name }}</span>
+          <span style="display:flex;align-items:center;gap:6px;font-size:14px;letter-spacing:-0.224px;"><span style="width:8px;height:8px;border-radius:9999px;background:{{ b.color }};flex:none;"></span>{{ b.line }}</span>
+          <span style="font-size:12px;letter-spacing:-0.12px;color:var(--fl-muted,#7a7a7a);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ b.sub }}</span>
+        </span>
+        <span style="font-family:var(--font-display);font-size:24px;font-weight:600;">{{ b.size }}</span>
+        <span style="color:var(--fl-muted,#7a7a7a);">›</span>
+      </button>
+    </sc-for>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isBrandDetail }}" hint-placeholder-val="{{ false }}">
+  <div style="padding:12px 12px 0;display:flex;justify-content:space-between;"><button onClick="{{ backToBrands }}" style="border:0;background:none;color:var(--fl-accent,#0066cc);font-size:17px;padding:8px;cursor:pointer;">‹ Brands</button><button onClick="{{ openBrandEdit }}" style="border:0;background:none;color:var(--fl-accent,#0066cc);font-size:17px;padding:8px;cursor:pointer;">Edit</button></div>
+  <sc-if value="{{ bHasCover }}" hint-placeholder-val="{{ false }}"><img src="{{ bCover }}" alt="" style="display:block;width:calc(100% - 32px);margin:8px 16px 16px;aspect-ratio:16/9;object-fit:cover;border-radius:18px;"></sc-if>
+  <div style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.2;letter-spacing:-0.374px;">{{ bName }}</div>
+  <div style="padding:4px 20px 0;font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);line-height:1.43;">{{ bNote }}</div>
+  <sc-if value="{{ bHasGarments }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:16px 16px 0;display:flex;">
+      <button onClick="{{ openGarmentPicker }}" style="border:0;background:var(--fl-bg,#f5f5f7);border-radius:9999px;padding:8px 14px;color:var(--fl-ink,#1d1d1f);display:flex;align-items:center;gap:6px;cursor:pointer;font-size:17px;" style-active="transform:scale(0.95);"><span>{{ bGarmentName }}</span><svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="var(--fl-accent,#0066cc)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+    </div>
+    <div style="margin:12px 16px 0;background:var(--fl-card,#fff);border-radius:18px;padding:20px;display:flex;align-items:center;gap:16px;">
+      <div style="width:72px;height:72px;flex:none;border-radius:9999px;border:2px solid {{ bColor }};display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:{{ bSizeFont }};font-weight:600;letter-spacing:-0.374px;">{{ bBestSize }}</div>
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+        <div style="font-weight:600;line-height:1.24;">{{ bTitle }}</div>
+        <div style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);line-height:1.43;">{{ bText }}</div>
+      </div>
+    </div>
+    <div style="padding:24px 20px 8px;font-size:14px;font-weight:600;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">Compare a size</div>
+    <div style="display:flex;gap:8px;overflow-x:auto;padding:2px 16px;">
+      <sc-for list="{{ bSizes }}" as="c" hint-placeholder-count="6">
+        <button onClick="{{ c.onTap }}" style="flex:none;min-width:52px;border:1px solid {{ c.bc }};box-shadow:{{ c.ring }};background:var(--fl-card,#fff);border-radius:9999px;padding:8px 14px;font-size:17px;color:var(--fl-ink,#1d1d1f);cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.1;">
+          <span>{{ c.label }}</span><span style="font-size:10px;color:var(--fl-accent,#0066cc);letter-spacing:-0.08px;">{{ c.tag }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <sc-if value="{{ bHasFig }}" hint-placeholder-val="{{ true }}">
+      <div style="margin:12px 16px 0;background:var(--fl-card,#fff);border-radius:18px;padding:12px 8px 4px;display:flex;justify-content:center;"><div style="width:100%;max-width:380px;">{{ bFig }}</div></div>
+    </sc-if>
+    <div style="margin:12px 16px 0;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+      <sc-for list="{{ bRows }}" as="r" hint-placeholder-count="8">
+        <div style="background:var(--fl-card,#fff);padding:12px 16px;display:flex;align-items:center;gap:12px;">
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+            <span>{{ r.label }}</span>
+            <span style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">You {{ r.you }} · Chart {{ r.chart }}</span>
+          </div>
+          <span style="display:flex;align-items:center;gap:6px;font-size:14px;letter-spacing:-0.224px;white-space:nowrap;"><span style="width:8px;height:8px;border-radius:9999px;background:{{ r.color }};"></span>{{ r.status }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="padding:12px 20px 0;display:flex;gap:20px;flex-wrap:wrap;">
+      <button onClick="{{ editChart }}" style="border:0;background:none;padding:0;color:var(--fl-accent,#0066cc);font-size:14px;cursor:pointer;">Edit chart numbers</button>
+      <button onClick="{{ addGarment }}" style="border:0;background:none;padding:0;color:var(--fl-accent,#0066cc);font-size:14px;cursor:pointer;">Add a garment chart</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{ bNoGarments }}" hint-placeholder-val="{{ false }}">
+    <div style="margin:16px 16px 0;background:var(--fl-card,#fff);border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:12px;">
+      <div style="font-family:var(--font-display);font-size:21px;font-weight:600;">{{ bEmptyTitle }}</div>
+      <div style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);line-height:1.43;">{{ bEmptyText }}</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button onClick="{{ addGarment }}" style="border:0;background:var(--fl-accent,#0066cc);color:var(--fl-onaccent,#fff);border-radius:9999px;padding:10px 20px;font-size:17px;cursor:pointer;" style-active="transform:scale(0.95);">Enter chart numbers</button>
+        <button onClick="{{ openM2M }}" style="border:1px solid var(--fl-accent,#0066cc);background:transparent;color:var(--fl-accent,#0066cc);border-radius:9999px;padding:9px 19px;font-size:17px;cursor:pointer;" style-active="transform:scale(0.95);">Made-to-measure sheet</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <div style="padding:32px 20px 8px;display:flex;flex-direction:column;gap:2px;">
+    <div style="font-family:var(--font-display);font-size:21px;font-weight:600;letter-spacing:0.231px;">From {{ bName }}</div>
+    <div style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">Photos of their size chart and measuring guide. Tap one to zoom.</div>
+  </div>
+  <sc-if value="{{ bHasImages }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0 16px 12px;">
+      <sc-for list="{{ bImages }}" as="im" hint-placeholder-count="2">
+        <button onClick="{{ im.onOpen }}" style="border:0;padding:0;background:none;display:flex;flex-direction:column;gap:4px;cursor:pointer;text-align:left;" style-active="transform:scale(0.95);">
+          <img src="{{ im.src }}" alt="{{ im.label }}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:var(--fl-line,#e0e0e0);display:block;">
+          <span style="font-size:12px;letter-spacing:-0.12px;color:var(--fl-muted,#7a7a7a);">{{ im.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </sc-if>
+  <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+    <label style="background:var(--fl-card,#fff);padding:14px 16px;font-size:17px;color:var(--fl-accent,#0066cc);cursor:pointer;display:block;">Add size chart photo<input type="file" accept="image/*" onChange="{{ onAddChartImg }}" style="display:none;"></label>
+    <label style="background:var(--fl-card,#fff);padding:14px 16px;font-size:17px;color:var(--fl-accent,#0066cc);cursor:pointer;display:block;">Add measuring guide photo<input type="file" accept="image/*" onChange="{{ onAddGuideImg }}" style="display:none;"></label>
+    <sc-if value="{{ bHasUrl }}" hint-placeholder-val="{{ true }}"><a href="{{ bUrl }}" target="_blank" rel="noopener" style="background:var(--fl-card,#fff);padding:14px 16px;font-size:17px;color:var(--fl-accent,#0066cc);display:block;">Open their website ›</a></sc-if>
+  </div>
+
+  <sc-if value="{{ bHasOrders }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:32px 20px 8px;font-family:var(--font-display);font-size:21px;font-weight:600;letter-spacing:0.231px;">Your orders here</div>
+    <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+      <sc-for list="{{ bOrders }}" as="o" hint-placeholder-count="1">
+        <button onClick="{{ o.onOpen }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;display:flex;flex-direction:column;gap:2px;text-align:left;cursor:pointer;color:var(--fl-ink,#1d1d1f);">
+          <span style="font-weight:600;">{{ o.item }} · {{ o.size }}</span>
+          <span style="font-size:14px;letter-spacing:-0.224px;">{{ o.fitLine }}</span>
+          <span style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">{{ o.notes }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </sc-if>
+</sc-if>
+
+<sc-if value="{{ isChartEdit }}" hint-placeholder-val="{{ false }}">
+  <div style="padding:12px 12px 0;display:flex;justify-content:space-between;"><button onClick="{{ backToBrand }}" style="border:0;background:none;color:var(--fl-accent,#0066cc);font-size:17px;padding:8px;cursor:pointer;">‹ {{ bName }}</button><button onClick="{{ backToBrand }}" style="border:0;background:none;color:var(--fl-accent,#0066cc);font-size:17px;font-weight:600;padding:8px;cursor:pointer;">Done</button></div>
+  <div style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.2;letter-spacing:-0.374px;">Edit chart</div>
+  <div style="padding:4px 20px 0;color:var(--fl-muted,#7a7a7a);font-size:14px;letter-spacing:-0.224px;line-height:1.43;">Copy the body measurements from the brand's size chart. Leave a row empty if the chart doesn't list it. One number or a range.</div>
+  <div style="margin:20px 16px 0;border-radius:18px;overflow:hidden;background:var(--fl-card,#fff);padding:10px 16px;display:flex;align-items:center;gap:12px;">
+    <span>Garment</span>
+    <input value="{{ ceName }}" onChange="{{ onGarmentName }}" style="flex:1;min-width:0;border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px 10px;text-align:right;font-size:17px;color:var(--fl-ink,#1d1d1f);">
+  </div>
+  <div style="padding:24px 20px 8px;font-size:14px;font-weight:600;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">Sizes</div>
+  <div style="display:flex;gap:8px;overflow-x:auto;padding:2px 16px;">
+    <sc-for list="{{ ceSizes }}" as="c" hint-placeholder-count="5">
+      <button onClick="{{ c.onTap }}" style="flex:none;min-width:48px;border:1px solid {{ c.bc }};box-shadow:{{ c.ring }};background:var(--fl-card,#fff);border-radius:9999px;padding:8px 14px;font-size:17px;color:var(--fl-ink,#1d1d1f);cursor:pointer;">{{ c.label }}</button>
+    </sc-for>
+    <button onClick="{{ addSize }}" style="flex:none;border:1px dashed var(--fl-muted,#7a7a7a);background:transparent;border-radius:9999px;padding:8px 14px;font-size:17px;color:var(--fl-accent,#0066cc);cursor:pointer;">+ Size</button>
+  </div>
+  <div style="margin:12px 16px 0;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+    <div style="background:var(--fl-card,#fff);padding:10px 16px;display:flex;align-items:center;gap:12px;">
+      <span style="flex:1;">Size label</span>
+      <input value="{{ ceSizeLabel }}" onChange="{{ onSizeLabel }}" style="width:96px;border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px 10px;text-align:right;font-size:17px;color:var(--fl-ink,#1d1d1f);">
+    </div>
+    <sc-for list="{{ ceRows }}" as="r" hint-placeholder-count="10">
+      <div style="background:var(--fl-card,#fff);padding:8px 16px;display:flex;align-items:center;gap:8px;">
+        <span style="flex:1;min-width:0;">{{ r.label }}</span>
+        <input value="{{ r.minVal }}" onChange="{{ r.onMin }}" placeholder="from" inputMode="decimal" style="width:64px;border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px;text-align:right;font-size:17px;color:var(--fl-ink,#1d1d1f);">
+        <span style="color:var(--fl-muted,#7a7a7a);">–</span>
+        <input value="{{ r.maxVal }}" onChange="{{ r.onMax }}" placeholder="to" inputMode="decimal" style="width:64px;border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px;text-align:right;font-size:17px;color:var(--fl-ink,#1d1d1f);">
+        <span style="width:20px;font-size:14px;color:var(--fl-muted,#7a7a7a);">{{ unit }}</span>
+      </div>
+    </sc-for>
+    <button onClick="{{ toggleMore }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;text-align:left;font-size:17px;color:var(--fl-accent,#0066cc);cursor:pointer;">{{ moreLabel }}</button>
+  </div>
+  <div style="margin:24px 16px 0;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+    <button onClick="{{ deleteSize }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;text-align:left;font-size:17px;color:var(--fl-red,#d70015);cursor:pointer;">Delete size {{ ceSizeLabel }}</button>
+    <button onClick="{{ deleteGarment }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;text-align:left;font-size:17px;color:var(--fl-red,#d70015);cursor:pointer;">Delete this garment chart</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isOrderList }}" hint-placeholder-val="{{ false }}">
+  <div style="padding:20px 20px 4px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;">
+    <div style="display:flex;flex-direction:column;">
+      <div style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">{{ profileName }}</div>
+      <div style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.2;letter-spacing:-0.374px;">Orders</div>
+    </div>
+    <button onClick="{{ newOrder }}" style="border:0;background:none;color:var(--fl-accent,#0066cc);font-size:17px;padding:6px 0;cursor:pointer;">New order</button>
+  </div>
+  <div style="margin:20px 16px 0;display:flex;flex-direction:column;gap:12px;">
+    <sc-for list="{{ allOrders }}" as="o" hint-placeholder-count="2">
+      <button onClick="{{ o.onOpen }}" style="border:0;background:var(--fl-card,#fff);border-radius:18px;padding:16px;display:flex;gap:14px;text-align:left;cursor:pointer;color:var(--fl-ink,#1d1d1f);align-items:flex-start;" style-active="transform:scale(0.98);">
+        <sc-if value="{{ o.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ o.photo }}" alt="" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex:none;"></sc-if>
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+          <span style="display:flex;justify-content:space-between;gap:8px;"><span style="font-weight:600;">{{ o.item }}</span><span style="font-size:14px;color:var(--fl-muted,#7a7a7a);white-space:nowrap;">{{ o.price }}</span></span>
+          <span style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">{{ o.meta }} · {{ o.date }}</span>
+          <span style="font-size:14px;letter-spacing:-0.224px;">{{ o.fitLine }}</span>
+        </span>
+      </button>
+    </sc-for>
+    <sc-if value="{{ noOrders }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--fl-card,#fff);border-radius:18px;padding:28px 24px;display:flex;flex-direction:column;gap:8px;">
+        <div style="font-family:var(--font-display);font-size:21px;font-weight:600;">No orders logged.</div>
+        <div style="font-size:14px;color:var(--fl-muted,#7a7a7a);letter-spacing:-0.224px;line-height:1.43;">Log what you ordered and how it fit. Next time, you'll know which size to pick.</div>
+      </div>
+    </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isOrderEdit }}" hint-placeholder-val="{{ false }}">
+  <div style="padding:12px 12px 0;display:flex;justify-content:space-between;"><button onClick="{{ cancelOrder }}" style="border:0;background:none;color:var(--fl-accent,#0066cc);font-size:17px;padding:8px;cursor:pointer;">Cancel</button><button onClick="{{ saveOrder }}" style="border:0;background:none;color:var(--fl-accent,#0066cc);font-size:17px;font-weight:600;padding:8px;cursor:pointer;">Save</button></div>
+  <div style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.2;letter-spacing:-0.374px;">{{ odTitle }}</div>
+
+  <div style="padding:20px 20px 8px;font-size:14px;font-weight:600;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">Brand</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;padding:0 16px;">
+    <sc-for list="{{ odBrands }}" as="c" hint-placeholder-count="6">
+      <button onClick="{{ c.onTap }}" style="border:1px solid {{ c.bc }};box-shadow:{{ c.ring }};background:var(--fl-card,#fff);border-radius:9999px;padding:7px 14px;font-size:14px;letter-spacing:-0.224px;color:var(--fl-ink,#1d1d1f);cursor:pointer;">{{ c.label }}</button>
+    </sc-for>
+  </div>
+  <div style="margin:16px 16px 0;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+    <div style="background:var(--fl-card,#fff);padding:10px 16px;display:flex;align-items:center;gap:12px;"><span style="flex:none;">Item</span><input value="{{ od.item }}" onChange="{{ onOdItem }}" placeholder="e.g. Back-zip catsuit" style="flex:1;min-width:0;border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px 10px;text-align:right;font-size:17px;color:var(--fl-ink,#1d1d1f);"></div>
+    <div style="background:var(--fl-card,#fff);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;"><span>Order date</span><input type="date" value="{{ od.date }}" onChange="{{ onOdDate }}" style="border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px 10px;font-size:17px;color:var(--fl-ink,#1d1d1f);"></div>
+    <div style="background:var(--fl-card,#fff);padding:10px 16px;display:flex;align-items:center;gap:8px;">
+      <span style="flex:1;">Price</span>
+      <div style="display:flex;background:var(--fl-seg,#ececf0);border-radius:8px;padding:2px;gap:2px;">
+        <sc-for list="{{ odCurrencies }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.onTap }}" style="border:0;border-radius:7px;padding:6px 10px;font-size:14px;cursor:pointer;color:var(--fl-ink,#1d1d1f);background:{{ c.bg }};">{{ c.label }}</button></sc-for>
+      </div>
+      <input value="{{ od.price }}" onChange="{{ onOdPrice }}" placeholder="0" inputMode="decimal" style="width:84px;border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px 10px;text-align:right;font-size:17px;color:var(--fl-ink,#1d1d1f);">
+    </div>
+    <div style="background:var(--fl-card,#fff);padding:10px 16px;display:flex;align-items:center;gap:12px;"><span style="flex:none;">Colour</span><input value="{{ od.colour }}" onChange="{{ onOdColour }}" placeholder="e.g. Black, gloss" style="flex:1;min-width:0;border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px 10px;text-align:right;font-size:17px;color:var(--fl-ink,#1d1d1f);"></div>
+  </div>
+
+  <div style="padding:24px 20px 8px;font-size:14px;font-weight:600;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">Size</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;padding:0 16px;">
+    <sc-for list="{{ odSizes }}" as="c" hint-placeholder-count="7">
+      <button onClick="{{ c.onTap }}" style="border:1px solid {{ c.bc }};box-shadow:{{ c.ring }};background:var(--fl-card,#fff);border-radius:9999px;padding:7px 14px;font-size:14px;letter-spacing:-0.224px;color:var(--fl-ink,#1d1d1f);cursor:pointer;">{{ c.label }}</button>
+    </sc-for>
+  </div>
+  <div style="padding:24px 20px 8px;font-size:14px;font-weight:600;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">Thickness</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;padding:0 16px;">
+    <sc-for list="{{ odThick }}" as="c" hint-placeholder-count="7">
+      <button onClick="{{ c.onTap }}" style="border:1px solid {{ c.bc }};box-shadow:{{ c.ring }};background:var(--fl-card,#fff);border-radius:9999px;padding:7px 12px;font-size:14px;letter-spacing:-0.224px;color:var(--fl-ink,#1d1d1f);cursor:pointer;">{{ c.label }}</button>
+    </sc-for>
+  </div>
+  <div style="padding:24px 20px 8px;font-size:14px;font-weight:600;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">Measurements used</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;padding:0 16px;">
+    <sc-for list="{{ odSessions }}" as="c" hint-placeholder-count="2">
+      <button onClick="{{ c.onTap }}" style="border:1px solid {{ c.bc }};box-shadow:{{ c.ring }};background:var(--fl-card,#fff);border-radius:9999px;padding:7px 14px;font-size:14px;letter-spacing:-0.224px;color:var(--fl-ink,#1d1d1f);cursor:pointer;">{{ c.label }}</button>
+    </sc-for>
+  </div>
+
+  <div style="padding:24px 20px 8px;display:flex;flex-direction:column;"><span style="font-size:14px;font-weight:600;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">How it fit</span><span style="font-size:12px;color:var(--fl-muted,#7a7a7a);letter-spacing:-0.12px;">Fill in once it arrives. Tap again to clear.</span></div>
+  <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+    <sc-for list="{{ odAreas }}" as="a" hint-placeholder-count="8">
+      <div style="background:var(--fl-card,#fff);padding:8px 16px;display:flex;align-items:center;gap:12px;">
+        <span style="flex:1;">{{ a.label }}</span>
+        <div style="display:flex;background:var(--fl-seg,#ececf0);border-radius:8px;padding:2px;gap:2px;">
+          <sc-for list="{{ a.opts }}" as="op" hint-placeholder-count="3"><button onClick="{{ op.onTap }}" style="border:0;border-radius:7px;padding:6px 10px;font-size:14px;letter-spacing:-0.224px;cursor:pointer;color:{{ op.fg }};background:{{ op.bg }};">{{ op.label }}</button></sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="padding:24px 20px 8px;font-size:14px;font-weight:600;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">Photo</div>
+  <div style="margin:0 16px;background:var(--fl-card,#fff);border-radius:18px;padding:16px;display:flex;align-items:center;gap:16px;">
+    <sc-if value="{{ odHasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ od.photo }}" alt="" style="width:96px;height:96px;border-radius:8px;object-fit:cover;flex:none;"></sc-if>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start;">
+      <label style="color:var(--fl-accent,#0066cc);font-size:17px;cursor:pointer;">{{ odPhotoLabel }}<input type="file" accept="image/*" onChange="{{ onOdPhoto }}" style="display:none;"></label>
+      <sc-if value="{{ odHasPhoto }}" hint-placeholder-val="{{ false }}"><button onClick="{{ removePhoto }}" style="border:0;background:none;padding:0;color:var(--fl-red,#d70015);font-size:14px;cursor:pointer;">Remove photo</button></sc-if>
+    </div>
+  </div>
+  <div style="padding:24px 20px 8px;font-size:14px;font-weight:600;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">Notes</div>
+  <div style="margin:0 16px;background:var(--fl-card,#fff);border-radius:18px;padding:12px 16px;">
+    <textarea value="{{ od.notes }}" onChange="{{ onOdNotes }}" rows="4" placeholder="What to change next time" style="width:100%;border:0;resize:vertical;font-size:17px;line-height:1.47;color:var(--fl-ink,#1d1d1f);background:transparent;padding:0;"></textarea>
+  </div>
+  <div style="padding:24px 16px 0;display:flex;flex-direction:column;gap:12px;">
+    <button onClick="{{ saveOrder }}" style="border:0;background:var(--fl-accent,#0066cc);color:var(--fl-onaccent,#fff);border-radius:9999px;padding:14px 20px;font-size:17px;cursor:pointer;" style-active="transform:scale(0.95);">Save order</button>
+    <sc-if value="{{ odExisting }}" hint-placeholder-val="{{ false }}"><button onClick="{{ deleteOrder }}" style="border:0;background:none;color:var(--fl-red,#d70015);font-size:17px;padding:8px;cursor:pointer;">Delete order</button></sc-if>
+  </div>
+</sc-if>
+
+</div>
+
+<div style="flex:none;display:grid;grid-template-columns:repeat(3,1fr);background:var(--fl-bar,rgba(245,245,247,0.8));backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--fl-line,#e0e0e0);padding:6px 8px calc(6px + env(safe-area-inset-bottom) + {{ bottomInset }}px);">
+  <button onClick="{{ tabHome.onTap }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;color:{{ tabHome.color }};font-size:10px;letter-spacing:-0.08px;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"></path></svg><span>Measurements</span>
+  </button>
+  <button onClick="{{ tabBrands.onTap }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;color:{{ tabBrands.color }};font-size:10px;letter-spacing:-0.08px;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3.5 4h8l9 9-7.5 7.5-9-9z"></path><circle cx="8" cy="8.5" r="1.4"></circle></svg><span>Size check</span>
+  </button>
+  <button onClick="{{ tabOrders.onTap }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;color:{{ tabOrders.color }};font-size:10px;letter-spacing:-0.08px;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M5 8.5h14l-1 12H6z"></path><path d="M9 8.5V6.5a3 3 0 016 0v2"></path></svg><span>Orders</span>
+  </button>
+</div>
+
+<sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.32);z-index:40;"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;max-height:88%;overflow-y:auto;background:var(--fl-bg,#f5f5f7);border-radius:18px 18px 0 0;z-index:41;padding:8px 0 calc(28px + env(safe-area-inset-bottom) + {{ bottomInset }}px);">
+    <div style="width:36px;height:5px;border-radius:9999px;background:#c7c7cc;margin:0 auto 8px;"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 20px 12px;gap:12px;">
+      <div style="font-family:var(--font-display);font-size:21px;font-weight:600;letter-spacing:0.231px;">{{ sheetTitle }}</div>
+      <button onClick="{{ closeSheet }}" style="border:0;background:none;color:var(--fl-accent,#0066cc);font-size:17px;font-weight:600;cursor:pointer;padding:4px 0;">Done</button>
+    </div>
+
+    <sc-if value="{{ isSheetM2M }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ m2mHasFormats }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 12px;"><sc-for list="{{ m2mFormats }}" as="c" hint-placeholder-count="2"><button onClick="{{ c.onTap }}" style="border:1px solid {{ c.bc }};box-shadow:{{ c.ring }};background:var(--fl-card,#fff);border-radius:9999px;padding:7px 14px;font-size:14px;letter-spacing:-0.224px;color:var(--fl-ink,#1d1d1f);cursor:pointer;">{{ c.label }}</button></sc-for></div></sc-if>
+      <div style="padding:0 20px 12px;font-size:14px;color:var(--fl-muted,#7a7a7a);letter-spacing:-0.224px;">{{ m2mSub }}</div>
+      <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+        <sc-for list="{{ m2mRows }}" as="r" hint-placeholder-count="10">
+          <div style="background:var(--fl-card,#fff);padding:10px 16px;display:flex;justify-content:space-between;gap:12px;"><span>{{ r.label }}</span><span style="font-weight:600;">{{ r.value }}</span></div>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:12px;padding:20px 16px 0;">
+        <button onClick="{{ copyM2M }}" style="flex:1;border:0;background:var(--fl-accent,#0066cc);color:var(--fl-onaccent,#fff);border-radius:9999px;padding:12px 20px;font-size:17px;cursor:pointer;" style-active="transform:scale(0.95);">Copy</button>
+        <button onClick="{{ shareM2M }}" style="flex:1;border:1px solid var(--fl-accent,#0066cc);background:transparent;color:var(--fl-accent,#0066cc);border-radius:9999px;padding:11px 20px;font-size:17px;cursor:pointer;" style-active="transform:scale(0.95);">Share</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isSheetHistory }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+        <sc-for list="{{ historyRows }}" as="h" hint-placeholder-count="3">
+          <button onClick="{{ h.onOpen }}" style="border:0;background:var(--fl-card,#fff);padding:12px 16px;display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;color:var(--fl-ink,#1d1d1f);">
+            <span style="flex:1;display:flex;flex-direction:column;"><span style="font-weight:600;">{{ h.date }}</span><span style="font-size:14px;color:var(--fl-muted,#7a7a7a);letter-spacing:-0.224px;">{{ h.sub }}</span></span><span style="color:var(--fl-muted,#7a7a7a);">›</span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isSheetSession }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:0 20px 12px;font-size:14px;color:var(--fl-muted,#7a7a7a);letter-spacing:-0.224px;">{{ sessSub }}</div>
+      <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+        <sc-for list="{{ sessRows }}" as="r" hint-placeholder-count="10">
+          <button onClick="{{ r.onOpen }}" style="border:0;background:var(--fl-card,#fff);padding:12px 16px;display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;color:var(--fl-ink,#1d1d1f);font-size:17px;">
+            <span style="flex:1;">{{ r.label }}</span>
+            <span style="font-size:14px;color:var(--fl-muted,#7a7a7a);letter-spacing:-0.224px;">{{ r.delta }}</span>
+            <span style="min-width:60px;text-align:right;font-weight:600;">{{ r.value }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="padding:20px 16px 0;"><button onClick="{{ deleteSession }}" style="width:100%;border:0;background:var(--fl-card,#fff);border-radius:18px;padding:14px 16px;font-size:17px;color:var(--fl-red,#d70015);cursor:pointer;">Delete this measurement set</button></div>
+    </sc-if>
+
+    <sc-if value="{{ isSheetPoint }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:0 20px 16px;display:flex;gap:16px;align-items:center;"><div style="width:88px;flex:none;">{{ pointFig }}</div><div style="font-size:14px;color:var(--fl-muted,#7a7a7a);letter-spacing:-0.224px;line-height:1.43;">{{ pointHint }}</div></div>
+      <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+        <sc-for list="{{ pointRows }}" as="r" hint-placeholder-count="2">
+          <div style="background:var(--fl-card,#fff);padding:12px 16px;display:grid;grid-template-columns:110px 1fr 64px;align-items:center;gap:12px;">
+            <span style="font-size:14px;letter-spacing:-0.224px;">{{ r.date }}</span>
+            <span style="height:6px;border-radius:9999px;background:var(--fl-line2,#f0f0f0);overflow:hidden;"><span style="display:block;height:100%;width:{{ r.pct }};background:var(--fl-accent,#0066cc);border-radius:9999px;"></span></span>
+            <span style="text-align:right;font-weight:600;">{{ r.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isSheetProfiles }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+        <sc-for list="{{ profileRows }}" as="p" hint-placeholder-count="2">
+          <button onClick="{{ p.onTap }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;color:var(--fl-ink,#1d1d1f);font-size:17px;">
+            <span style="flex:1;display:flex;flex-direction:column;"><span>{{ p.name }}</span><span style="font-size:14px;color:var(--fl-muted,#7a7a7a);letter-spacing:-0.224px;">{{ p.sub }}</span></span>
+            <span style="color:var(--fl-accent,#0066cc);font-weight:600;">{{ p.check }}</span>
+          </button>
+        </sc-for>
+        <button onClick="{{ addProfile }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;text-align:left;font-size:17px;color:var(--fl-accent,#0066cc);cursor:pointer;">Add profile</button>
+      </div>
+      <div style="margin:20px 16px 0;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+        <div style="background:var(--fl-card,#fff);padding:10px 16px;display:flex;align-items:center;gap:12px;"><span style="flex:none;">Name</span><input value="{{ profileName }}" onChange="{{ onProfileName }}" style="flex:1;min-width:0;border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px 10px;text-align:right;font-size:17px;color:var(--fl-ink,#1d1d1f);"></div>
+        <button onClick="{{ deleteProfile }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;text-align:left;font-size:17px;color:var(--fl-red,#d70015);cursor:pointer;">Delete {{ profileName }}</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isSheetPick }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+        <sc-for list="{{ pickRows }}" as="p" hint-placeholder-count="6">
+          <button onClick="{{ p.onTap }}" style="border:0;background:var(--fl-card,#fff);padding:12px 16px;display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;color:var(--fl-ink,#1d1d1f);font-size:17px;min-height:52px;">
+            <span style="flex:1;display:flex;flex-direction:column;"><span>{{ p.label }}</span><span style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">{{ p.sub }}</span></span>
+            <span style="color:var(--fl-accent,#0066cc);font-weight:600;">{{ p.check }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isSheetBrandEdit }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+        <div style="background:var(--fl-card,#fff);padding:10px 16px;display:flex;align-items:center;gap:12px;"><span style="flex:none;">Name</span><input value="{{ bName }}" onChange="{{ onBrandName }}" style="flex:1;min-width:0;border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px 10px;text-align:right;font-size:17px;color:var(--fl-ink,#1d1d1f);"></div>
+        <div style="background:var(--fl-card,#fff);padding:10px 16px;display:flex;align-items:center;gap:12px;"><span style="flex:none;">Website</span><input value="{{ bUrlVal }}" onChange="{{ onBrandUrl }}" type="url" placeholder="https://" style="flex:1;min-width:0;border:0;background:var(--fl-bg,#f5f5f7);border-radius:8px;padding:8px 10px;text-align:right;font-size:17px;color:var(--fl-ink,#1d1d1f);"></div>
+        <div style="background:var(--fl-card,#fff);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="display:flex;flex-direction:column;"><span>Stretch allowance</span><span style="font-size:14px;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">{{ bTol }}</span></div>
+          <div style="display:flex;gap:8px;">
+            <button onClick="{{ decTol }}" style="width:36px;height:36px;border:1px solid var(--fl-line,#e0e0e0);background:var(--fl-card,#fff);border-radius:8px;font-size:20px;line-height:1;cursor:pointer;color:var(--fl-ink,#1d1d1f);" style-active="transform:scale(0.95);">−</button>
+            <button onClick="{{ incTol }}" style="width:36px;height:36px;border:1px solid var(--fl-line,#e0e0e0);background:var(--fl-card,#fff);border-radius:8px;font-size:20px;line-height:1;cursor:pointer;color:var(--fl-ink,#1d1d1f);" style-active="transform:scale(0.95);">+</button>
+          </div>
+        </div>
+      </div>
+      <div style="padding:8px 20px 0;font-size:12px;line-height:1.4;color:var(--fl-muted,#7a7a7a);">Latex stretches. Up to this much over a chart range still counts as snug. More than that counts as too tight.</div>
+      <div style="margin:20px 16px 0;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+        <label style="background:var(--fl-card,#fff);padding:14px 16px;font-size:17px;color:var(--fl-accent,#0066cc);cursor:pointer;display:block;">{{ bCoverLabel }}<input type="file" accept="image/*" onChange="{{ onBrandCover }}" style="display:none;"></label>
+        <sc-if value="{{ bHasCover }}" hint-placeholder-val="{{ false }}"><button onClick="{{ removeBrandCover }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;text-align:left;font-size:17px;color:var(--fl-red,#d70015);cursor:pointer;">Remove cover photo</button></sc-if>
+      </div>
+      <div style="padding:20px 16px 0;"><button onClick="{{ deleteBrand }}" style="width:100%;border:0;background:var(--fl-card,#fff);border-radius:18px;padding:14px 16px;font-size:17px;color:var(--fl-red,#d70015);cursor:pointer;">Delete brand</button></div>
+    </sc-if>
+
+    <sc-if value="{{ isSheetSettings }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:0 20px 8px;font-size:14px;font-weight:600;letter-spacing:-0.224px;color:var(--fl-muted,#7a7a7a);">Colour scheme</div>
+      <div style="margin:0 16px 20px;background:var(--fl-card,#fff);border-radius:18px;padding:16px 8px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;">
+        <sc-for list="{{ themeOpts }}" as="o" hint-placeholder-count="4">
+          <button onClick="{{ o.onTap }}" style="border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:var(--fl-ink,#1d1d1f);" style-active="transform:scale(0.95);">
+            <span style="width:52px;height:52px;border-radius:9999px;background:{{ o.bg }};box-shadow:{{ o.ring }};border:1px solid rgba(128,128,128,0.25);display:flex;align-items:center;justify-content:center;"><span style="width:22px;height:22px;border-radius:9999px;background:{{ o.accent }};"></span></span>
+            <span style="font-size:12px;letter-spacing:-0.12px;text-align:center;line-height:1.2;">{{ o.name }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="margin:0 16px 20px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+        <label style="background:var(--fl-card,#fff);padding:14px 16px;font-size:17px;color:var(--fl-accent,#0066cc);cursor:pointer;display:block;">{{ homeCoverLabel }}<input type="file" accept="image/*" onChange="{{ onHomeCover }}" style="display:none;"></label>
+        <sc-if value="{{ hasHomeCover }}" hint-placeholder-val="{{ false }}"><button onClick="{{ removeHomeCover }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;text-align:left;font-size:17px;color:var(--fl-red,#d70015);cursor:pointer;">Remove home photo</button></sc-if>
+      </div>
+      <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;gap:1px;background:var(--fl-line,#e0e0e0);">
+        <div style="background:var(--fl-card,#fff);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <span>Units</span>
+          <div style="display:flex;background:var(--fl-seg,#ececf0);border-radius:8px;padding:2px;gap:2px;">
+            <button onClick="{{ setCm }}" style="border:0;border-radius:7px;padding:6px 16px;font-size:14px;cursor:pointer;color:var(--fl-ink,#1d1d1f);background:{{ cmBg }};">cm</button>
+            <button onClick="{{ setIn }}" style="border:0;border-radius:7px;padding:6px 16px;font-size:14px;cursor:pointer;color:var(--fl-ink,#1d1d1f);background:{{ inBg }};">in</button>
+          </div>
+        </div>
+        <div style="background:var(--fl-card,#fff);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="display:flex;flex-direction:column;"><span>Remeasure after</span><span style="font-size:14px;color:var(--fl-muted,#7a7a7a);letter-spacing:-0.224px;">{{ staleDays }} days</span></div>
+          <div style="display:flex;gap:8px;">
+            <button onClick="{{ decStale }}" style="width:36px;height:36px;border:1px solid var(--fl-line,#e0e0e0);background:var(--fl-card,#fff);border-radius:8px;font-size:20px;line-height:1;cursor:pointer;color:var(--fl-ink,#1d1d1f);" style-active="transform:scale(0.95);">−</button>
+            <button onClick="{{ incStale }}" style="width:36px;height:36px;border:1px solid var(--fl-line,#e0e0e0);background:var(--fl-card,#fff);border-radius:8px;font-size:20px;line-height:1;cursor:pointer;color:var(--fl-ink,#1d1d1f);" style-active="transform:scale(0.95);">+</button>
+          </div>
+        </div>
+        <button onClick="{{ resetSample }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;text-align:left;font-size:17px;color:var(--fl-accent,#0066cc);cursor:pointer;">Reset to sample data</button>
+        <button onClick="{{ eraseAll }}" style="border:0;background:var(--fl-card,#fff);padding:14px 16px;text-align:left;font-size:17px;color:var(--fl-red,#d70015);cursor:pointer;">Erase all data</button>
+      </div>
+      <div style="padding:12px 20px 0;font-size:12px;line-height:1.4;color:var(--fl-muted,#7a7a7a);">Everything is stored on this iPhone only. In Safari, tap Share › Add to Home Screen to open Fitlog like an app. Size charts were copied from brand websites in October 2026. Check them before you order.</div>
+    </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ viewerOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;z-index:70;background:#000;display:flex;flex-direction:column;color:#fff;">
+    <div style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(env(safe-area-inset-top) + {{ topInset }}px + 8px) 16px 8px;">
+      <button onClick="{{ closeViewer }}" style="border:0;background:none;color:#2997ff;font-size:17px;font-weight:600;padding:8px 0;cursor:pointer;">Done</button>
+      <span style="font-size:14px;letter-spacing:-0.224px;color:#cccccc;">{{ viewerLabel }}</span>
+      <button onClick="{{ deleteViewerImg }}" style="border:0;background:none;color:#2997ff;font-size:17px;padding:8px 0;cursor:pointer;">Delete</button>
+    </div>
+    <div onPointerDown="{{ vDown }}" onPointerMove="{{ vMove }}" onPointerUp="{{ vUp }}" onPointerCancel="{{ vUp }}" onWheel="{{ vWheel }}" style="flex:1;min-height:0;overflow:hidden;touch-action:none;display:flex;align-items:center;justify-content:center;cursor:grab;">
+      <img src="{{ viewerSrc }}" alt="{{ viewerLabel }}" draggable="false" style="max-width:100%;max-height:100%;object-fit:contain;transform:{{ vTransform }};transform-origin:center;user-select:none;-webkit-user-select:none;pointer-events:none;">
+    </div>
+    <div style="flex:none;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom) + {{ bottomInset }}px);">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <button onClick="{{ zoomOut }}" style="width:44px;height:44px;border:0;border-radius:9999px;background:#2a2a2c;color:#fff;font-size:22px;line-height:1;cursor:pointer;" style-active="transform:scale(0.95);">−</button>
+        <span style="min-width:56px;text-align:center;font-size:14px;color:#cccccc;">{{ zoomLabel }}</span>
+        <button onClick="{{ zoomIn }}" style="width:44px;height:44px;border:0;border-radius:9999px;background:#2a2a2c;color:#fff;font-size:22px;line-height:1;cursor:pointer;" style-active="transform:scale(0.95);">+</button>
+      </div>
+      <div style="font-size:12px;color:#cccccc;letter-spacing:-0.12px;">Pinch or double-tap to zoom. Drag to move around.</div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;left:50%;top:calc(env(safe-area-inset-top) + {{ topInset }}px + 12px);transform:translateX(-50%);background:rgba(29,29,31,0.92);color:#fff;border-radius:9999px;padding:10px 18px;font-size:14px;letter-spacing:-0.224px;z-index:60;white-space:nowrap;">{{ toast }}</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;startTab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;measure&quot;,&quot;brands&quot;,&quot;orders&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;classic&quot;,&quot;plum&quot;,&quot;gloss&quot;,&quot;orchid&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;embedded&quot;:{&quot;editor&quot;:null,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;topInset&quot;:{&quot;editor&quot;:null,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;},&quot;bottomInset&quot;:{&quot;editor&quot;:null,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;}}">
+const KEY = 'fitlog.v2';
+function migrate(data) {
+  const src = window.FITLOG_BRANDS || [];
+  let changed = false;
+  src.forEach(sb => { const b = data.brands.find(x => x.id === sb.id);
+    if (!b) { if (!(data.removed || []).includes(sb.id)) { data.brands.push(JSON.parse(JSON.stringify(sb))); changed = true; } return; }
+    if (!b.garments.length && sb.garments.length && !b.chartsCleared) { b.garments = JSON.parse(JSON.stringify(sb.garments)); b.note = sb.note; changed = true; }
+    if (sb.m2mForm && !b.m2mForm) { b.m2mForm = sb.m2mForm; b.note = sb.note; changed = true; }
+    const have = new Set((b.images || []).map(i => i.id).concat(b.removedImgs || []));
+    (sb.images || []).forEach(i => { if (!have.has(i.id)) { (b.images = b.images || []).push(Object.assign({}, i)); changed = true; } });
+  });
+  data.imports = data.imports || [];
+  (window.FITLOG_IMPORTS || []).forEach(im => { if (data.imports.includes(im.id)) return; let first = null;
+    im.profiles.forEach(ip => { let p = data.profiles.find(x => (x.name || '').trim().toLowerCase() === ip.name.toLowerCase());
+      if (!p) { p = { id: uid(), name: ip.name, sessions: [], orders: [] }; data.profiles.push(p); }
+      if (!first) first = p;
+      let sid = null;
+      if (ip.session) { sid = uid(); p.sessions.push({ id: sid, date: ip.session.date, values: Object.assign({}, ip.session.values) }); }
+      (ip.orders || []).forEach(o => p.orders.push(Object.assign({ id: uid(), size: 'Made to measure', currency: '€', thickness: '0.40', fit: {}, photo: null, notes: '' }, o, { sessionId: sid })));
+    });
+    if (first) data.activeId = first.id; data.imports.push(im.id); changed = true; });
+  if (data.imports.includes('kinkfox-2026-10') && !data.imports.includes('kinkfox-fix1')) {
+    const byName = n => data.profiles.find(x => (x.name || '').trim().toLowerCase() === n);
+    const j = byName('jasper'), k = byName('kevin');
+    const sx = j && j.sessions.find(x => x.date === '2026-10-18' && x.values.torso === 162 && x.values.shoe === 42.5);
+    if (sx && k) {
+      j.sessions = j.sessions.filter(x => x !== sx); k.sessions.push(sx);
+      j.orders.forEach(o => { if (o.sessionId === sx.id) o.sessionId = null; });
+      k.orders.forEach(o => { if (o.brandId === 'kinkfox' && !o.sessionId) o.sessionId = sx.id; });
+      data.activeId = k.id;
+    }
+    data.profiles.forEach(p => p.orders.forEach(o => { if (o.notes) o.notes = o.notes.replace('Kinkfox order with Kevin: ', 'Shared Kinkfox order with Jasper and Kevin: '); }));
+    data.imports.push('kinkfox-fix1'); changed = true;
+  }
+  return changed ? data : null;
+}
+const POINTS = [
+  { id: 'height', label: 'Height', len: 1, core: 1, hint: 'Barefoot, back against a wall. Rest something flat on your head and mark the wall.' },
+  { id: 'neck', label: 'Neck', core: 1, hint: 'Around the base of the neck, where a collar sits.' },
+  { id: 'chest', label: 'Bust / chest', core: 1, hint: 'Fullest part, across the nipples. Keep the tape level across your back.' },
+  { id: 'underbust', label: 'Underbust', core: 1, hint: 'Directly under the bust, snug and level.' },
+  { id: 'waist', label: 'Waist', core: 1, hint: 'Natural waist: the narrowest point, usually just above the navel.' },
+  { id: 'waistHip', label: 'Between waist and hip', hint: 'Halfway between the natural waist and the fullest part of the hips.' },
+  { id: 'hips', label: 'Hips', core: 1, hint: 'Fullest part of the seat, feet together.' },
+  { id: 'torso', label: 'Torso girth', len: 1, core: 1, hint: 'Vertical loop: from the top of one shoulder, down the front, through the crotch, up the back to the same point. The key catsuit measurement.' },
+  { id: 'ubend', label: 'U-bend', len: 1, core: 1, hint: 'From the breastbone, down the front, between the legs, up over the buttocks to the base of the neck. Follow the body’s curve. Libidex uses this for catsuits.' },
+  { id: 'insideArm', label: 'Inside arm', len: 1, core: 1, hint: 'Armpit to wrist bone, arm hanging relaxed.' },
+  { id: 'inseam', label: 'Inside leg', len: 1, core: 1, hint: 'Crotch to ankle bone, along the inside of the leg.' },
+  { id: 'armLength', label: 'Arm length', len: 1, core: 1, hint: 'Shoulder bone to wrist bone, arm slightly bent.' },
+  { id: 'thigh', label: 'Thigh', core: 1, hint: 'Just below the crotch, around the fullest part.' },
+  { id: 'shoulder', label: 'Shoulder width', len: 1, hint: 'Across the back, from shoulder bone to shoulder bone.' },
+  { id: 'napeWaist', label: 'Nape to waist', len: 1, hint: 'From the bone at the base of the neck, down the spine to the natural waist.' },
+  { id: 'crotch', label: 'Crotch length', len: 1, hint: 'From the front waist, down through the legs, up to the back waist.' },
+  { id: 'waistKnee', label: 'Waist to knee', len: 1, hint: 'Down the side, from natural waist to the middle of the knee.' },
+  { id: 'waistAnkle', label: 'Waist to ankle', len: 1, hint: 'Down the side, from natural waist to the ankle bone.' },
+  { id: 'armpit', label: 'Around the armpit', hint: 'Loop from the top of the shoulder, down under the armpit and back up. Sets the armhole.' },
+  { id: 'upperArm', label: 'Upper arm', hint: 'Fullest part of the bicep, arm relaxed.' },
+  { id: 'elbow', label: 'Elbow', hint: 'Around the elbow, arm bent.' },
+  { id: 'forearm', label: 'Forearm', hint: 'Fullest part, just below the elbow.' },
+  { id: 'wrist', label: 'Wrist', hint: 'Around the wrist bone.' },
+  { id: 'palm', label: 'Hand', hint: 'Around the palm at the knuckles, thumb excluded. For gloves.' },
+  { id: 'knee', label: 'Knee', hint: 'Around the middle of the knee, leg straight.' },
+  { id: 'calf', label: 'Calf', hint: 'Fullest part of the calf.' },
+  { id: 'ankle', label: 'Ankle', hint: 'Narrowest point, just above the ankle bone.' },
+  { id: 'head', label: 'Head', hint: 'Around the forehead and the back of the head. For hoods.' },
+  { id: 'foot', label: 'Foot length', len: 1, hint: 'Heel to longest toe, standing. For attached feet and socks.' },
+  { id: 'shoe', label: 'Shoe size', unit: 'EU', hint: 'Your usual shoe size, EU sizing.' }
+];
+const PT = Object.fromEntries(POINTS.map(p => [p.id, p]));
+const FL = (() => {
+  const G = (x1, x2, y, b, side) => ({ d: 'M' + x1 + ' ' + y + ' Q' + (x1 + x2) / 2 + ' ' + (y + b) + ' ' + x2 + ' ' + y, ends: [[x1, y], [x2, y]], a: side === 'L' ? [x1, y] : [x2, y], side });
+  const L = (pts, side, a, dash) => ({ d: pts.map((p, i) => (i ? 'L' : 'M') + p[0] + ' ' + p[1]).join(' '), ends: [pts[0], pts[pts.length - 1]], a: a || pts[Math.floor(pts.length / 2)], side, dash });
+  const across = (p, q, t, w) => { const dx = q[0] - p[0], dy = q[1] - p[1], n = Math.hypot(dx, dy), nx = dy / n, ny = -dx / n, cx = p[0] + dx * t, cy = p[1] + dy * t, hw = w / 2;
+    const i = [+(cx - nx * hw).toFixed(1), +(cy - ny * hw).toFixed(1)], o = [+(cx + nx * hw).toFixed(1), +(cy + ny * hw).toFixed(1)]; return L([i, o], 'R', o); };
+  const A0 = [141, 96], A1 = [154, 176], A2 = [162, 244];
+  const foot = L([[109, 424], [134, 424]], 'R', [134, 424]);
+  return {
+    head: G(82, 118, 24, 3, 'L'), neck: G(91, 109, 64, 3, 'L'), shoulder: L([[60, 80], [140, 80]], 'R', [140, 80]),
+    chest: G(67, 133, 118, 6, 'L'), underbust: G(70, 130, 138, 5, 'R'), waist: G(80, 120, 170, 4, 'L'), waistHip: G(75, 125, 192, 5, 'R'), hips: G(66, 134, 214, 6, 'L'),
+    height: L([[190, 14], [190, 422]], 'R', [190, 218]),
+    armpit: L([[128, 104], [147, 86]], 'R', [147, 86]), upperArm: across(A0, A1, 0.45, 22), elbow: across(A0, A1, 1, 19), forearm: across(A1, A2, 0.3, 16), wrist: across(A1, A2, 0.95, 13),
+    palm: G(156, 172, 256, 2, 'R'),
+    thigh: G(66, 100, 238, 5, 'L'), knee: G(72, 94, 318, 3, 'L'), calf: G(72, 96, 348, 3, 'L'), ankle: G(77, 91, 398, 2, 'L'),
+    foot, shoe: foot,
+    napeWaist: L([[88, 70], [88, 170]], 'L', [88, 120], 1), ubend: L([[100, 100], [100, 238]], 'L', [100, 150]),
+    crotch: L([[92, 172], [92, 215], [100, 238]], 'L', [92, 200]), inseam: L([[96, 242], [91, 404]], 'L', [93, 320]),
+    torso: L([[118, 80], [114, 150], [108, 215], [100, 238]], 'R', [114, 150]),
+    insideArm: L([[132, 108], [143, 176], [151, 244]], 'R'), armLength: L([[150, 82], [168, 176], [176, 244]], 'R'),
+    waistKnee: L([[124, 172], [138, 214], [137, 318]], 'R', [138, 260]), waistAnkle: L([[124, 172], [146, 214], [144, 318], [132, 404]], 'R', [144, 318])
+  };
+})();
+const SHORT = { underbust: 'Underbust', waistHip: 'Waist–hip', armpit: 'Armhole', upperArm: 'Bicep', napeWaist: 'Nape–waist', waistKnee: 'Waist–knee', waistAnkle: 'Waist–ankle', insideArm: 'Inside arm', armLength: 'Arm length', inseam: 'Inside leg', torso: 'Torso girth', ubend: 'U-bend', shoulder: 'Shoulders', crotch: 'Crotch', foot: 'Foot', shoe: 'Shoe', palm: 'Hand', chest: 'Chest' };
+const shortLabel = id => SHORT[id] || (PT[id] ? PT[id].label : id);
+function bodyFig(o) {
+  const h = React.createElement, X = 90, ink = 'var(--fl-ink,#1d1d1f)', mut = 'var(--fl-muted,#7a7a7a)', acc = 'var(--fl-accent,#0066cc)', fill = 'var(--fl-seg,#ececf0)';
+  const single = !!o.single, lines = (o.lines || []).filter(l => FL[l.id]);
+  const cap = { strokeLinecap: 'round', stroke: fill };
+  const half = k => h('g', { key: k, transform: k === 'l' ? 'matrix(-1 0 0 1 200 0)' : undefined },
+    h('line', Object.assign({ x1: 141, y1: 96, x2: 154, y2: 176, strokeWidth: 22 }, cap)),
+    h('line', Object.assign({ x1: 154, y1: 176, x2: 162, y2: 244, strokeWidth: 16 }, cap)),
+    h('ellipse', { cx: 164, cy: 258, rx: 8, ry: 12, fill }),
+    h('line', Object.assign({ x1: 117, y1: 226, x2: 117, y2: 318, strokeWidth: 34 }, cap)),
+    h('line', Object.assign({ x1: 117, y1: 318, x2: 116, y2: 402, strokeWidth: 22 }, cap)),
+    h('ellipse', { cx: 116.5, cy: 352, rx: 12.5, ry: 28, fill }),
+    h('ellipse', { cx: 121, cy: 414, rx: 12, ry: 7, fill }));
+  const fig = [half('r'), half('l'),
+    h('path', { key: 't', fill, d: 'M92 72 L108 72 C120 76 134 78 140 88 C142 96 136 102 134 110 C133 130 122 150 120 170 C120 186 134 196 134 214 C134 228 118 238 100 238 C82 238 66 228 66 214 C66 196 80 186 80 170 C78 150 67 130 66 110 C64 102 58 96 60 88 C66 78 80 76 92 72 Z' }),
+    h('rect', { key: 'n', x: 91, y: 52, width: 18, height: 24, rx: 6, fill }),
+    h('ellipse', { key: 'h', cx: 100, cy: 34, rx: 18, ry: 22, fill })];
+  lines.forEach((l, i) => { const f = FL[l.id], col = l.color || (single ? acc : ink), w = single ? 3.5 : 1.75;
+    fig.push(h('path', { key: 'p' + i, d: f.d, fill: 'none', stroke: col, strokeWidth: w, strokeLinecap: 'round', strokeLinejoin: 'round', strokeDasharray: f.dash ? '3 4' : undefined }));
+    f.ends.forEach((e, j) => fig.push(h('circle', { key: 'e' + i + '-' + j, cx: e[0], cy: e[1], r: single ? 3.5 : 2.25, fill: col }))); });
+  const out = [h('g', { key: 'fig', transform: 'translate(' + X + ' 0)' }, fig)];
+  if (!single) {
+    ['L', 'R'].forEach(side => {
+      const items = lines.filter(l => FL[l.id].side === side).map(l => ({ l, ax: FL[l.id].a[0] + X, ay: FL[l.id].a[1] })).sort((a, b) => a.ay - b.ay);
+      let prev = -1e9; items.forEach(it => { it.y = Math.max(it.ay, prev + 34, 16); prev = it.y; });
+      let lim = 420; for (let i = items.length - 1; i >= 0; i--) { if (items[i].y > lim) items[i].y = lim; lim = items[i].y - 34; }
+      items.forEach((it, i) => { const L = side === 'L', tx = L ? 80 : 300, x0 = L ? 84 : 296;
+        out.push(h('g', { key: side + i, onClick: it.l.onTap, style: { cursor: it.l.onTap ? 'pointer' : 'default' } },
+          h('rect', { x: L ? 0 : 292, y: it.y - 12, width: 88, height: 34, fill: 'transparent' }),
+          h('line', { x1: x0, y1: it.y + 3, x2: it.ax, y2: it.ay, stroke: mut, strokeWidth: 0.75, opacity: 0.55 }),
+          h('text', { x: tx, y: it.y, textAnchor: L ? 'end' : 'start', fontSize: 11, fill: mut, style: { letterSpacing: '-0.1px' } }, it.l.label || shortLabel(it.l.id)),
+          h('text', { x: tx, y: it.y + 16, textAnchor: L ? 'end' : 'start', fontSize: 14, fontWeight: 600, fill: it.l.valueColor || ink, style: { letterSpacing: '-0.2px' } }, it.l.value || ''))); });
+    });
+  }
+  return h('svg', { viewBox: single ? '112 6 178 432' : '0 0 380 440', width: '100%', style: { display: 'block', overflow: 'visible', fontFamily: 'inherit' }, role: 'img', 'aria-label': 'Body diagram' }, out);
+}
+const AREAS = [['neck','Neck'],['chest','Chest'],['waist','Waist'],['hips','Hips'],['torso','Torso length'],['crotch','Crotch'],['arms','Arms'],['legs','Legs']];
+const THICK = ['0.25','0.35','0.40','0.50','0.60','0.80','1.00'];
+const CUR = ['€','£','$'];
+const C = { green: 'var(--fl-green,#248a3d)', amber: 'var(--fl-amber,#b25000)', red: 'var(--fl-red,#d70015)', grey: 'var(--fl-muted,#7a7a7a)', blue: 'var(--fl-accent,#0066cc)', ink: 'var(--fl-ink,#1d1d1f)' };
+const RING_ON = 'inset 0 0 0 1px var(--fl-accent,#0066cc)', RING_OFF = 'none';
+const LIGHT = { onAccent: '#ffffff', bg: '#f5f5f7', card: '#ffffff', ink: '#1d1d1f', muted: '#6e6e73', line: '#e0e0e0', line2: '#f0f0f0', seg: '#ececf0', segOn: '#ffffff', bar: 'rgba(245,245,247,0.8)', green: '#248a3d', amber: '#b25000', red: '#d70015', scheme: 'light' };
+const DARK = { onAccent: '#000000', bg: '#000000', card: '#1c1c1e', ink: '#f5f5f7', muted: '#a1a1a6', line: '#2c2c2e', line2: '#2c2c2e', seg: '#2c2c2e', segOn: '#636366', bar: 'rgba(22,22,23,0.8)', green: '#30d158', amber: '#ff9f0a', red: '#ff453a', scheme: 'dark' };
+const THEMES = {
+  classic: Object.assign({ name: 'Classic', accent: '#0066cc' }, LIGHT),
+  plum: Object.assign({ name: 'Plum', accent: '#8e3a75' }, LIGHT),
+  gloss: Object.assign({ name: 'Gloss black', accent: '#2997ff' }, DARK),
+  orchid: Object.assign({ name: 'Black orchid', accent: '#e07ac4' }, DARK)
+};
+
+const uid = () => Math.random().toString(36).slice(2, 10);
+const pad = n => String(n).padStart(2, '0');
+const isoOf = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const todayISO = () => isoOf(new Date());
+const isoAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return isoOf(d); };
+const parseISO = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const dayDiff = s => { const a = new Date(); a.setHours(0, 0, 0, 0); return Math.round((a - parseISO(s)) / 864e5); };
+const fmtDate = s => parseISO(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+const fmtShort = s => parseISO(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+const agoText = n => n <= 0 ? 'Today' : n === 1 ? 'Yesterday' : n + ' days ago';
+const IDB = {
+  open() { return this.p || (this.p = new Promise((res, rej) => { const r = indexedDB.open('fitlog', 1); r.onupgradeneeded = () => r.result.createObjectStore('img'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); })); },
+  tx(mode, fn) { return this.open().then(db => new Promise((res, rej) => { const t = db.transaction('img', mode), st = t.objectStore('img'), q = fn(st); t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error); })); },
+  put(k, v) { return this.tx('readwrite', st => st.put(v, k)); },
+  get(k) { return this.tx('readonly', st => st.get(k)); },
+  del(k) { return this.tx('readwrite', st => st.delete(k)); }
+};
+function resizeImg(file, max, q) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => { const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', q)); };
+    img.onerror = rej; img.src = url;
+  });
+}
+
+function seed() {
+  const brands = JSON.parse(JSON.stringify(window.FITLOG_BRANDS || []));
+  const s1 = uid(), s2 = uid();
+  const me = { id: uid(), name: 'Me', sessions: [
+    { id: s1, date: isoAgo(47), values: { height: 172, neck: 34, chest: 93, underbust: 78, waist: 70, hips: 99, torso: 150, ubend: 145, insideArm: 47, inseam: 76, armLength: 57, thigh: 53, shoulder: 39, napeWaist: 41, crotch: 66, waistKnee: 58, waistAnkle: 100, upperArm: 28, elbow: 24, forearm: 23, wrist: 15.5, palm: 18, knee: 36, calf: 35, ankle: 22, head: 56, foot: 24 } },
+    { id: s2, date: isoAgo(214), values: { height: 172, neck: 34.5, chest: 95, underbust: 79, waist: 72, hips: 100, torso: 150, inseam: 76, armLength: 57, thigh: 54.5, upperArm: 29, calf: 35.5 } }
+  ], orders: [
+    { id: uid(), brandId: 'kinkprojects', item: 'Back-zip catsuit', size: 'L', date: isoAgo(170), price: '289', currency: '€', colour: 'Black', thickness: '0.40', sessionId: s2, fit: { neck: 'loose', chest: 'right', waist: 'right', hips: 'right', legs: 'tight' }, photo: null, notes: 'Collar gaped, legs a touch short. Next time: made-to-measure.' },
+    { id: uid(), brandId: 'libidex', item: 'Leggings', size: 'Made to measure', date: isoAgo(30), price: '145', currency: '£', colour: 'Plum', thickness: '0.40', sessionId: s1, fit: {}, photo: null, notes: 'Ordered with the latest measurements.' }
+  ] };
+  const sam = { id: uid(), name: 'Sam', sessions: [
+    { id: uid(), date: isoAgo(130), values: { height: 181, neck: 41, chest: 102, waist: 84, hips: 100, torso: 159, ubend: 158, insideArm: 51, inseam: 72, armLength: 60, thigh: 56 } }
+  ], orders: [] };
+  return { v: 2, seedV: 3, unit: 'cm', staleDays: 91, activeId: me.id, profiles: [me, sam], brands };
+}
+
+class Component extends DCLogic {
+  scrollRef = React.createRef();
+  state = this.init();
+
+  init() {
+    let data = null;
+    try { data = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+    if (!data && window.FITLOG_BRANDS) { data = seed(); this.persist(data); }
+    else if (data && window.FITLOG_BRANDS) { const m = migrate(JSON.parse(JSON.stringify(data))); if (m) { data = m; this.persist(data); } }
+    return { data, tab: this.props.startTab || 'home', view: null, brandId: null, garmentIdx: null, sizeIdx: null, editSize: 0,
+      quickBrandId: null, quickGarmentIdx: null, figGroup: null, draft: {}, draftDate: todayISO(), showMore: false, hints: {},
+      sheet: null, sheetArg: null, od: null, buf: {}, toast: null, imgs: {}, viewer: null, vz: 1, vx: 0, vy: 0, measureMore: null };
+  }
+  componentDidMount() {
+    if (!this.state.data) this._poll = setInterval(() => {
+      if (window.FITLOG_BRANDS) { clearInterval(this._poll); const data = seed(); this.persist(data); this.setState({ data }); }
+    }, 60);
+    else {
+      this.loadImgs(this.state.data);
+      this._poll = setInterval(() => {
+        if (window.FITLOG_BRANDS) { clearInterval(this._poll); const m = migrate(JSON.parse(JSON.stringify(this.state.data))); if (m) { this.persist(m); this.setState({ data: m }); } }
+      }, 60);
+    }
+  }
+  loadImgs(data) {
+    const ids = [];
+    if (data.homeCover) ids.push(data.homeCover);
+    (data.brands || []).forEach(b => { if (b.cover) ids.push(b.cover); (b.images || []).forEach(im => ids.push(im.id)); });
+    ids.forEach(id => {
+      if (this.state.imgs[id]) return;
+      IDB.get(id).then(v => { if (v) this.setState(s => ({ imgs: Object.assign({}, s.imgs, { [id]: v }) })); }).catch(() => {});
+    });
+  }
+  addBrandImg(bid, kind, e) {
+    const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
+    resizeImg(f, 2200, 0.85).then(url => { const id = uid();
+      return IDB.put(id, url).then(() => {
+        this.setState(s => ({ imgs: Object.assign({}, s.imgs, { [id]: url }) }));
+        this.mut(d => { const b = d.brands.find(x => x.id === bid); (b.images = b.images || []).push({ id, kind }); });
+        this.flash('Photo added');
+      });
+    }).catch(() => this.flash('Could not add that photo'));
+  }
+  pts = new Map();
+  setZoom(z) { z = Math.min(6, Math.max(1, z)); this.setState(z <= 1.01 ? { vz: 1, vx: 0, vy: 0 } : { vz: z }); }
+  vDown = e => {
+    if (e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId);
+    this.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const s = this.state;
+    if (this.pts.size === 2) { const [a, b] = [...this.pts.values()]; this.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, z: s.vz }; this.drag = null; return; }
+    const now = Date.now();
+    if (now - (this.lastTap || 0) < 300) { this.lastTap = 0; this.setZoom(s.vz > 1 ? 1 : 2.5); return; }
+    this.lastTap = now; this.drag = { x: e.clientX - s.vx, y: e.clientY - s.vy };
+  };
+  vMove = e => {
+    if (!this.pts.has(e.pointerId)) return;
+    this.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (this.pinch && this.pts.size >= 2) { const [a, b] = [...this.pts.values()]; this.setState({ vz: Math.min(6, Math.max(1, this.pinch.z * Math.hypot(a.x - b.x, a.y - b.y) / this.pinch.d)) }); }
+    else if (this.drag && this.state.vz > 1) this.setState({ vx: e.clientX - this.drag.x, vy: e.clientY - this.drag.y });
+  };
+  vUp = e => {
+    this.pts.delete(e.pointerId);
+    if (this.pts.size < 2) this.pinch = null;
+    if (this.pts.size === 1) { const [p] = [...this.pts.values()]; this.drag = { x: p.x - this.state.vx, y: p.y - this.state.vy }; }
+    if (!this.pts.size) { this.drag = null; if (this.state.vz <= 1.01) this.setState({ vz: 1, vx: 0, vy: 0 }); }
+  };
+  vWheel = e => this.setZoom(this.state.vz * (e.deltaY < 0 ? 1.15 : 1 / 1.15));
+  componentWillUnmount() { clearInterval(this._poll); clearTimeout(this._t); }
+
+  persist(data) { try { localStorage.setItem(KEY, JSON.stringify(data)); return true; } catch (e) { this.flash && this.flash('Storage is full. Remove some photos.'); return false; } }
+  mut(fn) { this.setState(s => { const data = JSON.parse(JSON.stringify(s.data)); fn(data, data.profiles.find(p => p.id === data.activeId) || data.profiles[0]); this.persist(data); return { data }; }); }
+  flash(msg) { this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 1800); }
+  nav(patch) { this.setState(Object.assign({ sheet: null }, patch)); const el = this.scrollRef.current; if (el) el.scrollTop = 0; }
+
+  u() { return this.state.data.unit; }
+  conv(cm) { return this.u() === 'in' ? cm / 2.54 : cm; }
+  fmt(cm) { return cm == null || isNaN(cm) ? '—' : String(Math.round(this.conv(cm) * 10) / 10); }
+  fmtR(r) { return r[0] === r[1] ? this.fmt(r[0]) : this.fmt(r[0]) + '–' + this.fmt(r[1]); }
+  toCm(str) { if (str == null || String(str).trim() === '') return null; const v = parseFloat(String(str).replace(',', '.')); if (isNaN(v)) return null; return this.u() === 'in' ? v * 2.54 : v; }
+  unitOf(id) { return (PT[id] && PT[id].unit) || this.u(); }
+  fmtP(id, v) { return PT[id] && PT[id].unit ? (v == null ? '—' : String(v)) : this.fmt(v); }
+  deltaP(id, dv) { if (!(PT[id] && PT[id].unit)) return this.delta(dv); const d = Math.round(dv * 10) / 10; return d === 0 ? 'No change' : (d > 0 ? '+' : '−') + Math.abs(d) + ' ' + PT[id].unit; }
+  toCmP(id, str) { if (!(PT[id] && PT[id].unit)) return this.toCm(str); if (str == null || String(str).trim() === '') return null; const v = parseFloat(String(str).replace(',', '.')); return isNaN(v) ? null : v; }
+  delta(cm) { const d = Math.round(this.conv(cm) * 10) / 10; return d === 0 ? 'No change' : (d > 0 ? '+' : '−') + Math.abs(d) + ' ' + this.u(); }
+
+  rowFit(p, rng, you, tol) {
+    const len = !!(PT[p] && PT[p].len);
+    if (you == null) return { k: 'none', label: 'Not measured', color: C.grey, score: 0, dist: 0 };
+    const [mn, mx] = rng;
+    if (you >= mn && you <= mx) return { k: 'fits', label: 'Fits', color: C.green, score: 0, dist: 0 };
+    if (you > mx) { const o = you - mx; return o <= tol ? { k: 'snug', label: len ? 'Short side' : 'Snug', color: C.amber, score: 1, dist: o } : { k: 'tight', label: len ? 'Too short' : 'Too tight', color: C.red, score: 3, dist: o }; }
+    const o = mn - you;
+    return o <= tol ? { k: 'fits', label: 'Fits', color: C.green, score: 0.2, dist: o } : { k: 'loose', label: len ? 'Too long' : 'Loose', color: C.red, score: 2.5, dist: o };
+  }
+  evalSize(size, vals, tol) {
+    const rows = POINTS.filter(p => size.values[p.id]).map(p => ({ p, rng: size.values[p.id], you: vals[p.id], f: this.rowFit(p.id, size.values[p.id], vals[p.id], tol) }));
+    const measured = rows.filter(r => r.f.k !== 'none');
+    return { rows, measured: measured.length, score: rows.reduce((a, r) => a + r.f.score, 0), dist: rows.reduce((a, r) => a + r.f.dist, 0),
+      bad: measured.filter(r => r.f.k === 'tight' || r.f.k === 'loose'), snug: measured.filter(r => r.f.k === 'snug') };
+  }
+  bestIdx(g, vals, tol) {
+    let bi = -1, b = null;
+    g.sizes.forEach((sz, i) => { const e = this.evalSize(sz, vals, tol); if (!e.measured) return; if (!b || e.score < b.score || (e.score === b.score && e.dist < b.dist)) { b = e; bi = i; } });
+    return bi;
+  }
+  verdict(e, label) {
+    if (!e || !e.measured) return { title: 'Nothing to compare', text: 'None of your measurements are on this chart yet.', color: C.grey, size: '—' };
+    const names = a => a.map(r => r.p.label.toLowerCase()).join(', ');
+    if (e.bad.length) return { title: 'Made to measure', text: 'Closest is ' + label + ', but ' + e.bad.length + (e.bad.length === 1 ? ' point falls' : ' points fall') + ' outside it: ' + names(e.bad) + '.', color: C.red, size: label };
+    if (e.snug.length) return { title: 'Size ' + label, text: 'Snug at ' + names(e.snug) + '. Within the stretch allowance.', color: C.amber, size: label };
+    return { title: 'Size ' + label, text: 'Every measured point is inside the range.', color: C.green, size: label };
+  }
+  brandSummary(b, vals) {
+    if (!b.garments.length) { const mm = b.m2mOnly || !!b.m2mForm; return { size: '', line: mm ? 'Made-to-measure brand' : 'No chart loaded yet', color: mm ? C.blue : C.grey, sub: b.m2mForm ? 'Your sheet is ready in their form order' : mm ? 'Send your made-to-measure sheet' : 'Add it from their website' }; }
+    const a = this.autoGarment(b, vals);
+    if (!a) return { size: '—', line: 'Nothing to compare', color: C.grey, sub: b.garments[0].name };
+    const g = b.garments[a.gi], v = this.verdict(a.e, g.sizes[a.si].label);
+    return { size: v.color === C.red ? 'M2M' : g.sizes[a.si].label, line: this.withLen(v, g.name), color: v.color, sub: 'Best match: ' + g.name };
+  }
+  lenOf(name) { const m = /· (Petite|Regular|Tall|Extra Tall)$/.exec(name || ''); return m ? m[1] : ''; }
+  withLen(v, name) { const l = this.lenOf(name); return v.color !== C.red && l ? v.title + ' · ' + l : v.title; }
+  autoGarment(b, vals) {
+    let list = b.garments.map((g, i) => ({ g, i })); const cs = list.filter(x => /catsuit/i.test(x.g.name)); if (cs.length) list = cs;
+    let best = null;
+    list.forEach(({ g, i }) => { const si = this.bestIdx(g, vals, b.tol); if (si < 0) return; const e = this.evalSize(g.sizes[si], vals, b.tol);
+      if (!best || e.score < best.e.score || (e.score === best.e.score && e.dist < best.e.dist)) best = { gi: i, si, e }; });
+    return best;
+  }
+  fitLine(o) {
+    const f = o.fit || {}, by = { tight: [], loose: [] }, right = [];
+    AREAS.forEach(([id, l]) => { if (f[id] === 'tight') by.tight.push(l); else if (f[id] === 'loose') by.loose.push(l); else if (f[id] === 'right') right.push(l); });
+    const parts = [];
+    if (by.tight.length) parts.push('Tight: ' + by.tight.join(', '));
+    if (by.loose.length) parts.push('Loose: ' + by.loose.join(', '));
+    if (!parts.length && right.length) parts.push('Fit well');
+    return parts.length ? parts.join(' · ') : 'No fit notes yet';
+  }
+  chip(sel) { return { bc: sel ? 'var(--fl-accent,#0066cc)' : 'var(--fl-line,#e0e0e0)', ring: sel ? RING_ON : RING_OFF }; }
+  pickImg(e, max, q) {
+    const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return Promise.reject();
+    return resizeImg(f, max, q).then(url => { const id = uid(); return IDB.put(id, url).then(() => { this.setState(s => ({ imgs: Object.assign({}, s.imgs, { [id]: url }) })); return id; }); })
+      .catch(err => { if (err) this.flash('Could not add that photo'); throw err; });
+  }
+
+  newOrderDraft(prof, latest) { return { id: null, brandId: this.state.data.brands[0] && this.state.data.brands[0].id, item: '', size: '', date: todayISO(), price: '', currency: '€', colour: '', thickness: '0.40', sessionId: latest ? latest.id : null, fit: {}, photo: null, notes: '' }; }
+  setOD(patch) { this.setState(s => ({ od: Object.assign({}, s.od, patch) })); }
+  onPhoto(e) {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    resizeImg(f, 640, 0.72).then(p => this.setOD({ photo: p })).catch(() => this.flash('Could not read that photo'));
+  }
+  setRange(bi, gi, si, pid, which, str) {
+    const key = [bi, gi, si, pid, which].join('|');
+    this.setState(s => ({ buf: Object.assign({}, s.buf, { [key]: str }) }));
+    const v = this.toCm(str);
+    this.mut(d => {
+      const sz = d.brands.find(b => b.id === bi).garments[gi].sizes[si];
+      const cur = sz.values[pid] ? sz.values[pid].slice() : [null, null];
+      cur[which] = v;
+      if (cur[0] == null && cur[1] == null) delete sz.values[pid];
+      else sz.values[pid] = [cur[0] != null ? cur[0] : cur[1], cur[1] != null ? cur[1] : cur[0]];
+    });
+  }
+
+  renderVals() {
+    const s = this.state, d = s.data, tI = this.props.topInset ?? 0, bI = this.props.bottomInset ?? 0;
+    const rootH = this.props.embedded ? '100%' : '100dvh';
+    if (!d) return { rootH, th: THEMES[this.props.theme] || THEMES.classic, scrollRef: this.scrollRef, topInset: tI, bottomInset: bI, tabHome: {}, tabMeasure: {}, tabBrands: {}, tabOrders: {} };
+    const u = d.unit, prof = d.profiles.find(p => p.id === d.activeId) || d.profiles[0];
+    const sess = [...prof.sessions].sort((a, b) => b.date.localeCompare(a.date));
+    const latest = sess[0], prev = sess[1], lv = latest ? latest.values : {};
+    const themeKey = THEMES[this.props.theme] ? this.props.theme : THEMES[d.theme] ? d.theme : 'classic', thm = THEMES[themeKey];
+    const mmOpen = s.measureMore != null ? s.measureMore : POINTS.some(p => !p.core && lv[p.id] != null);
+    const brandById = id => d.brands.find(b => b.id === id);
+
+    const ago = latest ? dayDiff(latest.date) : 0, left = d.staleDays - ago;
+    const statusColor = ago >= d.staleDays ? C.red : left <= 14 ? C.amber : C.green;
+    const statusText = !latest ? '' : ago >= d.staleDays ? 'Outdated. Remeasure before you order.' : left <= 14 ? 'Remeasure within ' + left + (left === 1 ? ' day' : ' days') : 'Up to date · remeasure in ' + left + ' days';
+
+    const qb = brandById(s.quickBrandId) || d.brands.find(b => b.garments.length) || d.brands[0];
+    const qAuto = qb && s.quickGarmentIdx == null ? this.autoGarment(qb, lv) : null;
+    const qgi = qb && s.quickGarmentIdx != null && qb.garments[s.quickGarmentIdx] ? s.quickGarmentIdx : qAuto ? qAuto.gi : 0;
+    const qg = qb && qb.garments[qgi];
+    let quick = { size: '—', title: '', text: '', color: C.grey, tally: [] };
+    if (qg) {
+      const i = this.bestIdx(qg, lv, qb.tol);
+      if (i >= 0) { const e = this.evalSize(qg.sizes[i], lv, qb.tol), v = this.verdict(e, qg.sizes[i].label);
+        quick = { size: v.color === C.red ? 'M2M' : v.size, title: this.withLen(v, qg.name), text: v.text, color: v.color,
+          tally: [[e.rows.filter(r => r.f.k === 'fits').length, 'fit', C.green], [e.snug.length, 'snug', C.amber], [e.bad.length, 'off', C.red], [e.rows.length - e.measured, 'not measured', C.grey]].filter(t => t[0]).map(([n, l, c]) => ({ label: n + ' ' + l, color: c })) };
+      } else quick = { size: '—', title: 'Nothing to compare', text: 'Measure the points this chart uses first.', color: C.grey, tally: [] };
+    }
+    const orderVM = o => { const b = brandById(o.brandId); return { item: o.item || 'Untitled order', meta: (b ? b.name : 'Other') + ' · ' + (o.size || 'No size'), size: o.size || '—', date: fmtShort(o.date), price: o.price ? o.currency + ' ' + o.price : '', fitLine: this.fitLine(o), notes: o.notes, hasPhoto: !!o.photo, photo: o.photo || '', onOpen: () => this.nav({ tab: 'orders', view: 'order', od: JSON.parse(JSON.stringify(o)) }) }; };
+    const orders = [...prof.orders].sort((a, b) => b.date.localeCompare(a.date));
+
+    const mkRow = p => {
+      const open = !!s.hints[p.id];
+      return { label: p.label, unit: this.unitOf(p.id), hint: p.hint, hintOpen: open, fig: open ? bodyFig({ single: true, lines: [{ id: p.id }] }) : null, hintMark: open ? 'Hide' : 'How', val: s.draft[p.id] ?? '', placeholder: lv[p.id] != null ? this.fmtP(p.id, lv[p.id]) : '',
+        toggleHint: () => this.setState(st => ({ hints: Object.assign({}, st.hints, { [p.id]: !st.hints[p.id] }) })),
+        onChange: e => { const v = e.target.value; this.setState(st => ({ draft: Object.assign({}, st.draft, { [p.id]: v }) })); } };
+    };
+    const draftCount = Object.entries(s.draft).filter(([k, v]) => this.toCmP(k, v) != null).length;
+
+    // brand detail
+    const b = s.brandId ? brandById(s.brandId) : null;
+    const bAuto = b && s.garmentIdx == null ? this.autoGarment(b, lv) : null;
+    const gi = b && s.garmentIdx != null && b.garments[s.garmentIdx] ? s.garmentIdx : bAuto ? bAuto.gi : 0;
+    const g = b && b.garments[gi];
+    let bv = {};
+    if (b) {
+      const best = g ? this.bestIdx(g, lv, b.tol) : -1;
+      const si = g ? (s.sizeIdx != null && g.sizes[s.sizeIdx] ? s.sizeIdx : Math.max(0, best)) : 0;
+      const e = g && g.sizes[si] ? this.evalSize(g.sizes[si], lv, b.tol) : null;
+      const vb = g && best >= 0 ? this.verdict(this.evalSize(g.sizes[best], lv, b.tol), g.sizes[best].label) : this.verdict(null);
+      bv = {
+        bName: b.name, bNote: b.note || '', bUrl: b.url || '#', bUrlVal: b.url || '', bHasUrl: !!b.url, bTol: '±' + this.fmt(b.tol) + ' ' + u,
+        bGarmentName: g ? g.name : '', bSizeFont: (vb.color === C.red ? 'M2M' : vb.size).length > 2 ? '22px' : '28px',
+        bImages: (b.images || []).map(im => ({ src: s.imgs[im.id] || im.src || '', label: im.kind === 'guide' ? 'Measuring guide' : 'Size chart',
+          onOpen: () => this.setState({ viewer: { id: im.id, src: im.src, brandId: b.id, label: (im.kind === 'guide' ? 'Measuring guide' : 'Size chart') + ' · ' + b.name }, vz: 1, vx: 0, vy: 0 }) })),
+        bHasImages: !!(b.images && b.images.length),
+        onAddChartImg: e2 => this.addBrandImg(b.id, 'chart', e2), onAddGuideImg: e2 => this.addBrandImg(b.id, 'guide', e2),
+        openGarmentPicker: () => this.setState({ sheet: 'pick', sheetArg: 'garment' }), openBrandEdit: () => this.setState({ sheet: 'brandEdit' }),
+        bHasCover: !!(b.cover && s.imgs[b.cover]), bCover: (b.cover && s.imgs[b.cover]) || '', bCoverLabel: b.cover ? 'Replace cover photo' : 'Add cover photo',
+        onBrandCover: e2 => this.pickImg(e2, 1400, 0.82).then(id => { const old = b.cover; if (old) IDB.del(old).catch(() => {}); this.mut(dd => { dd.brands.find(y => y.id === b.id).cover = id; }); }).catch(() => {}),
+        removeBrandCover: () => { IDB.del(b.cover).catch(() => {}); this.mut(dd => { delete dd.brands.find(y => y.id === b.id).cover; }); },
+        onBrandUrl: e2 => { const v = e2.target.value.trim(); this.mut(dd => { dd.brands.find(y => y.id === b.id).url = v; }); },
+        bHasGarments: !!b.garments.length, bNoGarments: !b.garments.length,
+        bEmptyTitle: b.m2mOnly || b.m2mForm ? 'Made to measure.' : 'No size chart yet.',
+        bEmptyText: b.m2mForm ? 'Open your made-to-measure sheet and pick the ' + b.name + ' form. It lists every point in their numbered order.' : b.m2mOnly ? 'This brand makes to your measurements. Send them your sheet.' : 'Add a garment chart below and copy the numbers in, or order made-to-measure.',
+        bGarments: b.garments.map((x, i) => Object.assign({ label: x.name, onTap: () => this.setState({ garmentIdx: i, sizeIdx: null }) }, {})),
+        bBestSize: vb.color === C.red ? 'M2M' : vb.size, bTitle: g ? this.withLen(vb, g.name) : vb.title, bText: vb.text, bColor: vb.color,
+        bSizes: g ? g.sizes.map((x, i) => Object.assign({ label: x.label, tag: i === best ? 'Best' : ' ', onTap: () => this.setState({ sizeIdx: i }) }, this.chip(i === si))) : [],
+        bRows: e ? e.rows.map(r => ({ label: r.p.label, you: r.you != null ? this.fmt(r.you) : '—', chart: this.fmtR(r.rng) + ' ' + u, status: r.f.label, color: r.f.color })) : [],
+        bOrders: orders.filter(o => o.brandId === b.id).map(orderVM),
+        bHasFig: !!(e && e.rows.some(r => FL[r.p.id])),
+        bFig: e ? bodyFig({ lines: e.rows.map(r => ({ id: r.p.id, color: r.f.color, valueColor: r.f.color, value: r.f.k === 'none' ? 'Missing' : r.f.label })) }) : null,
+        decTol: () => this.mut(dd => { const x = dd.brands.find(y => y.id === b.id); x.tol = Math.max(0.5, x.tol - 0.5); }),
+        incTol: () => this.mut(dd => { const x = dd.brands.find(y => y.id === b.id); x.tol = Math.min(8, x.tol + 0.5); }),
+        onBrandName: e2 => { const v = e2.target.value; this.mut(dd => { dd.brands.find(y => y.id === b.id).name = v; }); },
+        deleteBrand: () => { if (confirm('Delete ' + b.name + '?')) { (b.images || []).forEach(im => IDB.del(im.id).catch(() => {})); this.mut(dd => { dd.brands = dd.brands.filter(y => y.id !== b.id); (dd.removed = dd.removed || []).push(b.id); }); this.nav({ view: null, brandId: null }); } },
+        editChart: () => this.nav({ view: 'chartEdit', editSize: si, buf: {} }),
+        addGarment: () => { const n = b.garments.length; this.mut(dd => { dd.brands.find(y => y.id === b.id).garments.push({ name: 'New chart', sizes: ['S', 'M', 'L'].map(l => ({ label: l, values: {} })) }); }); this.nav({ view: 'chartEdit', garmentIdx: n, editSize: 0, buf: {} }); }
+      };
+      bv.bHasOrders = bv.bOrders.length > 0;
+      if (s.view === 'chartEdit' && g) {
+        const es = g.sizes[s.editSize] ? s.editSize : 0, sz = g.sizes[es];
+        const pts = POINTS.filter(p => !p.unit).filter(p => p.core || s.showMore || (sz && sz.values[p.id]));
+        Object.assign(bv, {
+          ceName: g.name, ceSizeLabel: sz ? sz.label : '',
+          ceSizes: g.sizes.map((x, i) => Object.assign({ label: x.label, onTap: () => this.setState({ editSize: i }) }, this.chip(i === es))),
+          ceRows: sz ? pts.map(p => { const r = sz.values[p.id], k = [b.id, gi, es, p.id].join('|');
+            return { label: p.label, minVal: s.buf[k + '|0'] ?? (r ? this.fmt(r[0]) : ''), maxVal: s.buf[k + '|1'] ?? (r && r[1] !== r[0] ? this.fmt(r[1]) : ''),
+              onMin: e2 => this.setRange(b.id, gi, es, p.id, 0, e2.target.value), onMax: e2 => this.setRange(b.id, gi, es, p.id, 1, e2.target.value) }; }) : [],
+          onGarmentName: e2 => { const v = e2.target.value; this.mut(dd => { dd.brands.find(y => y.id === b.id).garments[gi].name = v; }); },
+          onSizeLabel: e2 => { const v = e2.target.value; this.mut(dd => { dd.brands.find(y => y.id === b.id).garments[gi].sizes[es].label = v; }); },
+          addSize: () => { this.mut(dd => { const gg = dd.brands.find(y => y.id === b.id).garments[gi]; gg.sizes.push({ label: 'Size ' + (gg.sizes.length + 1), values: {} }); }); this.setState({ editSize: g.sizes.length }); },
+          deleteSize: () => { if (g.sizes.length <= 1) return this.flash('A chart needs at least one size'); this.mut(dd => { dd.brands.find(y => y.id === b.id).garments[gi].sizes.splice(es, 1); }); this.setState({ editSize: 0, buf: {} }); },
+          deleteGarment: () => { if (confirm('Delete the ' + g.name + ' chart?')) { this.mut(dd => { const x = dd.brands.find(y => y.id === b.id); x.garments.splice(gi, 1); if (!x.garments.length) x.chartsCleared = true; }); this.nav({ view: 'brand', garmentIdx: 0, sizeIdx: null }); } }
+        });
+      }
+    }
+
+    // order editor
+    const od = s.od;
+    let ov = {};
+    if (od) {
+      const ob = brandById(od.brandId);
+      const labels = []; (ob ? ob.garments : []).forEach(x => x.sizes.forEach(z => { if (!labels.includes(z.label)) labels.push(z.label); }));
+      const sizeOpts = (labels.length ? labels : ['XS', 'S', 'M', 'L', 'XL', 'XXL']).concat(['Made to measure']);
+      ov = {
+        odTitle: od.id ? 'Order' : 'New order', odExisting: !!od.id, odHasPhoto: !!od.photo, odPhotoLabel: od.photo ? 'Replace photo' : 'Add photo',
+        odBrands: d.brands.map(x => Object.assign({ label: x.name, onTap: () => this.setOD({ brandId: x.id }) }, this.chip(x.id === od.brandId))),
+        odSizes: sizeOpts.map(l => Object.assign({ label: l, onTap: () => this.setOD({ size: l }) }, this.chip(l === od.size))),
+        odThick: THICK.map(t => Object.assign({ label: t + ' mm', onTap: () => this.setOD({ thickness: t }) }, this.chip(t === od.thickness))),
+        odCurrencies: CUR.map(c => ({ label: c, bg: c === od.currency ? 'var(--fl-segon,#fff)' : 'transparent', onTap: () => this.setOD({ currency: c }) })),
+        odSessions: sess.slice(0, 5).map(x => Object.assign({ label: fmtDate(x.date), onTap: () => this.setOD({ sessionId: x.id }) }, this.chip(x.id === od.sessionId))),
+        odAreas: AREAS.map(([id, l]) => ({ label: l, opts: [['tight', 'Tight'], ['right', 'Right'], ['loose', 'Loose']].map(([k, kl]) => {
+          const on = od.fit[id] === k;
+          return { label: kl, bg: on ? 'var(--fl-segon,#fff)' : 'transparent', fg: on ? (k === 'right' ? C.green : C.red) : C.ink,
+            onTap: () => { const f = Object.assign({}, od.fit); if (on) delete f[id]; else f[id] = k; this.setOD({ fit: f }); } }; }) })),
+        onOdItem: e => this.setOD({ item: e.target.value }), onOdDate: e => this.setOD({ date: e.target.value || todayISO() }),
+        onOdPrice: e => this.setOD({ price: e.target.value }), onOdColour: e => this.setOD({ colour: e.target.value }),
+        onOdNotes: e => this.setOD({ notes: e.target.value }), onOdPhoto: e => this.onPhoto(e), removePhoto: () => this.setOD({ photo: null })
+      };
+    }
+
+    // sheets
+    let sh = {};
+    const sheet = s.sheet;
+    if (sheet === 'm2m') {
+      const forms = d.brands.filter(x => x.m2mForm && x.m2mForm.length), fb = forms.find(x => x.id === s.m2mFmt);
+      const val = id => lv[id] != null ? this.fmtP(id, lv[id]) + ' ' + this.unitOf(id) : '—';
+      const rows = fb ? fb.m2mForm.map(([id, l], i) => ({ label: (i + 1) + '. ' + l, value: val(id) })) : POINTS.filter(p => lv[p.id] != null).map(p => ({ label: p.label, value: val(p.id) }));
+      sh = { sheetTitle: 'Made-to-measure sheet', m2mRows: rows, m2mHasFormats: forms.length > 0,
+        m2mFormats: [{ label: 'All measurements', id: null }].concat(forms.map(x => ({ label: x.name + ' form', id: x.id }))).map(f => Object.assign({ label: f.label, onTap: () => this.setState({ m2mFmt: f.id }) }, this.chip((fb ? fb.id : null) === f.id))),
+        m2mSub: latest ? prof.name + ' · measured ' + fmtDate(latest.date) + ' · ' + agoText(ago).toLowerCase() + (fb ? ' · in ' + fb.name + ' order' : '') : 'No measurements yet' };
+      this._m2mText = latest ? (fb ? fb.name + ' size chart · ' + prof.name : 'Body measurements') + ' (' + u + '), taken ' + fmtDate(latest.date) + '\n' + rows.map(r => r.label + ': ' + r.value).join('\n') : '';
+    } else if (sheet === 'history') {
+      sh = { sheetTitle: 'History', historyRows: sess.map(x => { const n = Object.keys(x.values).length; return { date: fmtDate(x.date), sub: agoText(dayDiff(x.date)) + ' · ' + n + ' measurements', onOpen: () => this.setState({ sheet: 'session', sheetArg: x.id }) }; }) };
+    } else if (sheet === 'session') {
+      const i = sess.findIndex(x => x.id === s.sheetArg), x = sess[i], older = sess[i + 1];
+      if (x) sh = { sheetTitle: fmtDate(x.date), sessSub: agoText(dayDiff(x.date)) + (older ? ' · change since ' + fmtDate(older.date) : ''),
+        sessRows: POINTS.filter(p => x.values[p.id] != null).map(p => ({ label: p.label, value: this.fmtP(p.id, x.values[p.id]) + ' ' + this.unitOf(p.id),
+          delta: older && older.values[p.id] != null ? this.deltaP(p.id, x.values[p.id] - older.values[p.id]) : '', onOpen: () => this.setState({ sheet: 'point', sheetArg: p.id }) })),
+        deleteSession: () => { if (confirm('Delete the measurements from ' + fmtDate(x.date) + '?')) { this.mut((dd, pp) => { pp.sessions = pp.sessions.filter(y => y.id !== x.id); }); this.setState({ sheet: null }); } } };
+    } else if (sheet === 'point') {
+      const p = PT[s.sheetArg], ent = sess.filter(x => x.values[p.id] != null), vs = ent.map(x => x.values[p.id]);
+      const mn = Math.min(...vs), mx = Math.max(...vs);
+      sh = { sheetTitle: p.label, pointHint: p.hint, pointFig: bodyFig({ single: true, lines: [{ id: p.id }] }), pointRows: ent.map(x => ({ date: fmtDate(x.date), value: this.fmtP(p.id, x.values[p.id]) + ' ' + this.unitOf(p.id), pct: (mx === mn ? 100 : 30 + 70 * (x.values[p.id] - mn) / (mx - mn)) + '%' })) };
+    } else if (sheet === 'profiles') {
+      sh = { sheetTitle: 'Profiles', profileRows: d.profiles.map(p => { const ls = [...p.sessions].sort((a, c) => c.date.localeCompare(a.date))[0];
+        return { name: p.name, sub: ls ? 'Measured ' + agoText(dayDiff(ls.date)).toLowerCase() : 'No measurements', check: p.id === prof.id ? '✓' : '', onTap: () => this.mut(dd => { dd.activeId = p.id; }) }; }) };
+    } else if (sheet === 'settings') sh = { sheetTitle: 'Settings' };
+    else if (sheet === 'brandEdit') sh = { sheetTitle: 'Edit brand' };
+    else if (sheet === 'pick') {
+      const k = s.sheetArg, close = { sheet: null };
+      let rows = [];
+      if (k === 'quickBrand') rows = d.brands.map(x => ({ label: x.name, sub: x.garments.length ? x.garments.length + (x.garments.length === 1 ? ' chart' : ' charts') : x.m2mOnly ? 'Made to measure only' : 'No chart yet', check: qb && x.id === qb.id ? '✓' : '', onTap: () => this.setState(Object.assign({ quickBrandId: x.id, quickGarmentIdx: null }, close)) }));
+      else if (k === 'quickGarment' && qb) rows = qb.garments.map((x, i) => ({ label: x.name, sub: x.sizes.map(z => z.label).join(' · '), check: i === qgi ? '✓' : '', onTap: () => this.setState(Object.assign({ quickGarmentIdx: i }, close)) }));
+      else if (k === 'garment' && b) rows = b.garments.map((x, i) => ({ label: x.name, sub: x.sizes.map(z => z.label).join(' · '), check: i === gi ? '✓' : '', onTap: () => this.setState(Object.assign({ garmentIdx: i, sizeIdx: null }, close)) }));
+      sh = { sheetTitle: k === 'quickBrand' ? 'Brand' : 'Garment', pickRows: rows };
+    }
+    const vw = s.viewer, vb2 = vw ? brandById(vw.brandId) : null;
+    const viewerVals = vw ? { viewerOpen: true, viewerSrc: s.imgs[vw.id] || vw.src || '', viewerLabel: vw.label, vTransform: 'translate(' + s.vx + 'px, ' + s.vy + 'px) scale(' + s.vz + ')', zoomLabel: Math.round(s.vz * 100) + '%',
+      zoomIn: () => this.setZoom(s.vz * 1.5), zoomOut: () => this.setZoom(s.vz / 1.5), closeViewer: () => this.setState({ viewer: null }),
+      deleteViewerImg: () => { if (!confirm('Delete this photo?')) return; IDB.del(vw.id).catch(() => {}); this.mut(dd => { const x = dd.brands.find(y => y.id === vw.brandId); if (x) { x.images = (x.images || []).filter(im => im.id !== vw.id); (x.removedImgs = x.removedImgs || []).push(vw.id); } }); this.setState({ viewer: null }); } } : { viewerOpen: false };
+
+    const tab = (id) => ({ color: (s.tab === id || (id === 'home' && s.tab === 'measure')) ? C.blue : C.grey, onTap: () => this.nav({ tab: id, view: null }) });
+    const GROUPS = [['Body', ['height', 'neck', 'shoulder', 'chest', 'underbust', 'waist', 'waistHip', 'hips']], ['Lengths', ['torso', 'ubend', 'napeWaist', 'crotch', 'inseam', 'insideArm', 'armLength', 'waistKnee', 'waistAnkle']], ['Arms and legs', ['armpit', 'upperArm', 'elbow', 'forearm', 'wrist', 'palm', 'thigh', 'knee', 'calf', 'ankle']], ['Head and feet', ['head', 'foot', 'shoe']]];
+    const overview = GROUPS.map(([title, ids]) => ({ title, items: ids.map(id => {
+      const hits = sess.filter(x => x.values[id] != null); if (!hits.length) return null;
+      const cur = hits[0], pv = hits[1], v = cur.values[id];
+      const note = cur !== latest ? 'From ' + fmtShort(cur.date) : pv ? this.deltaP(id, v - pv.values[id]) + ' since ' + fmtShort(pv.date) : 'First measurement';
+      return { id, label: PT[id].label, value: this.fmtP(id, v), unit: this.unitOf(id), note, onOpen: () => this.setState({ sheet: 'point', sheetArg: id }) };
+    }).filter(Boolean) })).filter(g => g.items.length);
+    const FIGTAB = { 'Body': 'Body', 'Lengths': 'Lengths', 'Arms and legs': 'Limbs', 'Head and feet': 'Head & feet' };
+    const figG = overview.find(x => x.title === s.figGroup) || overview[0];
+    const figTabs = overview.map(x => ({ label: FIGTAB[x.title] || x.title, bg: figG && x.title === figG.title ? 'var(--fl-segon,#fff)' : 'transparent', onTap: () => this.setState({ figGroup: x.title }) }));
+    const homeFig = figG ? bodyFig({ lines: figG.items.map(m => ({ id: m.id, value: m.value + ' ' + m.unit, onTap: m.onOpen })) }) : null;
+    return Object.assign({
+      figTabs, bodyFig: homeFig,
+      rootH, scrollRef: this.scrollRef, topInset: tI, bottomInset: bI, unit: u,
+      isHome: s.tab === 'home', isMeasure: s.tab === 'measure',
+      isBrandList: s.tab === 'brands' && !s.view, isBrandDetail: s.tab === 'brands' && s.view === 'brand' && !!b, isChartEdit: s.tab === 'brands' && s.view === 'chartEdit' && !!g,
+      isOrderList: s.tab === 'orders' && s.view !== 'order', isOrderEdit: s.tab === 'orders' && s.view === 'order' && !!od,
+      overview, summaryTitle: latest ? 'Measured ' + agoText(ago).toLowerCase() : 'Not measured yet', summarySub: latest ? fmtDate(latest.date) + ' · ' + (ago >= d.staleDays ? 'time to remeasure' : 'remeasure in ' + left + ' days') : 'Add your first set', measureCta: latest ? 'Update' : 'Start',
+      cancelMeasure: () => this.nav({ tab: 'home', view: null }),
+      todayLabel: new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }),
+      profileName: prof.name, hasSessions: !!latest, noSessions: !latest, sessionCount: String(sess.length),
+      agoLabel: agoText(ago), agoLabelLower: agoText(ago).toLowerCase(), agoBig: ago <= 0 ? 'Today' : String(ago),
+      agoSub: ago <= 0 ? 'You measured today.' : ago === 1 ? 'day since you last measured.' : 'days since you last measured.',
+      lastDateLabel: latest ? fmtDate(latest.date) : '', statusText, statusColor, staleFill: Math.min(100, Math.max(3, ago / d.staleDays * 100)) + '%',
+      quickBrandName: qb ? qb.name : 'Pick a brand', quickGarmentName: qg ? qg.name : '',
+      openQuickBrandPicker: () => this.setState({ sheet: 'pick', sheetArg: 'quickBrand' }), openQuickGarmentPicker: () => this.setState({ sheet: 'pick', sheetArg: 'quickGarment' }),
+      quickHasGarments: !!qg, quickNoGarments: !qg, quickNote: qb ? (qb.note || 'No chart for this brand yet.') : '',
+      quickSize: quick.size, quickSizeFont: quick.size.length > 2 ? '22px' : '28px', quickTitle: quick.title, quickText: quick.text, quickColor: quick.color, quickTally: quick.tally,
+      quickLinkLabel: qg ? 'See every measurement' : 'Open ' + (qb ? qb.name : 'brand'),
+      openQuickBrand: () => qb && this.nav({ tab: 'brands', view: 'brand', brandId: qb.id, garmentIdx: qgi, sizeIdx: null }),
+      recentOrders: orders.slice(0, 3).map(orderVM), allOrders: orders.map(orderVM), noOrders: !orders.length,
+      goMeasure: () => this.nav({ tab: 'measure', view: null }), goOrders: () => this.nav({ tab: 'orders', view: null }),
+      newOrder: () => this.nav({ tab: 'orders', view: 'order', od: this.newOrderDraft(prof, latest) }),
+      openM2M: () => this.setState({ sheet: 'm2m' }), openHistory: () => this.setState({ sheet: 'history' }),
+      openLatest: () => latest ? this.setState({ sheet: 'session', sheetArg: latest.id }) : this.nav({ tab: 'measure' }),
+      openProfiles: () => this.setState({ sheet: 'profiles' }), openSettings: () => this.setState({ sheet: 'settings' }),
+      coreRows: POINTS.filter(p => p.core).map(mkRow), moreRows: POINTS.filter(p => !p.core).map(mkRow),
+      measureMore: mmOpen, measureMoreLabel: mmOpen ? 'Hide' : 'Show', moreCount: String(POINTS.filter(p => !p.core).length),
+      toggleMeasureMore: () => this.setState({ measureMore: !mmOpen }),
+      isSheetPick: sheet === 'pick', isSheetBrandEdit: sheet === 'brandEdit',
+      draftDate: s.draftDate, onDraftDate: e => this.setState({ draftDate: e.target.value || todayISO() }),
+      draftCountLabel: draftCount ? draftCount + ' of ' + POINTS.length + ' filled in' : 'Fill in what you measured. Empty rows are skipped.',
+      saveSession: () => {
+        const values = {}; Object.entries(s.draft).forEach(([k, v]) => { const c = this.toCmP(k, v); if (c != null) values[k] = Math.round(c * 10) / 10; });
+        if (!Object.keys(values).length) return this.flash('Enter at least one measurement');
+        this.mut((dd, pp) => { pp.sessions.push({ id: uid(), date: s.draftDate, values }); });
+        this.nav({ tab: 'home', draft: {}, draftDate: todayISO(), hints: {} }); this.flash('Measurements saved');
+      },
+      toggleMore: () => this.setState({ showMore: !s.showMore }), moreLabel: s.showMore ? 'Show fewer points' : 'Show all ' + POINTS.length + ' points',
+      th: thm,
+      themeOpts: Object.entries(THEMES).map(([k, v]) => ({ name: v.name, bg: v.bg, accent: v.accent, ring: k === themeKey ? '0 0 0 2px var(--fl-card,#fff), 0 0 0 4px var(--fl-accent,#0066cc)' : 'none', onTap: () => this.mut(dd => { dd.theme = k; }) })),
+      hasHomeCover: !!(d.homeCover && s.imgs[d.homeCover]), homeCover: (d.homeCover && s.imgs[d.homeCover]) || '', homeCoverLabel: d.homeCover ? 'Replace home photo' : 'Add a home photo',
+      onHomeCover: e => this.pickImg(e, 1600, 0.82).then(id => { if (d.homeCover) IDB.del(d.homeCover).catch(() => {}); this.mut(dd => { dd.homeCover = id; }); }).catch(() => {}),
+      removeHomeCover: () => { IDB.del(d.homeCover).catch(() => {}); this.mut(dd => { delete dd.homeCover; }); },
+      brandList: d.brands.map(x => Object.assign({ name: x.name, hasCover: !!(x.cover && s.imgs[x.cover]), cover: (x.cover && s.imgs[x.cover]) || '', onOpen: () => this.nav({ view: 'brand', brandId: x.id, garmentIdx: null, sizeIdx: null }) }, this.brandSummary(x, lv))),
+      addBrand: () => { const id = uid(); this.mut(dd => { dd.brands.push({ id, name: 'New brand', url: '', tol: 3, garments: [], note: '' }); }); this.nav({ view: 'brand', brandId: id, garmentIdx: 0, sizeIdx: null }); },
+      backToBrands: () => this.nav({ view: null, brandId: null }), backToBrand: () => this.nav({ view: 'brand', sizeIdx: null, buf: {} }),
+      od: od || {}, cancelOrder: () => this.nav({ view: null, od: null }),
+      saveOrder: () => {
+        if (!od.item && !od.size) return this.flash('Add an item or a size');
+        const o = Object.assign({}, od, { id: od.id || uid() });
+        this.mut((dd, pp) => { const i = pp.orders.findIndex(y => y.id === o.id); if (i >= 0) pp.orders[i] = o; else pp.orders.push(o); });
+        this.nav({ view: null, od: null }); this.flash('Order saved');
+      },
+      deleteOrder: () => { if (confirm('Delete this order?')) { this.mut((dd, pp) => { pp.orders = pp.orders.filter(y => y.id !== od.id); }); this.nav({ view: null, od: null }); } },
+      sheetOpen: !!sheet, closeSheet: () => this.setState({ sheet: null }),
+      isSheetM2M: sheet === 'm2m', isSheetHistory: sheet === 'history', isSheetSession: sheet === 'session', isSheetPoint: sheet === 'point', isSheetProfiles: sheet === 'profiles', isSheetSettings: sheet === 'settings',
+      copyM2M: () => { if (!this._m2mText) return; (navigator.clipboard ? navigator.clipboard.writeText(this._m2mText) : Promise.reject()).then(() => this.flash('Copied'), () => this.flash('Copy not available')); },
+      shareM2M: () => { if (!this._m2mText) return; if (navigator.share) navigator.share({ title: 'My measurements', text: this._m2mText }).catch(() => {}); else this.flash('Sharing not available here'); },
+      addProfile: () => { const id = uid(); this.mut(dd => { dd.profiles.push({ id, name: 'Profile ' + (dd.profiles.length + 1), sessions: [], orders: [] }); dd.activeId = id; }); },
+      onProfileName: e => { const v = e.target.value; this.mut((dd, pp) => { pp.name = v; }); },
+      deleteProfile: () => { if (d.profiles.length <= 1) return this.flash('Keep at least one profile'); if (confirm('Delete ' + prof.name + ' and all their data?')) this.mut(dd => { dd.profiles = dd.profiles.filter(p => p.id !== prof.id); dd.activeId = dd.profiles[0].id; }); },
+      setCm: () => this.mut(dd => { dd.unit = 'cm'; }), setIn: () => this.mut(dd => { dd.unit = 'in'; }),
+      cmBg: u === 'cm' ? 'var(--fl-segon,#fff)' : 'transparent', inBg: u === 'in' ? 'var(--fl-segon,#fff)' : 'transparent',
+      staleDays: String(d.staleDays), decStale: () => this.mut(dd => { dd.staleDays = Math.max(7, dd.staleDays - 7); }), incStale: () => this.mut(dd => { dd.staleDays = Math.min(365, dd.staleDays + 7); }),
+      resetSample: () => { if (confirm('Replace everything with the sample data?')) { const nd = seed(); this.persist(nd); this.setState({ data: nd, sheet: null, view: null }); } },
+      eraseAll: () => { if (confirm('Erase all profiles, measurements and orders?')) { const nd = seed(); nd.profiles = [{ id: uid(), name: 'Me', sessions: [], orders: [] }]; nd.activeId = nd.profiles[0].id; this.persist(nd); this.setState({ data: nd, sheet: null, view: null }); } },
+      hasToast: !!s.toast, toast: s.toast || '',
+      tabHome: tab('home'), tabMeasure: tab('measure'), tabBrands: tab('brands'), tabOrders: tab('orders')
+    }, bv, ov, sh, viewerVals);
+  }
+}
+</script>
+</body>
+</html>
