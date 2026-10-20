@@ -236,7 +236,18 @@ input::placeholder{color:#6e6e73;}
 <sc-if value="{{ isCollection }}" hint-placeholder-val="{{ false }}">
   <div data-anim="fade" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ profileName }}</div>
   <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Collection</div>
+  <div data-anim="up" style="margin:12px 16px 0;display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;">
+    <sc-for list="{{ collTabs }}" as="t" hint-placeholder-count="2"><button onClick="{{ t.onTap }}" style="flex:1;border:0;border-radius:7px;padding:6px 0;font-size:14px;cursor:pointer;color:#f5f5f7;background:{{ t.bg }};transition:background .25s;">{{ t.label }}</button></sc-for>
+  </div>
+  <sc-if value="{{ collItems }}" hint-placeholder-val="{{ true }}">
   <div data-anim="up" style="padding:12px 16px 0;display:flex;"><button onClick="{{ openAddOwned }}" style="border:0;background:#1c1c1e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:8px 16px;font-size:14px;letter-spacing:-0.224px;cursor:pointer;display:flex;align-items:center;gap:6px;" style-active="transform:scale(0.95);"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 2v10M2 7h10"></path></svg><span>Add something you own</span></button></div>
+  <sc-if value="{{ hasUnsure }}" hint-placeholder-val="{{ false }}">
+    <button data-anim="up" onClick="{{ sortUnsure }}" style="width:calc(100% - 32px);margin:16px 16px 0;border:0;background:#1c1c1e;border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;color:#f5f5f7;cursor:pointer;text-align:left;" style-active="transform:scale(0.98);">
+      <span style="width:8px;height:8px;border-radius:9999px;background:#ff9f0a;flex:none;"></span>
+      <span style="flex:1;min-width:0;display:flex;flex-direction:column;"><span style="font-weight:600;line-height:1.24;">{{ unsureTxt }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Couldn’t tell where these go.</span></span>
+      <span style="color:var(--gw-accent,#ffd60a);font-size:14px;flex:none;">Sort</span>
+    </button>
+  </sc-if>
   <sc-if value="{{ hasOnWay }}" hint-placeholder-val="{{ true }}">
     <div data-anim="right" style="padding:24px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">On the way</div>
     <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
@@ -252,20 +263,51 @@ input::placeholder{color:#6e6e73;}
       </sc-for>
     </div>
   </sc-if>
-  <div data-anim="right" style="padding:24px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Owned</div>
-  <sc-if value="{{ hasOwned }}" hint-placeholder-val="{{ false }}">
-    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px;padding:0 16px;">
-      <sc-for list="{{ owned }}" as="it" hint-placeholder-count="2">
-        <div data-anim="scale" onClick="{{ it.onOpen }}" style="display:flex;flex-direction:column;gap:2px;cursor:pointer;min-width:0;" style-active="transform:scale(0.97);">
-          <div style="border-radius:18px;overflow:hidden;margin-bottom:8px;"><img data-anim="zoom" src="{{ it.photo }}" alt="" style="display:block;width:100%;aspect-ratio:1/1;object-fit:cover;object-position:top;background:#1c1c1e;"></div>
-          <span style="font-size:14px;font-weight:600;letter-spacing:-0.224px;line-height:1.29;">{{ it.name }}</span>
-          <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ it.ownSub }}</span>
+  <sc-for list="{{ collGroups }}" as="g" hint-placeholder-count="2">
+    <div data-anim="right" style="padding:24px 20px 8px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14px;letter-spacing:-0.224px;"><span style="font-weight:600;color:#a1a1a6;">{{ g.title }}</span><span style="color:#6e6e73;">{{ g.count }}</span></div>
+    <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+      <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
+        <div data-anim="up" onClick="{{ it.onOpen }}" style="background:#1c1c1e;display:flex;gap:12px;align-items:center;padding:12px 16px 12px 12px;cursor:pointer;transition:background .2s;" style-active="background:#2c2c2e;">
+          <sc-if value="{{ it.hasPhoto }}" hint-placeholder-val="{{ true }}"><img src="{{ it.photo }}" alt="" style="width:56px;height:56px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;"></sc-if>
+          <sc-if value="{{ it.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="width:56px;height:56px;border-radius:8px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-weight:600;flex:none;">{{ it.initial }}</span></sc-if>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+            <span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.name }}</span>
+            <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.ownSub }}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:none;">
+            <span style="font-size:14px;color:#d1d1d6;">{{ it.paidTxt }}</span>
+            <sc-if value="{{ it.inOutfits }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:var(--gw-accent,#ffd60a);">{{ it.outfitTxt }}</span></sc-if>
+          </div>
         </div>
       </sc-for>
     </div>
+  </sc-for>
+  <sc-if value="{{ noOwned }}" hint-placeholder-val="{{ false }}">
+    <div data-anim="up" style="margin:24px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Nothing here yet. Add gear you already have, or mark an order as received and it moves here.</div>
   </sc-if>
-  <sc-if value="{{ noOwned }}" hint-placeholder-val="{{ true }}">
-    <div data-anim="up" style="margin:0 16px;background:#1c1c1e;border-radius:18px;padding:20px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Nothing here yet. Add gear you already have, or mark an order as received and it moves here.</div>
+  </sc-if>
+  <sc-if value="{{ collOutfits }}" hint-placeholder-val="{{ false }}">
+    <div data-anim="up" style="padding:12px 16px 0;display:flex;"><button onClick="{{ newOutfit }}" style="border:0;background:#1c1c1e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:8px 16px;font-size:14px;letter-spacing:-0.224px;cursor:pointer;display:flex;align-items:center;gap:6px;" style-active="transform:scale(0.95);"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 2v10M2 7h10"></path></svg><span>New outfit</span></button></div>
+    <sc-if value="{{ hasOutfitList }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px;padding:20px 16px 0;">
+        <sc-for list="{{ outfitCards }}" as="o" hint-placeholder-count="2">
+          <div data-anim="scale" onClick="{{ o.onOpen }}" style="display:flex;flex-direction:column;gap:2px;cursor:pointer;min-width:0;" style-active="transform:scale(0.97);">
+            <div style="position:relative;aspect-ratio:3/4;border-radius:18px;overflow:hidden;background:#1c1c1e;margin-bottom:8px;">
+              <sc-if value="{{ o.hasCover }}" hint-placeholder-val="{{ false }}"><img src="{{ o.cover }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if>
+              <sc-if value="{{ o.noCover }}" hint-placeholder-val="{{ true }}"><sc-for list="{{ o.board }}" as="b" hint-placeholder-count="0"><div style="position:absolute;left:{{ b.left }};top:{{ b.top }};width:{{ b.w }};height:{{ b.h }};transform:translate(-50%,-50%);z-index:{{ b.z }};"><img src="{{ b.src }}" alt="" draggable="false" style="display:block;width:100%;height:100%;object-fit:{{ b.fit }};object-position:{{ b.op }};border-radius:{{ b.rad }};filter:{{ b.fx }};pointer-events:none;"></div></sc-for></sc-if>
+            </div>
+            <span style="font-size:14px;font-weight:600;letter-spacing:-0.224px;line-height:1.29;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ o.name }}</span>
+            <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ o.sub }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ noOutfitList }}" hint-placeholder-val="{{ true }}">
+      <div data-anim="scale" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;">
+        <span style="font-family:var(--font-display);font-size:24px;font-weight:600;line-height:1.17;">No outfits yet.</span>
+        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Put pieces you own together, add a photo, and log each time you wear it.</span>
+      </div>
+    </sc-if>
   </sc-if>
 </sc-if>
 
@@ -472,6 +514,24 @@ input::placeholder{color:#6e6e73;}
       </sc-for>
     </div>
 
+    <sc-if value="{{ d.inColl }}" hint-placeholder-val="{{ false }}">
+      <button data-anim="up" onClick="{{ d.onPickCat }}" style="width:calc(100% - 32px);margin:12px 16px 0;border:0;background:#1c1c1e;border-radius:18px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:17px;color:#f5f5f7;cursor:pointer;text-align:left;" style-active="background:#2c2c2e;"><span style="color:#a1a1a6;">Collection category</span><span style="display:flex;align-items:center;gap:8px;"><span>{{ d.cgroup }}</span><span style="color:#6e6e73;">›</span></span></button>
+      <sc-if value="{{ d.hasOutfits }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="right" style="padding:24px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">In {{ d.outfitCount }}</div>
+        <div style="display:flex;gap:10px;overflow-x:auto;padding:0 16px;scrollbar-width:none;">
+          <sc-for list="{{ d.outfits }}" as="o" hint-placeholder-count="1">
+            <div data-anim="pop" onClick="{{ o.onOpen }}" style="flex:none;width:112px;display:flex;flex-direction:column;gap:6px;cursor:pointer;" style-active="transform:scale(0.97);">
+              <div style="position:relative;width:112px;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:#1c1c1e;">
+                <sc-if value="{{ o.hasCover }}" hint-placeholder-val="{{ false }}"><img src="{{ o.cover }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if>
+                <sc-if value="{{ o.noCover }}" hint-placeholder-val="{{ true }}"><sc-for list="{{ o.board }}" as="b" hint-placeholder-count="0"><div style="position:absolute;left:{{ b.left }};top:{{ b.top }};width:{{ b.w }};height:{{ b.h }};transform:translate(-50%,-50%);z-index:{{ b.z }};"><img src="{{ b.src }}" alt="" draggable="false" style="display:block;width:100%;height:100%;object-fit:{{ b.fit }};object-position:{{ b.op }};border-radius:{{ b.rad }};filter:{{ b.fx }};pointer-events:none;"></div></sc-for></sc-if>
+              </div>
+              <span style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ o.name }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </sc-if>
+
     <sc-if value="{{ d.m2m }}" hint-placeholder-val="{{ false }}">
       <div data-anim="up" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:4px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
@@ -490,10 +550,115 @@ input::placeholder{color:#6e6e73;}
     </sc-if>
 
     <div style="padding:20px 16px 0;display:flex;flex-direction:column;gap:12px;align-items:stretch;">
+      <sc-if value="{{ d.inColl }}" hint-placeholder-val="{{ false }}"><button data-anim="up" onClick="{{ d.onCreateOutfit }}" style="width:100%;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:12px 16px;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" style-active="transform:scale(0.95);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3.5" y="3.5" width="11" height="11" rx="2"></rect><rect x="9.5" y="9.5" width="11" height="11" rx="2"></rect></svg><span>Create outfit with this</span></button></sc-if>
       <button data-anim="up" onClick="{{ shareItem }}" style="border:0;background:#1c1c1e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:12px 16px;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" style-active="transform:scale(0.95);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3.5M7.5 8L12 3.5 16.5 8"></path><path d="M5 12v7.5h14V12"></path></svg><span>Share this item</span></button>
       <sc-if value="{{ d.hasUrl }}" hint-placeholder-val="{{ true }}"><a data-anim="up" href="{{ d.url }}" target="_blank" rel="noopener" style="display:block;text-align:center;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:12px 16px;font-size:17px;text-decoration:none;">Open in shop</a></sc-if>
       <button onClick="{{ deleteItem }}" style="border:0;background:none;color:#ff453a;font-size:17px;padding:8px;cursor:pointer;">{{ deleteLabel }}</button>
     </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasOutfit }}" hint-placeholder-val="{{ false }}">
+  <div ref="{{ outfitRef }}" data-anim="push" data-delay="0" style="position:absolute;inset:0;z-index:21;background:#000;overflow-y:auto;scrollbar-width:none;padding-bottom:40px;box-shadow:-20px 0 40px rgba(0,0,0,0.5);">
+    <div style="position:relative;">
+      <sc-if value="{{ ov.hasPhotos }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;">
+          <sc-for list="{{ ov.photos }}" as="ph" hint-placeholder-count="1"><div style="flex:none;width:100%;overflow:hidden;scroll-snap-align:start;"><img data-anim="zoom" src="{{ ph.src }}" alt="" style="display:block;width:100%;aspect-ratio:4/5;object-fit:cover;background:#1c1c1e;"></div></sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ ov.noPhotos }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:0 16px;padding-top:{{ ovTop }};">
+          <div data-anim="scale" style="position:relative;aspect-ratio:3/4;border-radius:18px;overflow:hidden;background:#1c1c1e;"><sc-for list="{{ ov.board }}" as="b" hint-placeholder-count="0"><div style="position:absolute;left:{{ b.left }};top:{{ b.top }};width:{{ b.w }};height:{{ b.h }};transform:translate(-50%,-50%);z-index:{{ b.z }};"><img src="{{ b.src }}" alt="" draggable="false" style="display:block;width:100%;height:100%;object-fit:{{ b.fit }};object-position:{{ b.op }};border-radius:{{ b.rad }};filter:{{ b.fx }};pointer-events:none;"></div></sc-for></div>
+        </div>
+      </sc-if>
+      <button data-anim="pop" data-delay="300" onClick="{{ ov.onBack }}" aria-label="Back" style="position:absolute;top:{{ chipTop }};left:16px;width:36px;height:36px;border:0;border-radius:9999px;background:rgba(28,28,30,0.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#f5f5f7;display:grid;place-items:center;cursor:pointer;z-index:2;" style-active="transform:scale(0.95);"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L4 7l5 5"></path></svg></button>
+      <button data-anim="pop" data-delay="360" onClick="{{ ov.onEdit }}" style="position:absolute;top:{{ chipTop }};right:16px;height:36px;border:0;border-radius:9999px;background:rgba(28,28,30,0.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#f5f5f7;padding:0 14px;font-size:14px;cursor:pointer;z-index:2;" style-active="transform:scale(0.95);">Edit</button>
+    </div>
+    <sc-if value="{{ ov.multi }}" hint-placeholder-val="{{ false }}"><div style="padding:8px 0 0;text-align:center;font-size:12px;color:#6e6e73;">Swipe for {{ ov.photoCount }} photos</div></sc-if>
+    <div style="padding:20px 20px 0;display:flex;flex-direction:column;gap:4px;">
+      <span data-anim="up" style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Outfit</span>
+      <span data-anim="up" style="font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1.14;letter-spacing:-0.374px;text-wrap:pretty;">{{ ov.name }}</span>
+      <span data-anim="up" style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ ov.meta }}</span>
+    </div>
+    <div data-anim="up" style="margin:20px 16px 0;background:#1c1c1e;border-radius:18px;padding:16px;display:flex;align-items:center;gap:16px;">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+        <span style="font-family:var(--font-display);font-size:24px;font-weight:600;line-height:1.17;">{{ ov.wornTxt }}</span>
+        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ ov.lastTxt }}</span>
+      </div>
+      <button onClick="{{ ov.onWear }}" style="flex:none;border:0;border-radius:9999px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;background:{{ ov.wearBg }};color:{{ ov.wearFg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ ov.wearLabel }}</button>
+    </div>
+    <sc-if value="{{ ov.hasPhotos }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="right" style="padding:24px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Flat-lay</div>
+      <div style="padding:0 16px;"><div data-anim="scale" style="position:relative;width:62%;aspect-ratio:3/4;border-radius:18px;overflow:hidden;background:#1c1c1e;"><sc-for list="{{ ov.board }}" as="b" hint-placeholder-count="0"><div style="position:absolute;left:{{ b.left }};top:{{ b.top }};width:{{ b.w }};height:{{ b.h }};transform:translate(-50%,-50%);z-index:{{ b.z }};"><img src="{{ b.src }}" alt="" draggable="false" style="display:block;width:100%;height:100%;object-fit:{{ b.fit }};object-position:{{ b.op }};border-radius:{{ b.rad }};filter:{{ b.fx }};pointer-events:none;"></div></sc-for></div></div>
+    </sc-if>
+    <div data-anim="right" style="padding:24px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Pieces</div>
+    <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+      <sc-for list="{{ ov.pieces }}" as="it" hint-placeholder-count="3">
+        <div data-anim="up" onClick="{{ it.onOpen }}" style="background:#1c1c1e;display:flex;gap:12px;align-items:center;padding:12px 16px 12px 12px;cursor:pointer;transition:background .2s;" style-active="background:#2c2c2e;">
+          <sc-if value="{{ it.hasPhoto }}" hint-placeholder-val="{{ true }}"><img src="{{ it.photo }}" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;"></sc-if>
+          <sc-if value="{{ it.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="width:48px;height:48px;border-radius:8px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-weight:600;flex:none;">{{ it.initial }}</span></sc-if>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+            <span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.name }}</span>
+            <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.ownSub }}</span>
+          </div>
+          <sc-if value="{{ it.onWay }}" hint-placeholder-val="{{ false }}"><span style="flex:none;font-size:12px;color:var(--gw-accent,#ffd60a);">On the way</span></sc-if>
+          <span style="color:#6e6e73;flex:none;">›</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="padding:20px 16px 0;display:flex;flex-direction:column;gap:12px;align-items:stretch;">
+      <button data-anim="up" onClick="{{ ov.onShare }}" style="border:0;background:#1c1c1e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:12px 16px;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" style-active="transform:scale(0.95);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3.5M7.5 8L12 3.5 16.5 8"></path><path d="M5 12v7.5h14V12"></path></svg><span>Share this outfit</span></button>
+      <button onClick="{{ ov.onDelete }}" style="border:0;background:none;color:#ff453a;font-size:17px;padding:8px;cursor:pointer;">{{ ov.delLabel }}</button>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasBuilder }}" hint-placeholder-val="{{ false }}">
+  <div ref="{{ builderRef }}" data-anim="sheet" data-delay="0" style="position:absolute;inset:0;z-index:30;background:#000;overflow-y:auto;scrollbar-width:none;padding-bottom:48px;">
+    <div style="position:sticky;top:0;z-index:5;padding:{{ bTop }} 8px 8px;background:rgba(0,0,0,0.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;">
+      <button onClick="{{ bdCancel }}" style="justify-self:start;border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">Cancel</button>
+      <span style="font-weight:600;">{{ bd.title }}</span>
+      <button onClick="{{ bdSave }}" style="justify-self:end;border:0;background:none;color:{{ bdSaveColor }};font-size:17px;font-weight:600;padding:8px;cursor:pointer;transition:color .25s;">Save</button>
+    </div>
+    <div data-anim="scale" style="margin:4px 16px 0;position:relative;aspect-ratio:3/4;border-radius:18px;overflow:hidden;background:#000;box-shadow:inset 0 0 0 1px #2c2c2e;">
+      <sc-for list="{{ bd.items }}" as="b" hint-placeholder-count="0"><div onPointerDown="{{ b.onDown }}" onPointerMove="{{ b.onMove }}" onPointerUp="{{ b.onUp }}" onPointerCancel="{{ b.onUp }}" style="position:absolute;left:{{ b.left }};top:{{ b.top }};width:{{ b.w }};height:{{ b.h }};transform:translate(-50%,-50%);z-index:{{ b.z }};touch-action:none;cursor:grab;"><img src="{{ b.src }}" alt="" draggable="false" style="display:block;width:100%;height:100%;object-fit:{{ b.fit }};object-position:{{ b.op }};border-radius:{{ b.rad }};filter:{{ b.fx }};pointer-events:none;"></div></sc-for>
+      <sc-if value="{{ bd.empty }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:32px;text-align:center;"><span style="font-weight:600;">Pick pieces below.</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">They arrange themselves by where they’re worn. Drag any piece to adjust.</span></div></sc-if>
+    </div>
+    <div style="padding:8px 20px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;color:#a1a1a6;min-height:28px;">
+      <span style="display:flex;align-items:center;gap:6px;"><sc-if value="{{ bd.pending }}" hint-placeholder-val="{{ false }}"><span data-anim="spin" style="width:10px;height:10px;border-radius:9999px;border:2px solid #48484a;border-top-color:var(--gw-accent,#ffd60a);flex:none;"></span></sc-if><span>{{ bd.summary }}</span></span>
+      <sc-if value="{{ bd.moved }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bdReset }}" style="border:0;background:none;padding:4px 0;color:var(--gw-accent,#ffd60a);font-size:12px;cursor:pointer;">Reset layout</button></sc-if>
+    </div>
+    <div style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:12px 16px;display:flex;align-items:center;gap:12px;"><span style="flex:none;width:56px;color:#a1a1a6;">Name</span><input value="{{ bd.name }}" onChange="{{ bdName }}" placeholder="{{ bd.namePh }}" style="flex:1;min-width:0;background:none;border:0;font-size:17px;color:#f5f5f7;padding:0;"></div>
+    <div style="padding:20px 20px 2px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Photos</div>
+    <div style="padding:8px 16px 0;display:flex;gap:8px;overflow-x:auto;">
+      <sc-for list="{{ bd.photos }}" as="ph" hint-placeholder-count="0">
+        <div data-anim="pop" style="position:relative;flex:none;">
+          <img onClick="{{ ph.onCover }}" src="{{ ph.src }}" alt="" style="width:72px;height:96px;border-radius:8px;object-fit:cover;display:block;box-shadow:{{ ph.ring }};cursor:pointer;">
+          <sc-if value="{{ ph.cover }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:4px;bottom:4px;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:1px 6px;font-size:10px;font-weight:600;">Cover</span></sc-if>
+          <button onClick="{{ ph.onRemove }}" aria-label="Remove photo" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:9999px;border:0;background:#48484a;color:#f5f5f7;font-size:13px;line-height:1;cursor:pointer;">×</button>
+        </div>
+      </sc-for>
+      <label style="flex:none;width:72px;height:96px;border-radius:8px;border:1px dashed #48484a;display:grid;place-items:center;color:#a1a1a6;font-size:12px;cursor:pointer;text-align:center;line-height:1.2;box-sizing:border-box;">Add<br>photos<input type="file" accept="image/*" multiple onChange="{{ bdPhotos }}" style="display:none;"></label>
+    </div>
+    <div style="padding:6px 20px 0;font-size:12px;color:#6e6e73;">Optional. The first photo is the cover; tap another to make it the cover. Without a photo, the flat-lay is used.</div>
+    <div style="padding:28px 20px 0;font-family:var(--font-display);font-size:21px;font-weight:600;">Your collection</div>
+    <sc-for list="{{ bd.groups }}" as="g" hint-placeholder-count="2">
+      <div style="padding:14px 20px 6px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ g.title }}</div>
+      <div style="display:flex;gap:10px;overflow-x:auto;padding:4px 16px;scrollbar-width:none;">
+        <sc-for list="{{ g.items }}" as="t" hint-placeholder-count="3">
+          <button onClick="{{ t.onTap }}" style="flex:none;width:84px;border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;gap:4px;text-align:left;color:#f5f5f7;">
+            <span style="position:relative;display:block;width:84px;height:84px;border-radius:12px;overflow:hidden;background:#1c1c1e;box-shadow:{{ t.ring }};transition:box-shadow .2s;">
+              <sc-if value="{{ t.hasPhoto }}" hint-placeholder-val="{{ true }}"><img src="{{ t.photo }}" alt="" style="display:block;width:100%;height:100%;object-fit:cover;object-position:top;"></sc-if>
+              <sc-if value="{{ t.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:grid;place-items:center;color:#6e6e73;font-size:24px;font-weight:600;">{{ t.initial }}</span></sc-if>
+              <span style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:9999px;background:{{ t.checkBg }};color:#000;display:grid;place-items:center;transition:background .2s;"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:{{ t.checkOp }};transition:opacity .2s;"><path d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg></span>
+            </span>
+            <span style="font-size:12px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ t.name }}</span>
+            <sc-if value="{{ t.onWay }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:var(--gw-accent,#ffd60a);">On the way</span></sc-if>
+          </button>
+        </sc-for>
+      </div>
+    </sc-for>
+    <sc-if value="{{ bd.noCands }}" hint-placeholder-val="{{ false }}"><div style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Nothing in your collection yet. Add gear you own, or mark an order as received.</div></sc-if>
   </div>
 </sc-if>
 
@@ -619,6 +784,24 @@ input::placeholder{color:#6e6e73;}
       <button data-anim="up" onClick="{{ replayIntro }}" style="width:calc(100% - 32px);margin:16px 16px 0;border:0;background:#2c2c2e;border-radius:18px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:17px;color:#f5f5f7;cursor:pointer;text-align:left;"><span>Show the intro again</span><span style="color:#a1a1a6;">›</span></button>
     </sc-if>
 
+    <sc-if value="{{ isSheetCpick }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="padding:4px 20px 0;display:flex;gap:12px;align-items:center;">
+        <sc-if value="{{ cp.hasPhoto }}" hint-placeholder-val="{{ true }}"><img src="{{ cp.photo }}" alt="" style="width:56px;height:56px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;"></sc-if>
+        <sc-if value="{{ cp.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="width:56px;height:56px;border-radius:8px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-weight:600;flex:none;">{{ cp.initial }}</span></sc-if>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;"><span style="font-weight:600;line-height:1.24;">{{ cp.name }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ cp.sub }}</span></div>
+      </div>
+      <div style="padding:16px 16px 0;display:flex;flex-wrap:wrap;gap:8px;">
+        <sc-for list="{{ cp.chips }}" as="c" hint-placeholder-count="12"><button data-anim="pop" onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:8px 14px;font-size:14px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for>
+        <button data-anim="pop" onClick="{{ toggleNewGrp }}" style="border:1px dashed #48484a;border-radius:9999px;padding:7px 14px;font-size:14px;cursor:pointer;color:var(--gw-accent,#ffd60a);background:none;display:flex;align-items:center;gap:6px;" style-active="transform:scale(0.95);"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg><span>New</span></button>
+      </div>
+      <sc-if value="{{ newGrpOpen }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="up" style="margin:12px 16px 0;display:flex;gap:8px;">
+          <input value="{{ newGrp }}" onChange="{{ onNewGrp }}" placeholder="Category name, e.g. Collars" style="flex:1;min-width:0;background:#2c2c2e;border:0;border-radius:8px;padding:10px 12px;font-size:17px;color:#f5f5f7;">
+          <button onClick="{{ addGrp }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:8px;padding:0 16px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Add</button>
+        </div>
+      </sc-if>
+    </sc-if>
+
     <sc-if value="{{ isSheetPoint }}" hint-placeholder-val="{{ false }}">
       <div style="padding:8px 20px 0;display:flex;gap:20px;align-items:center;">
         <div data-anim="scale" style="width:96px;flex:none;">{{ pointFig }}</div>
@@ -632,7 +815,7 @@ input::placeholder{color:#6e6e73;}
   </div>
 </sc-if>
 
-<sc-if value="{{ hasShared }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ hasSharedItem }}" hint-placeholder-val="{{ false }}">
   <div data-anim="fade" data-delay="0" style="position:absolute;inset:0;z-index:100;background:#000;overflow-y:auto;scrollbar-width:none;padding-bottom:40px;">
     <div style="position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(env(safe-area-inset-top) + {{ topPad }}px) 16px 10px;background:rgba(0,0,0,0.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);">
       <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ sh.fromTxt }}</span>
@@ -663,6 +846,31 @@ input::placeholder{color:#6e6e73;}
       <sc-if value="{{ sh.hasUrl }}" hint-placeholder-val="{{ true }}"><a data-anim="up" href="{{ sh.url }}" target="_blank" rel="noopener" style="display:block;text-align:center;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:12px 16px;font-size:17px;font-weight:600;text-decoration:none;">Open in shop</a></sc-if>
       <button data-anim="up" onClick="{{ addShared }}" style="border:0;background:#1c1c1e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:12px 16px;font-size:17px;cursor:pointer;" style-active="transform:scale(0.95);">Add to my wishlist</button>
     </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasSharedOutfit }}" hint-placeholder-val="{{ false }}">
+  <div data-anim="fade" data-delay="0" style="position:absolute;inset:0;z-index:100;background:#000;overflow-y:auto;scrollbar-width:none;padding-bottom:40px;">
+    <div style="position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(env(safe-area-inset-top) + {{ topPad }}px) 16px 10px;background:rgba(0,0,0,0.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);">
+      <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ so.fromTxt }}</span>
+      <button onClick="{{ closeShared }}" aria-label="Close" style="width:32px;height:32px;border:0;border-radius:9999px;background:#2c2c2e;color:#f5f5f7;display:grid;place-items:center;cursor:pointer;" style-active="transform:scale(0.95);"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l8 8M10 2l-8 8"></path></svg></button>
+    </div>
+    <div style="padding:4px 16px 0;"><div data-anim="scale" style="position:relative;aspect-ratio:3/4;border-radius:18px;overflow:hidden;background:#1c1c1e;"><sc-for list="{{ so.board }}" as="b" hint-placeholder-count="0"><div style="position:absolute;left:{{ b.left }};top:{{ b.top }};width:{{ b.w }};height:{{ b.h }};transform:translate(-50%,-50%);z-index:{{ b.z }};"><img src="{{ b.src }}" alt="" draggable="false" style="display:block;width:100%;height:100%;object-fit:{{ b.fit }};object-position:{{ b.op }};border-radius:{{ b.rad }};filter:{{ b.fx }};pointer-events:none;"></div></sc-for></div></div>
+    <div style="padding:16px 20px 0;display:flex;flex-direction:column;gap:4px;">
+      <span data-anim="up" style="font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1.14;letter-spacing:-0.374px;text-wrap:pretty;">{{ so.name }}</span>
+      <span data-anim="up" style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ so.meta }}</span>
+    </div>
+    <div data-anim="up" style="margin:20px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+      <sc-for list="{{ so.pieces }}" as="it" hint-placeholder-count="3">
+        <div style="background:#1c1c1e;display:flex;gap:12px;align-items:center;padding:12px 16px 12px 12px;">
+          <sc-if value="{{ it.hasPhoto }}" hint-placeholder-val="{{ true }}"><img src="{{ it.photo }}" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;"></sc-if>
+          <sc-if value="{{ it.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="width:48px;height:48px;border-radius:8px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-weight:600;flex:none;">{{ it.initial }}</span></sc-if>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.name }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.sub }}</span></div>
+          <span style="flex:none;font-size:14px;font-weight:600;">{{ it.price }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="padding:24px 16px 0;"><button data-anim="up" onClick="{{ addSharedOutfit }}" style="width:100%;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:12px 16px;font-size:17px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">Add pieces to my wishlist</button></div>
   </div>
 </sc-if>
 
@@ -812,6 +1020,66 @@ const KNOWN_PHOTOS = {
   'cock-crusher-inflatable-shorts': ['./assets/gear/libidex-shorts.png']
 };
 const KNOWN = { 'alpha-pup-latex-suit': 85, 'latex-alpha-husky-suit': 136, 'pup-play-latex-catsuit': 108 };
+const CGROUPS = ['Catsuits', 'Tops', 'Bottoms / leggings', 'Shorts / briefs', 'Hoods / masks', 'Gloves', 'Socks / feet', 'Boots / shoes', 'Harnesses', 'Restraints', 'Accessories', 'Other'];
+const CAT2G = { Catsuit: 'Catsuits', Surfsuit: 'Catsuits', Leotard: 'Catsuits', Hood: 'Hoods / masks', Harness: 'Harnesses', Shorts: 'Shorts / briefs', Underwear: 'Shorts / briefs', Trousers: 'Bottoms / leggings', Tights: 'Bottoms / leggings', Skirt: 'Bottoms / leggings', Gloves: 'Gloves', Socks: 'Socks / feet', Cuffs: 'Restraints', Gags: 'Restraints' };
+const NAME_G = [[/cat ?suit|surf ?suit|body ?suit|leotard|zentai|onesie/i, 'Catsuits'], [/hood|mask/i, 'Hoods / masks'], [/harness/i, 'Harnesses'], [/glove|gauntlet|mitt/i, 'Gloves'], [/boot|shoe|sneaker|heel/i, 'Boots / shoes'], [/sock|stocking/i, 'Socks / feet'], [/legging|trouser|pants|jeans|tights|skirt/i, 'Bottoms / leggings'], [/shorts|brief|jock|thong|underwear|boxer/i, 'Shorts / briefs'], [/\btop\b|shirt|\btee\b|vest|\bbra\b|crop/i, 'Tops'], [/cuff|restraint|\bgag\b|shackle/i, 'Restraints']];
+function cgroupOf(it, custom) {
+  if (it.cgroup) return it.cgroup;
+  if (CAT2G[it.category]) return CAT2G[it.category];
+  const hit = NAME_G.find(r => r[0].test(it.name || '')); if (hit) return hit[1];
+  if (it.category === 'Accessory') return 'Accessories';
+  return (custom || []).find(x => x.toLowerCase() === String(it.category || '').toLowerCase()) || null;
+}
+const ZONE = { 'Hoods / masks': [50, 12, 26, 20, 6], 'Catsuits': [50, 50, 50, 72, 1], 'Tops': [50, 34, 40, 26, 4], 'Harnesses': [50, 36, 38, 30, 5], 'Bottoms / leggings': [50, 68, 36, 40, 2], 'Shorts / briefs': [50, 56, 30, 16, 3], 'Gloves': [15, 52, 24, 22, 6], 'Restraints': [85, 52, 24, 20, 7], 'Socks / feet': [34, 90, 26, 16, 2], 'Boots / shoes': [66, 88, 28, 20, 3], 'Accessories': [85, 17, 24, 18, 8], 'Other': [15, 17, 24, 18, 8] };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function boardLayout(list, pos) {
+  const byZ = {}; list.forEach(x => { const z = ZONE[x.g] ? x.g : 'Other'; (byZ[z] = byZ[z] || []).push(x); });
+  const out = [];
+  Object.keys(byZ).forEach(z => { const [zx, zy, zw, zh, zi] = ZONE[z], arr = byZ[z], n = arr.length, side = zx < 30 || zx > 70;
+    arr.forEach((x, i) => { const k = n > 1 ? 0.8 : 1, off = i - (n - 1) / 2; let w = zw * k, h = zh * k;
+      let cx = side ? zx : zx + off * zw * 0.5, cy = side ? zy + off * zh * 0.7 : zy + (i % 2 ? 4 : 0);
+      if (!x.cut) { const s = Math.min(w, h * 4 / 3) * 0.85; w = s; h = s * 0.75; }
+      const p = pos && pos[x.id]; if (p) { cx = p.x; cy = p.y; }
+      cx = clamp(cx, 6, 94); cy = clamp(cy, 6, 94);
+      out.push({ id: x.id, src: x.cut || x.src, left: cx + '%', top: cy + '%', w: w.toFixed(1) + '%', h: h.toFixed(1) + '%', z: zi * 10 + i, cx, cy, fit: x.cut ? 'contain' : 'cover', op: x.cut ? 'center' : 'top', rad: x.cut ? '0' : '10%', fx: x.cut ? 'drop-shadow(0 6px 14px rgba(0,0,0,0.55))' : 'none', onDown: null, onMove: null, onUp: null }); }); });
+  return out.sort((a, b) => a.z - b.z);
+}
+const hashS = s => { let h = 5381; const st = s.length > 4000 ? 7 : 1; for (let i = 0; i < s.length; i += st) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return 'v1:' + (h >>> 0).toString(36) + ':' + s.length; };
+const idb = (() => { let dbp; const open = () => dbp || (dbp = new Promise((res, rej) => { const r = indexedDB.open('gearwatch', 1); r.onupgradeneeded = () => r.result.createObjectStore('cuts'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
+  return { all: () => open().then(db => new Promise(res => { const out = {}, c = db.transaction('cuts').objectStore('cuts').openCursor(); c.onsuccess = () => { const k = c.result; if (k) { out[k.key] = k.value; k.continue(); } else res(out); }; c.onerror = () => res(out); })).catch(() => ({})),
+    put: (k, v) => open().then(db => { db.transaction('cuts', 'readwrite').objectStore('cuts').put(v, k); }).catch(() => {}) }; })();
+function removeBg(src) {
+  return new Promise(res => {
+    const img = new Image(); if (!/^data:/.test(src)) img.crossOrigin = 'anonymous';
+    const tm = setTimeout(() => res(null), 15000);
+    img.onerror = () => { clearTimeout(tm); res(null); };
+    img.onload = () => { clearTimeout(tm); try {
+      const s = Math.min(1, 360 / Math.max(img.naturalWidth, img.naturalHeight)), w = Math.max(8, Math.round(img.naturalWidth * s)), h = Math.max(8, Math.round(img.naturalHeight * s));
+      const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); x.drawImage(img, 0, 0, w, h);
+      const id = x.getImageData(0, 0, w, h), d = id.data, N = w * h, bp = [];
+      for (let i = 0; i < w; i++) bp.push(i, (h - 1) * w + i); for (let j = 1; j < h - 1; j++) bp.push(j * w, j * w + w - 1);
+      const med = k => { const a = bp.map(p => d[p * 4 + k]).sort((m, n) => m - n); return a[a.length >> 1]; };
+      const R = med(0), G = med(1), Bc = med(2), T = 40;
+      const dist = p => { const r = d[p * 4] - R, g = d[p * 4 + 1] - G, b = d[p * 4 + 2] - Bc; return Math.sqrt(r * r + g * g + b * b); };
+      const bgL = p => d[p * 4 + 3] < 20 || dist(p) < T;
+      if (bp.filter(bgL).length / bp.length < 0.55) return res(null);
+      const m = new Uint8Array(N), q = new Int32Array(N); let qh = 0, qt = 0;
+      const visit = n => { if (m[n]) return; if (bgL(n)) { m[n] = 1; q[qt++] = n; } else m[n] = 2; };
+      bp.forEach(visit); bp.forEach(p => { if (m[p] === 2) m[p] = 0; });
+      while (qh < qt) { const p = q[qh++], px = p % w; if (px > 0) visit(p - 1); if (px < w - 1) visit(p + 1); if (p >= w) visit(p - w); if (p < N - w) visit(p + w); }
+      const frac = qt / N; if (frac < 0.06 || frac > 0.94) return res(null);
+      let x0 = w, y0 = h, x1 = -1, y1 = -1;
+      for (let p = 0; p < N; p++) { if (m[p] === 1) { d[p * 4 + 3] = 0; continue; } if (m[p] === 2) d[p * 4 + 3] = Math.round(d[p * 4 + 3] * clamp((dist(p) - T) / T + 0.4, 0.4, 1));
+        const px = p % w, py = (p / w) | 0; if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py; }
+      if (x1 < x0) return res(null);
+      x.putImageData(id, 0, 0);
+      const cw = x1 - x0 + 1, ch = y1 - y0 + 1, o = document.createElement('canvas'); o.width = cw; o.height = ch; o.getContext('2d').drawImage(c, x0, y0, cw, ch, 0, 0, cw, ch);
+      let url = o.toDataURL('image/webp', 0.85); if (!/^data:image\/webp/.test(url)) url = o.toDataURL('image/png');
+      res(url);
+    } catch (e) { res(null); } };
+    img.src = src;
+  });
+}
 
 const ANIM = {
   up: [[{ opacity: 0, transform: 'translateY(18px)' }, { opacity: 1, transform: 'none' }], 560],
@@ -1026,7 +1294,8 @@ function readPhoto(file) {
 }
 
 class Component extends DCLogic {
-  state = { data: load(), tab: 'wish', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null };
+  state = { data: load(), tab: 'wish', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null, coll: 'items', outfit: null, builder: null, cuts: {}, cutsReady: false, cpickId: null, cpickQ: false, ovDel: false, newGrpOpen: false, newGrp: '', bdragId: null };
+  outfitRef = React.createRef(); builderRef = React.createRef();
   heroRef = React.createRef(); carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
   introRef = React.createRef(); bPanelRef = React.createRef(); toastRef = React.createRef(); figRef = React.createRef();
 
@@ -1055,6 +1324,7 @@ class Component extends DCLogic {
   }
   componentDidMount() {
     this.syncPrices();
+    idb.all().then(c => this.setState({ cuts: c || {}, cutsReady: true }));
     if (!window.FITLOG_BRANDS) { let n = 0; this.brPoll = setInterval(() => { if (window.FITLOG_BRANDS || ++n > 50) { clearInterval(this.brPoll); this.forceUpdate(); } }, 100); }
     const sh = readShare(); if (sh && sh.n) this.setState({ shared: sh });
     this.onHash = () => { const s2 = readShare(); this.setState({ shared: s2 && s2.n ? s2 : null }); }; window.addEventListener('hashchange', this.onHash);
@@ -1159,7 +1429,41 @@ class Component extends DCLogic {
     if (this.backdropRef.current && !this.reduce) this.backdropRef.current.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' });
     this.animOut(this.sheetRef.current, [{ transform: 'none' }, { transform: 'translateY(100%)' }], 300, done);
   }
-  goTab(t, e) { if (e) this.bump(e.currentTarget.firstElementChild, 1.25); if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; if (t === this.state.tab && !this.state.detail) return; this.setState({ tab: t, detail: null }); }
+  goTab(t, e) { if (e) this.bump(e.currentTarget.firstElementChild, 1.25); if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; if (t === this.state.tab && !this.state.detail && !this.state.outfit) return; this.setState({ tab: t, detail: null, outfit: null }); }
+  ensureCut(src) {
+    if (!src || !this.state.cutsReady) return; const k = hashS(src);
+    if (k in this.state.cuts) return; this._cq = this._cq || new Set(); if (this._cq.has(k)) return; this._cq.add(k);
+    setTimeout(() => removeBg(src).then(r => { idb.put(k, r || 0); this.setState(s => ({ cuts: Object.assign({}, s.cuts, { [k]: r || 0 }) })); }), 0);
+  }
+  board(items, pos, live) {
+    const custom = this.state.data.collCats || [];
+    const list = items.map(it => { const src = (it.photos || [])[0]; if (!src) return null; this.ensureCut(src); const c = this.state.cuts[hashS(src)]; return { id: it.id, g: it.g || cgroupOf(it, custom) || 'Other', src, cut: typeof c === 'string' ? c : null }; }).filter(Boolean);
+    return boardLayout(list, pos).map(b => !live ? b : Object.assign(b, { z: b.id === this.state.bdragId ? 999 : b.z,
+      onDown: e => { e.preventDefault(); const r = e.currentTarget.parentElement.getBoundingClientRect(); this.bdrag = { id: b.id, x: e.clientX, y: e.clientY, cx: b.cx, cy: b.cy, r }; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (er) {} this.setState({ bdragId: b.id }); },
+      onMove: e => { const g = this.bdrag; if (!g || g.id !== b.id) return; const nx = +clamp(g.cx + (e.clientX - g.x) / g.r.width * 100, 4, 96).toFixed(1), ny = +clamp(g.cy + (e.clientY - g.y) / g.r.height * 100, 4, 96).toFixed(1); this.setState(s => s.builder ? { builder: Object.assign({}, s.builder, { pos: Object.assign({}, s.builder.pos, { [b.id]: { x: nx, y: ny } }) }) } : null); },
+      onUp: () => { if (!this.bdrag) return; this.bdrag = null; this.setState({ bdragId: null }); } }));
+  }
+  openOutfit(id) { this.setState({ outfit: id, detail: null, ovDel: false }); }
+  closeOutfit(cb) { this.animOut(this.outfitRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ outfit: null, ovDel: false }); if (cb) cb(); }); }
+  openBuilder(o, seedId) {
+    this.setState({ builder: o ? { id: o.id, name: o.name || '', itemIds: (o.itemIds || []).slice(), pos: Object.assign({}, o.pos || {}), photos: (o.photos || []).slice() } : { id: null, name: '', itemIds: seedId ? [seedId] : [], pos: {}, photos: [] } });
+  }
+  closeBuilder(cb) { this.animOut(this.builderRef.current, [{ transform: 'none' }, { transform: 'translateY(100%)' }], 320, () => { this.setState({ builder: null, bdragId: null }); if (cb) cb(); }); }
+  saveBuilder() {
+    const b = this.state.builder; if (!b || !b.itemIds.length) return; let id = b.id;
+    this.closeBuilder(() => {
+      this.mutate(p => { p.outfits = p.outfits || []; const v = { name: (b.name || '').trim(), itemIds: b.itemIds, pos: b.pos, photos: b.photos };
+        if (id) { const o = p.outfits.find(x => x.id === id); if (o) Object.assign(o, v); } else { id = uid(); p.outfits.push(Object.assign({ id, worn: [], created: todayISO() }, v)); } });
+      this.setState({ tab: 'coll', coll: 'outfits', detail: null, outfit: id, ovDel: false });
+      this.toast(b.id ? 'Outfit saved' : 'Outfit created');
+    });
+  }
+  unsureIds() { const p = this.prof(), custom = this.state.data.collCats || []; return p.items.filter(i => (i.status === 'owned' || i.status === 'ordered') && !cgroupOf(i, custom)).map(i => i.id); }
+  pickGroup(id, g, isNew) {
+    this.mutate((pp, data) => { if (isNew && !(data.collCats || []).includes(g)) data.collCats = (data.collCats || []).concat(g); const it = pp.items.find(x => x.id === id); if (it) it.cgroup = g; });
+    if (this.state.cpickQ) { const left = this.unsureIds().filter(x => x !== id); if (left.length) { this.setState({ cpickId: left[0], newGrpOpen: false, newGrp: '' }); return; } this.closeSheet(() => this.toast('All sorted')); return; }
+    this.closeSheet(() => this.toast('Moved to ' + g));
+  }
   fval(vals, id) { const v = vals[id]; if (v == null) return null; if (id === 'shoe') return { v: String(v), u: 'EU' }; return this.state.unit === 'in' ? { v: (v / 2.54).toFixed(1), u: 'in' } : { v: num(v), u: 'cm' }; }
   setF(k, v) { this.setState(s => ({ form: Object.assign({}, s.form, { [k]: v }) })); }
   openForm(it, status) {
@@ -1244,6 +1548,63 @@ class Component extends DCLogic {
       orderedTxt: 'Ordered ' + fmtD(it.orderedOn) + (it.paid != null ? ' · ' + money(it.paidCur || '€', it.paid) + ' paid' : ''),
       onReceived: e => { const row = e.currentTarget.closest('[data-row]'); this.animOut(row, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(60px)' }], 300, () => { this.setStatus(it.id, 'owned'); this.toast('Moved to Owned'); }); } }));
     const owned = ownedIt.map(it => Object.assign(this.vm(it), { ownSub: [it.brand, it.size && it.size !== 'Made to measure' ? 'Size ' + it.size : it.size].filter(Boolean).join(' · ') }));
+    const custom = st.data.collCats || [], gOf = it => cgroupOf(it, custom);
+    const GALL = CGROUPS.filter(g => g !== 'Other').concat(custom.filter(c => !CGROUPS.includes(c)), ['Other']);
+    const outfits = p.outfits || [], byId = {}; p.items.forEach(i => { byId[i.id] = i; });
+    const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+    const oName = o => o.name || 'Outfit ' + (outfits.indexOf(o) + 1);
+    const oItems = o => (o.itemIds || []).map(id => byId[id]).filter(Boolean);
+    const oValue = list => list.reduce((a, i) => a + paidEur(i), 0);
+    const oCard = o => { const its = oItems(o), w = (o.worn || []).length, ph = o.photos || []; return { name: oName(o), sub: plural(its.length, 'piece') + (w ? ' · Worn ' + w + '×' : ''), cover: ph[0] || '', hasCover: !!ph.length, noCover: !ph.length, board: ph.length ? [] : this.board(its, o.pos), onOpen: () => this.openOutfit(o.id) }; };
+    const inOut = id => outfits.filter(o => (o.itemIds || []).includes(id)).length;
+    const unsure = p.items.filter(i => (i.status === 'owned' || i.status === 'ordered') && !gOf(i));
+    const gm = new Map(GALL.map(g => [g, []]));
+    ownedIt.forEach(it => { const g = gOf(it) || 'Other'; if (!gm.has(g)) gm.set(g, []); gm.get(g).push(it); });
+    const collGroups = Array.from(gm.entries()).filter(e => e[1].length).map(([title, a]) => ({ title, count: String(a.length), items: a.map(it => { const n = inOut(it.id); return Object.assign(this.vm(it), { ownSub: [it.brand, it.size && it.size !== 'Made to measure' ? 'Size ' + it.size : it.size].filter(Boolean).join(' · ') || 'No details', paidTxt: it.paid != null ? money(it.paidCur || '€', it.paid) : it.price != null ? money(it.currency, it.price) : '', inOutfits: n > 0, outfitTxt: 'In ' + plural(n, 'outfit') }); }) }));
+    const ovO = st.outfit ? outfits.find(o => o.id === st.outfit) : null;
+    let ov = { photos: [], board: [], pieces: [] };
+    if (ovO) { const its = oItems(ovO), ph = ovO.photos || [], worn = ovO.worn || [], today = todayISO(), wt = worn.includes(today), val = oValue(its);
+      ov = { name: oName(ovO), meta: plural(its.length, 'piece') + (val ? ' · €' + Math.round(val) + ' total value' : ''),
+        photos: ph.map(src => ({ src })), hasPhotos: !!ph.length, noPhotos: !ph.length, multi: ph.length > 1, photoCount: String(ph.length), board: this.board(its, ovO.pos),
+        wornTxt: worn.length ? 'Worn ' + plural(worn.length, 'time') : 'Not worn yet', lastTxt: worn.length ? (wt ? 'Last worn today' : 'Last worn ' + fmtD(worn[worn.length - 1])) : 'Log it the first time you wear it.',
+        wearLabel: wt ? 'Worn today' : 'Wore it today', wearBg: wt ? '#2c2c2e' : ACC, wearFg: wt ? '#f5f5f7' : '#000',
+        onWear: e => { this.bump(e.currentTarget, 1.08); this.mutate(pp => { const o = (pp.outfits || []).find(x => x.id === ovO.id); if (!o) return; const w0 = o.worn || []; o.worn = w0.includes(today) ? w0.filter(x => x !== today) : w0.concat(today).sort(); }); this.toast(wt ? 'Removed today’s wear' : 'Logged. Worn ' + (worn.length + 1) + '×'); },
+        pieces: its.map(it => Object.assign(this.vm(it), { ownSub: [gOf(it), it.brand].filter(Boolean).join(' · '), onWay: it.status === 'ordered', onOpen: () => this.setState({ outfit: null, detail: it.id, photoIdx: 0, delArm: false }) })),
+        onEdit: () => this.openBuilder(ovO), onBack: () => this.closeOutfit(),
+        delLabel: st.ovDel ? 'Tap again to delete' : 'Delete outfit',
+        onDelete: () => { if (!st.ovDel) { this.setState({ ovDel: true }); return; } const id = ovO.id; this.closeOutfit(() => { this.mutate(pp => { pp.outfits = (pp.outfits || []).filter(o => o.id !== id); }); this.toast('Outfit deleted'); }); },
+        onShare: e => { this.bump(e.currentTarget, 1.04); const abs = x => /^\.\//.test(x) ? new URL(x, location.href).href : x;
+          const payload = { t: 'o', n: oName(ovO), f: p.name, it: its.map(it => { const src = (it.photos || []).find(x => !/^data:/.test(x)); return { n: it.name, b: it.brand || undefined, cat: it.category || undefined, g: gOf(it) || undefined, u: it.url || undefined, c: it.currency, p: it.price, s: it.size || undefined, ph: src ? abs(src) : undefined }; }), ps: ovO.pos && Object.keys(ovO.pos).length ? its.map(it => ovO.pos[it.id] ? [ovO.pos[it.id].x, ovO.pos[it.id].y] : 0) : undefined };
+          const url = location.origin + location.pathname + '#share=' + b64e(payload);
+          if (navigator.share) navigator.share({ title: payload.n, text: (p.name || 'My') + '’s outfit: ' + payload.n, url }).catch(() => {}); else { try { navigator.clipboard.writeText(url); } catch (er) {} this.toast('Link copied'); } } };
+    }
+    const B = st.builder; let bd = { items: [], groups: [], photos: [] };
+    if (B) { const sel = B.itemIds.map(id => byId[id]).filter(Boolean), cands = p.items.filter(i => i.status === 'owned' || i.status === 'ordered');
+      const pend = st.cutsReady ? sel.filter(it => { const s = (it.photos || [])[0]; return s && !(hashS(s) in st.cuts); }).length : 0, sv = oValue(sel);
+      const gmB = new Map(GALL.map(g => [g, []])); cands.forEach(it => { const g = gOf(it) || 'Other'; if (!gmB.has(g)) gmB.set(g, []); gmB.get(g).push(it); });
+      const edO = B.id ? outfits.find(o => o.id === B.id) : null;
+      bd = { title: B.id ? 'Edit outfit' : 'New outfit', items: this.board(sel, B.pos, true), empty: !sel.length, moved: Object.keys(B.pos || {}).length > 0, pending: pend > 0,
+        summary: pend ? 'Cutting out ' + plural(pend, 'photo') + '…' : sel.length ? plural(sel.length, 'piece') + (sv ? ' · €' + Math.round(sv) : '') : 'No pieces yet',
+        name: B.name, namePh: edO ? 'Outfit ' + (outfits.indexOf(edO) + 1) : 'Outfit ' + (outfits.length + 1), noCands: !cands.length,
+        photos: (B.photos || []).map((src, i) => ({ src, cover: i === 0, ring: i === 0 ? '0 0 0 2px ' + ACC : 'none',
+          onCover: () => this.setState(s => { const ph = s.builder.photos.slice(); ph.unshift(ph.splice(i, 1)[0]); return { builder: Object.assign({}, s.builder, { photos: ph }) }; }),
+          onRemove: () => this.setState(s => ({ builder: Object.assign({}, s.builder, { photos: s.builder.photos.filter((_, j) => j !== i) }) })) })),
+        groups: Array.from(gmB.entries()).filter(e => e[1].length).map(([title, a]) => ({ title, items: a.map(it => { const on = B.itemIds.includes(it.id), ph = (it.photos || [])[0];
+          return { name: it.name, photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: (it.name || '?').charAt(0).toUpperCase(), onWay: it.status === 'ordered', ring: on ? '0 0 0 2px ' + ACC : '0 0 0 0 transparent', checkBg: on ? ACC : 'rgba(28,28,30,0.72)', checkOp: on ? '1' : '0',
+            onTap: e => { this.bump(e.currentTarget, 1.06); this.setState(s => { const has = s.builder.itemIds.includes(it.id), ids = has ? s.builder.itemIds.filter(x => x !== it.id) : s.builder.itemIds.concat(it.id), pos = Object.assign({}, s.builder.pos); if (has) delete pos[it.id]; return { builder: Object.assign({}, s.builder, { itemIds: ids, pos }) }; }); } }; }) })) };
+    }
+    const cpIt = st.cpickId ? byId[st.cpickId] : null;
+    const cp = cpIt ? { name: cpIt.name, photo: (cpIt.photos || [])[0] || '', hasPhoto: !!(cpIt.photos || []).length, noPhoto: !(cpIt.photos || []).length, initial: (cpIt.name || '?').charAt(0).toUpperCase(),
+      sub: st.cpickQ ? plural(unsure.length, 'item') + ' left to sort' : [cpIt.brand, cpIt.category].filter(Boolean).join(' · '),
+      chips: GALL.map(g => { const on = gOf(cpIt) === g; return { label: g, bg: on ? ACC : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.1); this.pickGroup(cpIt.id, g); } }; }) } : { chips: [] };
+    const sS = st.shared && st.shared.t === 'o' ? st.shared : null;
+    let so = { board: [], pieces: [] };
+    if (sS) { const its = (sS.it || []).map((x, i) => ({ id: 's' + i, name: x.n, category: x.cat, g: x.g, photos: x.ph ? [x.ph] : [] })), pos = {};
+      (sS.ps || []).forEach((q, i) => { if (q) pos['s' + i] = { x: q[0], y: q[1] }; });
+      const tot = (sS.it || []).reduce((a, x) => a + (x.p == null ? 0 : x.p * (FX[x.c || '€'] || 1)), 0);
+      so = { fromTxt: sS.f ? sS.f + '’s outfit' : 'Shared outfit', name: sS.n || 'Outfit', meta: plural(its.length, 'piece') + (tot ? ' · about €' + Math.round(tot) : ''), board: this.board(its, pos),
+        pieces: (sS.it || []).map(x => ({ name: x.n, sub: [x.b, x.s && x.s !== 'Made to measure' ? 'Size ' + x.s : x.s].filter(Boolean).join(' · '), price: x.p == null ? '' : money(x.c || '€', x.p), photo: x.ph || '', hasPhoto: !!x.ph, noPhoto: !x.ph, initial: (x.n || '?').charAt(0).toUpperCase() })) };
+    }
     const dropIt = this.dropItem();
 
     const vals = (p.session && p.session.values) || {}, hasSession = !!(p.session && Object.keys(vals).length);
@@ -1252,7 +1613,7 @@ class Component extends DCLogic {
     const tileGroups = FIG.map(g => ({ title: g.title, items: g.ids.filter(id => vals[id] != null).map(id => { const f = this.fval(vals, id); return { label: PT[id].label, value: f.v, unit: f.u, onOpen: () => this.setState({ sheet: 'point', pointId: id }) }; }) })).filter(g => g.items.length);
     const days = hasSession ? Math.round((new Date(todayISO() + 'T12:00:00') - new Date(p.session.date + 'T12:00:00')) / 864e5) : 0;
 
-    let d = { stars: [], statusTabs: [], rows: [], photos: [], dots: [], needRows: [] }, dIt = null;
+    let d = { stars: [], statusTabs: [], rows: [], photos: [], dots: [], needRows: [], outfits: [] }, dIt = null;
     if (st.detail) dIt = p.items.find(x => x.id === st.detail);
     if (dIt) {
       const v = this.vm(dIt), ph = dIt.photos || [], a = this.afford(dIt, bi), h = dIt.history || [];
@@ -1282,11 +1643,15 @@ class Component extends DCLogic {
         rows, m2m: !!dIt.m2m, brand: dIt.brand || 'this shop', needNote: nd.note, needCount: hasSession ? rec + ' of ' + nd.ids.length + ' measured' : 'Not measured yet', needRows,
         needFig: bodyFig({ bare: true, lines: nd.ids.filter(id => vals[id] != null).map(id => ({ id })) }),
         hasUrl: !!dIt.url, url: dIt.url,
+        inColl: dIt.status === 'owned' || dIt.status === 'ordered', cgroup: gOf(dIt) || 'Choose',
+        onPickCat: () => this.setState({ sheet: 'cpick', cpickId: dIt.id, cpickQ: false, newGrpOpen: false, newGrp: '' }),
+        onCreateOutfit: e => { this.bump(e.currentTarget, 1.04); this.openBuilder(null, dIt.id); },
+        outfits: outfits.filter(o => (o.itemIds || []).includes(dIt.id)).map(oCard), hasOutfits: inOut(dIt.id) > 0, outfitCount: plural(inOut(dIt.id), 'outfit'),
       });
     }
 
     const f = st.form || {};
-    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: ['Monthly budget', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null] }[st.sheet] || ['', null];
+    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: ['Monthly budget', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null], cpick: ['Collection category', null] }[st.sheet] || ['', null];
     const canSave = st.sheet === 'form' ? !!(f.name || '').trim() : st.sheet === 'budget' ? toNum(st.budgetIn) > 0 : true;
     const pv = st.pointId ? this.fval(vals, st.pointId) : null;
     const chips = (cur, set) => BUDGET_CHIPS.map(n => { const on = toNum(cur) === n; return { label: '€' + n, bg: on ? ACC : '#1c1c1e', color: on ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.12); set(String(n)); } }; });
@@ -1320,6 +1685,27 @@ class Component extends DCLogic {
             images: (sb.images || []).map(im => ({ src: im.src, label: im.kind === 'guide' ? 'Measuring guide' : 'Size chart' })), hasImages: !!(sb.images || []).length };
         }
         return out; })(),
+      collTabs: [['items', 'Items'], ['outfits', 'Outfits']].map(([k, l]) => ({ label: l, bg: (st.coll || 'items') === k ? '#636366' : 'transparent', onTap: () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; this.setState({ coll: k }); } })),
+      collItems: (st.coll || 'items') === 'items', collOutfits: st.coll === 'outfits', collGroups,
+      hasUnsure: unsure.length > 0, unsureTxt: unsure.length === 1 ? '1 item needs a category' : unsure.length + ' items need a category',
+      sortUnsure: () => { if (unsure.length) this.setState({ sheet: 'cpick', cpickId: unsure[0].id, cpickQ: true, newGrpOpen: false, newGrp: '' }); },
+      outfitCards: outfits.slice().reverse().map(oCard), hasOutfitList: outfits.length > 0, noOutfitList: !outfits.length,
+      newOutfit: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.openBuilder(null); },
+      outfitRef: this.outfitRef, builderRef: this.builderRef,
+      ovTop: framed ? '96px' : 'calc(env(safe-area-inset-top) + 60px)', bTop: framed ? '44px' : 'calc(env(safe-area-inset-top) + 4px)',
+      hasOutfit: !!ovO, ov, hasBuilder: !!B, bd, bdSaveColor: B && B.itemIds.length ? ACC : '#636366',
+      bdCancel: () => this.closeBuilder(), bdSave: () => this.saveBuilder(),
+      bdName: e => { const v = e.target.value; this.setState(s => ({ builder: Object.assign({}, s.builder, { name: v }) })); },
+      bdReset: () => this.setState(s => ({ builder: Object.assign({}, s.builder, { pos: {} }) })),
+      bdPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await Promise.all(files.map(readPhoto))).filter(Boolean); this.setState(s => s.builder ? { builder: Object.assign({}, s.builder, { photos: (s.builder.photos || []).concat(out) }) } : null); },
+      isSheetCpick: st.sheet === 'cpick', cp, newGrpOpen: !!st.newGrpOpen, newGrp: st.newGrp || '',
+      onNewGrp: e => this.setState({ newGrp: e.target.value }),
+      toggleNewGrp: e => { this.bump(e.currentTarget, 1.1); this.setState({ newGrpOpen: !st.newGrpOpen, newGrp: '' }); },
+      addGrp: () => { const n = (st.newGrp || '').trim(); if (!n || !st.cpickId) return; const name = n.charAt(0).toUpperCase() + n.slice(1), hit = GALL.find(g => g.toLowerCase() === name.toLowerCase()); this.pickGroup(st.cpickId, hit || name, !hit); },
+      hasSharedItem: !!st.shared && st.shared.t !== 'o', hasSharedOutfit: !!sS, so,
+      addSharedOutfit: () => { if (!sS) return; let n = 0; this.mutate(pp => { const key = i => i.u ? normUrl(i.u) : 'n:' + (i.n || '').toLowerCase(), have = new Set(pp.items.map(i => key({ u: i.url, n: i.name })));
+        (sS.it || []).forEach(x => { const k = key(x); if (have.has(k)) return; have.add(k); n++; pp.items.push({ id: uid(), name: x.n, brand: x.b || '', category: x.cat || '', url: x.u || '', photos: x.ph ? [x.ph] : [], currency: x.c || '€', price: x.p == null ? null : x.p, history: x.p == null ? [] : [{ date: todayISO(), price: x.p }], rating: 3, status: 'wanted', size: x.s || '', colour: '', m2m: x.s === 'Made to measure', added: todayISO() }); }); });
+        try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} this.setState({ shared: null }); this.toast(n ? 'Added ' + plural(n, 'piece') + ' to your wishlist' : 'You already have all of these'); },
       openAddOwned: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.openForm(null, 'owned'); },
       profileName: p.name,
       showA: mode === 'A', showB: mode === 'B', showC: mode === 'C', showList: mode !== 'C', showGrid: mode === 'C',
@@ -1366,7 +1752,7 @@ class Component extends DCLogic {
       copyNeeds: e => { if (!dIt) return; this.bump(e.currentTarget, 1.08); const txt = p.name + ' · ' + (dIt.brand || '') + ' · ' + dIt.name + '\n' + d.needRows.map(r => r.label + ': ' + r.value).join('\n');
         try { navigator.clipboard.writeText(txt); } catch (err) {} this.setState({ copied: true }); clearTimeout(this.t3); this.t3 = setTimeout(() => this.setState({ copied: false }), 1600); },
       deleteLabel: st.delArm ? 'Tap again to delete' : 'Delete item',
-      deleteItem: () => { if (!st.delArm) { this.setState({ delArm: true }); return; } const id = st.detail; this.closeDetail(() => { this.mutate(pp => { pp.items = pp.items.filter(x => x.id !== id); }); this.toast('Deleted'); }); },
+      deleteItem: () => { if (!st.delArm) { this.setState({ delArm: true }); return; } const id = st.detail; this.closeDetail(() => { this.mutate(pp => { pp.items = pp.items.filter(x => x.id !== id); (pp.outfits || []).forEach(o => { o.itemIds = (o.itemIds || []).filter(x => x !== id); if (o.pos) delete o.pos[id]; }); }); this.toast('Deleted'); }); },
 
       hasSheet: !!st.sheet, closeSheet: () => this.closeSheet(), sheetTitle: sheetMeta[0], hasSheetAction: !!sheetMeta[1], actionLabel: sheetMeta[1] || '',
       cancelLabel: sheetMeta[1] ? 'Cancel' : 'Done', actionColor: canSave ? ACC : '#636366',
