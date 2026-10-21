@@ -560,7 +560,7 @@ input::placeholder{color:#6e6e73;}
         <span style="font-size:14px;color:#a1a1a6;">{{ d.eurTxt }}</span>
         <sc-if value="{{ d.drop }}" hint-placeholder-val="{{ false }}"><span data-anim="pop" data-delay="500" style="font-size:12px;font-weight:600;color:#000;background:var(--gw-accent,#ffd60a);border-radius:9999px;padding:2px 8px;align-self:center;">Price drop {{ d.dropTxt }}</span></sc-if>
       </div>
-      <span data-anim="fade" style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;letter-spacing:-0.12px;color:{{ d.checkColor }};"><span style="width:6px;height:6px;border-radius:9999px;background:{{ d.checkColor }};flex:none;"></span>{{ d.checkTxt }}</span>
+      <span data-anim="fade" style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;letter-spacing:-0.12px;color:{{ d.checkColor }};"><span style="width:6px;height:6px;border-radius:9999px;background:{{ d.checkColor }};flex:none;"></span><span style="min-width:0;">{{ d.checkTxt }}</span><sc-if value="{{ d.canCheck }}" hint-placeholder-val="{{ false }}"><button onClick="{{ d.checkNow }}" style="flex:none;border:0;background:none;padding:2px 0 2px 6px;color:var(--gw-accent,#ffd60a);font-size:12px;cursor:pointer;">{{ d.checkLabel }}</button></sc-if></span>
     </div>
 
     <div data-anim="up" style="margin:20px 16px 0;background:#1c1c1e;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px;">
@@ -1602,15 +1602,25 @@ class Component extends DCLogic {
   applyPrices(map) {
     const data = JSON.parse(JSON.stringify(this.state.data)); let changed = false;
     data.profiles.forEach(p => p.items.forEach(it => {
-      const e = it.url && map[normUrl(it.url)]; if (!e || !e.checked || (it.checked && e.checked <= it.checked)) return; changed = true;
+      let e = it.url && map[normUrl(it.url)]; if (!e || !e.checked || (it.checked && e.checked <= it.checked)) return; changed = true;
       it.checked = e.checked; it.checkErr = null;
-      if (!e.ok || e.price == null) { it.checkErr = /blocked/i.test(e.error || '') ? 'The shop blocked the price check' : 'Couldn’t read the price'; return; }
+      it.checkHow = e.how || null; it.checkNote = null;
+      if (!e.ok || e.price == null) { it.checkErr = /blocked/i.test(e.error || '') ? 'The shop blocked the price check' : /no price/i.test(e.error || '') ? 'No price found on the page' : 'Couldn’t read the price'; return; }
+      let ep = e.price; if (e.currency && it.currency && e.currency !== it.currency && FX[e.currency] && FX[it.currency]) { it.checkNote = 'Shop showed ' + e.currency + num(e.price) + ', converted'; ep = Math.round(e.price * FX[e.currency] / FX[it.currency] * 100) / 100; e = Object.assign({}, e, { price: ep, currency: it.currency }); }
       if (e.currency && it.currency && e.currency !== it.currency) { it.checkErr = 'Shop shows ' + e.currency + e.price; return; }
       const np = Math.round(e.price * (1 + (it.surcharge || 0)) * 100) / 100;
       if (it.price !== np) { if (!(it.history || []).length && it.price != null) it.history = [{ date: it.added || e.checked.slice(0, 10), price: it.price }]; it.history = (it.history || []).concat({ date: e.checked.slice(0, 10), price: np }); it.price = np; }
     }));
     if (changed) this.save(data, true);
   }
+  async checkNow(it) { const api = (window.GW_PRICE_API || '').trim(); if (!it || !it.url || this.state.checking) return; if (!api) { this.toast('Price checks aren’t set up. See price-worker/README.md.'); return; }
+    this.setState({ checking: it.id }); const k = normUrl(it.url);
+    try { const r = await fetch(api, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ items: [{ url: it.url, currency: it.currency }], force: true }) });
+      const j = await r.json(), e = (j.items || {})[k];
+      if (!e) this.toast('No answer from the price helper');
+      else { this.applyPrices({ [k]: Object.assign({}, e, { checked: new Date().toISOString() }) }); this.toast(e.ok ? 'Found ' + money(e.currency || it.currency, e.price) + (e.how ? ' · ' + e.how : '') : (e.error || 'No price found')); }
+    } catch (er) { this.toast('Couldn’t reach the price helper'); }
+    this.setState({ checking: null }); }
   async syncPrices() {
     try { const r = await fetch('./prices.json', { cache: 'no-store' }); if (r.ok) { const j = await r.json(); this.applyPrices((j && j.items) || {}); } } catch (e) {}
     for (let i = 0; i < 20 && !('GW_PRICE_API' in window); i++) await new Promise(r => setTimeout(r, 100));
@@ -2101,7 +2111,8 @@ class Component extends DCLogic {
         statusTabs: [['wanted', 'Wanted'], ['ordered', 'Ordered'], ['owned', 'Owned']].map(([k, l]) => ({ label: l, bg: dIt.status === k ? '#636366' : 'transparent', onTap: e => { this.bump(e.currentTarget, 1.06); if (k !== 'wanted' && dIt.status === 'wanted') this.openPaid(dIt, k); else this.setStatus(dIt.id, k); } })),
         hasPaid: dIt.status !== 'wanted' && dIt.paid != null, editPaid: () => this.openPaid(dIt, dIt.status),
         paidTxt: dIt.paid == null ? '' : 'Paid ' + money(dIt.paidCur || '€', dIt.paid) + (dIt.paidCur && dIt.paidCur !== '€' ? ' (≈ €' + Math.round(paidEur(dIt)) + ')' : '') + (bi ? (dIt.noBudget ? ' · not in budget' : ' · counted in budget') : ''),
-        checkTxt: !dIt.url ? 'No link, so the price isn’t checked' : !dIt.checked ? 'Price not checked yet' : dIt.checkErr ? dIt.checkErr + ' · tried ' + agoTxt(dIt.checked) : 'Price checked ' + agoTxt(dIt.checked) + (dIt.surcharge ? ' · incl. +' + Math.round(dIt.surcharge * 100) + '% made to measure' : ''),
+        checkTxt: !dIt.url ? 'No link, so the price isn’t checked' : !dIt.checked ? 'Price not checked yet' : dIt.checkErr ? dIt.checkErr + ' · tried ' + agoTxt(dIt.checked) : 'Price checked ' + agoTxt(dIt.checked) + (dIt.checkNote ? ' · ' + dIt.checkNote : '') + (dIt.surcharge ? ' · incl. +' + Math.round(dIt.surcharge * 100) + '% made to measure' : ''),
+        canCheck: !!dIt.url && dIt.status !== 'owned', checkLabel: st.checking === dIt.id ? 'Checking…' : 'Check now', checkNow: () => this.checkNow(dIt),
         checkColor: dIt.checked && !dIt.checkErr ? '#30d158' : dIt.checkErr ? '#ff9f0a' : '#6e6e73',
         isWanted: dIt.status === 'wanted', afford: a.txt, affordDot: a.dot, needBudget: !!a.need,
         hasOrderInfo: dIt.status !== 'wanted' && !!dIt.orderedOn,
