@@ -101,6 +101,7 @@
     if (!navigator.onLine) { set({ status: 'offline' }); return; }
     busy = true; set({ status: 'syncing', error: '' });
     try {
+      if (!(await fresh())) throw new Error('Signed-in session is refreshing. Trying again shortly.');
       const uid = S.user.id, m = meta(), known = m.uid === uid;
       let gw = host.get(); const before = gw.mod || 0, fl = localStorage.getItem(FL);
       let lmod = before; if (known && hash(fl) !== m.flHash) lmod = Math.max(lmod, Date.now());
@@ -128,13 +129,22 @@
     busy = false; if (again) { again = false; schedule(500); }
   }
 
+  // Make sure the sign-in token is valid before asking the database. After the app sleeps it can be expired,
+  // and the database then answers with nothing instead of an error.
+  async function fresh() {
+    try { const { data } = await sb.auth.getSession(); const s = data && data.session; if (!s) return false;
+      if (s.expires_at && s.expires_at * 1000 < Date.now() + 60000) { const r = await sb.auth.refreshSession(); if (r.error || !r.data.session) return false; }
+      return true; } catch (e) { return false; }
+  }
   async function social() {
-    if (!sb || !S.user) return null; const me = S.user.id;
+    if (!sb) await connect(); if (!sb || !S.user) return null; const me = S.user.id;
+    if (!(await fresh())) return null;
     const [a, b] = await Promise.all([sb.from('follows').select('followee,status').eq('follower', me), sb.from('follows').select('follower,status').eq('followee', me)]);
+    if (a.error || b.error) throw new Error((a.error || b.error).message || 'Couldn’t load friends');
     const out = a.data || [], inc = b.data || [], ids = [...new Set(out.map(x => x.followee).concat(inc.map(x => x.follower)))], names = {}, avs = {}, lists = {};
-    if (ids.length) { const r = await profSel(c => sb.from('profiles').select(c).in('id', ids)); (r.data || []).forEach(x => { names[x.id] = x.username; avs[x.id] = x.avatar || null; }); }
+    if (ids.length) { const r = await profSel(c => sb.from('profiles').select(c).in('id', ids)); if (r.error) throw new Error(r.error.message); (r.data || []).forEach(x => { names[x.id] = x.username; avs[x.id] = x.avatar || null; }); }
     const acc = out.filter(x => x.status === 'accepted').map(x => x.followee);
-    if (acc.length) { const r = await sb.from('public_lists').select('user_id,list').in('user_id', acc); (r.data || []).forEach(x => { lists[x.user_id] = x.list; }); }
+    if (acc.length) { const r = await sb.from('public_lists').select('user_id,list').in('user_id', acc); if (r.error) throw new Error(r.error.message); (r.data || []).forEach(x => { lists[x.user_id] = x.list; }); }
     return {
       following: out.map(x => ({ id: x.followee, username: names[x.followee] || 'unknown', avatar: avs[x.followee] || null, status: x.status })),
       requests: inc.filter(x => x.status === 'pending').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown', avatar: avs[x.follower] || null })),
