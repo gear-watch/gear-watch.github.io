@@ -136,8 +136,13 @@
   async function setUsername(name) {
     const u = uname(name);
     if (!/^[a-z0-9_.]{3,20}$/.test(u)) throw new Error('Use 3–20 letters, numbers, dots or underscores.');
-    const r = await sb.from('profiles').insert({ id: S.user.id, username: u });
-    if (r.error) throw new Error(/duplicate|unique/i.test(r.error.message || '') ? '@' + u + ' is taken.' : r.error.message);
+    if (!(await connect()) || !S.user) throw new Error(why || 'You’re offline.');
+    const me = S.user.id, own = await sb.from('profiles').select('id,username').eq('id', me).maybeSingle();
+    if (own.data && own.data.username === u) { set({ username: u, needName: false }); schedule(0); return; }
+    const taken = await sb.from('profiles').select('id').eq('username', u).maybeSingle();
+    if (taken.data && taken.data.id !== me) throw new Error('@' + u + ' is taken.');
+    const r = own.data ? await sb.from('profiles').update({ username: u }).eq('id', me) : await sb.from('profiles').insert({ id: me, username: u });
+    if (r.error) { const m = r.error.message || ''; throw new Error(r.error.code === '23505' && /username/i.test(m) ? '@' + u + ' is taken.' : 'Couldn’t save: ' + m); }
     set({ username: u, needName: false }); schedule(0);
   }
   async function sendCode(email) {
