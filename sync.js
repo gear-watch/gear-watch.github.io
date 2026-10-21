@@ -233,6 +233,14 @@
     if (who.length) { const pr = await profSel(c => sb.from('profiles').select(c).in('id', who)); (pr.data || []).forEach(x => { prof[x.id] = { id: x.id, username: x.username, avatar: x.avatar || null }; }); }
     return { list, me, seenIds: (sv.data || []).map(x => x.story_id), views: (vw.data || []).filter(x => x.viewer !== me), reactions: rx.data || [], replies: rp.data || [], votes: vt.data || [], close: (cf.data || []).map(x => x.friend), prof };
   }
+  // Deletes your own stories that have ended (and aren't Highlights), files included. Runs from your own app.
+  async function storiesCleanup() {
+    if (!sb || !S.user || !navigator.onLine) return 0; const cut = new Date(Date.now() - 3600000).toISOString();
+    const r = await sb.from('stories').select('id,media').eq('user_id', S.user.id).is('highlight', null).lt('expires_at', cut).limit(50);
+    const list = r.data || []; if (!list.length) return 0;
+    const paths = list.flatMap(s => (s.media || []).map(m => m.path)); for (let i = 0; i < paths.length; i += 100) await sb.storage.from('stories').remove(paths.slice(i, i + 100));
+    await sb.from('stories').delete().in('id', list.map(s => s.id)); return list.length;
+  }
   async function storyPost(o) {
     if (!navigator.onLine || !(await connect()) || !S.user) throw new Error('You’re offline. Try again when you’re connected.');
     const me = S.user.id, sid = (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); })), media = [];
@@ -266,7 +274,7 @@
   }
 
   window.GWSync = {
-    init, schedule, sync, social, setAvatar, follow, findUser, searchUsers, storiesLoad, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
+    init, schedule, sync, social, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
     attach: h => { host = h; },
     on: f => { subs.add(f); f(Object.assign({}, S)); return () => subs.delete(f); },
     state: () => Object.assign({}, S)

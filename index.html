@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=7"></script>
+<script src="./sync.js?v=8"></script>
 <style>
 html,body{margin:0;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -2033,7 +2033,8 @@ class Component extends DCLogic {
     if (!q || !G || !G.searchUsers) { this.setState({ sugg: [] }); return; } G.searchUsers(q).then(list => { if (tok === this.sugTok) this.setState({ sugg: list || [] }); }).catch(() => {}); }
   // ===== Stories =====
   loadStories() { const G = window.GWSync; if (!G || !G.storiesLoad || this.stLoading) return; this.stLoading = true;
-    G.storiesLoad().then(s => { this.stLoading = false; if (s) { this.setState({ stories: s }); this.storyNotify(s); } }).catch(() => { this.stLoading = false; }); }
+    G.storiesLoad().then(s => { this.stLoading = false; if (s) { this.setState({ stories: s }); this.storyNotify(s);
+      if (!s.missing && G.storiesCleanup && Date.now() - (this.cleanAt || 0) > 3 * 3600000) { this.cleanAt = Date.now(); G.storiesCleanup().catch(() => {}); } } }).catch(() => { this.stLoading = false; }); }
   storyIdx() { const S = this.state.stories; if (this._sxFor === S && this._sx) return this._sx; const now = Date.now(), by = new Map(), hl = new Map(), seen = new Set((S && S.seenIds) || []), me = S && S.me;
     ((S && S.list) || []).forEach(s => { if (new Date(s.expires_at).getTime() > now) { if (!by.has(s.user_id)) by.set(s.user_id, []); by.get(s.user_id).push(s); }
       if (s.highlight) { if (!hl.has(s.user_id)) hl.set(s.user_id, new Map()); const m = hl.get(s.user_id); if (!m.has(s.highlight)) m.set(s.highlight, []); m.get(s.highlight).push(s); } });
