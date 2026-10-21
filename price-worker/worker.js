@@ -30,20 +30,26 @@ const num = s => {
 };
 const codeOf = c => { if (!c) return null; c = String(c).trim(); return ({ '€': 'EUR', '$': 'USD', '£': 'GBP' })[c] || (/^[A-Z]{3}$/.test(c) ? c : null); };
 
+const BOT = /cf-chl|challenge-platform|Just a moment\.\.\.|Attention Required|captcha-delivery|Access denied|Human verification|Checking if you(?:'|’)re human|security check to protect|Verify you are human|Pardon Our Interruption/i;
 async function get(url, json) {
   const r = await fetch(url, { headers: json ? Object.assign({}, HEAD, { accept: 'application/json' }) : HEAD, redirect: 'follow' });
   const text = await r.text();
   if (!r.ok) { const e = new Error('HTTP ' + r.status); e.blocked = [401, 403, 429, 503].includes(r.status); throw e; }
-  if (!json && text.length < 40000 && /cf-chl|challenge-platform|Just a moment\.\.\.|Attention Required|captcha-delivery|Access denied/i.test(text)) { const e = new Error('bot check page'); e.blocked = true; throw e; }
+  if (json && /^\s*</.test(text) && BOT.test(text.slice(0, 20000))) { const e = new Error('bot check page'); e.blocked = true; throw e; }
+  if (!json && text.length < 40000 && BOT.test(text)) { const e = new Error('bot check page'); e.blocked = true; throw e; }
   return text;
 }
 // A public page reader that loads the page in a real browser. Used when a shop blocks us.
 let READER_KEY = ''; // optional free key from jina.ai for a higher limit (set JINA_KEY on the worker)
-async function reader(url, fmt) {
-  const h = { 'x-return-format': fmt || 'html', accept: 'text/html,text/plain' }; if (READER_KEY) h.authorization = 'Bearer ' + READER_KEY;
+async function reader(url, fmt, wait) {
+  // Give the browser time to get past "checking if you're human" pages and wait until a price shows.
+  const h = { 'x-return-format': fmt || 'html', accept: 'text/html,text/plain', 'x-timeout': '25', 'x-no-cache': 'true', 'x-engine': 'browser' };
+  if (wait) h['x-wait-for-selector'] = '[data-price-type="finalPrice"], [itemprop="price"], .price, .product-price, .price-box';
+  if (READER_KEY) h.authorization = 'Bearer ' + READER_KEY;
   const r = await fetch('https://r.jina.ai/' + url, { headers: h });
-  if (!r.ok) throw new Error('reader HTTP ' + r.status);
-  return r.text();
+  if (!r.ok) throw new Error('reader HTTP ' + r.status + (r.status === 429 && !READER_KEY ? ' (too many requests, add a JINA_KEY)' : ''));
+  const t = await r.text(); if (t.length < 40000 && BOT.test(t)) throw new Error('reader got the bot check too');
+  return t;
 }
 
 // ---- shop platforms with a clean product feed ----
@@ -154,9 +160,10 @@ async function check(entry) {
     const title = ((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '').trim().slice(0, 80);
     tried.push('page: no price found (' + Math.round(html.length / 1024) + ' KB, title "' + title + '", starts "' + visible(html).trim().slice(0, 140) + '")'); }
   catch (e) { blocked = !!e.blocked; tried.push('page: ' + e.message); }
-  for (const fmt of ['html', 'text']) {
-    try { const h = await reader(entry.url, fmt); const r = parse(h, u); if (r) return Object.assign(r, { via: 'reader' }); tried.push('reader ' + fmt + ': no price found'); }
-    catch (e) { tried.push('reader ' + fmt + ': ' + e.message); }
+  for (const [fmt, wait] of [['html', true], ['html', false], ['text', false]]) {
+    const name = 'reader ' + fmt + (wait ? ' (waiting for price)' : '');
+    try { const h = await reader(entry.url, fmt, wait); const r = parse(h, u); if (r) return Object.assign(r, { via: 'reader' }); tried.push(name + ': no price found'); }
+    catch (e) { tried.push(name + ': ' + e.message); if (/429/.test(e.message)) break; }
   }
   const err = new Error(blocked ? 'Shop blocked the check' : 'No price found on the page'); err.detail = tried.join(' · '); throw err;
 }
@@ -171,9 +178,14 @@ async function one(entry, ctx, force) {
   const key = normUrl(entry.url); if (!key) return null;
   const cache = caches.default, ck = new Request('https://gearwatch-cache/v2/' + encodeURIComponent(key));
   if (!force) { const hit = await cache.match(ck); if (hit) return [key, await hit.json()]; }
-  let out;
-  try { const r = await check(entry); out = { ok: true, price: r.price, currency: curFor(entry, r), checked: new Date().toISOString(), how: r.how, via: r.via }; }
-  catch (e) { out = { ok: false, price: null, currency: entry.currency, checked: new Date().toISOString(), error: String(e.message || e), detail: e.detail || '' }; }
+  let out; const now = new Date().toISOString(), lk = new Request('https://gearwatch-cache/last-ok/' + encodeURIComponent(key));
+  try { const r = await check(entry); out = { ok: true, price: r.price, currency: curFor(entry, r), checked: now, okAt: now, how: r.how, via: r.via };
+    ctx.waitUntil(cache.put(lk, new Response(JSON.stringify(out), { headers: { 'cache-control': 'max-age=' + 7 * 86400 } }))); }
+  catch (e) {
+    // Shops like Libidex let the check through only some of the time. Keep the last price that was read (up to a week old).
+    const last = await cache.match(lk).then(x => (x ? x.json() : null)).catch(() => null);
+    out = last ? Object.assign({}, last, { checked: now, stale: true, error: String(e.message || e), detail: e.detail || '' })
+      : { ok: false, price: null, currency: entry.currency, checked: now, error: String(e.message || e), detail: e.detail || '' }; }
   // Remember each result for 6 hours (failures for 1) so shops aren't hit on every app open.
   ctx.waitUntil(cache.put(ck, new Response(JSON.stringify(out), { headers: { 'cache-control': 'max-age=' + (out.ok ? 21600 : 3600) } })));
   return [key, out];
