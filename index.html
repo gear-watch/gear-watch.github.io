@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=4"></script>
+<script src="./sync.js?v=5"></script>
 <style>
 html,body{margin:0;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -921,6 +921,7 @@ input::placeholder{color:#6e6e73;}
         <button onClick="{{ addProfile }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:8px;padding:0 16px;font-size:14px;cursor:pointer;">Add</button>
       </div>
       <button data-anim="up" onClick="{{ copyWatch }}" style="width:calc(100% - 32px);margin:16px 16px 0;border:0;background:#2c2c2e;border-radius:18px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:17px;color:#f5f5f7;cursor:pointer;text-align:left;"><span style="display:flex;flex-direction:column;gap:2px;"><span>Copy watch list</span><span style="font-size:12px;color:#a1a1a6;">Paste into watchlist.json so daily price checks include new items.</span></span><span style="color:#a1a1a6;">›</span></button>
+      <sc-if value="{{ canRestore }}" hint-placeholder-val="{{ false }}"><button data-anim="up" onClick="{{ restoreSeed }}" style="width:calc(100% - 32px);margin:16px 16px 0;border:0;background:#2c2c2e;border-radius:18px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:17px;color:#f5f5f7;cursor:pointer;text-align:left;"><span style="display:flex;flex-direction:column;gap:2px;"><span style="color:var(--gw-accent,#ffd60a);">Bring back your saved list</span><span style="font-size:12px;color:#a1a1a6;">{{ restoreTxt }}</span></span><span style="color:#a1a1a6;">›</span></button></sc-if>
       <button data-anim="up" onClick="{{ replayIntro }}" style="width:calc(100% - 32px);margin:16px 16px 0;border:0;background:#2c2c2e;border-radius:18px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:17px;color:#f5f5f7;cursor:pointer;text-align:left;"><span>Show the intro again</span><span style="color:#a1a1a6;">›</span></button>
     </sc-if>
 
@@ -1830,6 +1831,8 @@ class Component extends DCLogic {
     const doName = async () => { this.setState({ authBusy: true, authErr: '' }); try { await G.setUsername(st.unameIn); this.setState({ authBusy: false }); } catch (e) { this.setState({ authBusy: false, authErr: (e && e.message) || 'Couldn’t save that name.' }); } };
     const gateMain = () => { if (st.authBusy || !G) return; if (gStep === 'email') doSend(); else if (gStep === 'code') doVerify(); else if (gStep === 'name') doName(); };
     const agoMin = A.lastSync ? Math.round((Date.now() - A.lastSync) / 60000) : null;
+    const seedP = this._seedP !== undefined ? this._seedP : (this._seedP = (() => { try { return seed().profiles[0] || null; } catch (e) { return null; } })());
+    const seedMissing = seedP ? (seedP.items || []).filter(i => !p.items.some(x => x.id === i.id)) : [];
     const dropIt = this.dropItem();
 
     const vals = (p.session && p.session.values) || {}, hasSession = !!(p.session && Object.keys(vals).length);
@@ -1910,6 +1913,8 @@ class Component extends DCLogic {
             images: (sb.images || []).map(im => ({ src: im.src, label: im.kind === 'guide' ? 'Measuring guide' : 'Size chart' })), hasImages: !!(sb.images || []).length };
         }
         return out; })(),
+      canRestore: seedMissing.length > 0, restoreTxt: plural(seedMissing.length, 'item') + (seedP && seedP.session && !p.session ? ', your measurements' : '') + ' and your budget from this app’s saved copy. Nothing gets removed.',
+      restoreSeed: () => { const add = seedMissing.map(i => JSON.parse(JSON.stringify(i))), n = add.length; this.closeSheet(() => { this.mutate(pp => { pp.items = pp.items.concat(add.filter(i => !pp.items.some(x => x.id === i.id))); if (!pp.session && seedP.session) pp.session = JSON.parse(JSON.stringify(seedP.session)); if (!(pp.budget && pp.budget.amount) && seedP.budget && seedP.budget.amount) pp.budget = Object.assign({}, seedP.budget); if (pp.name === 'Me' && seedP.name) pp.name = seedP.name; }); this.toast('Restored ' + plural(n, 'item')); }); },
       isFriends: st.tab === 'friends', tabFriends: st.tab === 'friends' ? ACC : '#8e8e93',
       goFriends: e => { this.goTab('friends', e); this.loadSocial(); }, fr, hasFriend: !!fU, fv, friendRef: this.friendRef,
       fvTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 8px)', gateTop: framed ? '64px' : 'calc(env(safe-area-inset-top) + 24px)',

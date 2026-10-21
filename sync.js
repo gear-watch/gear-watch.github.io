@@ -47,6 +47,26 @@
     await sync(); set({ firstDone: true });
   }
 
+  const hasStuff = gw => !!gw && (gw.profiles || []).some(p => (p.items || []).length || (p.outfits || []).length);
+  function merge(a, b) {
+    const out = JSON.parse(JSON.stringify(a || {})), L = JSON.parse(JSON.stringify(b || {}));
+    out.profiles = out.profiles || [];
+    (L.profiles || []).forEach(lp => {
+      let sp = out.profiles.find(p => p.id === lp.id);
+      if (!sp && out.profiles.length === 1 && (L.profiles || []).length === 1) sp = out.profiles[0];
+      if (!sp) { out.profiles.push(lp); return; }
+      if (!(sp.items || []).length && !(sp.outfits || []).length) { Object.keys(sp).forEach(k => delete sp[k]); Object.assign(sp, lp); if (out.activeId !== lp.id && out.profiles.length === 1) out.activeId = lp.id; return; }
+      const ids = new Set((sp.items || []).map(i => i.id)); (lp.items || []).forEach(i => { if (!ids.has(i.id)) (sp.items = sp.items || []).push(i); });
+      const oids = new Set((sp.outfits || []).map(o => o.id)); (lp.outfits || []).forEach(o => { if (!oids.has(o.id)) (sp.outfits = sp.outfits || []).push(o); });
+      if (!sp.session && lp.session) sp.session = lp.session;
+      if (!(sp.budget && sp.budget.amount) && lp.budget && lp.budget.amount) sp.budget = lp.budget;
+    });
+    out.collCats = [...new Set((out.collCats || []).concat(L.collCats || []))];
+    out.onboarded = !!(out.onboarded || L.onboarded); out.v = out.v || L.v || 1;
+    Object.keys(L).forEach(k => { if (/^imp\d+$/.test(k) && L[k]) out[k] = true; });
+    if (!out.profiles.find(p => p.id === out.activeId)) out.activeId = (out.profiles[0] || {}).id;
+    return out;
+  }
   function schedule(ms) { clearTimeout(timer); timer = setTimeout(sync, ms == null ? 1500 : ms); }
 
   async function uploadPhotos(gw, uid) {
@@ -87,14 +107,15 @@
       const rmod = row && row.data ? row.data.mod || 0 : 0, base = known ? m.base || 0 : 0;
       let action = 'none';
       if (!row) action = 'push';
-      else if (!known) action = 'pull';
+      else if (!known) { const sg = row.data && row.data.gw; action = !hasStuff(sg) ? (hasStuff(gw) ? 'push' : 'pull') : !hasStuff(gw) ? 'pull' : 'merge'; }
       else { const ld = lmod > base, rd = rmod > base; action = ld && rd ? (lmod >= rmod ? 'push' : 'pull') : ld ? 'push' : rd ? 'pull' : 'none'; }
       if (action === 'pull') {
         const d = row.data; if (d.gw) host.apply(d.gw);
         if (d.fitlog != null) { try { localStorage.setItem(FL, d.fitlog); } catch (e) {} }
         setMeta({ uid, base: rmod, flHash: hash(d.fitlog != null ? d.fitlog : fl) });
-      } else if (action === 'push') {
-        gw = JSON.parse(JSON.stringify(gw)); await uploadPhotos(gw, uid); gw.mod = lmod || Date.now();
+      } else if (action === 'push' || action === 'merge') {
+        gw = action === 'merge' ? merge(row.data.gw, gw) : JSON.parse(JSON.stringify(gw));
+        if (action === 'merge') lmod = Math.max(lmod, rmod, Date.now()); await uploadPhotos(gw, uid); gw.mod = lmod || Date.now();
         if ((host.get().mod || 0) === before) host.apply(gw); else again = true;
         const now = new Date().toISOString();
         const r = await sb.from('user_data').upsert({ user_id: uid, data: { v: 1, mod: gw.mod, gw, fitlog: fl }, updated_at: now }); if (r.error) throw r.error;
