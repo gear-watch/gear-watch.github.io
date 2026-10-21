@@ -1,7 +1,7 @@
 // GearWatch account + sync layer (Supabase). Loaded by GearWatch; does nothing until config.js has a Supabase URL and key.
 (function () {
   const META = 'gearwatch.sync', AUTH = 'gearwatch.auth', FL = 'fitlog.v2', GW = 'gearwatch.v1';
-  const UMD = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';
+  const LIBS = ['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', 'https://unpkg.com/@supabase/supabase-js@2'];
   const cfg = () => ({ url: String(window.GW_SUPABASE_URL || '').trim(), key: String(window.GW_SUPABASE_ANON_KEY || '').trim() });
   let sb = null, host = null, timer = null, busy = false, again = false, lastUid;
   const subs = new Set();
@@ -11,20 +11,29 @@
   const meta = () => { try { return JSON.parse(localStorage.getItem(META)) || {}; } catch (e) { return {}; } };
   const setMeta = o => { const m = Object.assign(meta(), o); try { localStorage.setItem(META, JSON.stringify(m)); } catch (e) {} return m; };
   const hash = s => { if (s == null) return ''; let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36) + '-' + s.length; };
-  const loadLib = () => new Promise((res, rej) => { if (window.supabase && window.supabase.createClient) return res(); const s = document.createElement('script'); s.src = UMD; s.onload = () => res(); s.onerror = rej; document.head.appendChild(s); });
+  const loadOne = src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => (window.supabase && window.supabase.createClient ? res() : rej(new Error('no client'))); s.onerror = () => rej(new Error('load failed')); document.head.appendChild(s); });
+  async function loadLib() { if (window.supabase && window.supabase.createClient) return; let err; for (const src of LIBS) { try { await loadOne(src); return; } catch (e) { err = e; } } throw err; }
+  let started = false, why = '';
   const cachedUser = () => { try { const a = JSON.parse(localStorage.getItem(AUTH)); return a && a.user ? { id: a.user.id, email: a.user.email } : null; } catch (e) { return null; } };
   const uname = s => String(s || '').trim().replace(/^@/, '').toLowerCase();
 
-  async function init() {
-    if (!S.configured || sb) { set({ ready: true }); return; }
-    window.addEventListener('online', () => schedule(0));
-    window.addEventListener('offline', () => set({ status: 'offline' }));
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') schedule(0); });
-    try { await loadLib(); } catch (e) { const u = cachedUser(); set({ ready: true, user: u, email: u ? u.email : '', status: 'offline', firstDone: true }); return; }
+  async function connect() {
+    if (sb) return true;
+    try { await loadLib(); } catch (e) { why = navigator.onLine ? 'Couldn’t load the sign-in service. A content blocker may be stopping cdn.jsdelivr.net.' : 'You’re offline.'; return false; }
     const c = cfg();
-    sb = window.supabase.createClient(c.url, c.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: AUTH } });
+    try { sb = window.supabase.createClient(c.url, c.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: AUTH } }); }
+    catch (e) { why = 'The Supabase address in config.js looks wrong. It should look like https://abcd.supabase.co'; return false; }
     sb.auth.onAuthStateChange((ev, s) => { setTimeout(() => onSession(s), 0); });
     try { const { data } = await sb.auth.getSession(); await onSession(data.session); } catch (e) {}
+    return true;
+  }
+  async function init() {
+    if (!S.configured) { set({ ready: true }); return; }
+    if (!started) { started = true;
+      window.addEventListener('online', () => { connect().then(() => schedule(0)); });
+      window.addEventListener('offline', () => set({ status: 'offline' }));
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') schedule(0); }); }
+    if (!(await connect())) { const u = cachedUser(); set({ ready: true, user: u, email: u ? u.email : '', status: 'offline', firstDone: true, error: why }); return; }
     set({ ready: true });
   }
 
@@ -113,7 +122,7 @@
   }
   async function follow(name) {
     const u = uname(name); if (!u) throw new Error('Type a username.');
-    if (!sb || !S.user) throw new Error('You’re offline.');
+    if (!(await connect()) || !S.user) throw new Error(why || 'You’re offline.');
     const { data } = await sb.from('profiles').select('id,username').eq('username', u).maybeSingle();
     if (!data) throw new Error('No one is called @' + u + '.');
     if (data.id === S.user.id) throw new Error('That’s you.');
@@ -132,7 +141,7 @@
     set({ username: u, needName: false }); schedule(0);
   }
   async function sendCode(email) {
-    if (!sb) throw new Error('You’re offline.');
+    if (!(await connect())) throw new Error(why || 'You’re offline.');
     const r = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: true } });
     if (r.error) throw r.error;
   }
