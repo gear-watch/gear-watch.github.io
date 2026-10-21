@@ -763,7 +763,8 @@ class Component extends DCLogic {
     try { data = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
     if (!data && window.FITLOG_BRANDS) { data = seed(); this.persist(data); }
     else if (data && window.FITLOG_BRANDS) { const m = migrate(JSON.parse(JSON.stringify(data))); if (m) { data = m; this.persist(data); } }
-    return { data, tab: this.props.startTab || 'home', view: null, brandId: null, garmentIdx: null, sizeIdx: null, editSize: 0,
+    this.fromGw = /[#&]measure\b/.test(location.hash || ''); if (this.fromGw) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
+    return { data, tab: this.props.startTab || (this.fromGw ? 'measure' : 'home'), view: null, brandId: null, garmentIdx: null, sizeIdx: null, editSize: 0,
       quickBrandId: null, quickGarmentIdx: null, figGroup: null, draft: {}, draftDate: todayISO(), showMore: false, hints: {},
       sheet: null, sheetArg: null, od: null, buf: {}, toast: null, imgs: {}, viewer: null, vz: 1, vx: 0, vy: 0, measureMore: null };
   }
@@ -1098,7 +1099,7 @@ class Component extends DCLogic {
       isBrandList: s.tab === 'brands' && !s.view, isBrandDetail: s.tab === 'brands' && s.view === 'brand' && !!b, isChartEdit: s.tab === 'brands' && s.view === 'chartEdit' && !!g,
       isOrderList: s.tab === 'orders' && s.view !== 'order', isOrderEdit: s.tab === 'orders' && s.view === 'order' && !!od,
       overview, summaryTitle: latest ? 'Measured ' + agoText(ago).toLowerCase() : 'Not measured yet', summarySub: latest ? fmtDate(latest.date) + ' · ' + (ago >= d.staleDays ? 'time to remeasure' : 'remeasure in ' + left + ' days') : 'Add your first set', measureCta: latest ? 'Update' : 'Start',
-      cancelMeasure: () => this.nav({ tab: 'home', view: null }),
+      cancelMeasure: () => { if (this.fromGw) { location.href = './index.html#meas'; return; } this.nav({ tab: 'home', view: null }); },
       todayLabel: new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }),
       profileName: prof.name, hasSessions: !!latest, noSessions: !latest, sessionCount: String(sess.length),
       agoLabel: agoText(ago), agoLabelLower: agoText(ago).toLowerCase(), agoBig: ago <= 0 ? 'Today' : String(ago),
@@ -1126,7 +1127,7 @@ class Component extends DCLogic {
         const values = {}; Object.entries(s.draft).forEach(([k, v]) => { const c = this.toCmP(k, v); if (c != null) values[k] = Math.round(c * 10) / 10; });
         if (!Object.keys(values).length) return this.flash('Enter at least one measurement');
         this.mut((dd, pp) => { pp.sessions.push({ id: uid(), date: s.draftDate, values }); });
-        this.nav({ tab: 'home', draft: {}, draftDate: todayISO(), hints: {} }); this.flash('Measurements saved');
+        this.flash('Measurements saved'); if (this.fromGw) { this.fromGw = false; setTimeout(() => { location.href = './index.html#meas'; }, 700); return; } this.nav({ tab: 'home', draft: {}, draftDate: todayISO(), hints: {} });
       },
       toggleMore: () => this.setState({ showMore: !s.showMore }), moreLabel: s.showMore ? 'Show fewer points' : 'Show all ' + POINTS.length + ' points',
       th: thm,

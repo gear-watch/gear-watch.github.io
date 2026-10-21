@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=10"></script>
+<script src="./sync.js?v=11"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -326,7 +326,7 @@ input::placeholder{color:#6e6e73;}
     <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Size check</div>
     <div data-anim="up" style="padding:4px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Your best size at each brand, from your latest measurements.</div>
     <sc-if value="{{ szNoMeas }}" hint-placeholder-val="{{ false }}">
-      <div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;"><span style="font-weight:600;">No measurements yet.</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Measure once in Fitlog and every brand gets a size.</span><a href="./Fitlog.dc.html" style="margin-top:4px;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;text-decoration:none;">Open Fitlog</a></div>
+      <div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;"><span style="font-weight:600;">No measurements yet.</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Measure once in Fitlog and every brand gets a size.</span><a href="./Fitlog.dc.html#measure" style="margin-top:4px;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;text-decoration:none;">Open Fitlog</a></div>
     </sc-if>
     <div style="margin:16px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
       <sc-for list="{{ szBrands }}" as="b" hint-placeholder-count="5">
@@ -541,7 +541,7 @@ input::placeholder{color:#6e6e73;}
         <span style="font-weight:600;line-height:1.24;">{{ measuredAgo }}</span>
         <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ measuredSub }}</span>
       </div>
-      <a href="./Fitlog.dc.html" style="flex:none;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;letter-spacing:-0.224px;text-decoration:none;">Update</a>
+      <a href="./Fitlog.dc.html#measure" style="flex:none;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;letter-spacing:-0.224px;text-decoration:none;">Remeasure</a>
     </div>
     <div data-anim="scale" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:12px 8px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;">
       <div style="display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;max-width:100%;overflow-x:auto;">
@@ -565,7 +565,7 @@ input::placeholder{color:#6e6e73;}
     <div data-anim="scale" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;">
       <span style="font-family:var(--font-display);font-size:24px;font-weight:600;">No measurements yet.</span>
       <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Measure once in Fitlog. Made-to-measure items here will pick them up.</span>
-      <a href="./Fitlog.dc.html" style="margin-top:8px;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;text-decoration:none;">Open Fitlog</a>
+      <a href="./Fitlog.dc.html#measure" style="margin-top:8px;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;text-decoration:none;">Measure now</a>
     </div>
   </sc-if>
 </sc-if>
@@ -835,7 +835,7 @@ input::placeholder{color:#6e6e73;}
     <sc-if value="{{ fv.isOut }}" hint-placeholder-val="{{ false }}">
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px;padding:20px 16px 0;">
         <sc-for list="{{ fv.outfits }}" as="o" hint-placeholder-count="2">
-          <div data-anim="scale" style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+          <div data-anim="scale" onClick="{{ o.onOpen }}" style="display:flex;flex-direction:column;gap:2px;min-width:0;cursor:pointer;" style-active="transform:scale(0.97);">
             <div style="position:relative;aspect-ratio:3/4;border-radius:18px;overflow:hidden;background:#1c1c1e;margin-bottom:8px;">
               <sc-if value="{{ o.hasCover }}" hint-placeholder-val="{{ false }}"><img src="{{ o.cover }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if>
               <sc-if value="{{ o.noCover }}" hint-placeholder-val="{{ true }}"><sc-for list="{{ o.board }}" as="b" hint-placeholder-count="0"><div style="position:absolute;left:{{ b.left }};top:{{ b.top }};width:{{ b.w }};height:{{ b.h }};transform:translate(-50%,-50%);z-index:{{ b.z }};"><img src="{{ b.src }}" alt="" draggable="false" style="display:block;width:100%;height:100%;object-fit:{{ b.fit }};object-position:{{ b.op }};border-radius:{{ b.rad }};filter:{{ b.fx }};pointer-events:none;"></div></sc-for></sc-if>
@@ -863,8 +863,35 @@ input::placeholder{color:#6e6e73;}
     <div style="padding:24px 16px 0;display:flex;justify-content:center;"><button onClick="{{ fv.onUnfollow }}" style="border:0;background:none;color:#ff453a;font-size:17px;padding:8px;cursor:pointer;">{{ fv.unfLabel }}</button></div>
   </div>
 </sc-if>
+<sc-if value="{{ hasFOutfit }}" hint-placeholder-val="{{ false }}">
+  <div ref="{{ fOutRef }}" data-anim="push" data-delay="0" style="position:absolute;inset:0;z-index:22;background:#000;overflow-y:auto;scrollbar-width:none;padding-top:{{ fvTop }};padding-bottom:40px;box-shadow:-20px 0 40px rgba(0,0,0,0.5);">
+    <div style="padding:0 8px;"><button onClick="{{ fo.onBack }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">‹ {{ fo.back }}</button></div>
+    <div data-anim="scale" onClick="{{ fo.onZoom }}" style="margin:8px 16px 0;position:relative;aspect-ratio:3/4;border-radius:18px;overflow:hidden;background:#1c1c1e;cursor:{{ fo.zoomCur }};">
+      <sc-if value="{{ fo.hasCover }}" hint-placeholder-val="{{ false }}"><img src="{{ fo.cover }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if>
+      <sc-if value="{{ fo.noCover }}" hint-placeholder-val="{{ true }}"><sc-for list="{{ fo.board }}" as="b" hint-placeholder-count="0"><div style="position:absolute;left:{{ b.left }};top:{{ b.top }};width:{{ b.w }};height:{{ b.h }};transform:translate(-50%,-50%);z-index:{{ b.z }};"><img src="{{ b.src }}" alt="" draggable="false" style="display:block;width:100%;height:100%;object-fit:{{ b.fit }};object-position:{{ b.op }};border-radius:{{ b.rad }};filter:{{ b.fx }};pointer-events:none;"></div></sc-for></sc-if>
+    </div>
+    <div data-anim="up" style="padding:20px 20px 0;display:flex;flex-direction:column;gap:4px;">
+      <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Outfit</span>
+      <span style="font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1.14;letter-spacing:-0.374px;text-wrap:pretty;">{{ fo.name }}</span>
+      <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fo.sub }}</span>
+    </div>
+    <sc-if value="{{ fo.hasItems }}" hint-placeholder-val="{{ true }}">
+      <div data-anim="right" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">In this outfit</div>
+      <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+        <sc-for list="{{ fo.items }}" as="i" hint-placeholder-count="3">
+          <div data-anim="up" onClick="{{ i.onOpen }}" style="background:#1c1c1e;display:flex;gap:12px;align-items:center;padding:12px 16px 12px 12px;cursor:pointer;transition:background .2s;" style-active="background:#2c2c2e;">
+            <sc-if value="{{ i.hasPhoto }}" hint-placeholder-val="{{ true }}"><img src="{{ i.photo }}" alt="" style="width:56px;height:56px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;"></sc-if>
+            <sc-if value="{{ i.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="width:56px;height:56px;border-radius:8px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-weight:600;flex:none;">{{ i.initial }}</span></sc-if>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ i.name }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ i.sub }}</span></div>
+            <span style="color:#6e6e73;flex:none;">›</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+</sc-if>
 <sc-if value="{{ hasFItem }}" hint-placeholder-val="{{ false }}">
-  <div ref="{{ fItemRef }}" data-anim="push" data-delay="0" style="position:absolute;inset:0;z-index:22;background:#000;overflow-y:auto;scrollbar-width:none;padding-top:{{ fvTop }};padding-bottom:40px;box-shadow:-20px 0 40px rgba(0,0,0,0.5);">
+  <div ref="{{ fItemRef }}" data-anim="push" data-delay="0" style="position:absolute;inset:0;z-index:23;background:#000;overflow-y:auto;scrollbar-width:none;padding-top:{{ fvTop }};padding-bottom:40px;box-shadow:-20px 0 40px rgba(0,0,0,0.5);">
     <div style="padding:0 8px;"><button onClick="{{ fi.onBack }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">‹ {{ fi.back }}</button></div>
     <sc-if value="{{ fi.hasPhotos }}" hint-placeholder-val="{{ true }}">
       <div data-anim="scale" style="margin:8px 16px 0;position:relative;">
@@ -1203,6 +1230,12 @@ input::placeholder{color:#6e6e73;}
         </div>
       </div>
 
+      <sc-if value="{{ fBudgetShow }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="up" onClick="{{ fBudgetToggle }}" style="margin:12px 16px 0;background:#2c2c2e;border-radius:18px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;">
+          <span style="display:flex;flex-direction:column;"><span>Count in budget</span><span style="font-size:12px;color:#a1a1a6;letter-spacing:-0.12px;">Turn on if you just bought it</span></span>
+          <span style="width:51px;height:31px;border-radius:9999px;background:{{ fbTrack }};position:relative;flex:none;transition:background .25s;"><span style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:9999px;background:#fff;transform:translateX({{ fbKnob }});transition:transform .3s cubic-bezier(.2,.8,.2,1);"></span></span>
+        </div>
+      </sc-if>
       <div data-anim="up" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Category</div>
       <div style="padding:0 16px;display:flex;flex-wrap:wrap;gap:8px;">
         <sc-for list="{{ catChips }}" as="c" hint-placeholder-count="10"><button data-anim="pop" onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for>
@@ -1901,7 +1934,7 @@ const relT = iso => { const m = Math.round((Date.now() - new Date(iso).getTime()
 const STORY_MS = 10000;
 class Component extends DCLogic {
   state = { data: load(), tab: 'wish', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null, coll: 'items', outfit: null, builder: null, cuts: {}, cutsReady: false, cpickId: null, cpickQ: false, ovDel: false, newGrpOpen: false, newGrp: '', bdragId: null, acct: null, social: null, friend: null, friendTab: 'wish', followIn: '', followMsg: '', authEmail: '', authCode: '', unameIn: '', authErr: '' };
-  outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef(); fItemRef = React.createRef(); fiCarRef = React.createRef(); vwRef = React.createRef(); qrRef = React.createRef(); svRef = React.createRef(); scRef = React.createRef(); cropRef = React.createRef(); pcBoxRef = React.createRef(); pcRectRef = React.createRef();
+  outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef(); fItemRef = React.createRef(); fiCarRef = React.createRef(); vwRef = React.createRef(); qrRef = React.createRef(); svRef = React.createRef(); scRef = React.createRef(); cropRef = React.createRef(); pcBoxRef = React.createRef(); fOutRef = React.createRef(); pcRectRef = React.createRef();
   heroRef = React.createRef(); carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
   introRef = React.createRef(); bPanelRef = React.createRef(); toastRef = React.createRef(); figRef = React.createRef();
 
@@ -1947,7 +1980,7 @@ class Component extends DCLogic {
         if (s.firstDone && this.socialFor !== s.user.id) { this.socialFor = s.user.id; if (!this.loadSocial()) this.socialFor = null; }
         if (s.firstDone && s.username && this.pendingAdd) { const a = this.pendingAdd; this.pendingAdd = null; setTimeout(() => this.openPerson(a), 400); } } });
       G.init(); return true; };
-    this.onVis = () => { if (document.visibilityState === 'visible') this.loadSocial(true); }; document.addEventListener('visibilitychange', this.onVis); window.addEventListener('focus', this.onVis);
+    this.onVis = () => { if (document.visibilityState === 'visible') { this.loadSocial(true); this.forceUpdate(); } }; document.addEventListener('visibilitychange', this.onVis); window.addEventListener('focus', this.onVis);
     this.onRs = () => { this.svMeasure(); this.scMeasure(); }; window.addEventListener('resize', this.onRs);
     this.onKey = e => { const v = this.state.viewer; if (!v) return; if (e.key === 'Escape') this.closeViewer(); else if (e.key === 'ArrowRight') this.vwGo(v.idx + 1); else if (e.key === 'ArrowLeft') this.vwGo(v.idx - 1); }; window.addEventListener('keydown', this.onKey);
     this.socPoll = setInterval(() => { if (document.visibilityState === 'visible') this.loadSocial(true); }, 30000);
@@ -1957,6 +1990,8 @@ class Component extends DCLogic {
     const addFromHash = () => { const m = (location.hash || '').match(/[#&]add=([^&]+)/); if (!m) return; const name = decodeURIComponent(m[1]); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
       const A = window.GWSync && window.GWSync.state ? window.GWSync.state() : {}; if (A.user && A.firstDone && A.username) this.openPerson(name); else this.pendingAdd = name; };
     addFromHash();
+    if (/^#meas\b/.test(location.hash || '')) { this.setState({ tab: 'meas' }); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
+    this.onStor = e => { if (e.key === 'fitlog.v2') this.forceUpdate(); }; window.addEventListener('storage', this.onStor);
     this.onHash = () => { addFromHash(); const s2 = readShare(); this.setState({ shared: s2 && s2.n ? s2 : null }); }; window.addEventListener('hashchange', this.onHash);
     if (!this.isFramed()) { document.body.style.background = '#000'; [document.documentElement, document.body].forEach(el => { el.style.overflow = 'hidden'; el.style.height = '100%'; el.style.overscrollBehavior = 'none'; }); }
     this.reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2331,9 +2366,17 @@ class Component extends DCLogic {
     }
     return out; }
   closeFItem() { this.animOut(this.fItemRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => this.setState({ fItem: null })); }
-  closeFriend(cb) { this.animOut(this.friendRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ friend: null, fItem: null, unfArm: false }); if (cb) cb(); }); }
+  closeFriend(cb) { this.animOut(this.friendRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ friend: null, fItem: null, fOutfit: null, unfArm: false }); if (cb) cb(); }); }
   prof() { const d = this.state.data; return d.profiles.find(p => p.id === d.activeId) || d.profiles[0]; }
-  mutate(fn) { const data = JSON.parse(JSON.stringify(this.state.data)); const p = data.profiles.find(x => x.id === data.activeId) || data.profiles[0]; fn(p, data); this.save(data); }
+  mutate(fn) { const data = JSON.parse(JSON.stringify(this.state.data)); const p = data.profiles.find(x => x.id === data.activeId) || data.profiles[0]; fn(p, data); this.stamp(p); this.save(data); }
+  stamp(p) { const t = todayISO(), now = Date.now();
+    (p.items || []).forEach(i => { if (i.added === t && !i.addedAt) i.addedAt = now; if (i.ownedOn === t && i.ownedAtD !== t) { i.ownedAt = now; i.ownedAtD = t; } });
+    (p.outfits || []).forEach(o => { if (o.created === t && !o.createdAt) o.createdAt = now; const lw = String((o.worn || []).slice(-1)[0] || '').slice(0, 10); if (lw === t && o.wornAtD !== t) { o.wornAt = now; o.wornAtD = t; } }); }
+  flSession() { let raw = null; try { raw = localStorage.getItem('fitlog.v2'); } catch (e) {} if (raw === this._flRaw) return this._flSess; this._flRaw = raw; this._flSess = null;
+    try { const d = JSON.parse(raw), pr = d && ((d.profiles || []).find(x => x.id === d.activeId) || (d.profiles || [])[0]), ss = ((pr && pr.sessions) || []).filter(s => s && s.values && Object.keys(s.values).length);
+      if (ss.length) { const s = ss.reduce((a, b) => (String(b.date) >= String(a.date) ? b : a)); this._flSess = { date: s.date, values: s.values }; } } catch (e) {}
+    return this._flSess; }
+  closeFOutfit() { this.animOut(this.fOutRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => this.setState({ fOutfit: null })); }
   mutItem(id, fn) { this.mutate(p => { const it = p.items.find(x => x.id === id); if (it) fn(it, p); }); }
   dropItem() { return this.prof().items.filter(i => i.status === 'wanted' && dropOf(i) > 0).sort((a, b) => dropOf(b) - dropOf(a))[0]; }
   budgetInfo(p) {
@@ -2446,13 +2489,13 @@ class Component extends DCLogic {
         if (!isNew) { const it = p.items.find(x => x.id === f.id); if (!it) return;
           if (price != null && (price !== it.price || f.currency !== it.currency)) { it.history = (it.history || []).filter(h => h.date !== t); if (f.currency !== it.currency) it.history = []; it.history.push({ date: t, price }); }
           Object.assign(it, base, { price }); }
-        else if (f.status === 'owned') p.items.push(Object.assign({ id: uid(), status: 'owned', added: t, ownedOn: t, history: [] }, base, { price, paid: price, paidCur: f.currency }));
+        else if (f.status === 'owned') p.items.push(Object.assign({ id: uid(), status: 'owned', added: t, ownedOn: t, history: [] }, base, { price, paid: price, paidCur: f.currency }, f.countBudget ? { orderedOn: t } : { noBudget: true }));
         else p.items.push(Object.assign({ id: uid(), status: 'wanted', added: t, history: price != null ? [{ date: t, price }] : [] }, base, { price }));
       });
       this.toast(isNew ? (f.status === 'owned' ? 'Added to your collection' : 'Added to your wishlist') : 'Saved');
     });
   }
-  openPaid(it, to) { this.setState({ sheet: 'paid', paid: { id: it.id, to, amt: it.paid != null ? String(it.paid) : '', cur: it.paid != null ? it.paidCur || '€' : '€', count: !it.noBudget } }); }
+  openPaid(it, to) { this.setState({ sheet: 'paid', paid: { id: it.id, to, amt: it.paid != null ? String(it.paid) : '', cur: it.paid != null ? it.paidCur || '€' : '€', count: to === 'owned' && it.status === 'wanted' ? false : !it.noBudget } }); }
   savePaid() { const P = this.state.paid; if (!P) return; this.closeSheet(() => {
       this.mutItem(P.id, it => { const was = it.status; it.status = P.to; if (!it.orderedOn) it.orderedOn = todayISO(); if (P.to === 'owned') it.ownedOn = it.ownedOn || todayISO(); else delete it.ownedOn;
         const a = toNum(P.amt); if (String(P.amt || '').trim() !== '') { it.paid = a; it.paidCur = P.cur; } else if (it.paid == null && it.price != null) { it.paid = Math.round(eurOf(it) * 100) / 100; it.paidCur = '€'; }
@@ -2566,7 +2609,7 @@ class Component extends DCLogic {
     const ini = s => (String(s || '?').replace(/^@/, '').charAt(0) || '?').toUpperCase();
     const fKey = i => i.u ? normUrl(i.u) : 'n:' + String(i.n || '').toLowerCase();
     const mineKey = new Set(p.items.map(i => fKey({ u: i.url, n: i.name })));
-    const openF = (id, tab) => () => this.setState({ friend: id, friendTab: tab, unfArm: false });
+    const openF = (id, tab) => () => this.setState({ friend: id, friendTab: tab, unfArm: false, fOutfit: null });
     const feed = [];
     SO.following.filter(f => f.status === 'accepted').forEach(f => { const L = SO.lists[f.id]; if (!L) return; const who = '@' + f.username, all = (L.wish || []).concat(L.coll || []);
       (L.wish || []).forEach(i => { if (i.a) feed.push({ d: i.a, who, av: f.avatar, av: f.avatar, txt: 'added ' + i.n + ' to their wishlist', ph: (i.ph || [])[0], on: openF(f.id, 'wish') }); });
@@ -2612,15 +2655,15 @@ class Component extends DCLogic {
       busy: !!st.socialBusy, refresh: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.loadSocial(false, true); if (G) G.schedule(0); } };
     const fU = st.friend ? SO.following.find(x => x.id === st.friend) : null, fL = fU ? SO.lists[fU.id] || {} : null;
     let fv = { tabs: [], wish: [], collGroups: [], outfits: [] };
-    let fi = { photos: [], stars: [], rows: [] };
+    let fi = { photos: [], stars: [], rows: [] }, fo = { items: [], board: [] };
     const addF = i => { if (mineKey.has(fKey(i))) return false; this.mutate(pp => { pp.items.push({ id: uid(), name: i.n, brand: i.b || '', category: i.cat || '', url: i.u || '', photos: (i.ph || []).slice(), currency: i.c || '€', price: i.p == null ? null : i.p, history: i.p == null ? [] : [{ date: todayISO(), price: i.p }], rating: 3, status: 'wanted', size: '', colour: '', m2m: false, added: todayISO() }); }); this.toast('Added to your wishlist'); return true; };
     const openI = (id, kind) => () => this.setState({ fItem: { id, kind }, fiIdx: 0 });
     { const groups = new Map();
       SO.following.filter(f => f.status === 'accepted').forEach(f => { const L = SO.lists[f.id]; if (!L) return; const all = (L.wish || []).concat(L.coll || []);
-        const push = (kind, d, obj) => { if (!d) return; d = String(d).slice(0, 10); const k = f.id + '|' + kind + '|' + d; if (!groups.has(k)) groups.set(k, { f, kind, d, list: [] }); groups.get(k).list.push(obj); };
-        (L.wish || []).forEach(i => push('wish', i.a, i)); (L.coll || []).forEach(i => { if (!i.ow) push('coll', i.o, i); });
+        const push = (kind, d, obj, ts) => { if (!d) return; d = String(d).slice(0, 10); const k = f.id + '|' + kind + '|' + d; if (!groups.has(k)) groups.set(k, { f, kind, d, t: 0, list: [] }); const g = groups.get(k); g.t = Math.max(g.t, ts || 0); g.list.push(Object.assign({ _t: ts || 0 }, obj)); };
+        (L.wish || []).forEach(i => push('wish', i.a, i, i.at)); (L.coll || []).forEach(i => { if (!i.ow) push('coll', i.o, i, i.ot); });
         (L.outfits || []).forEach(o => { const hit = all.find(x => (o.ids || []).includes(x.id) && (x.ph || []).length), oo = Object.assign({}, o, { _ph: (o.ph || [])[0] || (hit ? hit.ph[0] : ''), _n: (o.ids || []).filter(id => all.some(x => x.id === id)).length });
-          push('outfit', o.cr, oo); if (o.lw && o.lw !== o.cr) push('wore', o.lw, oo); }); });
+          push('outfit', o.cr, oo, o.ct); if (o.lw && o.lw !== o.cr) push('wore', o.lw, oo, o.wt); }); });
       const t0 = new Date(); t0.setHours(12, 0, 0, 0);
       const dayLbl = iso => { const d = new Date(iso + 'T12:00:00'), n = Math.round((t0 - d) / 864e5); return n <= 0 ? 'Today' : n === 1 ? 'Yesterday' : n < 7 ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][d.getDay()] : d.getDate() + ' ' + MON[d.getMonth()] + (d.getFullYear() !== t0.getFullYear() ? ' ' + d.getFullYear() : ''); };
       const itemOpen = (f, kind, i) => () => this.setState({ friend: f.id, friendTab: kind, fItem: { id: i.id, kind }, fiIdx: 0, unfArm: false });
@@ -2631,11 +2674,11 @@ class Component extends DCLogic {
         if (n === 1) { const img = isO ? one._ph : (one.ph || [])[0], have = !isO && mineKey.has(fKey(one));
           return Object.assign(base, { single: true, multi: false, tiles: [], img: img || '', hasImg: !!img, noImg: !img, itemInitial: ini(one.n), title: one.n,
             sub: isO ? plural(one._n, 'piece') + (one.w ? ' · Worn ' + one.w + '×' : '') : [one.b, pTxt(one)].filter(Boolean).join(' · ') || ' ',
-            onOpen: isO ? openF(f.id, 'outfits') : itemOpen(f, g.kind, one), hasBtn: !isO, btnLabel: have ? 'On your list' : 'Add', btnColor: have ? '#6e6e73' : ACC,
+            onOpen: isO ? () => this.setState({ friend: f.id, friendTab: 'outfits', fOutfit: one.id, fItem: null, unfArm: false }) : itemOpen(f, g.kind, one), hasBtn: !isO, btnLabel: have ? 'On your list' : 'Add', btnColor: have ? '#6e6e73' : ACC,
             onBtn: e => { e.stopPropagation(); if (have) return; this.bump(e.currentTarget, 1.1); addF(one); } }); }
         return Object.assign(base, { single: false, multi: true, tiles: g.list.map(i => { const img = isO ? i._ph : (i.ph || [])[0]; return { img: img || '', hasImg: !!img, noImg: !img, initial: ini(i.n), name: i.n,
-          sub: isO ? plural(i._n, 'piece') : [i.b, pTxt(i)].filter(Boolean).join(' · ') || ' ', onOpen: isO ? openF(f.id, 'outfits') : itemOpen(f, g.kind, i) }; }) }); };
-      const days = []; Array.from(groups.values()).sort((a, b) => b.d.localeCompare(a.d)).slice(0, 30).forEach(g => { const l = dayLbl(g.d); let D = days[days.length - 1]; if (!D || D.label !== l) days.push(D = { label: l, cards: [] }); D.cards.push(card(g)); });
+          sub: isO ? plural(i._n, 'piece') : [i.b, pTxt(i)].filter(Boolean).join(' · ') || ' ', onOpen: isO ? () => this.setState({ friend: f.id, friendTab: 'outfits', fOutfit: i.id, fItem: null, unfArm: false }) : itemOpen(f, g.kind, i) }; }) }); };
+      const days = []; Array.from(groups.values()).sort((a, b) => b.d.localeCompare(a.d) || b.t - a.t).slice(0, 30).forEach(g => { g.list.sort((a, b) => b._t - a._t); const l = dayLbl(g.d); let D = days[days.length - 1]; if (!D || D.label !== l) days.push(D = { label: l, cards: [] }); D.cards.push(card(g)); });
       Object.assign(fr, { feedDays: days, hasFeed: days.length > 0, noFeed: !days.length }); }
 
     if (fU) { const ft = st.friendTab || 'wish', W = fL.wish || [], C = fL.coll || [], O = fL.outfits || [], all = W.concat(C), cg = new Map();
@@ -2648,6 +2691,13 @@ class Component extends DCLogic {
           url: FI.u || '', hasUrl: !!host, host, addLabel: have ? 'On your list' : 'Add to my wishlist', addBg: have ? '#1c1c1e' : ACC, addFg: have ? '#6e6e73' : '#000',
           onAdd: e => { if (have) return; this.bump(e.currentTarget, 1.04); addF(FI); }, onBack: () => this.closeFItem(),
           onZoom: () => this.openViewer(phs, st.fiIdx || 0, i => { const el = this.fiCarRef.current; if (el) el.scrollTo({ left: i * el.clientWidth }); this.setState({ fiIdx: i }); }) }; }
+      const FOo = st.fOutfit ? O.find(o => o.id === st.fOutfit) : null;
+      if (FOo) { const its = (FOo.ids || []).map(id => { const c = C.find(x => x.id === id); if (c) return [c, 'coll']; const w = W.find(x => x.id === id); return w ? [w, 'wish'] : null; }).filter(Boolean), oph = FOo.ph || [], cov = oph[0];
+        fo = { back: '@' + fU.username, name: FOo.n, sub: [plural(its.length, 'piece'), FOo.w ? 'Worn ' + FOo.w + '×' : '', FOo.lw ? 'Last worn ' + fmtD(String(FOo.lw).slice(0, 10)) : ''].filter(Boolean).join(' · '),
+          cover: cov || '', hasCover: !!cov, noCover: !cov, zoomCur: cov ? 'zoom-in' : 'default', onZoom: () => { if (cov) this.openViewer(oph, 0); },
+          board: cov ? [] : this.board(its.map(([x]) => ({ id: x.id, name: x.n, category: x.cat, g: x.g, photos: x.ph || [] })), FOo.pos),
+          items: its.map(([x, k]) => { const ph = (x.ph || [])[0]; return { name: x.n, sub: [x.b, k === 'wish' ? 'On their wishlist' : x.ow ? 'On the way' : ''].filter(Boolean).join(' · ') || ' ', photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(x.n), onOpen: () => this.setState({ fItem: { id: x.id, kind: k }, fiIdx: 0 }) }; }),
+          hasItems: its.length > 0, onBack: () => this.closeFOutfit() }; }
       C.forEach(i => { const g = i.g || cgroupOf({ category: i.cat, name: i.n }, []) || 'Other'; if (!cg.has(g)) cg.set(g, []); cg.get(g).push(i); });
       fv = { name: '@' + fU.username, initial: ini(fU.username), av: fU.avatar || '', hasAv: !!fU.avatar, avCursor: fU.avatar ? 'zoom-in' : 'default', onAv: () => { if (fU.avatar) this.openViewer([fU.avatar], 0); }, sub: W.length + ' wanted · ' + C.length + ' in collection · ' + plural(O.length, 'outfit'),
         tabs: [['wish', 'Wishlist'], ['coll', 'Collection'], ['outfits', 'Outfits'], ['friends', 'Friends']].map(([k, l]) => ({ label: l, bg: ft === k ? '#636366' : 'transparent', onTap: () => { this.setState({ friendTab: k }); if (k === 'friends') this.loadFof(fU.id); } })),
@@ -2662,7 +2712,7 @@ class Component extends DCLogic {
         wish: W.slice().sort((a, b) => (b.r || 0) - (a.r || 0)).map(i => { const have = mineKey.has(fKey(i)), ph = (i.ph || [])[0]; return { name: i.n, brand: i.b || '', price: i.p == null ? '' : '· ' + money(i.c || '€', i.p), photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(i.n), stars: this.stars(i.r || 0), addLabel: have ? 'On your list' : 'Add', addColor: have ? '#6e6e73' : ACC, onOpen: openI(i.id, 'wish'),
           onAdd: e => { e.stopPropagation(); if (have) return; this.bump(e.currentTarget, 1.1); addF(i); } }; }),
         collGroups: Array.from(cg.entries()).map(([title, a]) => ({ title, count: String(a.length), items: a.map(i => { const ph = (i.ph || [])[0]; return { name: i.n, sub: [i.b, i.ow ? 'On the way' : ''].filter(Boolean).join(' · ') || ' ', photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(i.n), onOpen: openI(i.id, 'coll') }; }) })),
-        outfits: O.slice().reverse().map(o => { const its = (o.ids || []).map(id => all.find(x => x.id === id)).filter(Boolean).map(x => ({ id: x.id, name: x.n, category: x.cat, g: x.g, photos: x.ph || [] })), cov = (o.ph || [])[0]; return { name: o.n, sub: plural(its.length, 'piece') + (o.w ? ' · Worn ' + o.w + '×' : ''), cover: cov || '', hasCover: !!cov, noCover: !cov, board: cov ? [] : this.board(its, o.pos) }; }),
+        outfits: O.slice().reverse().map(o => { const its = (o.ids || []).map(id => all.find(x => x.id === id)).filter(Boolean).map(x => ({ id: x.id, name: x.n, category: x.cat, g: x.g, photos: x.ph || [] })), cov = (o.ph || [])[0]; return { name: o.n, sub: plural(its.length, 'piece') + (o.w ? ' · Worn ' + o.w + '×' : ''), cover: cov || '', hasCover: !!cov, noCover: !cov, board: cov ? [] : this.board(its, o.pos), onOpen: () => this.setState({ fOutfit: o.id }) }; }),
         onBack: () => this.closeFriend(), unfLabel: st.unfArm ? 'Tap again to remove' : 'Remove friend', pillBg: st.unfArm ? '#ff453a' : '#2c2c2e', pillCheck: !st.unfArm, pillLabel: st.unfArm ? 'Remove friend?' : 'Friends',
         onUnfollow: () => { if (!st.unfArm) { this.setState({ unfArm: true }); clearTimeout(this.unfT); this.unfT = setTimeout(() => this.setState({ unfArm: false }), 3500); return; } const id = fU.id; this.closeFriend(async () => { try { await G.unfollow(id); } catch (e) {} this.loadSocial(); this.toast('Removed @' + fU.username); }); } };
     }
@@ -2675,11 +2725,11 @@ class Component extends DCLogic {
     const seedMissing = seedP ? (seedP.items || []).filter(i => !p.items.some(x => x.id === i.id)) : [];
     const dropIt = this.dropItem();
 
-    const vals = (p.session && p.session.values) || {}, hasSession = !!(p.session && Object.keys(vals).length);
+    const sess = this.flSession() || p.session, vals = (sess && sess.values) || {}, hasSession = !!(sess && Object.keys(vals).length);
     const ft = FIG.find(f => f.id === st.figTab) || FIG[0];
     const bodyFigEl = bodyFig({ lines: ft.ids.filter(id => vals[id] != null).map(id => { const f = this.fval(vals, id); return { id, value: f.u === 'EU' ? 'EU ' + f.v : f.v + ' ' + f.u, onTap: () => this.setState({ sheet: 'point', pointId: id }) }; }) });
     const tileGroups = FIG.map(g => ({ title: g.title, items: g.ids.filter(id => vals[id] != null).map(id => { const f = this.fval(vals, id); return { label: PT[id].label, value: f.v, unit: f.u, onOpen: () => this.setState({ sheet: 'point', pointId: id }) }; }) })).filter(g => g.items.length);
-    const days = hasSession ? Math.round((new Date(todayISO() + 'T12:00:00') - new Date(p.session.date + 'T12:00:00')) / 864e5) : 0;
+    const days = hasSession ? Math.round((new Date(todayISO() + 'T12:00:00') - new Date(sess.date + 'T12:00:00')) / 864e5) : 0;
 
     let d = { stars: [], statusTabs: [], rows: [], photos: [], dots: [], needRows: [], outfits: [] }, dIt = null;
     if (st.detail) dIt = p.items.find(x => x.id === st.detail);
@@ -2780,7 +2830,7 @@ class Component extends DCLogic {
         isLink: tab === 'link', isQR: tab === 'qr', short: link.replace(/^https?:\/\//, ''), canShare: !!navigator.share, copyLabel: st.invCopied ? 'Copied' : 'Copy link',
         share: () => { navigator.share({ title: 'Add me on GearWatch', text: 'Add me on GearWatch: @' + (A.username || ''), url: link }).catch(() => {}); },
         copy: () => { try { navigator.clipboard.writeText(link); } catch (e) {} this.setState({ invCopied: true }); clearTimeout(this.cpT); this.cpT = setTimeout(() => this.setState({ invCopied: false }), 2000); },
-        note: tab === 'qr' ? 'Ask them to scan this with their phone camera. They’ll be asked to add you once they sign in.' : 'Send this to a friend. When they open it and sign in, they’ll be asked to add you.' }; })(), friendRef: this.friendRef, hasFItem: !!(fU && fi.name), fi, fItemRef: this.fItemRef, fiCarRef: this.fiCarRef,
+        note: tab === 'qr' ? 'Ask them to scan this with their phone camera. They’ll be asked to add you once they sign in.' : 'Send this to a friend. When they open it and sign in, they’ll be asked to add you.' }; })(), friendRef: this.friendRef, hasFItem: !!(fU && fi.name), fi, hasFOutfit: !!(fU && fo.name), fo, fOutRef: this.fOutRef, fItemRef: this.fItemRef, fiCarRef: this.fiCarRef,
       hasCrop: !!st.crop, crop: st.crop || {}, cropRef: this.cropRef, cropCancel: () => this.closeCrop(), cropUse: () => this.useCrop(), cropLoaded: () => this.cropInit(),
       cropDown: e => this.cropDown(e), cropMove: e => this.cropMove(e), cropUp: e => this.cropUp(e), cropWheel: e => this.cropWheel(e),
       hasViewer: !!st.viewer, vwRef: this.vwRef, vwDown: e => this.vwDown(e), vwMove: e => this.vwMove(e), vwUp: e => this.vwUp(e), vwWheel: e => this.vwWheel(e), vwStop: e => e.stopPropagation(),
@@ -2832,7 +2882,7 @@ class Component extends DCLogic {
       openBudget: () => { const b = p.budget || {}, day = b.payday || 1, k = isoD(payPeriod(day).start), sp = (b.extra || {})[k]; this.setState({ sheet: 'budget', budgetIn: b.amount ? String(b.amount) : '', paydayIn: String(day), spentIn: sp ? String(sp) : '' }); },
 
       hasSession, noSession: !hasSession, measuredAgo: days <= 0 ? 'Measured today' : days === 1 ? 'Measured yesterday' : 'Measured ' + days + ' days ago',
-      measuredSub: hasSession ? fmtD(p.session.date) + ' · ' + Object.keys(vals).length + ' measurements' : '',
+      measuredSub: hasSession ? fmtD(sess.date) + ' · ' + Object.keys(vals).length + ' measurements' : '',
       cmBg: st.unit === 'cm' ? '#636366' : 'transparent', inBg: st.unit === 'in' ? '#636366' : 'transparent',
       setCm: () => { this.setState({ unit: 'cm' }); this.replay('[data-anim="pop"]'); }, setIn: () => { this.setState({ unit: 'in' }); this.replay('[data-anim="pop"]'); },
       figTabs: FIG.map(g => ({ label: g.label, bg: st.figTab === g.id ? '#636366' : 'transparent', onTap: () => this.setState({ figTab: g.id }) })),
@@ -2896,6 +2946,7 @@ class Component extends DCLogic {
       fPrice: e => this.setF('price', e.target.value), fSize: e => this.setF('size', e.target.value), fColour: e => this.setF('colour', e.target.value),
       fillFromLink: e => { this.bump(e.currentTarget, 1.08); this.fillFromLink(); }, toggleM2M: () => this.setF('m2m', !f.m2m),
       m2mTrack: f.m2m ? ACC : '#39393d', m2mKnob: f.m2m ? '20px' : '0px',
+      fBudgetShow: !f.id && f.status === 'owned' && !!bi, fBudgetToggle: () => this.setF('countBudget', !f.countBudget), fbTrack: f.countBudget ? ACC : '#39393d', fbKnob: f.countBudget ? '20px' : '0px',
       curTabs: CURS.map(c => ({ label: c, bg: f.currency === c ? '#636366' : 'transparent', onTap: () => this.setF('currency', c) })),
       newCatOpen: !!st.newCatOpen, newCat: st.newCat || '',
       onNewCat: e => this.setState({ newCat: e.target.value }),
@@ -2933,7 +2984,7 @@ class Component extends DCLogic {
       copyWatch: () => { const seen = new Set(), list = []; this.state.data.profiles.forEach(pp => pp.items.forEach(it => { const k = it.url && normUrl(it.url); if (!k || seen.has(k)) return; seen.add(k); list.push({ url: it.url, currency: it.currency }); })); try { navigator.clipboard.writeText(JSON.stringify(list, null, 2)); } catch (e) {} this.closeSheet(() => this.toast('Watch list copied (' + list.length + ' links)')); },
       replayIntro: () => this.closeSheet(() => { this.save(Object.assign({}, this.state.data, { onboarded: false })); this.setState({ introPage: 0, introBudget: '' }); }),
       pointFig: st.pointId ? bodyFig({ single: true, lines: [{ id: st.pointId }] }) : null,
-      pointVal: pv ? pv.v : '—', pointUnit: pv ? pv.u : '', pointHint: st.pointId && PT[st.pointId] ? PT[st.pointId].hint : '', pointDate: hasSession ? 'Measured ' + fmtD(p.session.date) : '',
+      pointVal: pv ? pv.v : '—', pointUnit: pv ? pv.u : '', pointHint: st.pointId && PT[st.pointId] ? PT[st.pointId].hint : '', pointDate: hasSession ? 'Measured ' + fmtD(sess.date) : '',
       hasToast: !!st.toast, toastText: st.toast || '',
       heroRef: this.heroRef,
       ...(() => { const s = dropIt, showNext = !s || !nextIt || s.id !== nextIt.id, multi = !!s && showNext, hi = multi ? (st.heroIdx || 0) : 0;

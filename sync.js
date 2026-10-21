@@ -90,9 +90,9 @@
     const web = a => (a || []).filter(x => /^https?:/.test(x)).slice(0, 4);
     const items = (p.items || []).filter(i => !i.private);
     return {
-      wish: items.filter(i => i.status === 'wanted').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, ph: web(i.photos), u: i.url, c: i.currency, p: i.price, r: i.rating, a: i.added, s: i.size || undefined, co: i.colour || undefined, m: i.m2m ? 1 : undefined })),
-      coll: items.filter(i => i.status === 'owned' || i.status === 'ordered').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, g: i.cgroup, ph: web(i.photos), o: i.ownedOn || i.orderedOn || i.added, ow: i.status === 'ordered' ? 1 : undefined, rc: i.status === 'owned' && i.rec ? i.rec : undefined, s: i.size || undefined, co: i.colour || undefined, m: i.m2m ? 1 : undefined, u: i.url })),
-      outfits: (p.outfits || []).map((o, i) => ({ id: o.id, n: o.name || 'Outfit ' + (i + 1), ids: o.itemIds, pos: o.pos, ph: web(o.photos), w: (o.worn || []).length, lw: (o.worn || []).slice(-1)[0], cr: o.created }))
+      wish: items.filter(i => i.status === 'wanted').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, ph: web(i.photos), u: i.url, c: i.currency, p: i.price, r: i.rating, a: i.added, at: i.addedAt || undefined, s: i.size || undefined, co: i.colour || undefined, m: i.m2m ? 1 : undefined })),
+      coll: items.filter(i => i.status === 'owned' || i.status === 'ordered').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, g: i.cgroup, ph: web(i.photos), o: i.ownedOn || i.orderedOn || i.added, ot: i.ownedAt || i.addedAt || undefined, ow: i.status === 'ordered' ? 1 : undefined, rc: i.status === 'owned' && i.rec ? i.rec : undefined, s: i.size || undefined, co: i.colour || undefined, m: i.m2m ? 1 : undefined, u: i.url })),
+      outfits: (p.outfits || []).map((o, i) => ({ id: o.id, n: o.name || 'Outfit ' + (i + 1), ids: o.itemIds, pos: o.pos, ph: web(o.photos), w: (o.worn || []).length, lw: (o.worn || []).slice(-1)[0], cr: o.created, ct: o.createdAt || undefined, wt: o.wornAt || undefined }))
     };
   }
 
