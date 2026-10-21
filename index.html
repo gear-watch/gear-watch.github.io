@@ -403,10 +403,7 @@ input::placeholder{color:#6e6e73;}
       </span>
       <sc-if value="{{ fr.hasAv }}" hint-placeholder-val="{{ false }}"><button onClick="{{ fr.removeAv }}" style="flex:none;border:0;background:none;color:#a1a1a6;font-size:14px;padding:8px 4px;cursor:pointer;">{{ fr.removeLabel }}</button></sc-if>
     </div>
-    <sc-if value="{{ sx.myHasHl }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:14px;overflow-x:auto;padding:14px 20px 2px;scrollbar-width:none;"><sc-for list="{{ sx.myHl }}" as="h" hint-placeholder-count="2"><button data-anim="pop" onClick="{{ h.onOpen }}" style="flex:none;width:64px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#f5f5f7;" style-active="transform:scale(0.95);">
-            <span style="width:56px;height:56px;border-radius:9999px;background:#1c1c1e;box-shadow:0 0 0 2px #000, 0 0 0 3px #48484a;display:grid;place-items:center;font-weight:600;position:relative;overflow:hidden;color:#6e6e73;"><span>{{ h.initial }}</span><sc-if value="{{ h.hasThumb }}" hint-placeholder-val="{{ false }}"><img src="{{ h.thumb }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
-            <span style="font-size:12px;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ h.name }}</span>
-          </button></sc-for></div></sc-if>
+    
   </sc-if>
   <sc-if value="{{ fr.needAcct }}" hint-placeholder-val="{{ false }}">
     <div data-anim="scale" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:8px;">
@@ -810,12 +807,9 @@ input::placeholder{color:#6e6e73;}
     <div data-anim="scale" style="padding:4px 20px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;"><span onClick="{{ fv.onAv }}" style="cursor:{{ fv.avCursor }};position:relative;overflow:hidden;width:80px;height:80px;border-radius:9999px;background:#1c1c1e;display:grid;place-items:center;font-family:var(--font-display);font-size:32px;font-weight:600;color:#f5f5f7;"><span>{{ fv.initial }}</span><sc-if value="{{ fv.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fv.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span><sc-if value="{{ fv.notMe }}" hint-placeholder-val="{{ true }}"><button onClick="{{ fv.onUnfollow }}" style="flex:none;border:0;background:{{ fv.pillBg }};color:#f5f5f7;border-radius:9999px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s;" style-active="transform:scale(0.95);"><sc-if value="{{ fv.pillCheck }}" hint-placeholder-val="{{ true }}"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg></sc-if><span>{{ fv.pillLabel }}</span></button></sc-if></div>
     <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;overflow:hidden;text-overflow:ellipsis;">{{ fv.name }}</div>
     <div data-anim="up" style="padding:2px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fv.sub }}</div>
-    <sc-if value="{{ sx.fvHasHl }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:14px;overflow-x:auto;padding:14px 20px 2px;scrollbar-width:none;"><sc-for list="{{ sx.fvHl }}" as="h" hint-placeholder-count="2"><button data-anim="pop" onClick="{{ h.onOpen }}" style="flex:none;width:64px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#f5f5f7;" style-active="transform:scale(0.95);">
-            <span style="width:56px;height:56px;border-radius:9999px;background:#1c1c1e;box-shadow:0 0 0 2px #000, 0 0 0 3px #48484a;display:grid;place-items:center;font-weight:600;position:relative;overflow:hidden;color:#6e6e73;"><span>{{ h.initial }}</span><sc-if value="{{ h.hasThumb }}" hint-placeholder-val="{{ false }}"><img src="{{ h.thumb }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
-            <span style="font-size:12px;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ h.name }}</span>
-          </button></sc-for></div></sc-if>
+    
     <div data-anim="up" style="margin:16px 16px 0;display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;">
-      <sc-for list="{{ fv.tabs }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.onTap }}" style="flex:1;border:0;border-radius:7px;padding:6px 0;font-size:14px;cursor:pointer;color:#f5f5f7;background:{{ t.bg }};transition:background .25s;">{{ t.label }}</button></sc-for>
+      <sc-for list="{{ fv.tabs }}" as="t" hint-placeholder-count="5"><button onClick="{{ t.onTap }}" style="flex:1;min-width:0;border:0;border-radius:7px;padding:6px 0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;color:#f5f5f7;background:{{ t.bg }};transition:background .25s;">{{ t.label }}</button></sc-for>
     </div>
     <sc-if value="{{ fv.isWish }}" hint-placeholder-val="{{ true }}">
       <div style="margin:16px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
@@ -861,6 +855,21 @@ input::placeholder{color:#6e6e73;}
         </sc-for>
       </div>
     </sc-if>
+    <sc-if value="{{ fv.isHl }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:16px 16px 0;">
+        <sc-for list="{{ fv.hlTiles }}" as="t" hint-placeholder-count="2">
+          <button data-anim="scale" onClick="{{ t.onOpen }}" style="position:relative;aspect-ratio:1;border:0;padding:0;border-radius:18px;overflow:hidden;background:#1c1c1e;cursor:pointer;color:#f5f5f7;text-align:left;" style-active="transform:scale(0.97);">
+            <sc-if value="{{ t.isImg }}" hint-placeholder-val="{{ false }}"><img src="{{ t.src }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if>
+            <sc-if value="{{ t.isVid }}" hint-placeholder-val="{{ false }}"><video src="{{ t.vsrc }}" muted="{{ true }}" playsinline="{{ true }}" preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;"></video></sc-if>
+            <span style="position:absolute;left:0;right:0;bottom:0;padding:28px 12px 10px;background:linear-gradient(transparent, rgba(0,0,0,0.75));display:flex;flex-direction:column;">
+              <span style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.name }}</span>
+              <span style="font-size:12px;color:#d1d1d6;">{{ t.count }}</span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ fv.hlEmpty }}" hint-placeholder-val="{{ false }}"><div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fv.hlEmptyTxt }}</div></sc-if>
     <sc-if value="{{ fv.hasFrMsg }}" hint-placeholder-val="{{ false }}"><div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fv.frMsg }}</div></sc-if>
     <sc-if value="{{ fv.isFr }}" hint-placeholder-val="{{ false }}">
       <div data-anim="right" style="padding:20px 20px 8px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fv.frHead }}</div>
@@ -2785,8 +2794,9 @@ class Component extends DCLogic {
           items: its.map(([x, k]) => { const ph = (x.ph || [])[0]; return { name: x.n, sub: [x.b, k === 'wish' ? 'On their wishlist' : x.ow ? 'On the way' : ''].filter(Boolean).join(' · ') || ' ', photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(x.n), onOpen: () => this.setState({ fItem: { id: x.id, kind: k }, fiIdx: 0 }) }; }),
           hasItems: its.length > 0, onBack: () => this.closeFOutfit() }; }
       C.forEach(i => { const g = i.g || cgroupOf({ category: i.cat, name: i.n }, []) || 'Other'; if (!cg.has(g)) cg.set(g, []); cg.get(g).push(i); });
-      fv = { notMe: !isMeV, name: '@' + fU.username, initial: ini(fU.username), av: fU.avatar || '', hasAv: !!fU.avatar, avCursor: fU.avatar ? 'zoom-in' : 'default', onAv: () => { if (fU.avatar) this.openViewer([fU.avatar], 0); }, sub: W.length + ' wanted · ' + C.length + ' in collection · ' + plural(O.length, 'outfit'),
-        tabs: [['wish', 'Wishlist'], ['coll', 'Collection'], ['outfits', 'Outfits'], ['friends', 'Friends']].map(([k, l]) => ({ label: l, bg: ft === k ? '#636366' : 'transparent', onTap: () => { this.setState({ friendTab: k }); if (k === 'friends') this.loadFof(fU.id); } })),
+      const hlL = (() => { const X2 = this.storyIdx(); if (!X2.hl.has(fU.id)) return []; return Array.from(X2.hl.get(fU.id).entries()).map(([name, list]) => { const s0 = list[list.length - 1], m = ((s0 && s0.media) || [])[0] || {}; return { name, onOpen: () => this.openHighlight(fU.id, name), count: plural(list.length, 'story'), isImg: !!m.url && m.type !== 'video', isVid: !!m.url && m.type === 'video', src: m.url || '', vsrc: m.url ? m.url + '#t=0.1' : '' }; }); })();
+      fv = { notMe: !isMeV, isHl: ft === 'hl' && hlL.length > 0, hlEmpty: ft === 'hl' && !hlL.length, hlEmptyTxt: isMeV ? 'Pin a story as a Highlight and it shows up here.' : 'No highlights yet.', hlTiles: hlL, name: '@' + fU.username, initial: ini(fU.username), av: fU.avatar || '', hasAv: !!fU.avatar, avCursor: fU.avatar ? 'zoom-in' : 'default', onAv: () => { if (fU.avatar) this.openViewer([fU.avatar], 0); }, sub: W.length + ' wanted · ' + C.length + ' in collection · ' + plural(O.length, 'outfit'),
+        tabs: [['wish', 'Wishlist'], ['coll', 'Collection'], ['outfits', 'Outfits'], ['hl', 'Highlights'], ['friends', 'Friends']].map(([k, l]) => ({ label: l, bg: ft === k ? '#636366' : 'transparent', onTap: () => { this.setState({ friendTab: k }); if (k === 'friends') this.loadFof(fU.id); } })),
         ...(() => { const FO = (st.fof || {})[fU.id] || {}, FL = FO.list || [], mut = FL.filter(x => relOf(x.id) === 'friend').length; if (ft === 'friends' && !FO.list && !FO.busy && !FO.err) setTimeout(() => this.loadFof(fU.id), 0);
           return { isFr: ft === 'friends' && FL.length > 0, frHead: plural(FL.length, 'friend') + (mut ? ' · ' + mut + ' mutual' : ''), hasFrMsg: ft === 'friends' && (!FO.list || !FL.length || !!FO.err), frMsg: FO.err ? FO.err : !FO.list ? 'Loading their friends…' : 'No friends to show yet.',
             frList: FL.slice().sort((a, b) => (relOf(a.id) === 'friend' ? 0 : 1) - (relOf(b.id) === 'friend' ? 0 : 1) || a.username.localeCompare(b.username)).map(x => { const r = relOf(x.id); return { name: '@' + x.username, initial: ini(x.username), av: x.avatar || '', hasAv: !!x.avatar,
