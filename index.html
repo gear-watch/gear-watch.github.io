@@ -1641,10 +1641,16 @@ class Component extends DCLogic {
   }
 
   save(data, quiet) { if (!quiet) data.mod = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} this.setState({ data }); if (!quiet && window.GWSync) window.GWSync.schedule(); }
-  loadSocial(quiet) { const G = window.GWSync, A = G && G.state ? G.state() : null; if (!A || !A.user || this.socLoading) return false; this.socLoading = true; if (!quiet) this.setState({ socialBusy: true }); const uid = A.user.id;
-    G.social().then(s => { this.socLoading = false; if (!s) { this.socialFor = null; this.setState({ socialBusy: false }); if (navigator.onLine && (this.socRetry = (this.socRetry || 0) + 1) < 6) setTimeout(() => this.loadSocial(true), 2000); return; } this.socRetry = 0;
-      this.setState({ social: s, socialBusy: false }); try { localStorage.setItem('gw-social-cache-' + uid, JSON.stringify(s)); } catch (e) {} this.socialNotify(s, uid); })
-      .catch(() => { this.socLoading = false; this.socialFor = null; this.setState({ socialBusy: false }); if (navigator.onLine && (this.socRetry = (this.socRetry || 0) + 1) < 6) setTimeout(() => this.loadSocial(true), 4000); }); return true; }
+  loadSocial(quiet, manual) { const G = window.GWSync, A = G && G.state ? G.state() : null; if (!A || !A.user) { if (manual) this.toast('Sign in to see friends'); return false; }
+    if (this.socLoading && !manual && Date.now() - (this.socStart || 0) < 15000) return false;
+    const tok = (this.socTok = (this.socTok || 0) + 1), uid = A.user.id; this.socLoading = true; this.socStart = Date.now(); if (!quiet) this.setState({ socialBusy: true });
+    const to = new Promise((_, rej) => setTimeout(() => rej(new Error('Took too long. Check your connection.')), 15000));
+    const retry = ms => { if (navigator.onLine && (this.socRetry = (this.socRetry || 0) + 1) < 6) setTimeout(() => this.loadSocial(true), ms); };
+    Promise.race([G.social(), to]).then(s => { if (tok !== this.socTok) return; this.socLoading = false;
+        if (!s) { this.socialFor = null; this.setState({ socialBusy: false }); if (manual) this.toast('Couldn’t refresh. Still signing in, try again in a moment.'); retry(2000); return; }
+        this.socRetry = 0; this.setState({ social: s, socialBusy: false }); try { localStorage.setItem('gw-social-cache-' + uid, JSON.stringify(s)); } catch (e) {} this.socialNotify(s, uid); if (manual) this.toast('Up to date'); })
+      .catch(e => { if (tok !== this.socTok) return; this.socLoading = false; this.socialFor = null; this.setState({ socialBusy: false }); if (manual) this.toast('Couldn’t refresh. ' + ((e && e.message) || '')); retry(4000); });
+    return true; }
   socialNotify(s, uid) { const k = 'gw-social-seen-' + uid; let seen = null; try { seen = JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) {}
     const req = s.requests.map(r => r.id), acc = s.following.filter(f => f.status === 'accepted').map(f => f.id); try { localStorage.setItem(k, JSON.stringify({ req, acc })); } catch (e) {}
     const newReq = s.requests.filter(r => !seen || !seen.req.includes(r.id)), newAcc = seen ? s.following.filter(f => f.status === 'accepted' && !seen.acc.includes(f.id)) : [], msg = [];
@@ -1926,7 +1932,7 @@ class Component extends DCLogic {
       requests: SO.requests.map(r => ({ name: '@' + r.username, initial: ini(r.username), av: r.avatar || '', hasAv: !!r.avatar, onAccept: async () => { try { await G.accept(r.id); } catch (e) {} this.loadSocial(); this.toast('@' + r.username + ' can now follow you'); }, onDecline: async () => { try { await G.decline(r.id); } catch (e) {} this.loadSocial(); } })), hasRequests: SO.requests.length > 0,
       following: SO.following.map(f => { const ok = f.status === 'accepted'; return { name: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar, sub: ok ? ' ' : 'Requested', ring: ok ? '0 0 0 2px ' + ACC : '0 0 0 1px #3a3a3c', fg: ok ? '#f5f5f7' : '#6e6e73', onOpen: ok ? openF(f.id, 'wish') : () => this.toast('Waiting for @' + f.username + ' to accept') }; }), hasFollowing: SO.following.length > 0,
       feed: feed.slice(0, 50).map(e => ({ who: e.who, initial: ini(e.who), av: e.av || '', hasAv: !!e.av, txt: e.txt, when: agoTxt(e.d), photo: e.ph || '', hasPhoto: !!e.ph, onOpen: e.on })), hasFeed: feed.length > 0, noFeed: !feed.length,
-      busy: !!st.socialBusy, refresh: () => { this.loadSocial(); if (G) G.sync(); } };
+      busy: !!st.socialBusy, refresh: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.loadSocial(false, true); if (G) G.schedule(0); } };
     const fU = st.friend ? SO.following.find(x => x.id === st.friend) : null, fL = fU ? SO.lists[fU.id] || {} : null;
     let fv = { tabs: [], wish: [], collGroups: [], outfits: [] };
     let fi = { photos: [], stars: [], rows: [] };

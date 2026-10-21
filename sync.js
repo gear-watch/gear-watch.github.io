@@ -131,10 +131,11 @@
 
   // Make sure the sign-in token is valid before asking the database. After the app sleeps it can be expired,
   // and the database then answers with nothing instead of an error.
+  const within = (p, ms) => Promise.race([p, new Promise(res => setTimeout(() => res('timeout'), ms))]);
   async function fresh() {
-    try { const { data } = await sb.auth.getSession(); const s = data && data.session; if (!s) return false;
-      if (s.expires_at && s.expires_at * 1000 < Date.now() + 60000) { const r = await sb.auth.refreshSession(); if (r.error || !r.data.session) return false; }
-      return true; } catch (e) { return false; }
+    try { const g = await within(sb.auth.getSession(), 5000); if (g === 'timeout') return true; const s = g.data && g.data.session; if (!s) return false;
+      if (s.expires_at && s.expires_at * 1000 < Date.now() + 60000) { const r = await within(sb.auth.refreshSession(), 8000); if (r === 'timeout') return true; if (r.error || !r.data.session) return false; }
+      return true; } catch (e) { return true; }
   }
   async function social() {
     if (!sb) await connect(); if (!sb || !S.user) return null; const me = S.user.id;
