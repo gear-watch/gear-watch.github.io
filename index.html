@@ -21,6 +21,7 @@
 <script src="./sync.js?v=13"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
+@media (display-mode: standalone){html{min-height:min(100lvh, calc(100% + env(safe-area-inset-top)));}}
 a{color:#ffd60a;text-decoration:none;}
 a:hover{text-decoration:underline;}
 input,button,textarea{font-family:inherit;}
@@ -2795,8 +2796,8 @@ class Component extends DCLogic {
 
     return {
       rootRef: this.rootRef, pcBoxRef: this.pcBoxRef, pcRectRef: this.pcRectRef, scrollRef: this.scrollRef, detailRef: this.detailRef, sheetRef: this.sheetRef, backdropRef: this.backdropRef, introRef: this.introRef, bPanelRef: this.bPanelRef, toastRef: this.toastRef, figRef: this.figRef,
-      framed, rootH: framed ? '100%' : '100dvh', rootPos: 'relative', maxW: framed ? 'none' : '430px', topPad: framed ? '44px' : 'calc(env(safe-area-inset-top) + 8px)',
-      chipTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 12px)', tabPadB: framed ? '24px' : '8px', tabPadBot: framed ? '24px' : 'calc(env(safe-area-inset-bottom) + 8px)', introPadB: framed ? '40px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 16px)',
+      framed, rootH: framed ? '100%' : 'auto', rootPos: framed ? 'relative' : 'fixed', maxW: framed ? 'none' : '430px', topPad: framed ? '44px' : 'calc(env(safe-area-inset-top) + 8px)',
+      chipTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 12px)', tabPadB: framed ? '24px' : '8px', tabPadBot: framed ? '24px' : 'max(env(safe-area-inset-bottom), 12px)', introPadB: framed ? '40px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 16px)',
       hasPc: !!st.pc, pcv: (() => { const P = st.pc, B = st.pcBox; if (!P) return {}; const base = { cancel: () => this.setState({ pc: null }), done: () => this.pcDone(), reset: () => this.pcReset(), canReset: P.hadOrig, doneLabel: P.busy ? 'Saving…' : 'Done', src: P.src };
         if (!B || !B.w || !P.iw) return Object.assign(base, { ready: false }); const k = Math.min(B.w / P.iw, B.h / P.ih), dw = P.iw * k, dh = P.ih * k, r = P.rect, px = v => v + 'px';
         return Object.assign(base, { ready: true, l: px((B.w - dw) / 2), t: px((B.h - dh) / 2), w: px(dw), h: px(dh), rl: px(r.x * dw), rt: px(r.y * dh), rw: px(r.w * dw), rh: px(r.h * dh), onDown: e => this.pcDown(e, dw, dh) }); })(),
