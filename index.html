@@ -981,6 +981,7 @@ input::placeholder{color:#6e6e73;}
     </div>
   </div>
 </sc-if>
+<sc-if value="{{ svBackdrop }}" hint-placeholder-val="{{ false }}"><div data-anim="fade" data-delay="0" onClick="{{ svBdClose }}" style="position:fixed;inset:0;z-index:61;background:rgba(0,0,0,0.6);backdrop-filter:saturate(120%) blur(24px);-webkit-backdrop-filter:saturate(120%) blur(24px);"></div></sc-if>
 <sc-if value="{{ hasSV }}" hint-placeholder-val="{{ false }}">
   <div ref="{{ svRef }}" style="position:absolute;top:0;bottom:0;left:0;right:0;margin:0 auto;max-width:{{ svMaxW }};z-index:62;background:#000;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none;color:#f5f5f7;">
     <div data-sv-stage="1" onPointerDown="{{ svDown }}" onPointerMove="{{ svMove }}" onPointerUp="{{ svUp }}" onPointerCancel="{{ svUp }}" style="position:absolute;left:0;right:0;top:{{ svStageTop }};bottom:{{ svStageBot }};border-radius:12px;overflow:hidden;background:#0d0d0d;">
@@ -2886,7 +2887,7 @@ class Component extends DCLogic {
     return {
       rootRef: this.rootRef, pcBoxRef: this.pcBoxRef, pcRectRef: this.pcRectRef, scrollRef: this.scrollRef, detailRef: this.detailRef, sheetRef: this.sheetRef, backdropRef: this.backdropRef, introRef: this.introRef, bPanelRef: this.bPanelRef, toastRef: this.toastRef, figRef: this.figRef,
       framed, rootH: framed ? '100%' : 'auto', rootPos: framed ? 'relative' : 'fixed', maxW: framed ? 'none' : wide ? (st.tab === 'friends' ? '1040px' : '680px') : '430px', rootLeft: wide ? '240px' : '0',
-      svMaxW: wide ? '480px' : 'none', wide, scrollPadB: wide ? '48px' : '104px', barPos: wide ? 'fixed' : 'absolute', barRight: wide ? 'auto' : '0', barTop: wide ? '0' : 'auto', barW: wide ? '240px' : 'auto', barBg: wide ? '#000' : 'rgba(22,22,23,0.8)', barBT: wide ? '0' : '1px solid #2c2c2e', barBR: wide ? '1px solid #2c2c2e' : '0', barDisp: wide ? 'flex' : 'grid', barGap: wide ? '4px' : '0', barPad: wide ? '24px 12px' : '6px 0 ' + (framed ? '24px' : 'max(env(safe-area-inset-bottom), 12px)'),
+      svMaxW: wide ? '480px' : 'none', svBackdrop: wide && !!st.sv, svBdClose: () => this.svClose(), wide, scrollPadB: wide ? '48px' : '104px', barPos: wide ? 'fixed' : 'absolute', barRight: wide ? 'auto' : '0', barTop: wide ? '0' : 'auto', barW: wide ? '240px' : 'auto', barBg: wide ? '#000' : 'rgba(22,22,23,0.8)', barBT: wide ? '0' : '1px solid #2c2c2e', barBR: wide ? '1px solid #2c2c2e' : '0', barDisp: wide ? 'flex' : 'grid', barGap: wide ? '4px' : '0', barPad: wide ? '24px 12px' : '6px 0 ' + (framed ? '24px' : 'max(env(safe-area-inset-bottom), 12px)'),
       tbDir: wide ? 'row' : 'column', tbGap: wide ? '12px' : '2px', tbFs: wide ? '15px' : '11px', tbPad: wide ? '10px 12px' : '4px 0',
       frDisp: wide ? 'grid' : 'block', frSidePos: wide ? 'sticky' : 'static', topPad: framed ? '44px' : 'calc(env(safe-area-inset-top) + 8px)',
       chipTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 12px)', tabPadB: framed ? '24px' : '8px', tabPadBot: framed ? '24px' : 'max(env(safe-area-inset-bottom), 12px)', introPadB: framed ? '40px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 16px)',
