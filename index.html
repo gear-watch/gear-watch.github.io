@@ -28,13 +28,13 @@ input:focus,textarea:focus{outline:2px solid #ffd60a;outline-offset:0;}
 input::placeholder{color:#6e6e73;}
 </style>
 </helmet>
-<div ref="{{ rootRef }}" style="position:{{ rootPos }};top:0;left:0;right:0;bottom:0;height:{{ rootH }};--gw-accent:{{ accent }};color-scheme:dark;max-width:{{ maxW }};margin:0 auto;display:flex;flex-direction:column;overflow:hidden;background:#000;color:#f5f5f7;font-family:var(--font-text);font-size:17px;line-height:1.47;letter-spacing:-0.374px;">
+<div ref="{{ rootRef }}" style="position:{{ rootPos }};top:0;left:{{ rootLeft }};right:0;bottom:0;height:{{ rootH }};--gw-accent:{{ accent }};color-scheme:dark;max-width:{{ maxW }};margin:0 auto;display:flex;flex-direction:column;overflow:hidden;background:#000;color:#f5f5f7;font-family:var(--font-text);font-size:17px;line-height:1.47;letter-spacing:-0.374px;">
 
 <sc-if value="{{ framed }}" hint-placeholder-val="{{ false }}">
   <div style="position:absolute;top:0;left:0;right:0;height:44px;z-index:90;display:flex;align-items:center;padding:0 28px;font-size:15px;font-weight:600;letter-spacing:-0.2px;pointer-events:none;">9:41</div>
 </sc-if>
 
-<div ref="{{ scrollRef }}" style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-top:{{ topPad }};padding-bottom:104px;">
+<div ref="{{ scrollRef }}" style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-top:{{ topPad }};padding-bottom:{{ scrollPadB }};">
 
 <sc-if value="{{ isWish }}" hint-placeholder-val="{{ true }}">
   <div style="padding:8px 16px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
@@ -412,6 +412,7 @@ input::placeholder{color:#6e6e73;}
     </div>
   </sc-if>
   <sc-if value="{{ fr.signedIn }}" hint-placeholder-val="{{ false }}">
+    <div style="display:{{ frDisp }};grid-template-columns:minmax(0,1fr) 340px;column-gap:24px;align-items:start;"><div style="grid-column:2;grid-row:1;min-width:0;position:{{ frSidePos }};top:0;">
     <div data-anim="up" style="margin:16px 16px 0;display:flex;gap:8px;">
       <div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;background:#1c1c1e;border-radius:9999px;padding:0 16px;"><span style="color:#6e6e73;">@</span><input value="{{ fr.followIn }}" onChange="{{ fr.onFollowIn }}" onKeyDown="{{ fr.onFollowKey }}" placeholder="Find by username" autocapitalize="none" autocorrect="off" spellcheck="false" style="flex:1;min-width:0;background:none;border:0;padding:10px 0;font-size:17px;color:#f5f5f7;outline:none;"></div>
       <button onClick="{{ fr.follow }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:0 18px;font-size:14px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">{{ fr.followLabel }}</button>
@@ -474,6 +475,7 @@ input::placeholder{color:#6e6e73;}
         </sc-for>
       </div>
     </sc-if>
+    </div><div style="grid-column:1;grid-row:1;min-width:0;">
     <div style="padding:20px 16px 8px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
       <span data-anim="up" style="font-family:var(--font-display);font-size:21px;font-weight:600;">Feed</span>
       <button onClick="{{ fr.refresh }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:14px;padding:4px;cursor:pointer;display:flex;align-items:center;gap:6px;"><sc-if value="{{ fr.busy }}" hint-placeholder-val="{{ false }}"><span data-anim="spin" style="width:10px;height:10px;border-radius:9999px;border:2px solid #48484a;border-top-color:var(--gw-accent,#ffd60a);"></span></sc-if><span>Refresh</span></button>
@@ -535,6 +537,7 @@ input::placeholder{color:#6e6e73;}
         <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Add a friend by username or send them an invite. Once they accept, you’ll see what they add, get and wear.</span>
       </div>
     </sc-if>
+    </div></div>
   </sc-if>
 </sc-if>
 
@@ -583,24 +586,25 @@ input::placeholder{color:#6e6e73;}
 </sc-if>
 </div>
 
-<div style="position:absolute;left:0;right:0;bottom:0;z-index:10;background:rgba(22,22,23,0.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid #2c2c2e;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px 0 {{ tabPadBot }};">
-  <button onClick="{{ goWish }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabWish }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
+<div style="position:{{ barPos }};left:0;right:{{ barRight }};top:{{ barTop }};bottom:0;width:{{ barW }};z-index:10;background:{{ barBg }};backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:{{ barBT }};border-right:{{ barBR }};display:{{ barDisp }};flex-direction:column;gap:{{ barGap }};grid-template-columns:repeat(5,minmax(0,1fr));padding:{{ barPad }};box-sizing:border-box;">
+  <sc-if value="{{ wide }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:10px;padding:4px 12px 20px;"><img src="./icons/icon-192.png" alt="" style="width:32px;height:32px;border-radius:8px;"><span style="font-family:var(--font-display);font-size:21px;font-weight:600;letter-spacing:-0.3px;">GearWatch</span></div></sc-if>
+  <button onClick="{{ goWish }}" style="border:0;background:{{ tabWishBg }};display:flex;flex-direction:{{ tbDir }};align-items:center;gap:{{ tbGap }};cursor:pointer;color:{{ tabWish }};font-size:{{ tbFs }};letter-spacing:0;padding:{{ tbPad }};border-radius:10px;transition:color .25s;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg>
     <span>Wishlist</span>
   </button>
-  <button onClick="{{ goCollection }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabColl }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
+  <button onClick="{{ goCollection }}" style="border:0;background:{{ tabCollBg }};display:flex;flex-direction:{{ tbDir }};align-items:center;gap:{{ tbGap }};cursor:pointer;color:{{ tabColl }};font-size:{{ tbFs }};letter-spacing:0;padding:{{ tbPad }};border-radius:10px;transition:color .25s;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8V6.5a3 3 0 016 0V8"></path></svg>
     <span>Collection</span>
   </button>
-  <button onClick="{{ goMeasure }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabMeas }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
+  <button onClick="{{ goMeasure }}" style="border:0;background:{{ tabMeasBg }};display:flex;flex-direction:{{ tbDir }};align-items:center;gap:{{ tbGap }};cursor:pointer;color:{{ tabMeas }};font-size:{{ tbFs }};letter-spacing:0;padding:{{ tbPad }};border-radius:10px;transition:color .25s;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="1.5"></rect><path d="M6.5 8v3M10 8v4M13.5 8v3M17 8v4"></path></svg>
     <span>Measurements</span>
   </button>
-  <button onClick="{{ goSize }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabSize }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
+  <button onClick="{{ goSize }}" style="border:0;background:{{ tabSizeBg }};display:flex;flex-direction:{{ tbDir }};align-items:center;gap:{{ tbGap }};cursor:pointer;color:{{ tabSize }};font-size:{{ tbFs }};letter-spacing:0;padding:{{ tbPad }};border-radius:10px;transition:color .25s;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3.5 4h8l9 9-7.5 7.5-9-9z"></path><circle cx="8" cy="8.5" r="1.4"></circle></svg>
     <span>Size check</span>
   </button>
-  <button onClick="{{ goFriends }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabFriends }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;position:relative;">
+  <button onClick="{{ goFriends }}" style="border:0;background:{{ tabFriendsBg }};display:flex;flex-direction:{{ tbDir }};align-items:center;gap:{{ tbGap }};cursor:pointer;color:{{ tabFriends }};font-size:{{ tbFs }};letter-spacing:0;padding:{{ tbPad }};border-radius:10px;transition:color .25s;position:relative;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="8.5" r="3.2"></circle><path d="M3.5 19.5c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"></path><circle cx="16.5" cy="9.5" r="2.6"></circle><path d="M15.6 14.6c2.5-.2 4.4 1.3 5 4.4"></path></svg>
     <span>Friends</span>
     <sc-if value="{{ fr.hasRequests }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:2px;left:calc(50% + 8px);width:8px;height:8px;border-radius:9999px;background:var(--gw-accent,#ffd60a);"></span></sc-if>
@@ -978,7 +982,7 @@ input::placeholder{color:#6e6e73;}
   </div>
 </sc-if>
 <sc-if value="{{ hasSV }}" hint-placeholder-val="{{ false }}">
-  <div ref="{{ svRef }}" style="position:absolute;inset:0;z-index:62;background:#000;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none;color:#f5f5f7;">
+  <div ref="{{ svRef }}" style="position:absolute;top:0;bottom:0;left:0;right:0;margin:0 auto;max-width:{{ svMaxW }};z-index:62;background:#000;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none;color:#f5f5f7;">
     <div data-sv-stage="1" onPointerDown="{{ svDown }}" onPointerMove="{{ svMove }}" onPointerUp="{{ svUp }}" onPointerCancel="{{ svUp }}" style="position:absolute;left:0;right:0;top:{{ svStageTop }};bottom:{{ svStageBot }};border-radius:12px;overflow:hidden;background:#0d0d0d;">
       <sc-if value="{{ sv.isImg }}" hint-placeholder-val="{{ false }}"><img src="{{ sv.src }}" alt="" draggable="false" style="position:absolute;inset:0;width:100%;height:100%;object-fit:{{ sv.fit }};filter:{{ sv.filter }};transition:filter .3s;pointer-events:none;"></sc-if>
       <sc-if value="{{ sv.isVid }}" hint-placeholder-val="{{ false }}"><video data-sv-video="1" src="{{ sv.src }}" playsinline="{{ true }}" autoplay="{{ true }}" muted="{{ true }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:{{ sv.fit }};filter:{{ sv.filter }};pointer-events:none;"></video></sc-if>
@@ -1016,8 +1020,8 @@ input::placeholder{color:#6e6e73;}
       <sc-if value="{{ sv.isMine }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;align-items:center;gap:8px;">
           <button onClick="{{ sv.openActivity }}" style="flex:none;white-space:nowrap;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1.5 10S4.5 4 10 4s8.5 6 8.5 6-3 6-8.5 6S1.5 10 1.5 10z"></path><circle cx="10" cy="10" r="2.6"></circle></svg><span>{{ sv.seenLabel }}</span></button>
-          <button onClick="{{ sv.openPin }}" style="flex:1;min-width:0;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="flex:none;"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sv.pinLabel }}</span></button>
-          <button onClick="{{ sv.onDel }}" style="flex:none;border:0;background:rgba(28,28,30,0.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:{{ sv.delColor }};border-radius:9999px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;">{{ sv.delLabel }}</button>
+          <button onClick="{{ sv.openPin }}" style="flex:0 1 auto;min-width:0;max-width:220px;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="flex:none;"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sv.pinLabel }}</span></button>
+          <button onClick="{{ sv.onDel }}" style="flex:none;margin-left:auto;border:0;background:rgba(28,28,30,0.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:{{ sv.delColor }};border-radius:9999px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;">{{ sv.delLabel }}</button>
         </div>
       </sc-if>
     </div>
@@ -2042,7 +2046,7 @@ class Component extends DCLogic {
         if (s.firstDone && s.username && this.pendingAdd) { const a = this.pendingAdd; this.pendingAdd = null; setTimeout(() => this.openPerson(a), 400); } } });
       G.init(); return true; };
     this.onVis = () => { if (document.visibilityState === 'visible') { this.loadSocial(true); this.forceUpdate(); } }; document.addEventListener('visibilitychange', this.onVis); window.addEventListener('focus', this.onVis);
-    this.onRs = () => { this.svMeasure(); this.scMeasure(); }; window.addEventListener('resize', this.onRs);
+    this.onRs = () => { this.svMeasure(); this.scMeasure(); const w = window.innerWidth; if ((w >= 900) !== ((this.state.vw || 0) >= 900)) this.setState({ vw: w }); }; window.addEventListener('resize', this.onRs);
     this.onKey = e => { const v = this.state.viewer; if (!v) return; if (e.key === 'Escape') this.closeViewer(); else if (e.key === 'ArrowRight') this.vwGo(v.idx + 1); else if (e.key === 'ArrowLeft') this.vwGo(v.idx - 1); }; window.addEventListener('keydown', this.onKey);
     this.socPoll = setInterval(() => { if (document.visibilityState === 'visible') this.loadSocial(true); }, 30000);
     if (!hook()) { let n = 0; this.syPoll = setInterval(() => { if (hook() || ++n > 50) clearInterval(this.syPoll); }, 100); }
@@ -2610,7 +2614,7 @@ class Component extends DCLogic {
     return sa && innerHeight > innerWidth ? Math.max(screen.height, innerHeight) + 'px' : '100dvh';
   }
   renderVals() {
-    const st = this.state, p = this.prof(), framed = this.isFramed();
+    const st = this.state, p = this.prof(), framed = this.isFramed(), wide = !framed && (st.vw || window.innerWidth) >= 900;
     const L = this.props.landing || 'Auto';
     const bi = this.budgetInfo(p);
     const mode = /budget/i.test(L) ? 'B' : /gallery/i.test(L) ? 'C' : /next/i.test(L) ? 'A' : (bi ? 'A' : 'B');
@@ -2881,7 +2885,10 @@ class Component extends DCLogic {
 
     return {
       rootRef: this.rootRef, pcBoxRef: this.pcBoxRef, pcRectRef: this.pcRectRef, scrollRef: this.scrollRef, detailRef: this.detailRef, sheetRef: this.sheetRef, backdropRef: this.backdropRef, introRef: this.introRef, bPanelRef: this.bPanelRef, toastRef: this.toastRef, figRef: this.figRef,
-      framed, rootH: framed ? '100%' : 'auto', rootPos: framed ? 'relative' : 'fixed', maxW: framed ? 'none' : '430px', topPad: framed ? '44px' : 'calc(env(safe-area-inset-top) + 8px)',
+      framed, rootH: framed ? '100%' : 'auto', rootPos: framed ? 'relative' : 'fixed', maxW: framed ? 'none' : wide ? (st.tab === 'friends' ? '1040px' : '680px') : '430px', rootLeft: wide ? '240px' : '0',
+      svMaxW: wide ? '480px' : 'none', wide, scrollPadB: wide ? '48px' : '104px', barPos: wide ? 'fixed' : 'absolute', barRight: wide ? 'auto' : '0', barTop: wide ? '0' : 'auto', barW: wide ? '240px' : 'auto', barBg: wide ? '#000' : 'rgba(22,22,23,0.8)', barBT: wide ? '0' : '1px solid #2c2c2e', barBR: wide ? '1px solid #2c2c2e' : '0', barDisp: wide ? 'flex' : 'grid', barGap: wide ? '4px' : '0', barPad: wide ? '24px 12px' : '6px 0 ' + (framed ? '24px' : 'max(env(safe-area-inset-bottom), 12px)'),
+      tbDir: wide ? 'row' : 'column', tbGap: wide ? '12px' : '2px', tbFs: wide ? '15px' : '11px', tbPad: wide ? '10px 12px' : '4px 0',
+      frDisp: wide ? 'grid' : 'block', frSidePos: wide ? 'sticky' : 'static', topPad: framed ? '44px' : 'calc(env(safe-area-inset-top) + 8px)',
       chipTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 12px)', tabPadB: framed ? '24px' : '8px', tabPadBot: framed ? '24px' : 'max(env(safe-area-inset-bottom), 12px)', introPadB: framed ? '40px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 16px)',
       hasPc: !!st.pc, pcv: (() => { const P = st.pc, B = st.pcBox; if (!P) return {}; const base = { cancel: () => this.setState({ pc: null }), done: () => this.pcDone(), reset: () => this.pcReset(), canReset: P.hadOrig, doneLabel: P.busy ? 'Saving…' : 'Done', src: P.src };
         if (!B || !B.w || !P.iw) return Object.assign(base, { ready: false }); const k = Math.min(B.w / P.iw, B.h / P.ih), dw = P.iw * k, dh = P.ih * k, r = P.rect, px = v => v + 'px';
@@ -2889,7 +2896,7 @@ class Component extends DCLogic {
       toastBottom: framed ? '108px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 92px)',
       accent: this.props.accent || '#ffd60a',
       isWish: st.tab === 'wish', isCollection: st.tab === 'coll', isMeasure: st.tab === 'meas',
-      tabWish: st.tab === 'wish' ? ACC : '#8e8e93', tabWishBg: st.tab === 'wish' ? 'rgba(255,214,10,0.16)' : 'transparent', tabCollBg: st.tab === 'coll' ? 'rgba(255,214,10,0.16)' : 'transparent', tabMeasBg: st.tab === 'meas' ? 'rgba(255,214,10,0.16)' : 'transparent', tabSizeBg: st.tab === 'size' ? 'rgba(255,214,10,0.16)' : 'transparent', tabFriendsBg: st.tab === 'friends' ? 'rgba(255,214,10,0.16)' : 'transparent', tabColl: st.tab === 'coll' ? ACC : '#8e8e93', tabMeas: st.tab === 'meas' ? ACC : '#8e8e93',
+      tabWish: st.tab === 'wish' ? ACC : '#8e8e93', tabWishBg: st.tab === 'wish' && wide ? '#1c1c1e' : 'transparent', tabCollBg: st.tab === 'coll' && wide ? '#1c1c1e' : 'transparent', tabMeasBg: st.tab === 'meas' && wide ? '#1c1c1e' : 'transparent', tabSizeBg: st.tab === 'size' && wide ? '#1c1c1e' : 'transparent', tabFriendsBg: st.tab === 'friends' && wide ? '#1c1c1e' : 'transparent', tabColl: st.tab === 'coll' ? ACC : '#8e8e93', tabMeas: st.tab === 'meas' ? ACC : '#8e8e93',
       goWish: e => this.goTab('wish', e), goCollection: e => this.goTab('coll', e), goMeasure: e => this.goTab('meas', e), goSize: e => { this.setState({ szBrand: null }); this.goTab('size', e); },
       isSize: st.tab === 'size', tabSize: st.tab === 'size' ? ACC : '#8e8e93',
       ...(() => { const BR = window.FITLOG_BRANDS || [], sb = st.szBrand ? BR.find(b => b.id === st.szBrand) : null, inch = st.unit === 'in';
