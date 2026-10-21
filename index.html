@@ -1385,8 +1385,8 @@ function dropOf(it) { const h = it.history || []; if (h.length < 2 || it.price =
 const scoreOf = it => (it.rating || 0) + Math.min(1.5, dropOf(it) * 10);
 const toNum = s => { const n = parseFloat(String(s || '').replace(',', '.')); return isNaN(n) ? 0 : n; };
 
-function seed() { const s = seedBase(); const p = s.profiles[0]; p.items.push(...linkImports()); p.budget = { amount: 150, since: '2026-10-20' }; const f = (id, o) => { const i = p.items.find(x => x.id === id); if (i) Object.assign(i, o); }; f('harness', { colour: 'White', size: 'Made to measure' }); f('husky', { rating: 2 }); f('shorts', { needs: { ids: ['waist', 'hips', 'thigh'], note: 'Check Libidex’s size chart. On sale: £107.96, down from £119.95.' } }); s.onboarded = true; for (let n = 1; n <= 7; n++) s['imp' + n] = true; return s; }
-function seedBase() {
+function seed() { const s = { v: 1, onboarded: false, activeId: 'me', profiles: [{ id: 'me', name: 'Me', budget: { amount: null, since: null }, session: null, items: [] }] }; for (let n = 1; n <= 7; n++) s['imp' + n] = true; return s; }
+function seedKevin() {
   const KF = 'https://kinkfox.com/product/';
   return { v: 1, onboarded: false, activeId: 'kevin', profiles: [{ id: 'kevin', name: 'Kevin', budget: { amount: null, since: null },
     session: { date: '2026-10-18', values: { chest: 87, underbust: 82, waist: 75.5, waistHip: 83, hips: 92.5, thigh: 54, knee: 37.5, calf: 34.5, ankle: 22.5, armpit: 42.5, upperArm: 27, elbow: 25, forearm: 26.5, wrist: 17, armLength: 59, neck: 38, inseam: 74.5, waistAnkle: 103, torso: 162, shoulder: 42, head: 58.5, height: 181, shoe: 42.5 } },
