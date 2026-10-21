@@ -88,7 +88,7 @@
   function publicList(gw) {
     const p = (gw.profiles || []).find(x => x.id === gw.activeId) || (gw.profiles || [])[0] || { items: [] };
     const web = a => (a || []).filter(x => /^https?:/.test(x)).slice(0, 4);
-    const items = p.items || [];
+    const items = (p.items || []).filter(i => !i.private);
     return {
       wish: items.filter(i => i.status === 'wanted').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, ph: web(i.photos), u: i.url, c: i.currency, p: i.price, r: i.rating, a: i.added, s: i.size || undefined, co: i.colour || undefined, m: i.m2m ? 1 : undefined })),
       coll: items.filter(i => i.status === 'owned' || i.status === 'ordered').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, g: i.cgroup, ph: web(i.photos), o: i.ownedOn || i.orderedOn || i.added, ow: i.status === 'ordered' ? 1 : undefined, s: i.size || undefined, co: i.colour || undefined, m: i.m2m ? 1 : undefined, u: i.url })),
@@ -153,18 +153,37 @@
       lists
     };
   }
+  // Friends are mutual: a request becomes a friendship on both sides once either person accepts.
   async function follow(name) {
     const u = uname(name); if (!u) throw new Error('Type a username.');
     if (!(await connect()) || !S.user) throw new Error(why || 'You’re offline.');
     const { data } = await sb.from('profiles').select('id,username').eq('username', u).maybeSingle();
     if (!data) throw new Error('No one is called @' + u + '.');
     if (data.id === S.user.id) throw new Error('That’s you.');
+    const inc = await sb.from('follows').select('status').eq('follower', data.id).eq('followee', S.user.id).maybeSingle();
+    if (inc.data) { await accept(data.id); return { username: data.username, mutual: true }; }
     const r = await sb.from('follows').insert({ follower: S.user.id, followee: data.id });
     if (r.error && !/duplicate/i.test(r.error.message || '')) throw r.error;
-    return data.username;
+    return { username: data.username, mutual: false };
   }
-  const unfollow = id => sb.from('follows').delete().eq('follower', S.user.id).eq('followee', id);
-  const accept = id => sb.from('follows').update({ status: 'accepted' }).eq('follower', id).eq('followee', S.user.id);
+  async function unfollow(id) { const me = S.user.id; await Promise.all([sb.from('follows').delete().eq('follower', me).eq('followee', id), sb.from('follows').delete().eq('follower', id).eq('followee', me)]); }
+  async function accept(id) {
+    const r = await sb.rpc('accept_friend', { other: id });
+    if (!r.error) return;
+    // Database not updated yet: accept one way, like before.
+    const u = await sb.from('follows').update({ status: 'accepted' }).eq('follower', id).eq('followee', S.user.id); if (u.error) throw u.error;
+    if (/accept_friend|function/i.test(r.error.message || '')) console.warn('Run supabase/setup.sql again to make friendships two-way.');
+  }
+  async function findUser(name) {
+    const u = uname(name); if (!u || !(await connect())) return null;
+    const r = await profSel(c => sb.from('profiles').select(c).eq('username', u).maybeSingle()); return r.data ? { id: r.data.id, username: r.data.username, avatar: r.data.avatar || null } : null;
+  }
+  async function searchUsers(q) {
+    const u = uname(q).replace(/[^a-z0-9_.]/g, ''); if (!u || !sb || !S.user) return [];
+    const pat = u.replace(/[_%\\]/g, m => '\\' + m) + '%';
+    const r = await profSel(c => sb.from('profiles').select(c).ilike('username', pat).neq('id', S.user.id).order('username').limit(6));
+    return (r.data || []).map(x => ({ id: x.id, username: x.username, avatar: x.avatar || null }));
+  }
   const decline = id => sb.from('follows').delete().eq('follower', id).eq('followee', S.user.id);
   async function setUsername(name) {
     const u = uname(name);
@@ -204,7 +223,7 @@
   }
 
   window.GWSync = {
-    init, schedule, sync, social, setAvatar, follow, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
+    init, schedule, sync, social, setAvatar, follow, findUser, searchUsers, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
     attach: h => { host = h; },
     on: f => { subs.add(f); f(Object.assign({}, S)); return () => subs.delete(f); },
     state: () => Object.assign({}, S)

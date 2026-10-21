@@ -41,10 +41,12 @@ async function get(url, json) {
 }
 // A public page reader that loads the page in a real browser. Used when a shop blocks us.
 let READER_KEY = ''; // optional free key from jina.ai for a higher limit (set JINA_KEY on the worker)
-async function reader(url, fmt, wait) {
-  // Give the browser time to get past "checking if you're human" pages and wait until a price shows.
-  const h = { 'x-return-format': fmt || 'html', accept: 'text/html,text/plain', 'x-timeout': '25', 'x-no-cache': 'true', 'x-engine': 'browser' };
-  if (wait) h['x-wait-for-selector'] = '[data-price-type="finalPrice"], [itemprop="price"], .price, .product-price, .price-box';
+// Give the browser time to get past "checking if you're human" pages. To save the reader's allowance,
+// ask it for only the price area of the page (a few hundred characters instead of the whole page).
+const PRICE_SEL = '[data-price-type="finalPrice"], .product-info-price, .price-box, [itemprop="price"], .product-price, .summary .price, .price';
+async function readerGo(url, fmt, target) {
+  const h = { 'x-return-format': fmt, accept: 'text/html,text/plain', 'x-timeout': '25', 'x-no-cache': 'true', 'x-engine': 'browser', 'x-retain-images': 'none' };
+  if (target) { h['x-wait-for-selector'] = PRICE_SEL; h['x-target-selector'] = PRICE_SEL; }
   if (READER_KEY) h.authorization = 'Bearer ' + READER_KEY;
   const r = await fetch('https://r.jina.ai/' + url, { headers: h });
   if (!r.ok) throw new Error('reader HTTP ' + r.status + (r.status === 429 && !READER_KEY ? ' (too many requests, add a JINA_KEY)' : ''));
@@ -160,9 +162,10 @@ async function check(entry) {
     const title = ((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '').trim().slice(0, 80);
     tried.push('page: no price found (' + Math.round(html.length / 1024) + ' KB, title "' + title + '", starts "' + visible(html).trim().slice(0, 140) + '")'); }
   catch (e) { blocked = !!e.blocked; tried.push('page: ' + e.message); }
-  for (const [fmt, wait] of [['html', true], ['html', false], ['text', false]]) {
-    const name = 'reader ' + fmt + (wait ? ' (waiting for price)' : '');
-    try { const h = await reader(entry.url, fmt, wait); const r = parse(h, u); if (r) return Object.assign(r, { via: 'reader' }); tried.push(name + ': no price found'); }
+  // Cheapest first: just the price area as text, then as HTML, and only then the whole page.
+  for (const [fmt, target] of [['text', true], ['html', true], ['text', false]]) {
+    const name = 'reader ' + fmt + (target ? ' (price area)' : ' (whole page)');
+    try { const h = await readerGo(entry.url, fmt, target); const r = parse(h, u); if (r) return Object.assign(r, { via: 'reader' }); tried.push(name + ': no price found'); }
     catch (e) { tried.push(name + ': ' + e.message); if (/429/.test(e.message)) break; }
   }
   const err = new Error(blocked ? 'Shop blocked the check' : 'No price found on the page'); err.detail = tried.join(' · '); throw err;
@@ -170,6 +173,87 @@ async function check(entry) {
 // Libidex labels amounts in the visitor's currency but charges in pounds; trust what the user saved.
 const curFor = (entry, r) => /libidex\.com/.test(entry.url) ? entry.currency : (SYM[codeOf(r.cur)] || codeOf(r.cur) || entry.currency);
 // ---- end core ----
+
+
+// ---- looking up a new product: name, brand, price and photos (used once, when adding an item) ----
+const decode = s => String(s || '').replace(/&amp;/g, '&').replace(/&#0?39;|&apos;|&#8217;/g, '’').replace(/&quot;/g, '"').replace(/&#8211;|&ndash;/g, '–').replace(/&#8212;|&mdash;/g, '—').replace(/&nbsp;|&#160;/g, ' ').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+const abs = (s, base) => { try { return new URL(String(s).trim().replace(/^\/\//, 'https://'), base).href; } catch { return null; } };
+const BADIMG = /logo|icon|sprite|favicon|placeholder|swatch|payment|badge|banner|avatar|flag|loader|spinner|trustpilot|newsletter|megamenu|wysiwyg|\.svg(\?|$)|\.gif(\?|$)|^data:/i;
+function cleanImgs(list, base) {
+  const seen = new Set(), out = [];
+  for (const s of list) {
+    if (!s) continue; const u = abs(s, base); if (!u || !/^https?:/.test(u) || BADIMG.test(u)) continue;
+    const k = u.replace(/\/cache\/[a-f0-9]{16,}\//, '/').replace(/[?#].*$/, '').replace(/(-\d+x\d+|_\d+x\d*)(?=\.\w+$)/, '');
+    if (seen.has(k)) continue; seen.add(k); out.push(u); if (out.length >= 8) break;
+  }
+  return out;
+}
+function ldProduct(html) {
+  for (const m of html.matchAll(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
+    let j; try { j = JSON.parse(m[1].trim()); } catch { continue; }
+    const stack = [j];
+    while (stack.length) { const o = stack.pop(); if (!o || typeof o !== 'object') continue; if (Array.isArray(o)) { stack.push(...o); continue; }
+      if (/Product/i.test([].concat(o['@type'] || []).join(' '))) return o; for (const v of Object.values(o)) if (v && typeof v === 'object') stack.push(v); }
+  }
+  return null;
+}
+const trimSite = (name, site, host) => { const parts = name.split(/\s+[|–—-]\s+/); if (parts.length > 1) { const last = parts[parts.length - 1].toLowerCase(); if ((site && last.includes(site.toLowerCase())) || last.includes(host.split('.')[0]) || last.length < 25) return parts.slice(0, -1).join(' – '); } return name; };
+function fromPage(html, u) {
+  const p = ldProduct(html) || {}, pr = parse(html, u), imgs = [];
+  [].concat(p.image || []).forEach(x => imgs.push(typeof x === 'string' ? x : x && (x.url || x.contentUrl)));
+  for (const m of html.matchAll(/data-large_image=["']([^"']+)/g)) imgs.push(m[1]);
+  for (const m of html.matchAll(/"full"\s*:\s*"(https?:[^"]+)"/g)) imgs.push(m[1].replace(/\\\//g, '/'));
+  for (const m of html.matchAll(/<meta[^>]+(?:property|name)=["'](?:og:image(?::secure_url)?|twitter:image)["'][^>]*content=["']([^"']+)/gi)) imgs.push(m[1]);
+  const site = meta(html, 'og:site_name'), brand = p.brand ? decode(typeof p.brand === 'string' ? p.brand : p.brand.name) : null;
+  const raw = decode(p.name || meta(html, 'og:title') || (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '');
+  return { name: trimSite(raw, site, u.hostname.replace(/^www\./, '')), brand: brand || site || null, price: pr ? pr.price : null, cur: pr ? pr.cur : null, images: cleanImgs(imgs, u.href) };
+}
+function fromMarkdown(md, u) {
+  const title = decode((md.match(/^Title:\s*(.+)$/m) || [])[1] || (md.match(/^#\s+(.+)$/m) || [])[1] || '');
+  let imgs = Array.from(md.matchAll(/!\[[^\]]*\]\((https?:[^)\s]+)/g)).map(m => m[1]);
+  const prod = imgs.filter(s => /product|catalog|uploads|cdn\.shopify|wixstatic/i.test(s)); if (prod.length) imgs = prod;
+  const pr = parse(md, u);
+  return { name: trimSite(title, '', u.hostname.replace(/^www\./, '')), brand: null, price: pr ? pr.price : null, cur: pr ? pr.cur : null, images: cleanImgs(imgs, u.href) };
+}
+async function readerMd(url) {
+  const h = { 'x-return-format': 'markdown', accept: 'text/plain', 'x-timeout': '25', 'x-no-cache': 'true', 'x-engine': 'browser' };
+  if (READER_KEY) h.authorization = 'Bearer ' + READER_KEY;
+  const r = await fetch('https://r.jina.ai/' + url, { headers: h });
+  if (!r.ok) throw new Error('reader HTTP ' + r.status);
+  const t = await r.text(); if (t.length < 20000 && BOT.test(t)) throw new Error('reader got the bot check too'); return t;
+}
+async function lookup(url) {
+  const u = new URL(url), tried = [];
+  if (/\/products\/[^/?#]+/.test(u.pathname)) {
+    try { const j = JSON.parse(await get(u.origin + u.pathname.replace(/\/+$/, '') + '.js', true)), variant = u.searchParams.get('variant'), vs = j.variants || [];
+      const v = vs.find(x => String(x.id) === variant) || vs.find(x => x.available) || vs[0];
+      let cur = null; try { cur = JSON.parse(await get(u.origin + '/cart.js', true)).currency || null; } catch {}
+      return { name: decode(j.title), brand: decode(j.vendor) || null, price: v && v.price ? v.price / 100 : j.price ? j.price / 100 : null, cur, images: cleanImgs([v && v.featured_image && v.featured_image.src].concat(j.images || []), u.href), how: 'Shopify feed' };
+    } catch (e) { tried.push('shopify: ' + e.message); }
+  }
+  const wm = u.pathname.match(/\/product\/([^/?#]+)/);
+  if (wm) {
+    try { const j = JSON.parse(await get(u.origin + '/wp-json/wc/store/v1/products?slug=' + encodeURIComponent(wm[1]), true)), p = Array.isArray(j) ? j[0] : null;
+      if (p) { const pr = p.prices || {}, d = Math.pow(10, pr.currency_minor_unit ?? 2), raw = Number(pr.price) || (pr.price_range ? Number(pr.price_range.min_amount) : 0);
+        return { name: decode(p.name), brand: (p.brands && p.brands[0] && decode(p.brands[0].name)) || null, price: raw ? raw / d : null, cur: pr.currency_code || null, images: cleanImgs((p.images || []).map(x => x.src), u.href), how: 'WooCommerce feed' }; }
+    } catch (e) { tried.push('woocommerce: ' + e.message); }
+  }
+  try { const html = await get(url), r = fromPage(html, u); if (r.name && (r.images.length || r.price)) return Object.assign(r, { how: 'product page' }); tried.push('page: not enough found'); }
+  catch (e) { tried.push('page: ' + e.message); }
+  try { const md = await readerMd(url), r = fromMarkdown(md, u); if (r.name || r.images.length) return Object.assign(r, { how: 'page reader' }); tried.push('reader: nothing found'); }
+  catch (e) { tried.push('reader: ' + e.message); }
+  const err = new Error('Couldn’t read that page'); err.detail = tried.join(' · '); throw err;
+}
+async function lookupOne(url, ctx) {
+  const key = normUrl(url); if (!key) return { ok: false, error: 'Not a valid link' };
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup/' + encodeURIComponent(key));
+  const hit = await cache.match(ck); if (hit) return hit.json();
+  let out;
+  try { const r = await lookup(url), code = codeOf(r.cur); out = { ok: true, name: r.name || '', brand: r.brand || '', price: r.price ?? null, currency: /libidex\.com/.test(url) ? '£' : (SYM[code] || code || null), images: r.images || [], how: r.how }; }
+  catch (e) { out = { ok: false, error: String(e.message || e), detail: e.detail || '' }; }
+  ctx.waitUntil(cache.put(ck, new Response(JSON.stringify(out), { headers: { 'cache-control': 'max-age=' + (out.ok ? 86400 : 600) } })));
+  return out;
+}
 
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST, OPTIONS', 'access-control-allow-headers': 'content-type' };
 const json = (o, status = 200) => new Response(JSON.stringify(o, null, 2), { status, headers: Object.assign({ 'content-type': 'application/json; charset=utf-8' }, CORS) });
@@ -186,8 +270,10 @@ async function one(entry, ctx, force) {
     const last = await cache.match(lk).then(x => (x ? x.json() : null)).catch(() => null);
     out = last ? Object.assign({}, last, { checked: now, stale: true, error: String(e.message || e), detail: e.detail || '' })
       : { ok: false, price: null, currency: entry.currency, checked: now, error: String(e.message || e), detail: e.detail || '' }; }
-  // Remember each result for 6 hours (failures for 1) so shops aren't hit on every app open.
-  ctx.waitUntil(cache.put(ck, new Response(JSON.stringify(out), { headers: { 'cache-control': 'max-age=' + (out.ok ? 21600 : 3600) } })));
+  // Remember results so shops (and the reader allowance) aren't used on every app open:
+  // 6 hours for normal checks, 24 hours when the reader was needed, 6 hours for blocked checks.
+  const ttl = out.stale ? 21600 : out.ok ? (out.via === 'reader' ? 86400 : 21600) : 3600;
+  ctx.waitUntil(cache.put(ck, new Response(JSON.stringify(out), { headers: { 'cache-control': 'max-age=' + ttl } })));
   return [key, out];
 }
 
@@ -196,13 +282,15 @@ export default {
     READER_KEY = (env && env.JINA_KEY) || '';
     if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
     if (req.method === 'GET') {
-      const url = new URL(req.url).searchParams.get('url');
-      if (!url) return json({ ok: true, about: 'GearWatch price helper. Add ?url=<product link> to test a link.' });
+      const sp = new URL(req.url).searchParams, url = sp.get('url');
+      if (sp.get('lookup')) return json(await lookupOne(sp.get('lookup'), ctx));
+      if (!url) return json({ ok: true, about: 'GearWatch price helper. Add ?url=<product link> to test a price, or ?lookup=<product link> to test filling in a new item.' });
       const r = await one({ url, currency: new URL(req.url).searchParams.get('cur') || '€' }, ctx, true);
       return json(r ? Object.assign({ key: r[0] }, r[1]) : { error: 'Not a valid link' });
     }
     if (req.method !== 'POST') return json({ error: 'Use GET or POST' }, 405);
     let body; try { body = await req.json(); } catch { return json({ error: 'Bad JSON' }, 400); }
+    if (body.lookup) return json(await lookupOne(String(body.lookup), ctx));
     const list = (body.items || []).filter(x => x && /^https?:\/\//.test(x.url || '')).slice(0, 40), force = !!body.force;
     const items = {};
     for (let i = 0; i < list.length; i += 5) {

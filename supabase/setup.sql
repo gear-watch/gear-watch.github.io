@@ -65,3 +65,19 @@ create policy "delete own photos" on storage.objects for delete to authenticated
 
 -- Profile photos friends see. Added later; safe to run again.
 alter table public.profiles add column if not exists avatar text;
+
+-- Friends are two-way. Accepting a request (or adding someone who already asked you) makes both sides friends.
+create or replace function public.accept_friend(other uuid) returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null or other = auth.uid() then raise exception 'Not allowed'; end if;
+  if not exists (select 1 from public.follows where follower = other and followee = auth.uid()) then raise exception 'No request from this person'; end if;
+  update public.follows set status = 'accepted' where follower = other and followee = auth.uid();
+  insert into public.follows (follower, followee, status) values (auth.uid(), other, 'accepted')
+    on conflict (follower, followee) do update set status = 'accepted';
+end $$;
+revoke all on function public.accept_friend(uuid) from public;
+grant execute on function public.accept_friend(uuid) to authenticated;
+-- Turn earlier one-way follows into friendships.
+insert into public.follows (follower, followee, status)
+  select followee, follower, 'accepted' from public.follows where status = 'accepted'
+  on conflict (follower, followee) do update set status = 'accepted';

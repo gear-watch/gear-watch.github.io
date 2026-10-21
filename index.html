@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=6"></script>
+<script src="./sync.js?v=7"></script>
 <style>
 html,body{margin:0;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -376,6 +376,7 @@ input::placeholder{color:#6e6e73;}
   <div data-anim="fade" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;min-height:20px;">{{ fr.handleTop }}</div>
   <div style="padding:0 16px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
     <span data-anim="up" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Friends</span>
+    <sc-if value="{{ fr.canInvite }}" hint-placeholder-val="{{ false }}"><button data-anim="pop" onClick="{{ fr.invite }}" style="flex:none;border:0;background:#1c1c1e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;" style-active="transform:scale(0.95);"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3v10M3 8h10"></path></svg><span>Invite</span></button></sc-if>
   </div>
   <sc-if value="{{ fr.signedIn }}" hint-placeholder-val="{{ false }}">
     <div data-anim="up" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:12px 16px 12px 12px;display:flex;align-items:center;gap:12px;">
@@ -403,17 +404,28 @@ input::placeholder{color:#6e6e73;}
   </sc-if>
   <sc-if value="{{ fr.signedIn }}" hint-placeholder-val="{{ false }}">
     <div data-anim="up" style="margin:16px 16px 0;display:flex;gap:8px;">
-      <div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;background:#1c1c1e;border-radius:9999px;padding:0 16px;"><span style="color:#6e6e73;">@</span><input value="{{ fr.followIn }}" onChange="{{ fr.onFollowIn }}" onKeyDown="{{ fr.onFollowKey }}" placeholder="username" autocapitalize="none" autocorrect="off" spellcheck="false" style="flex:1;min-width:0;background:none;border:0;padding:10px 0;font-size:17px;color:#f5f5f7;outline:none;"></div>
+      <div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;background:#1c1c1e;border-radius:9999px;padding:0 16px;"><span style="color:#6e6e73;">@</span><input value="{{ fr.followIn }}" onChange="{{ fr.onFollowIn }}" onKeyDown="{{ fr.onFollowKey }}" placeholder="Find by username" autocapitalize="none" autocorrect="off" spellcheck="false" style="flex:1;min-width:0;background:none;border:0;padding:10px 0;font-size:17px;color:#f5f5f7;outline:none;"></div>
       <button onClick="{{ fr.follow }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:0 18px;font-size:14px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">{{ fr.followLabel }}</button>
     </div>
     <div style="padding:6px 24px 0;font-size:12px;color:{{ fr.msgColor }};min-height:18px;">{{ fr.followMsg }}</div>
+    <sc-if value="{{ fr.hasSugg }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="margin:0 16px 4px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+        <sc-for list="{{ fr.sugg }}" as="s" hint-placeholder-count="2">
+          <div onClick="{{ s.onOpen }}" style="background:#1c1c1e;display:flex;align-items:center;gap:12px;padding:10px 16px 10px 12px;cursor:pointer;transition:background .2s;" style-active="background:#2c2c2e;">
+            <span style="position:relative;overflow:hidden;width:36px;height:36px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-size:14px;font-weight:600;flex:none;"><span>{{ s.initial }}</span><sc-if value="{{ s.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ s.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.name }}</span><sc-if value="{{ s.hasSub }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ s.sub }}</span></sc-if></span>
+            <sc-if value="{{ s.hasBtn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ s.onBtn }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:6px 14px;font-size:14px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">{{ s.btnLabel }}</button></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
     <sc-if value="{{ fr.hasRequests }}" hint-placeholder-val="{{ false }}">
       <div data-anim="right" style="padding:16px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Requests</div>
       <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
         <sc-for list="{{ fr.requests }}" as="r" hint-placeholder-count="1">
           <div data-anim="up" style="background:#1c1c1e;display:flex;align-items:center;gap:12px;padding:12px 16px;">
             <span style="position:relative;overflow:hidden;width:40px;height:40px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-weight:600;flex:none;"><span>{{ r.initial }}</span><sc-if value="{{ r.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ r.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
-            <span style="flex:1;min-width:0;display:flex;flex-direction:column;"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.name }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Wants to follow you</span></span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.name }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Wants to be friends</span></span>
             <button onClick="{{ r.onDecline }}" style="flex:none;border:0;background:#2c2c2e;color:#f5f5f7;border-radius:9999px;padding:6px 12px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Decline</button>
             <button onClick="{{ r.onAccept }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:6px 12px;font-size:14px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">Accept</button>
           </div>
@@ -421,7 +433,7 @@ input::placeholder{color:#6e6e73;}
       </div>
     </sc-if>
     <sc-if value="{{ fr.hasFollowing }}" hint-placeholder-val="{{ false }}">
-      <div data-anim="right" style="padding:16px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Following</div>
+      <div data-anim="right" style="padding:16px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Friends</div>
       <div style="display:flex;gap:14px;overflow-x:auto;padding:2px 20px;scrollbar-width:none;">
         <sc-for list="{{ fr.following }}" as="f" hint-placeholder-count="3">
           <button data-anim="pop" onClick="{{ f.onOpen }}" style="flex:none;width:64px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#f5f5f7;" style-active="transform:scale(0.95);">
@@ -450,7 +462,7 @@ input::placeholder{color:#6e6e73;}
     <sc-if value="{{ fr.noFeed }}" hint-placeholder-val="{{ true }}">
       <div data-anim="scale" style="margin:0 16px;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:4px;">
         <span style="font-weight:600;">Nothing here yet.</span>
-        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Follow someone by username. Once they accept, you’ll see what they add, get and wear.</span>
+        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Add a friend by username or send them an invite. Once they accept, you’ll see what they add, get and wear.</span>
       </div>
     </sc-if>
   </sc-if>
@@ -578,6 +590,12 @@ input::placeholder{color:#6e6e73;}
           <span style="flex:1;min-width:0;">{{ d.paidTxt }}</span>
           <button onClick="{{ d.editPaid }}" style="border:0;background:none;padding:0;color:var(--gw-accent,#ffd60a);font-size:14px;cursor:pointer;flex:none;">Edit</button>
         </div>
+      </sc-if>
+      <sc-if value="{{ d.showVis }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ d.toggleVis }}" style="border:0;background:none;padding:0;display:flex;align-items:center;gap:12px;color:#f5f5f7;cursor:pointer;text-align:left;font-family:inherit;">
+          <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-size:17px;">Visible to friends</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ d.visSub }}</span></span>
+          <span style="flex:none;width:51px;height:31px;border-radius:9999px;background:{{ d.visTrack }};position:relative;transition:background .2s;"><span style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:9999px;background:#f5f5f7;transform:{{ d.visKnob }};transition:transform .2s;"></span></span>
+        </button>
       </sc-if>
       <sc-if value="{{ d.isWanted }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;align-items:center;gap:8px;font-size:14px;letter-spacing:-0.224px;color:#d1d1d6;">
@@ -1043,6 +1061,37 @@ input::placeholder{color:#6e6e73;}
       </sc-if>
     </sc-if>
 
+    <sc-if value="{{ isSheetPerson }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:8px 20px 0;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;">
+        <span data-anim="scale" onClick="{{ ps.onAv }}" style="cursor:{{ ps.avCursor }};position:relative;overflow:hidden;width:96px;height:96px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-family:var(--font-display);font-size:40px;font-weight:600;color:#f5f5f7;"><span>{{ ps.initial }}</span><sc-if value="{{ ps.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ ps.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
+        <span data-anim="up" style="font-family:var(--font-display);font-size:28px;font-weight:600;letter-spacing:-0.374px;overflow-wrap:anywhere;">{{ ps.name }}</span>
+        <span data-anim="up" style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;max-width:300px;text-wrap:pretty;">{{ ps.sub }}</span>
+      </div>
+      <div data-anim="up" style="padding:20px 16px 0;display:flex;flex-direction:column;gap:4px;">
+        <sc-if value="{{ ps.hasMain }}" hint-placeholder-val="{{ true }}"><button onClick="{{ ps.onMain }}" style="width:100%;border:0;background:{{ ps.mainBg }};color:{{ ps.mainFg }};border-radius:9999px;padding:14px;font-size:17px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">{{ ps.mainLabel }}</button></sc-if>
+        <sc-if value="{{ ps.hasAlt }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ps.onAlt }}" style="width:100%;border:0;background:none;color:{{ ps.altFg }};font-size:17px;padding:10px;cursor:pointer;">{{ ps.altLabel }}</button></sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isSheetInvite }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="margin:8px 16px 0;display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;">
+        <sc-for list="{{ inv.tabs }}" as="t" hint-placeholder-count="2"><button onClick="{{ t.onTap }}" style="flex:1;border:0;border-radius:7px;padding:6px 0;font-size:14px;cursor:pointer;color:#f5f5f7;background:{{ t.bg }};transition:background .25s;">{{ t.label }}</button></sc-for>
+      </div>
+      <sc-if value="{{ inv.isLink }}" hint-placeholder-val="{{ true }}">
+        <div data-anim="up" style="margin:16px 16px 0;background:#2c2c2e;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px;">
+          <span style="font-size:17px;overflow-wrap:anywhere;user-select:all;-webkit-user-select:all;">{{ inv.short }}</span>
+          <div style="display:flex;gap:8px;">
+            <sc-if value="{{ inv.canShare }}" hint-placeholder-val="{{ true }}"><button onClick="{{ inv.share }}" style="flex:1;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:12px;font-size:17px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">Share</button></sc-if>
+            <button onClick="{{ inv.copy }}" style="flex:1;border:0;background:#3a3a3c;color:#f5f5f7;border-radius:9999px;padding:12px;font-size:17px;cursor:pointer;" style-active="transform:scale(0.95);">{{ inv.copyLabel }}</button>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ inv.isQR }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="scale" style="margin:16px auto 0;width:min(260px, calc(100% - 64px));aspect-ratio:1;background:var(--gw-accent,#ffd60a);border-radius:18px;padding:18px;box-sizing:border-box;"><div ref="{{ qrRef }}" style="width:100%;height:100%;display:grid;place-items:center;color:#000;font-size:14px;text-align:center;">Making your code…</div></div>
+      </sc-if>
+      <div data-anim="up" style="padding:12px 24px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;text-align:center;text-wrap:pretty;">{{ inv.note }}</div>
+    </sc-if>
+
     <sc-if value="{{ isSheetPaid }}" hint-placeholder-val="{{ false }}">
       <div data-anim="up" style="padding:4px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ pd.item }}</div>
       <div data-anim="up" style="margin:8px 16px 0;background:#2c2c2e;border-radius:18px;padding:12px 12px 12px 16px;display:flex;align-items:center;gap:8px;">
@@ -1160,7 +1209,7 @@ input::placeholder{color:#6e6e73;}
       </sc-if>
       <sc-if value="{{ gName }}" hint-placeholder-val="{{ false }}">
         <span data-anim="up" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.12;letter-spacing:-0.374px;">Pick a username.</span>
-        <span data-anim="up" style="font-size:17px;color:#a1a1a6;line-height:1.41;text-wrap:pretty;">Friends follow you by this name. You approve each one, and they only see your wishlist, collection and outfits.</span>
+        <span data-anim="up" style="font-size:17px;color:#a1a1a6;line-height:1.41;text-wrap:pretty;">Friends find you by this name. You approve each one, and they only see your wishlist, collection and outfits.</span>
         <div data-anim="up" style="margin-top:20px;background:#1c1c1e;border-radius:12px;padding:0 16px;display:flex;align-items:center;gap:4px;"><span style="color:#6e6e73;font-size:17px;">@</span><input value="{{ unameIn }}" onChange="{{ onUname }}" onKeyDown="{{ gateKey }}" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="username" style="flex:1;min-width:0;background:none;border:0;padding:14px 0;font-size:17px;color:#f5f5f7;outline:none;"></div>
       </sc-if>
       <span style="min-height:20px;font-size:14px;color:#ff453a;letter-spacing:-0.224px;">{{ authErr }}</span>
@@ -1595,7 +1644,7 @@ const squareAvatar = file => new Promise((res, rej) => { const u = URL.createObj
   im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('Couldn’t read that photo.')); }; im.src = u; });
 class Component extends DCLogic {
   state = { data: load(), tab: 'wish', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null, coll: 'items', outfit: null, builder: null, cuts: {}, cutsReady: false, cpickId: null, cpickQ: false, ovDel: false, newGrpOpen: false, newGrp: '', bdragId: null, acct: null, social: null, friend: null, friendTab: 'wish', followIn: '', followMsg: '', authEmail: '', authCode: '', unameIn: '', authErr: '' };
-  outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef(); fItemRef = React.createRef(); fiCarRef = React.createRef(); vwRef = React.createRef(); cropRef = React.createRef();
+  outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef(); fItemRef = React.createRef(); fiCarRef = React.createRef(); vwRef = React.createRef(); qrRef = React.createRef(); cropRef = React.createRef();
   heroRef = React.createRef(); carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
   introRef = React.createRef(); bPanelRef = React.createRef(); toastRef = React.createRef(); figRef = React.createRef();
 
@@ -1638,7 +1687,8 @@ class Component extends DCLogic {
     const hook = () => { const G = window.GWSync; if (!G) return false;
       G.attach({ get: () => this.state.data, apply: d => { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} this.setState({ data: d }); } });
       this.unsubSync = G.on(s => { const prev = this.state.acct && this.state.acct.user ? this.state.acct.user.id : null; this.setState({ acct: s }); if (!s.user) { this.socialFor = null; this.cacheFor = null; this.setState({ social: null }); } else { if (this.cacheFor !== s.user.id) { this.cacheFor = s.user.id; try { const c = JSON.parse(localStorage.getItem('gw-social-cache-' + s.user.id) || 'null'); if (c) this.setState({ social: c }); } catch (e) {} }
-        if (s.firstDone && this.socialFor !== s.user.id) { this.socialFor = s.user.id; if (!this.loadSocial()) this.socialFor = null; } } });
+        if (s.firstDone && this.socialFor !== s.user.id) { this.socialFor = s.user.id; if (!this.loadSocial()) this.socialFor = null; }
+        if (s.firstDone && s.username && this.pendingAdd) { const a = this.pendingAdd; this.pendingAdd = null; setTimeout(() => this.openPerson(a), 400); } } });
       G.init(); return true; };
     this.onVis = () => { if (document.visibilityState === 'visible') this.loadSocial(true); }; document.addEventListener('visibilitychange', this.onVis); window.addEventListener('focus', this.onVis);
     this.onKey = e => { const v = this.state.viewer; if (!v) return; if (e.key === 'Escape') this.closeViewer(); else if (e.key === 'ArrowRight') this.vwGo(v.idx + 1); else if (e.key === 'ArrowLeft') this.vwGo(v.idx - 1); }; window.addEventListener('keydown', this.onKey);
@@ -1646,7 +1696,10 @@ class Component extends DCLogic {
     if (!hook()) { let n = 0; this.syPoll = setInterval(() => { if (hook() || ++n > 50) clearInterval(this.syPoll); }, 100); }
     if (!window.FITLOG_BRANDS) { let n = 0; this.brPoll = setInterval(() => { if (window.FITLOG_BRANDS || ++n > 50) { clearInterval(this.brPoll); this.forceUpdate(); } }, 100); }
     const sh = readShare(); if (sh && sh.n) this.setState({ shared: sh });
-    this.onHash = () => { const s2 = readShare(); this.setState({ shared: s2 && s2.n ? s2 : null }); }; window.addEventListener('hashchange', this.onHash);
+    const addFromHash = () => { const m = (location.hash || '').match(/[#&]add=([^&]+)/); if (!m) return; const name = decodeURIComponent(m[1]); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+      const A = window.GWSync && window.GWSync.state ? window.GWSync.state() : {}; if (A.user && A.firstDone && A.username) this.openPerson(name); else this.pendingAdd = name; };
+    addFromHash();
+    this.onHash = () => { addFromHash(); const s2 = readShare(); this.setState({ shared: s2 && s2.n ? s2 : null }); }; window.addEventListener('hashchange', this.onHash);
     if (!this.isFramed()) document.body.style.background = '#000';
     this.reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.seen = new WeakSet();
@@ -1724,9 +1777,9 @@ class Component extends DCLogic {
     return true; }
   socialNotify(s, uid) { const k = 'gw-social-seen-' + uid; let seen = null; try { seen = JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) {}
     const req = s.requests.map(r => r.id), acc = s.following.filter(f => f.status === 'accepted').map(f => f.id); try { localStorage.setItem(k, JSON.stringify({ req, acc })); } catch (e) {}
-    const newReq = s.requests.filter(r => !seen || !seen.req.includes(r.id)), newAcc = seen ? s.following.filter(f => f.status === 'accepted' && !seen.acc.includes(f.id)) : [], msg = [];
-    if (newReq.length) msg.push(newReq.length === 1 ? '@' + newReq[0].username + ' wants to follow you' : newReq.length + ' new follow requests');
-    if (newAcc.length) msg.push(newAcc.length === 1 ? '@' + newAcc[0].username + ' accepted your request' : newAcc.length + ' requests accepted');
+    const newReq = s.requests.filter(r => !seen || !seen.req.includes(r.id)), newAcc = seen ? s.following.filter(f => f.status === 'accepted' && !seen.acc.includes(f.id) && !seen.req.includes(f.id)) : [], msg = [];
+    if (newReq.length) msg.push(newReq.length === 1 ? '@' + newReq[0].username + ' sent you a friend request' : newReq.length + ' new friend requests');
+    if (newAcc.length) msg.push(newAcc.length === 1 ? 'You and @' + newAcc[0].username + ' are now friends' : newAcc.length + ' new friends');
     if (msg.length) this.toast(msg.join(' · ')); }
 
   vwEls() { const el = this.vwRef.current, v = this.state.viewer; if (!el || !v) return {}; return { el, track: el.querySelector('[data-vw-track]'), img: el.querySelectorAll('[data-vw-img]')[v.idx] }; }
@@ -1795,6 +1848,19 @@ class Component extends DCLogic {
   phUp(e) { const d = this.pd; if (!d || e.pointerId !== d.id) return; this.pd = null; const kids = d.grid.children;
     d.R.forEach((r, k) => { const el = kids[k]; if (!el) return; el.style.transition = 'transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s'; el.style.transform = ''; el.style.boxShadow = ''; setTimeout(() => { el.style.zIndex = ''; }, 230); });
     if (!d.on) { const ph = (this.state.form || {}).photos || []; if (ph.length) this.openViewer(ph, d.i); } }
+  loadQR() { if (window.qrcode) return Promise.resolve(); if (this.qrP) return this.qrP;
+    this.qrP = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js'; s.onload = () => res(); s.onerror = () => { this.qrP = null; rej(new Error('load')); }; document.head.appendChild(s); }); return this.qrP; }
+  inviteLink() { const A = this.state.acct || {}; return location.origin + location.pathname.replace(/index\.html$/, '') + '#add=' + encodeURIComponent(A.username || ''); }
+  drawQR() { this.loadQR().then(() => { const el = this.qrRef.current; if (!el || !window.qrcode) return; const q = window.qrcode(0, 'M'); q.addData(this.inviteLink()); q.make(); const n = q.getModuleCount(); let d = '';
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += 'M' + c + ' ' + r + 'h1v1h-1z';
+      el.innerHTML = '<svg viewBox="0 0 ' + n + ' ' + n + '" width="100%" height="100%" shape-rendering="crispEdges" role="img" aria-label="QR code for your invite link"><path d="' + d + '" fill="#1c1c1e"/></svg>'; })
+      .catch(() => { const el = this.qrRef.current; if (el) el.textContent = 'Couldn’t make the code. Check your connection.'; }); }
+  openInvite() { this.setState({ sheet: 'invite', invTab: 'link', invCopied: false }); this.loadQR().catch(() => {}); }
+  async openPerson(name) { const G = window.GWSync, u = String(name || '').trim().replace(/^@/, '').toLowerCase(), A = this.state.acct || {}; if (!G || !u) return;
+    if (A.username && u === A.username) { this.toast('That’s your own invite link'); return; }
+    try { const p = await G.findUser(u); if (!p) { this.toast('No one is called @' + u); return; } this.setState({ tab: 'friends', detail: null, sheet: 'person', person: p }); this.loadSocial(true); } catch (e) { this.toast('Couldn’t look up @' + u); } }
+  searchUsers(q) { const G = window.GWSync; q = String(q || '').trim().replace(/^@/, '').toLowerCase(); const tok = (this.sugTok = (this.sugTok || 0) + 1);
+    if (!q || !G || !G.searchUsers) { this.setState({ sugg: [] }); return; } G.searchUsers(q).then(list => { if (tok === this.sugTok) this.setState({ sugg: list || [] }); }).catch(() => {}); }
   closeFItem() { this.animOut(this.fItemRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => this.setState({ fItem: null })); }
   closeFriend(cb) { this.animOut(this.friendRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ friend: null, fItem: null, unfArm: false }); if (cb) cb(); }); }
   prof() { const d = this.state.data; return d.profiles.find(p => p.id === d.activeId) || d.profiles[0]; }
@@ -2035,17 +2101,31 @@ class Component extends DCLogic {
         if (o.cr) feed.push({ d: o.cr, who, av: f.avatar, av: f.avatar, txt: 'made an outfit: ' + o.n, ph, on: openF(f.id, 'outfits') });
         if (o.lw && o.lw !== o.cr) feed.push({ d: o.lw, who, av: f.avatar, av: f.avatar, txt: 'wore ' + o.n, ph, on: openF(f.id, 'outfits') }); }); });
     feed.sort((a, b) => String(b.d).localeCompare(String(a.d)));
-    const doFollow = async () => { if (st.followBusy || !G) return; this.setState({ followBusy: true, followMsg: '' }); try { const u = await G.follow(st.followIn); this.setState({ followBusy: false, followIn: '', followMsg: 'Request sent to @' + u + '.', followErr: false }); this.loadSocial(); } catch (e) { this.setState({ followBusy: false, followMsg: (e && e.message) || 'Couldn’t follow.', followErr: true }); } };
+    const doFollow = async name => { if (st.followBusy || !G) return; this.setState({ followBusy: true, followMsg: '' }); try { const r = await G.follow(name == null ? st.followIn : name), u = typeof r === 'string' ? r : r.username; this.setState({ followBusy: false, followIn: '', sugg: [], followMsg: r && r.mutual ? 'You and @' + u + ' are now friends.' : 'Friend request sent to @' + u + '.', followErr: false }); this.loadSocial(); } catch (e) { this.setState({ followBusy: false, followMsg: (e && e.message) || 'Couldn’t send the request.', followErr: true }); } };
+    const qS = (st.followIn || '').trim().replace(/^@/, '').toLowerCase();
+    const relOf = id => SO.following.some(f => f.id === id && f.status === 'accepted') ? 'friend' : SO.requests.some(r => r.id === id) ? 'incoming' : SO.following.some(f => f.id === id) ? 'pending' : 'none';
+    const seenS = new Set(), rank = x => (x.username === qS ? 0 : 1) * 10 + (relOf(x.id) === 'friend' ? 0 : 1) * 2 + (x.username.startsWith(qS) ? 0 : 1);
+    const sList = qS ? SO.following.concat(SO.requests).filter(x => x.username.includes(qS)).concat(st.sugg || []).filter(x => x && x.id && !seenS.has(x.id) && seenS.add(x.id)).sort((a, b) => rank(a) - rank(b)).slice(0, 6) : [];
+    const doAccept = async x => { try { await G.accept(x.id); this.toast('You and @' + x.username + ' are now friends'); } catch (e) { this.toast((e && e.message) || 'Couldn’t accept'); } this.loadSocial(false, false); };
+    const openPersonObj = x => this.setState({ sheet: 'person', person: { id: x.id, username: x.username, avatar: x.avatar || null } });
+    const goName = name => { const n = String(name || '').trim().replace(/^@/, '').toLowerCase(), x = sList.find(y => y.username === n) || (sList.length === 1 ? sList[0] : null), r = x ? relOf(x.id) : 'none';
+      if (x && r === 'friend') { this.setState({ followIn: '', sugg: [] }); openF(x.id, 'wish')(); } else if (x && r === 'incoming') { this.setState({ followIn: '', sugg: [] }); doAccept(x); } else if (x && r === 'pending') this.toast('Waiting for @' + x.username + ' to accept'); else doFollow(x ? x.username : n); };
+
     const fr = { needAcct: !A.configured, signedIn: !!(A.configured && A.user), handle: A.username ? '@' + A.username : A.email || p.name,
       followerTxt: plural(SO.followers.length, 'follower'), handleTop: A.configured && A.user ? '' : (A.username ? '@' + A.username : A.email || p.name),
       myInitial: ini(A.username || p.name), av: A.avatar || '', hasAv: !!A.avatar, avBusy: !!st.avBusy,
-      avSub: plural(SO.followers.length, 'follower') + ' · ' + (A.avatar ? 'Tap photo to change' : 'Tap to add a photo'),
+      avSub: plural(SO.following.filter(f => f.status === 'accepted').length, 'friend') + ' · ' + (A.avatar ? 'Tap photo to change' : 'Tap to add a photo'),
       removeLabel: st.avDelArm ? 'Remove?' : 'Remove',
       onAvatar: e => { const fl = e.target.files && e.target.files[0]; e.target.value = ''; if (fl && !st.avBusy) this.openCrop(fl); },
-      removeAv: async () => { if (!st.avDelArm) { this.setState({ avDelArm: true }); clearTimeout(this.avT); this.avT = setTimeout(() => this.setState({ avDelArm: false }), 3000); return; } this.setState({ avBusy: true, avDelArm: false }); try { await G.setAvatar(null); this.toast('Profile photo removed'); } catch (er) { this.toast((er && er.message) || 'Couldn’t remove your photo'); } this.setState({ avBusy: false }); }, followIn: st.followIn || '', onFollowIn: e => this.setState({ followIn: e.target.value }), onFollowKey: e => { if (e.key === 'Enter') { e.preventDefault(); doFollow(); } },
-      follow: e => { this.bump(e.currentTarget, 1.06); doFollow(); }, followLabel: st.followBusy ? '…' : 'Follow', followMsg: st.followMsg || '', msgColor: st.followErr ? '#ff453a' : '#a1a1a6',
-      requests: SO.requests.map(r => ({ name: '@' + r.username, initial: ini(r.username), av: r.avatar || '', hasAv: !!r.avatar, onAccept: async () => { try { await G.accept(r.id); } catch (e) {} this.loadSocial(); this.toast('@' + r.username + ' can now follow you'); }, onDecline: async () => { try { await G.decline(r.id); } catch (e) {} this.loadSocial(); } })), hasRequests: SO.requests.length > 0,
-      following: SO.following.map(f => { const ok = f.status === 'accepted'; return { name: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar, sub: ok ? ' ' : 'Requested', ring: ok ? '0 0 0 2px ' + ACC : '0 0 0 1px #3a3a3c', fg: ok ? '#f5f5f7' : '#6e6e73', onOpen: ok ? openF(f.id, 'wish') : () => this.toast('Waiting for @' + f.username + ' to accept') }; }), hasFollowing: SO.following.length > 0,
+      removeAv: async () => { if (!st.avDelArm) { this.setState({ avDelArm: true }); clearTimeout(this.avT); this.avT = setTimeout(() => this.setState({ avDelArm: false }), 3000); return; } this.setState({ avBusy: true, avDelArm: false }); try { await G.setAvatar(null); this.toast('Profile photo removed'); } catch (er) { this.toast((er && er.message) || 'Couldn’t remove your photo'); } this.setState({ avBusy: false }); }, followIn: st.followIn || '', onFollowIn: e => { const v = e.target.value; this.setState({ followIn: v, followMsg: '' }); clearTimeout(this.sugT); this.sugT = setTimeout(() => this.searchUsers(v), 220); }, onFollowKey: e => { if (e.key === 'Enter') { e.preventDefault(); goName(st.followIn); } },
+      follow: e => { this.bump(e.currentTarget, 1.06); goName(st.followIn); }, followLabel: st.followBusy ? '…' : 'Add',
+      hasSugg: sList.length > 0, sugg: sList.map(x => { const r = relOf(x.id); return { name: '@' + x.username, initial: ini(x.username), av: x.avatar || '', hasAv: !!x.avatar,
+        sub: r === 'friend' ? 'Friend' : r === 'pending' ? 'Request sent' : r === 'incoming' ? 'Wants to be friends' : '', hasSub: r !== 'none', hasBtn: r === 'none' || r === 'incoming', btnLabel: r === 'incoming' ? 'Accept' : 'Add',
+        onBtn: e => { e.stopPropagation(); this.bump(e.currentTarget, 1.08); if (r === 'incoming') { this.setState({ followIn: '', sugg: [] }); doAccept(x); } else doFollow(x.username); },
+        onOpen: () => { if (r === 'friend') { this.setState({ followIn: '', sugg: [] }); openF(x.id, 'wish')(); } else openPersonObj(x); } }; }),
+      canInvite: !!(A.configured && A.user && A.username), invite: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.openInvite(); }, followMsg: st.followMsg || '', msgColor: st.followErr ? '#ff453a' : '#a1a1a6',
+      requests: SO.requests.map(r => ({ name: '@' + r.username, initial: ini(r.username), av: r.avatar || '', hasAv: !!r.avatar, onAccept: () => doAccept(r), onDecline: async () => { try { await G.decline(r.id); } catch (e) {} this.loadSocial(); } })), hasRequests: SO.requests.length > 0,
+      following: SO.following.map(f => { const ok = f.status === 'accepted'; return { name: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar, sub: ok ? ' ' : 'Requested', ring: ok ? '0 0 0 2px ' + ACC : '0 0 0 1px #3a3a3c', fg: ok ? '#f5f5f7' : '#6e6e73', onOpen: ok ? openF(f.id, 'wish') : () => openPersonObj(f) }; }), hasFollowing: SO.following.length > 0,
       feed: feed.slice(0, 50).map(e => ({ who: e.who, initial: ini(e.who), av: e.av || '', hasAv: !!e.av, txt: e.txt, when: agoTxt(e.d), photo: e.ph || '', hasPhoto: !!e.ph, onOpen: e.on })), hasFeed: feed.length > 0, noFeed: !feed.length,
       busy: !!st.socialBusy, refresh: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.loadSocial(false, true); if (G) G.schedule(0); } };
     const fU = st.friend ? SO.following.find(x => x.id === st.friend) : null, fL = fU ? SO.lists[fU.id] || {} : null;
@@ -2073,8 +2153,8 @@ class Component extends DCLogic {
           onAdd: e => { e.stopPropagation(); if (have) return; this.bump(e.currentTarget, 1.1); addF(i); } }; }),
         collGroups: Array.from(cg.entries()).map(([title, a]) => ({ title, count: String(a.length), items: a.map(i => { const ph = (i.ph || [])[0]; return { name: i.n, sub: [i.b, i.ow ? 'On the way' : ''].filter(Boolean).join(' · ') || ' ', photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(i.n), onOpen: openI(i.id, 'coll') }; }) })),
         outfits: O.slice().reverse().map(o => { const its = (o.ids || []).map(id => all.find(x => x.id === id)).filter(Boolean).map(x => ({ id: x.id, name: x.n, category: x.cat, g: x.g, photos: x.ph || [] })), cov = (o.ph || [])[0]; return { name: o.n, sub: plural(its.length, 'piece') + (o.w ? ' · Worn ' + o.w + '×' : ''), cover: cov || '', hasCover: !!cov, noCover: !cov, board: cov ? [] : this.board(its, o.pos) }; }),
-        onBack: () => this.closeFriend(), unfLabel: st.unfArm ? 'Tap again to unfollow' : 'Unfollow',
-        onUnfollow: () => { if (!st.unfArm) { this.setState({ unfArm: true }); return; } const id = fU.id; this.closeFriend(async () => { try { await G.unfollow(id); } catch (e) {} this.loadSocial(); this.toast('Unfollowed'); }); } };
+        onBack: () => this.closeFriend(), unfLabel: st.unfArm ? 'Tap again to remove' : 'Remove friend',
+        onUnfollow: () => { if (!st.unfArm) { this.setState({ unfArm: true }); return; } const id = fU.id; this.closeFriend(async () => { try { await G.unfollow(id); } catch (e) {} this.loadSocial(); this.toast('Removed @' + fU.username); }); } };
     }
     const doSend = async () => { const em = (st.authEmail || '').trim(); if (!/^\S+@\S+\.\S+$/.test(em)) { this.setState({ authErr: 'Enter your email address.' }); return; } this.setState({ authBusy: true, authErr: '' }); try { await G.sendCode(em); this.setState({ authSent: true, authBusy: false, authCode: '' }); } catch (e) { this.setState({ authBusy: false, authErr: (e && e.message) || 'Couldn’t send the email.' }); } };
     const doVerify = async () => { const c = (st.authCode || '').replace(/\D/g, ''); if (c.length < 6) { this.setState({ authErr: 'Type the code from the email.' }); return; } this.setState({ authBusy: true, authErr: '' }); try { await G.verify((st.authEmail || '').trim(), c); this.setState({ authBusy: false, authCode: '' }); } catch (e) { this.setState({ authBusy: false, authErr: 'That code didn’t work. Check it or send a new one.' }); } };
@@ -2111,6 +2191,8 @@ class Component extends DCLogic {
         dots: ph.map((_, i) => ({ onTap: () => this.carGo(i), bg: i === st.photoIdx ? '#f5f5f7' : 'rgba(245,245,247,0.4)', w: i === st.photoIdx ? '18px' : '7px' })),
         stars: [1, 2, 3, 4, 5].map(n => ({ fill: n <= dIt.rating ? ACC : '#48484a', label: n + ' stars', onTap: e => { this.bump(e.currentTarget, 1.45); this.mutItem(dIt.id, it => { it.rating = n; }); } })),
         statusTabs: [['wanted', 'Wanted'], ['ordered', 'Ordered'], ['owned', 'Owned']].map(([k, l]) => ({ label: l, bg: dIt.status === k ? '#636366' : 'transparent', onTap: e => { this.bump(e.currentTarget, 1.06); if (k !== 'wanted' && dIt.status === 'wanted') this.openPaid(dIt, k); else this.setStatus(dIt.id, k); } })),
+        showVis: !!(A.configured && A.user), visSub: dIt.private ? 'Only you can see this item' : 'Friends can see this item', visTrack: dIt.private ? '#48484a' : '#30d158', visKnob: dIt.private ? 'none' : 'translateX(20px)',
+        toggleVis: () => { const pv = !dIt.private; this.mutItem(dIt.id, it => { if (pv) it.private = true; else delete it.private; }); this.toast(pv ? 'Hidden from friends' : 'Visible to friends'); },
         hasPaid: dIt.status !== 'wanted' && dIt.paid != null, editPaid: () => this.openPaid(dIt, dIt.status),
         paidTxt: dIt.paid == null ? '' : 'Paid ' + money(dIt.paidCur || '€', dIt.paid) + (dIt.paidCur && dIt.paidCur !== '€' ? ' (≈ €' + Math.round(paidEur(dIt)) + ')' : '') + (bi ? (dIt.noBudget ? ' · not in budget' : ' · counted in budget') : ''),
         checkTxt: !dIt.url ? 'No link, so the price isn’t checked' : !dIt.checked ? 'Price not checked yet' : dIt.checkErr ? dIt.checkErr + ' · tried ' + agoTxt(dIt.checked) : 'Price checked ' + agoTxt(dIt.checked) + (dIt.checkNote ? ' · ' + dIt.checkNote : '') + (dIt.surcharge ? ' · incl. +' + Math.round(dIt.surcharge * 100) + '% made to measure' : ''),
@@ -2132,7 +2214,7 @@ class Component extends DCLogic {
     }
 
     const f = st.form || {};
-    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: ['Monthly budget', 'Save'], paid: [st.paid && st.paid.to === 'owned' ? 'Mark as owned' : 'Mark as ordered', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null], cpick: ['Collection category', null] }[st.sheet] || ['', null];
+    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: ['Monthly budget', 'Save'], person: ['', null], invite: ['Invite a friend', null], paid: [st.paid && st.paid.to === 'owned' ? 'Mark as owned' : 'Mark as ordered', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null], cpick: ['Collection category', null] }[st.sheet] || ['', null];
     const canSave = st.sheet === 'form' ? !!(f.name || '').trim() : st.sheet === 'budget' ? toNum(st.budgetIn) > 0 : true;
     const pv = st.pointId ? this.fval(vals, st.pointId) : null;
     const chips = (cur, set) => BUDGET_CHIPS.map(n => { const on = toNum(cur) === n; return { label: '€' + n, bg: on ? ACC : '#1c1c1e', color: on ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.12); set(String(n)); } }; });
@@ -2169,7 +2251,18 @@ class Component extends DCLogic {
       canRestore: seedMissing.length > 0, restoreTxt: plural(seedMissing.length, 'item') + (seedP && seedP.session && !p.session ? ', your measurements' : '') + ' and your budget from this app’s saved copy. Nothing gets removed.',
       restoreSeed: () => { const add = seedMissing.map(i => JSON.parse(JSON.stringify(i))), n = add.length; this.closeSheet(() => { this.mutate(pp => { pp.items = pp.items.concat(add.filter(i => !pp.items.some(x => x.id === i.id))); if (!pp.session && seedP.session) pp.session = JSON.parse(JSON.stringify(seedP.session)); if (!(pp.budget && pp.budget.amount) && seedP.budget && seedP.budget.amount) pp.budget = Object.assign({}, seedP.budget); if (pp.name === 'Me' && seedP.name) pp.name = seedP.name; }); this.toast('Restored ' + plural(n, 'item')); }); },
       isFriends: st.tab === 'friends', tabFriends: st.tab === 'friends' ? ACC : '#8e8e93',
-      goFriends: e => { this.goTab('friends', e); this.loadSocial(); }, fr, hasFriend: !!fU, fv, friendRef: this.friendRef, hasFItem: !!(fU && fi.name), fi, fItemRef: this.fItemRef, fiCarRef: this.fiCarRef,
+      goFriends: e => { this.goTab('friends', e); this.loadSocial(); }, fr, hasFriend: !!fU, fv, isSheetPerson: st.sheet === 'person', isSheetInvite: st.sheet === 'invite', qrRef: this.qrRef,
+      ps: (() => { const P = st.person; if (!P) return {}; const r = relOf(P.id), x = SO.following.concat(SO.requests).find(y => y.id === P.id) || P, close = cb => this.closeSheet(cb);
+        const base = { name: '@' + x.username, initial: ini(x.username), av: x.avatar || '', hasAv: !!x.avatar, avCursor: x.avatar ? 'zoom-in' : 'default', onAv: () => { if (x.avatar) this.openViewer([x.avatar], 0); }, altFg: '#a1a1a6' };
+        if (r === 'friend') return Object.assign(base, { sub: 'You’re friends.', hasMain: true, mainLabel: 'View profile', mainBg: ACC, mainFg: '#000', onMain: () => close(() => openF(x.id, 'wish')()), hasAlt: false });
+        if (r === 'incoming') return Object.assign(base, { sub: 'Wants to be friends. You’ll see each other’s wishlist, collection and outfits.', hasMain: true, mainLabel: 'Accept', mainBg: ACC, mainFg: '#000', onMain: () => close(() => doAccept(x)), hasAlt: true, altLabel: 'Decline', onAlt: () => close(async () => { try { await G.decline(x.id); } catch (e) {} this.loadSocial(); }) });
+        if (r === 'pending') return Object.assign(base, { sub: 'Friend request sent. Waiting for them to accept.', hasMain: true, mainLabel: 'Requested', mainBg: '#2c2c2e', mainFg: '#6e6e73', onMain: () => {}, hasAlt: true, altLabel: 'Cancel request', altFg: '#ff453a', onAlt: () => close(async () => { try { await G.unfollow(x.id); } catch (e) {} this.loadSocial(); this.toast('Request cancelled'); }) });
+        return Object.assign(base, { sub: 'Friends see each other’s wishlist, collection and outfits.', hasMain: true, mainLabel: st.followBusy ? 'Sending…' : 'Add friend', mainBg: ACC, mainFg: '#000', onMain: () => close(() => doFollow(x.username)), hasAlt: false }); })(),
+      inv: (() => { const link = this.inviteLink(), tab = st.invTab || 'link'; return { tabs: [['link', 'Link'], ['qr', 'QR code']].map(([k, l]) => ({ label: l, bg: tab === k ? '#636366' : 'transparent', onTap: () => this.setState({ invTab: k }, () => { if (k === 'qr') this.drawQR(); }) })),
+        isLink: tab === 'link', isQR: tab === 'qr', short: link.replace(/^https?:\/\//, ''), canShare: !!navigator.share, copyLabel: st.invCopied ? 'Copied' : 'Copy link',
+        share: () => { navigator.share({ title: 'Add me on GearWatch', text: 'Add me on GearWatch: @' + (A.username || ''), url: link }).catch(() => {}); },
+        copy: () => { try { navigator.clipboard.writeText(link); } catch (e) {} this.setState({ invCopied: true }); clearTimeout(this.cpT); this.cpT = setTimeout(() => this.setState({ invCopied: false }), 2000); },
+        note: tab === 'qr' ? 'Ask them to scan this with their phone camera. They’ll be asked to add you once they sign in.' : 'Send this to a friend. When they open it and sign in, they’ll be asked to add you.' }; })(), friendRef: this.friendRef, hasFItem: !!(fU && fi.name), fi, fItemRef: this.fItemRef, fiCarRef: this.fiCarRef,
       hasCrop: !!st.crop, crop: st.crop || {}, cropRef: this.cropRef, cropCancel: () => this.closeCrop(), cropUse: () => this.useCrop(), cropLoaded: () => this.cropInit(),
       cropDown: e => this.cropDown(e), cropMove: e => this.cropMove(e), cropUp: e => this.cropUp(e), cropWheel: e => this.cropWheel(e),
       hasViewer: !!st.viewer, vwRef: this.vwRef, vwDown: e => this.vwDown(e), vwMove: e => this.vwMove(e), vwUp: e => this.vwUp(e), vwWheel: e => this.vwWheel(e), vwStop: e => e.stopPropagation(),
