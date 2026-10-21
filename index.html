@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=11"></script>
+<script src="./sync.js?v=13"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -1247,6 +1247,12 @@ input::placeholder{color:#6e6e73;}
           <button onClick="{{ addCat }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:8px;padding:0 16px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Add</button>
         </div>
       </sc-if>
+      <sc-if value="{{ fZipShow }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="up" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Zip and entry</div>
+        <div style="padding:0 16px;display:flex;flex-wrap:wrap;gap:8px;">
+          <sc-for list="{{ zipChips }}" as="z" hint-placeholder-count="6"><button data-anim="pop" onClick="{{ z.onTap }}" style="border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ z.color }};background:{{ z.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ z.label }}</button></sc-for>
+        </div>
+      </sc-if>
 
       <div data-anim="up" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ fStarsLbl }}</div>
       <div style="padding:0 16px;display:flex;gap:4px;">
@@ -1630,6 +1636,8 @@ const ACC = 'var(--gw-accent,#ffd60a)';
 const EASE = 'cubic-bezier(.2,.8,.2,1)';
 const FX = { '€': 1, '$': 0.86, '£': 1.15 };
 const CURS = ['€', '$', '£'];
+const ZIPS = ['Back through crotch', 'Half back zip', 'Front through crotch', 'Half front zip', 'Shoulder zip', 'Neck entry'];
+const ZIP_CATS = ['Catsuit', 'Surfsuit'];
 const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Socks', 'Cuffs', 'Gags', 'Accessory'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const BUDGET_CHIPS = [50, 100, 150, 250];
@@ -2195,7 +2203,7 @@ class Component extends DCLogic {
     const stg = this.svRef.current && this.svRef.current.querySelector('[data-sv-stage]'); if (stg && stg.animate && !this.reduce) stg.animate([{ transform: 'translateX(' + (d > 0 ? 48 : -48) + 'px)', opacity: 0.3 }, { transform: 'none', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)' });
     this.setState({ sv: Object.assign({}, v, { ui, si }), svPanel: null, svReply: '', svDelArm: false }, () => this.svStart()); }
   svClose() { cancelAnimationFrame(this.svRaf); this.svTyping = false; this.animOut(this.svRef.current, [{ opacity: 1 }, { opacity: 0, transform: 'scale(.96)' }], 200, () => this.setState({ sv: null, svPanel: null, svHold: false })); }
-  svDown(e) { if (e.target.closest && e.target.closest('[data-sv-ui]')) return; this.svG = { x: e.clientX, y: e.clientY, id: e.pointerId }; clearTimeout(this.svHoldT); this.svHoldT = setTimeout(() => this.setState({ svHold: true }), 230); try { e.currentTarget.setPointerCapture(e.pointerId); } catch (er) {} }
+  svDown(e) { if (e.target.closest && e.target.closest('[data-sv-ui]')) return; if (this.svTyping) { if (document.activeElement) document.activeElement.blur(); this.svTyping = false; this.svG = null; return; } this.svG = { x: e.clientX, y: e.clientY, id: e.pointerId }; clearTimeout(this.svHoldT); this.svHoldT = setTimeout(() => this.setState({ svHold: true }), 230); try { e.currentTarget.setPointerCapture(e.pointerId); } catch (er) {} }
   svMove(e) { const g = this.svG; if (!g || g.id !== e.pointerId) return; const dx = e.clientX - g.x, dy = e.clientY - g.y; if (Math.hypot(dx, dy) > 10) clearTimeout(this.svHoldT);
     const el = this.svRef.current; if (el && dy > 0 && dy > Math.abs(dx)) { el.style.transition = 'none'; el.style.transform = 'translateY(' + dy * 0.6 + 'px) scale(' + Math.max(0.86, 1 - dy / 1500) + ')'; el.style.borderRadius = '18px'; } }
   svUp(e) { const g = this.svG; if (!g || g.id !== e.pointerId) return; this.svG = null; clearTimeout(this.svHoldT); const dx = e.clientX - g.x, dy = e.clientY - g.y, el = this.svRef.current;
@@ -2206,11 +2214,11 @@ class Component extends DCLogic {
     if (Math.hypot(dx, dy) < 12 && el) { const r = el.getBoundingClientRect(); if (e.clientX - r.left < r.width / 3) this.svPrev(); else this.svNext(); } }
   svLocal(fn) { const S = this.state.stories; if (!S) return; const n = Object.assign({}, S); fn(n); this.setState({ stories: n }); }
   async svReact(s, kind, on) { const G = window.GWSync, me = (this.state.stories || {}).me; this.svLocal(n => { n.reactions = (n.reactions || []).filter(r => !(r.story_id === s.id && r.user_id === me && r.kind === kind)).concat(on ? [{ story_id: s.id, user_id: me, kind }] : []); });
-    try { await G.storyReact(s.id, kind, on); } catch (e) { this.toast('Couldn’t send that'); } }
+    try { G.storyView(s.id); await G.storyReact(s.id, kind, on); } catch (e) { this.toast('Couldn’t send that'); } }
   async svVote(s, i) { const G = window.GWSync, me = (this.state.stories || {}).me; this.svLocal(n => { n.votes = (n.votes || []).filter(v => !(v.story_id === s.id && v.user_id === me)).concat([{ story_id: s.id, user_id: me, choice: i }]); });
-    try { await G.storyVote(s.id, i); } catch (e) { this.toast('Couldn’t save your vote'); } }
+    try { G.storyView(s.id); await G.storyVote(s.id, i); } catch (e) { this.toast('Couldn’t save your vote'); } }
   async svSendReply(s, p) { const G = window.GWSync, body = (this.state.svReply || '').trim(); if (!body) return; this.setState({ svReply: '' }); this.svTyping = false; if (document.activeElement) document.activeElement.blur();
-    try { await G.storyReply(s.id, body); this.toast('Sent to @' + p.username); } catch (e) { this.toast('Couldn’t send your reply'); this.setState({ svReply: body }); } }
+    try { G.storyView(s.id); await G.storyReply(s.id, body); this.toast('Sent to @' + p.username); } catch (e) { this.toast('Couldn’t send your reply'); this.setState({ svReply: body }); } }
   async svPin(s, name) { const G = window.GWSync, nm = name == null ? null : String(name).trim().slice(0, 30) || 'Highlights'; this.setState({ svPanel: null });
     try { await G.storyPin(s.id, nm); s.highlight = nm; this.svLocal(n => { n.list = (n.list || []).map(x => x.id === s.id ? Object.assign({}, x, { highlight: nm }) : x); }); this.toast(nm ? 'Added to ' + nm : 'Removed from highlights'); } catch (e) { this.toast('Couldn’t update highlights'); } }
   async svDelete(s) { const G = window.GWSync; this.setState({ svDelArm: false }); this.svClose(); try { await G.storyDelete(s); this.svLocal(n => { n.list = (n.list || []).filter(x => x.id !== s.id); }); this.toast('Story deleted'); } catch (e) { this.toast('Couldn’t delete the story'); } }
@@ -2300,14 +2308,16 @@ class Component extends DCLogic {
       const blurred = !!s.blur && !isMine && !(st.svRevealed || {})[s.id], myRx = (S.reactions || []).filter(r => r.story_id === s.id && r.user_id === me).map(r => r.kind);
       const votes = (S.votes || []).filter(v => v.story_id === s.id), mv = (votes.find(v => v.user_id === me) || {}).choice, showRes = isMine || mv != null, items = s.items || [];
       const views = (S.views || []).filter(v => v.story_id === s.id), rxAll = (S.reactions || []).filter(r => r.story_id === s.id && r.user_id !== me), reps = (S.replies || []).filter(r => r.story_id === s.id);
-      const RXW = { paw: 'paw', flame: 'fire', want: 'want' }, pv = id => { const q = prof(id) || { username: 'friend' }; return { name: '@' + q.username, initial: ini(q.username), av: q.avatar || '', hasAv: !!q.avatar }; };
+      const ppl = new Map(); views.forEach(v => ppl.set(v.viewer, { id: v.viewer, t: v.seen_at })); rxAll.forEach(r => { if (!ppl.has(r.user_id)) ppl.set(r.user_id, { id: r.user_id, t: r.created_at }); }); reps.forEach(r => { if (r.from_user !== me && !ppl.has(r.from_user)) ppl.set(r.from_user, { id: r.from_user, t: r.created_at }); });
+      const seenList = Array.from(ppl.values()).sort((a, b) => String(b.t || '').localeCompare(String(a.t || '')));
+      const RXW = { paw: 'Paw', flame: 'Fire', want: 'Want' }, pv = id => { const q = prof(id) || { username: 'friend' }; return { name: '@' + q.username, initial: ini(q.username), av: q.avatar || '', hasAv: !!q.avatar }; };
       const names = X.hl.has(me) ? Array.from(X.hl.get(me).keys()) : [];
       const BX = st.svBox || {}, FB = this.fitBox(m.w, m.h, BX.w, BX.h, true);
       const full = id => { const L = (SO.lists || {})[s.user_id] || {}; return (L.coll || []).concat(L.wish || []).find(q => q.id === id) || null; };
       const pins = (m.tags || []).map(t => { const i = items.find(q => q.id === t.id); if (!i || !FB.ok) return null; const px = Math.max(14, Math.min(BX.w - 14, FB.ox + t.x * FB.dw)), py = Math.max(14, Math.min(BX.h - 40, FB.oy + t.y * FB.dh)); return { name: i.n, x: px + 'px', y: py + 'px', onTap: () => this.setState({ svPanel: 'item', svItem: i.id, svFromList: false }) }; }).filter(Boolean);
       const SI = st.svPanel === 'item' ? items.find(q => q.id === st.svItem) : null, FI = SI ? Object.assign({}, SI, full(SI.id) || {}) : null;
       let it = {}; if (FI) { const have = x.mineKey.has(x.fKey(FI)), phs = (FI.ph || []).filter(Boolean), host = (() => { try { return new URL(FI.u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } })();
-        const rows = [['Brand', FI.b], ['Category', FI.g || FI.cat], ['Size', FI.m ? 'Made to measure' : FI.s], ['Colour', FI.co]].filter(r => r[1]).map(([k, v]) => ({ k, v: String(v) }));
+        const rows = [['Brand', FI.b], ['Category', FI.g || FI.cat], ['Size', FI.m ? 'Made to measure' : FI.s], ['Colour', FI.co], ['Entry', FI.z]].filter(r => r[1]).map(([k, v]) => ({ k, v: String(v) }));
         it = { name: FI.n, kicker: isMine ? 'In your collection' : 'Worn by @' + p.username, photos: phs.map((src, k) => ({ src, onTap: () => this.openViewer(phs, k) })), hasPhotos: phs.length > 0, price: FI.p != null ? money(FI.c || '€', FI.p) : '', hasPrice: FI.p != null,
           rows, hasRows: rows.length > 0, hasBtn: !isMine, addLabel: have ? 'On your list' : 'Add to my wishlist', addBg: have ? '#2c2c2e' : ACC, addFg: have ? '#6e6e73' : '#000', onAdd: e => { if (have) return; this.bump(e.currentTarget, 1.04); x.addF(FI); }, url: FI.u || '', hasUrl: !!host, host }; }
       out.sv = { fit: FB.fit, pins, showPins: pins.length > 0 && !blurred, it, isItemD: !!FI, hasItemsBack: !!st.svFromList, backToItems: () => this.setState({ svPanel: 'items' }), bars: c.segs.map((g, i) => ({ w: i < c.v.si ? '100%' : '0%' })), who: isMine ? 'Your story' : '@' + p.username, initial: ini(p.username), av: p.avatar || '', hasAv: !!p.avatar,
@@ -2321,7 +2331,7 @@ class Component extends DCLogic {
         reacts: [['paw', 'Paw'], ['flame', 'Fire'], ['want', 'Want']].map(([k, l]) => { const on = myRx.includes(k); return { label: l, isPaw: k === 'paw', isFlame: k === 'flame', isWant: k === 'want', bg: on ? ACC : 'rgba(28,28,30,0.8)', fg: on ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.2); this.svReact(s, k, !on); } }; }),
         reply: st.svReply || '', replyPh: 'Reply to @' + p.username + '…', onReply: e => this.setState({ svReply: e.target.value.slice(0, 500) }), onReplyFocus: () => { this.svTyping = true; }, onReplyBlur: () => { this.svTyping = false; },
         onReplyKey: e => { if (e.key === 'Enter') { e.preventDefault(); this.svSendReply(s, p); } }, sendReply: () => this.svSendReply(s, p), canSend: !!(st.svReply || '').trim(),
-        seenLabel: 'Seen by ' + views.length, openActivity: () => this.setState({ svPanel: 'activity' }), pinLabel: s.highlight ? 'In ' + s.highlight : 'Highlight', openPin: () => this.setState({ svPanel: 'pin', svPinIn: s.highlight || '' }),
+        seenLabel: 'Seen by ' + seenList.length, openActivity: () => this.setState({ svPanel: 'activity' }), pinLabel: s.highlight ? 'In ' + s.highlight : 'Highlight', openPin: () => this.setState({ svPanel: 'pin', svPinIn: s.highlight || '' }),
         delLabel: st.svDelArm ? 'Delete?' : 'Delete', delColor: st.svDelArm ? '#ff453a' : '#f5f5f7',
         onDel: () => { if (!st.svDelArm) { this.setState({ svDelArm: true }); clearTimeout(this.svDelT); this.svDelT = setTimeout(() => this.setState({ svDelArm: false }), 3000); return; } this.svDelete(s); },
         onWho: () => { if (isMine) return; this.svClose(); setTimeout(() => this.setState({ tab: 'friends', friend: s.user_id, friendTab: 'wish', unfArm: false }), 220); }, close: () => this.svClose(),
@@ -2329,8 +2339,8 @@ class Component extends DCLogic {
         isItems: st.svPanel === 'items', isAct: st.svPanel === 'activity', isPin: st.svPanel === 'pin',
         items: items.map(i => { const have = x.mineKey.has(x.fKey(i)), ph = (i.ph || [])[0]; return { name: i.n, sub: [i.b, i.p != null ? money(i.c || '€', i.p) : ''].filter(Boolean).join(' · ') || ' ', photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(i.n),
           hasBtn: !isMine, btnLabel: have ? 'On your list' : 'Add', btnColor: have ? '#6e6e73' : ACC, onBtn: e => { e.stopPropagation(); if (have) return; this.bump(e.currentTarget, 1.1); x.addF(i); }, onOpen: () => this.setState({ svPanel: 'item', svItem: i.id, svFromList: true }) }; }),
-        actViews: views.map(v => Object.assign(pv(v.viewer), { sub: relT(v.seen_at) + rxAll.filter(r => r.user_id === v.viewer).map(r => ' · ' + RXW[r.kind]).join('') })), hasViews: views.length > 0,
-        actReplies: reps.map(r => Object.assign(pv(r.from_user), { body: r.body, when: relT(r.created_at) })), hasReplies: reps.length > 0, actEmpty: !views.length && !reps.length,
+        actViews: seenList.map(v => Object.assign(pv(v.id), { sub: (v.t ? relT(v.t) : 'Seen') + rxAll.filter(r => r.user_id === v.id).map(r => ' · ' + RXW[r.kind]).join('') })), hasViews: seenList.length > 0,
+        actReplies: reps.map(r => Object.assign(pv(r.from_user), { body: r.body, when: relT(r.created_at) })), hasReplies: reps.length > 0, actEmpty: !seenList.length && !reps.length,
         pinIn: st.svPinIn || '', onPinIn: e => this.setState({ svPinIn: e.target.value.slice(0, 30) }), pinNames: names.map(n => ({ label: n, onTap: () => this.svPin(s, n) })), hasPinNames: names.length > 0,
         savePin: () => this.svPin(s, st.svPinIn || 'Highlights'), canUnpin: !!s.highlight, unpin: () => this.svPin(s, null) };
     }
@@ -2450,8 +2460,8 @@ class Component extends DCLogic {
   fval(vals, id) { const v = vals[id]; if (v == null) return null; if (id === 'shoe') return { v: String(v), u: 'EU' }; return this.state.unit === 'in' ? { v: (v / 2.54).toFixed(1), u: 'in' } : { v: String(Math.round(v * 10) / 10), u: 'cm' }; }
   setF(k, v) { this.setState(s => ({ form: Object.assign({}, s.form, { [k]: v }) })); }
   openForm(it, status) {
-    const f = it ? { id: it.id, url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, rec: it.rec || 0, notes: it.notes || '', status: it.status, origs: (it.origs || []).slice(), photos: (it.photos || []).slice() }
-      : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: '€', size: '', colour: '', m2m: false, rating: 3, rec: 0, notes: '', origs: [], photos: [], status: status || 'wanted' };
+    const f = it ? { id: it.id, url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, rec: it.rec || 0, notes: it.notes || '', zip: it.zip || '', status: it.status, origs: (it.origs || []).slice(), photos: (it.photos || []).slice() }
+      : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: '€', size: '', colour: '', m2m: false, rating: 3, rec: 0, notes: '', zip: '', origs: [], photos: [], status: status || 'wanted' };
     f.found = [];
     this.setState({ sheet: 'form', form: f, fetchMsg: '', fetching: false, newCatOpen: false, sizeOpen: false });
   }
@@ -2482,7 +2492,7 @@ class Component extends DCLogic {
     const price = pr == null || isNaN(pr) ? null : pr, t = todayISO();
     const photos = (f.found || []).filter(x => x.on).map(x => x.src).concat(f.photos || []);
     const size = f.m2m ? 'Made to measure' : (f.size === 'Made to measure' ? '' : f.size);
-    const base = { url: f.url.trim(), name: f.name.trim(), brand: f.brand.trim(), category: f.category, currency: f.currency, size, colour: f.colour, m2m: f.m2m, rating: f.rating, rec: f.rec || 0, notes: (f.notes || '').trim(), origs: (f.origs || []).filter(x => photos.includes(x.c)), photos };
+    const base = { url: f.url.trim(), name: f.name.trim(), brand: f.brand.trim(), category: f.category, currency: f.currency, size, colour: f.colour, m2m: f.m2m, rating: f.rating, rec: f.rec || 0, notes: (f.notes || '').trim(), zip: ZIP_CATS.includes(f.category) ? f.zip || '' : '', origs: (f.origs || []).filter(x => photos.includes(x.c)), photos };
     const isNew = !f.id;
     this.closeSheet(() => {
       this.mutate(p => {
@@ -2684,7 +2694,7 @@ class Component extends DCLogic {
     if (fU) { const ft = st.friendTab || 'wish', W = fL.wish || [], C = fL.coll || [], O = fL.outfits || [], all = W.concat(C), cg = new Map();
       const FI = st.fItem ? (st.fItem.kind === 'coll' ? C : W).find(x => x.id === st.fItem.id) : null;
       if (FI) { const isW = st.fItem.kind !== 'coll', have = mineKey.has(fKey(FI)), phs = (FI.ph || []), host = (() => { try { return new URL(FI.u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } })();
-        const rows = [['Brand', FI.b], ['Category', FI.g || FI.cat], ['Size', FI.m ? 'Made to measure' : FI.s], ['Colour', FI.co], ['Status', isW ? '' : FI.ow ? 'On the way' : 'Owned'], [isW ? 'Added' : 'Since', isW ? (FI.a ? fmtD(FI.a) : '') : (FI.o ? fmtD(FI.o) : '')]].filter(r => r[1]).map(([k, v]) => ({ k, v: String(v) }));
+        const rows = [['Brand', FI.b], ['Category', FI.g || FI.cat], ['Size', FI.m ? 'Made to measure' : FI.s], ['Colour', FI.co], ['Entry', FI.z], ['Status', isW ? '' : FI.ow ? 'On the way' : 'Owned'], [isW ? 'Added' : 'Since', isW ? (FI.a ? fmtD(FI.a) : '') : (FI.o ? fmtD(FI.o) : '')]].filter(r => r[1]).map(([k, v]) => ({ k, v: String(v) }));
         fi = { back: '@' + fU.username, kicker: isW ? 'On their wishlist' : 'In their collection', name: FI.n, initial: ini(FI.n), photos: phs.map(src => ({ src })), hasPhotos: phs.length > 0, noPhotos: !phs.length, multi: phs.length > 1, counter: ((st.fiIdx || 0) + 1) + ' / ' + phs.length,
           onScroll: e => { const el = e.currentTarget, k = Math.round(el.scrollLeft / el.clientWidth); if (k !== (st.fiIdx || 0)) this.setState({ fiIdx: k }); },
           price: FI.p == null ? '' : money(FI.c || '€', FI.p), hasPrice: FI.p != null, hasStars: isW ? !!FI.r : !!FI.rc, stars: this.stars((isW ? FI.r : FI.rc) || 0), starsLbl: isW ? 'How much they want it' : 'Recommends it', rows, hasRows: rows.length > 0,
@@ -2743,6 +2753,7 @@ class Component extends DCLogic {
         const pts = h.map((x, i) => [Math.round(i / (h.length - 1) * 300), Math.round(72 - (mx === mn ? 0.5 : (x.price - mn) / (mx - mn)) * 60)]);
         histPts = pts.map(q => q.join(',')).join(' '); histX = pts[pts.length - 1][0]; histY = pts[pts.length - 1][1]; }
       const rows = [{ k: 'Size', v: dIt.size || '—' }, { k: 'Colour', v: dIt.colour || '—' }, { k: 'Made to measure', v: dIt.m2m ? 'Yes' : 'No' }];
+      if (dIt.zip && ZIP_CATS.includes(dIt.category)) rows.push({ k: 'Entry', v: dIt.zip });
       if (dIt.added) rows.push({ k: 'On your list since', v: fmtD(dIt.added) });
       d = Object.assign({}, v, {
         priceEl: dIt.price == null ? 'No price' : React.createElement(CountUp, { value: dIt.price, prefix: dIt.currency, dec: dIt.price % 1 ? 2 : 0, from: 0, dur: 900 }),
@@ -2946,6 +2957,7 @@ class Component extends DCLogic {
       fPrice: e => this.setF('price', e.target.value), fSize: e => this.setF('size', e.target.value), fColour: e => this.setF('colour', e.target.value),
       fillFromLink: e => { this.bump(e.currentTarget, 1.08); this.fillFromLink(); }, toggleM2M: () => this.setF('m2m', !f.m2m),
       m2mTrack: f.m2m ? ACC : '#39393d', m2mKnob: f.m2m ? '20px' : '0px',
+      fZipShow: ZIP_CATS.includes(f.category), zipChips: ZIPS.map(z => ({ label: z, bg: f.zip === z ? ACC : '#2c2c2e', color: f.zip === z ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.08); this.setF('zip', f.zip === z ? '' : z); } })),
       fBudgetShow: !f.id && f.status === 'owned' && !!bi, fBudgetToggle: () => this.setF('countBudget', !f.countBudget), fbTrack: f.countBudget ? ACC : '#39393d', fbKnob: f.countBudget ? '20px' : '0px',
       curTabs: CURS.map(c => ({ label: c, bg: f.currency === c ? '#636366' : 'transparent', onTap: () => this.setF('currency', c) })),
       newCatOpen: !!st.newCatOpen, newCat: st.newCat || '',
