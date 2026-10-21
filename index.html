@@ -373,11 +373,25 @@ input::placeholder{color:#6e6e73;}
 </sc-if>
 
 <sc-if value="{{ isFriends }}" hint-placeholder-val="{{ false }}">
-  <div data-anim="fade" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fr.handle }}</div>
+  <div data-anim="fade" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;min-height:20px;">{{ fr.handleTop }}</div>
   <div style="padding:0 16px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
     <span data-anim="up" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Friends</span>
-    <sc-if value="{{ fr.signedIn }}" hint-placeholder-val="{{ false }}"><span data-anim="fade" style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fr.followerTxt }}</span></sc-if>
   </div>
+  <sc-if value="{{ fr.signedIn }}" hint-placeholder-val="{{ false }}">
+    <div data-anim="up" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:12px 16px 12px 12px;display:flex;align-items:center;gap:12px;">
+      <label style="position:relative;flex:none;width:56px;height:56px;border-radius:9999px;background:#2c2c2e;overflow:hidden;display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;color:#f5f5f7;cursor:pointer;" style-active="transform:scale(0.95);">
+        <span>{{ fr.myInitial }}</span>
+        <sc-if value="{{ fr.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fr.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if>
+        <sc-if value="{{ fr.avBusy }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:grid;place-items:center;"><span data-anim="spin" style="width:18px;height:18px;border-radius:9999px;border:2px solid #48484a;border-top-color:var(--gw-accent,#ffd60a);"></span></span></sc-if>
+        <input type="file" accept="image/*" onChange="{{ fr.onAvatar }}" style="display:none;">
+      </label>
+      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+        <span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ fr.handle }}</span>
+        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fr.avSub }}</span>
+      </span>
+      <sc-if value="{{ fr.hasAv }}" hint-placeholder-val="{{ false }}"><button onClick="{{ fr.removeAv }}" style="flex:none;border:0;background:none;color:#a1a1a6;font-size:14px;padding:8px 4px;cursor:pointer;">{{ fr.removeLabel }}</button></sc-if>
+    </div>
+  </sc-if>
   <sc-if value="{{ fr.needAcct }}" hint-placeholder-val="{{ false }}">
     <div data-anim="scale" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:8px;">
       <span style="font-family:var(--font-display);font-size:24px;font-weight:600;line-height:1.17;">Friends need an account.</span>
@@ -395,7 +409,7 @@ input::placeholder{color:#6e6e73;}
       <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
         <sc-for list="{{ fr.requests }}" as="r" hint-placeholder-count="1">
           <div data-anim="up" style="background:#1c1c1e;display:flex;align-items:center;gap:12px;padding:12px 16px;">
-            <span style="width:40px;height:40px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-weight:600;flex:none;">{{ r.initial }}</span>
+            <span style="position:relative;overflow:hidden;width:40px;height:40px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-weight:600;flex:none;"><span>{{ r.initial }}</span><sc-if value="{{ r.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ r.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
             <span style="flex:1;min-width:0;display:flex;flex-direction:column;"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.name }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Wants to follow you</span></span>
             <button onClick="{{ r.onDecline }}" style="flex:none;border:0;background:#2c2c2e;color:#f5f5f7;border-radius:9999px;padding:6px 12px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Decline</button>
             <button onClick="{{ r.onAccept }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:6px 12px;font-size:14px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">Accept</button>
@@ -408,7 +422,7 @@ input::placeholder{color:#6e6e73;}
       <div style="display:flex;gap:14px;overflow-x:auto;padding:2px 20px;scrollbar-width:none;">
         <sc-for list="{{ fr.following }}" as="f" hint-placeholder-count="3">
           <button data-anim="pop" onClick="{{ f.onOpen }}" style="flex:none;width:64px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#f5f5f7;" style-active="transform:scale(0.95);">
-            <span style="width:56px;height:56px;border-radius:9999px;background:#1c1c1e;box-shadow:{{ f.ring }};display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;color:{{ f.fg }};">{{ f.initial }}</span>
+            <span style="width:56px;height:56px;border-radius:9999px;background:#1c1c1e;box-shadow:{{ f.ring }};display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;color:{{ f.fg }};position:relative;overflow:hidden;"><span>{{ f.initial }}</span><sc-if value="{{ f.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ f.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
             <span style="font-size:12px;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ f.name }}</span>
             <span style="font-size:11px;color:#a1a1a6;">{{ f.sub }}</span>
           </button>
@@ -423,7 +437,7 @@ input::placeholder{color:#6e6e73;}
       <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
         <sc-for list="{{ fr.feed }}" as="e" hint-placeholder-count="4">
           <div data-anim="up" onClick="{{ e.onOpen }}" style="background:#1c1c1e;display:flex;align-items:center;gap:12px;padding:12px 16px 12px 12px;cursor:pointer;transition:background .2s;" style-active="background:#2c2c2e;">
-            <span style="width:36px;height:36px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-size:14px;font-weight:600;flex:none;">{{ e.initial }}</span>
+            <span style="position:relative;overflow:hidden;width:36px;height:36px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-size:14px;font-weight:600;flex:none;"><span>{{ e.initial }}</span><sc-if value="{{ e.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ e.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
             <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-size:14px;letter-spacing:-0.224px;line-height:1.36;text-wrap:pretty;"><span style="font-weight:600;">{{ e.who }}</span> {{ e.txt }}</span><span style="font-size:12px;color:#a1a1a6;">{{ e.when }}</span></span>
             <sc-if value="{{ e.hasPhoto }}" hint-placeholder-val="{{ true }}"><img src="{{ e.photo }}" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;"></sc-if>
           </div>
@@ -512,7 +526,7 @@ input::placeholder{color:#6e6e73;}
   <div ref="{{ detailRef }}" data-anim="push" data-delay="0" style="position:absolute;inset:0;z-index:20;background:#000;overflow-y:auto;scrollbar-width:none;padding-bottom:40px;box-shadow:-20px 0 40px rgba(0,0,0,0.5);">
     <div style="position:relative;">
       <sc-if value="{{ d.hasPhotos }}" hint-placeholder-val="{{ false }}">
-        <div ref="{{ carRef }}" onScroll="{{ onCarScroll }}" onPointerDown="{{ carDown }}" onPointerMove="{{ carMove }}" onPointerUp="{{ carUp }}" onPointerCancel="{{ carUp }}" style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;cursor:grab;user-select:none;touch-action:pan-x pan-y;">
+        <div ref="{{ carRef }}" onScroll="{{ onCarScroll }}" onClick="{{ carOpen }}" onPointerDown="{{ carDown }}" onPointerMove="{{ carMove }}" onPointerUp="{{ carUp }}" onPointerCancel="{{ carUp }}" style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;cursor:grab;user-select:none;touch-action:pan-x pan-y;">
           <sc-for list="{{ d.photos }}" as="ph" hint-placeholder-count="1"><div style="flex:none;width:100%;overflow:hidden;scroll-snap-align:start;"><img data-anim="zoom" data-delay="120" src="{{ ph.src }}" alt="" draggable="false" style="display:block;width:100%;aspect-ratio:4/5;object-fit:cover;object-position:top;background:#1c1c1e;pointer-events:none;"></div></sc-for>
         </div>
         <sc-if value="{{ d.multi }}" hint-placeholder-val="{{ false }}">
@@ -689,6 +703,7 @@ input::placeholder{color:#6e6e73;}
 <sc-if value="{{ hasFriend }}" hint-placeholder-val="{{ false }}">
   <div ref="{{ friendRef }}" data-anim="push" data-delay="0" style="position:absolute;inset:0;z-index:21;background:#000;overflow-y:auto;scrollbar-width:none;padding-top:{{ fvTop }};padding-bottom:40px;box-shadow:-20px 0 40px rgba(0,0,0,0.5);">
     <div style="padding:0 8px;"><button onClick="{{ fv.onBack }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">‹ Friends</button></div>
+    <div data-anim="scale" style="padding:4px 20px 12px;"><span style="position:relative;overflow:hidden;width:80px;height:80px;border-radius:9999px;background:#1c1c1e;display:grid;place-items:center;font-family:var(--font-display);font-size:32px;font-weight:600;color:#f5f5f7;"><span>{{ fv.initial }}</span><sc-if value="{{ fv.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fv.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span></div>
     <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;overflow:hidden;text-overflow:ellipsis;">{{ fv.name }}</div>
     <div data-anim="up" style="padding:2px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fv.sub }}</div>
     <div data-anim="up" style="margin:16px 16px 0;display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;">
@@ -697,7 +712,7 @@ input::placeholder{color:#6e6e73;}
     <sc-if value="{{ fv.isWish }}" hint-placeholder-val="{{ true }}">
       <div style="margin:16px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
         <sc-for list="{{ fv.wish }}" as="i" hint-placeholder-count="3">
-          <div data-anim="up" style="background:#1c1c1e;display:flex;gap:12px;align-items:center;padding:12px 16px 12px 12px;">
+          <div data-anim="up" onClick="{{ i.onOpen }}" style="background:#1c1c1e;display:flex;gap:12px;align-items:center;padding:12px 16px 12px 12px;cursor:pointer;transition:background .2s;" style-active="background:#2c2c2e;">
             <sc-if value="{{ i.hasPhoto }}" hint-placeholder-val="{{ true }}"><img src="{{ i.photo }}" alt="" style="width:56px;height:56px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;"></sc-if>
             <sc-if value="{{ i.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="width:56px;height:56px;border-radius:8px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-weight:600;flex:none;">{{ i.initial }}</span></sc-if>
             <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
@@ -715,7 +730,7 @@ input::placeholder{color:#6e6e73;}
         <div data-anim="right" style="padding:20px 20px 8px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14px;letter-spacing:-0.224px;"><span style="font-weight:600;color:#a1a1a6;">{{ g.title }}</span><span style="color:#6e6e73;">{{ g.count }}</span></div>
         <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
           <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="2">
-            <div data-anim="up" style="background:#1c1c1e;display:flex;gap:12px;align-items:center;padding:12px 16px 12px 12px;">
+            <div data-anim="up" onClick="{{ i.onOpen }}" style="background:#1c1c1e;display:flex;gap:12px;align-items:center;padding:12px 16px 12px 12px;cursor:pointer;transition:background .2s;" style-active="background:#2c2c2e;">
               <sc-if value="{{ i.hasPhoto }}" hint-placeholder-val="{{ true }}"><img src="{{ i.photo }}" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;"></sc-if>
               <sc-if value="{{ i.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="width:48px;height:48px;border-radius:8px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-weight:600;flex:none;">{{ i.initial }}</span></sc-if>
               <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ i.name }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ i.sub }}</span></div>
@@ -740,6 +755,51 @@ input::placeholder{color:#6e6e73;}
     </sc-if>
     <sc-if value="{{ fv.empty }}" hint-placeholder-val="{{ false }}"><div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fv.emptyTxt }}</div></sc-if>
     <div style="padding:24px 16px 0;display:flex;justify-content:center;"><button onClick="{{ fv.onUnfollow }}" style="border:0;background:none;color:#ff453a;font-size:17px;padding:8px;cursor:pointer;">{{ fv.unfLabel }}</button></div>
+  </div>
+</sc-if>
+<sc-if value="{{ hasFItem }}" hint-placeholder-val="{{ false }}">
+  <div ref="{{ fItemRef }}" data-anim="push" data-delay="0" style="position:absolute;inset:0;z-index:22;background:#000;overflow-y:auto;scrollbar-width:none;padding-top:{{ fvTop }};padding-bottom:40px;box-shadow:-20px 0 40px rgba(0,0,0,0.5);">
+    <div style="padding:0 8px;"><button onClick="{{ fi.onBack }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">‹ {{ fi.back }}</button></div>
+    <sc-if value="{{ fi.hasPhotos }}" hint-placeholder-val="{{ true }}">
+      <div data-anim="scale" style="margin:8px 16px 0;position:relative;">
+        <div ref="{{ fiCarRef }}" onScroll="{{ fi.onScroll }}" onClick="{{ fi.onZoom }}" style="cursor:zoom-in;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:18px;background:#1c1c1e;aspect-ratio:4/5;">
+          <sc-for list="{{ fi.photos }}" as="ph" hint-placeholder-count="1"><img src="{{ ph.src }}" alt="" draggable="false" style="flex:none;width:100%;height:100%;object-fit:cover;object-position:top;scroll-snap-align:start;"></sc-for>
+        </div>
+        <sc-if value="{{ fi.multi }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:12px;bottom:12px;background:rgba(0,0,0,0.6);color:#f5f5f7;border-radius:9999px;padding:4px 10px;font-size:12px;font-weight:600;">{{ fi.counter }}</span></sc-if>
+      </div>
+    </sc-if>
+    <sc-if value="{{ fi.noPhotos }}" hint-placeholder-val="{{ false }}"><div data-anim="scale" style="margin:8px 16px 0;border-radius:18px;background:#1c1c1e;aspect-ratio:16/9;display:grid;place-items:center;font-family:var(--font-display);font-size:48px;font-weight:600;color:#48484a;">{{ fi.initial }}</div></sc-if>
+    <div data-anim="up" style="padding:20px 20px 0;display:flex;flex-direction:column;gap:4px;">
+      <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fi.kicker }}</span>
+      <span style="font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1.14;letter-spacing:-0.374px;text-wrap:pretty;">{{ fi.name }}</span>
+      <div style="display:flex;align-items:center;gap:12px;padding-top:4px;">
+        <sc-if value="{{ fi.hasPrice }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--font-display);font-size:21px;font-weight:600;">{{ fi.price }}</span></sc-if>
+        <sc-if value="{{ fi.hasStars }}" hint-placeholder-val="{{ true }}"><span style="display:flex;gap:3px;"><sc-for list="{{ fi.stars }}" as="s" hint-placeholder-count="5"><svg width="14" height="14" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}"></path></svg></sc-for></span></sc-if>
+      </div>
+    </div>
+    <sc-if value="{{ fi.hasRows }}" hint-placeholder-val="{{ true }}">
+      <div data-anim="up" style="margin:20px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+        <sc-for list="{{ fi.rows }}" as="r" hint-placeholder-count="4">
+          <div style="background:#1c1c1e;display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:12px 16px;font-size:17px;"><span style="color:#a1a1a6;flex:none;">{{ r.k }}</span><span style="text-align:right;min-width:0;overflow-wrap:anywhere;">{{ r.v }}</span></div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <div data-anim="up" style="margin:20px 16px 0;display:flex;flex-direction:column;gap:12px;">
+      <button onClick="{{ fi.onAdd }}" style="border:0;background:{{ fi.addBg }};color:{{ fi.addFg }};border-radius:9999px;padding:14px;font-size:17px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">{{ fi.addLabel }}</button>
+      <sc-if value="{{ fi.hasUrl }}" hint-placeholder-val="{{ true }}"><a href="{{ fi.url }}" target="_blank" rel="noopener" style="display:block;text-align:center;border-radius:9999px;padding:14px;background:#1c1c1e;color:#f5f5f7;font-size:17px;text-decoration:none;" style-active="transform:scale(0.95);">View at {{ fi.host }}</a></sc-if>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ hasViewer }}" hint-placeholder-val="{{ false }}">
+  <div ref="{{ vwRef }}" onPointerDown="{{ vwDown }}" onPointerMove="{{ vwMove }}" onPointerUp="{{ vwUp }}" onPointerCancel="{{ vwUp }}" onWheel="{{ vwWheel }}" style="position:absolute;inset:0;z-index:60;background:#000;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;">
+    <div data-vw-track="1" style="display:flex;width:100%;height:100%;will-change:transform;">
+      <sc-for list="{{ vw.photos }}" as="ph" hint-placeholder-count="1"><div style="flex:none;width:100%;height:100%;overflow:hidden;"><img data-vw-img="1" src="{{ ph.src }}" alt="" draggable="false" style="display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;will-change:transform;"></div></sc-for>
+    </div>
+    <div style="position:absolute;left:0;right:0;top:0;padding:12px;padding-top:{{ fvTop }};display:flex;align-items:center;justify-content:space-between;gap:12px;opacity:{{ vw.chrome }};pointer-events:{{ vw.chromePe }};transition:opacity .2s;">
+      <button onPointerDown="{{ vwStop }}" onClick="{{ vw.onClose }}" aria-label="Close" style="flex:none;width:44px;height:44px;border:0;border-radius:9999px;background:rgba(44,44,46,0.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:#f5f5f7;display:grid;place-items:center;cursor:pointer;" style-active="transform:scale(0.95);"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button>
+      <sc-if value="{{ vw.multi }}" hint-placeholder-val="{{ false }}"><span style="background:rgba(44,44,46,0.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-radius:9999px;padding:6px 12px;font-size:14px;font-weight:600;color:#f5f5f7;">{{ vw.counter }}</span></sc-if>
+      <span style="flex:none;width:44px;"></span>
+    </div>
   </div>
 </sc-if>
 
@@ -1469,9 +1529,12 @@ function readPhoto(file) {
     c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', 0.82)); }; img.onerror = () => res(null); img.src = r.result; }; r.readAsDataURL(file); });
 }
 
+const squareAvatar = file => new Promise((res, rej) => { const u = URL.createObjectURL(file), im = new Image();
+  im.onload = () => { const w = im.naturalWidth, h = im.naturalHeight, s = Math.min(w, h), n = 320, c = document.createElement('canvas'); c.width = c.height = n; c.getContext('2d').drawImage(im, (w - s) / 2, (h - s) * 0.3, s, s, 0, 0, n, n); URL.revokeObjectURL(u); res(c.toDataURL('image/jpeg', 0.86)); };
+  im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('Couldn’t read that photo.')); }; im.src = u; });
 class Component extends DCLogic {
   state = { data: load(), tab: 'wish', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null, coll: 'items', outfit: null, builder: null, cuts: {}, cutsReady: false, cpickId: null, cpickQ: false, ovDel: false, newGrpOpen: false, newGrp: '', bdragId: null, acct: null, social: null, friend: null, friendTab: 'wish', followIn: '', followMsg: '', authEmail: '', authCode: '', unameIn: '', authErr: '' };
-  outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef();
+  outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef(); fItemRef = React.createRef(); fiCarRef = React.createRef(); vwRef = React.createRef();
   heroRef = React.createRef(); carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
   introRef = React.createRef(); bPanelRef = React.createRef(); toastRef = React.createRef(); figRef = React.createRef();
 
@@ -1503,8 +1566,11 @@ class Component extends DCLogic {
     idb.all().then(c => this.setState({ cuts: c || {}, cutsReady: true }));
     const hook = () => { const G = window.GWSync; if (!G) return false;
       G.attach({ get: () => this.state.data, apply: d => { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} this.setState({ data: d }); } });
-      this.unsubSync = G.on(s => { const prev = this.state.acct && this.state.acct.user ? this.state.acct.user.id : null; this.setState({ acct: s }); if (s.user && s.user.id !== prev && s.firstDone) this.loadSocial(); });
+      this.unsubSync = G.on(s => { const prev = this.state.acct && this.state.acct.user ? this.state.acct.user.id : null; this.setState({ acct: s }); if (!s.user) { this.socialFor = null; this.setState({ social: null }); } else if (s.firstDone && this.socialFor !== s.user.id) { this.socialFor = s.user.id; this.loadSocial(); } });
       G.init(); return true; };
+    this.onVis = () => { if (document.visibilityState === 'visible') this.loadSocial(true); }; document.addEventListener('visibilitychange', this.onVis); window.addEventListener('focus', this.onVis);
+    this.onKey = e => { const v = this.state.viewer; if (!v) return; if (e.key === 'Escape') this.closeViewer(); else if (e.key === 'ArrowRight') this.vwGo(v.idx + 1); else if (e.key === 'ArrowLeft') this.vwGo(v.idx - 1); }; window.addEventListener('keydown', this.onKey);
+    this.socPoll = setInterval(() => { if (document.visibilityState === 'visible') this.loadSocial(true); }, 30000);
     if (!hook()) { let n = 0; this.syPoll = setInterval(() => { if (hook() || ++n > 50) clearInterval(this.syPoll); }, 100); }
     if (!window.FITLOG_BRANDS) { let n = 0; this.brPoll = setInterval(() => { if (window.FITLOG_BRANDS || ++n > 50) { clearInterval(this.brPoll); this.forceUpdate(); } }, 100); }
     const sh = readShare(); if (sh && sh.n) this.setState({ shared: sh });
@@ -1528,7 +1594,7 @@ class Component extends DCLogic {
     if (this._pg !== undefined && this._pg !== s.group) this.replay('[data-row]', 'up');
     this._pg = s.group;
   }
-  componentWillUnmount() { if (this.unsubSync) this.unsubSync(); clearInterval(this.syPoll); if (this.onHash) window.removeEventListener('hashchange', this.onHash); clearInterval(this.tick); if (this.mo) this.mo.disconnect(); [this.t1, this.t2, this.t3, this.t4, this.t5].forEach(clearTimeout); }
+  componentWillUnmount() { if (this.unsubSync) this.unsubSync(); if (this.onKey) window.removeEventListener('keydown', this.onKey); clearTimeout(this.vwTapT); clearInterval(this.socPoll); if (this.onVis) { document.removeEventListener('visibilitychange', this.onVis); window.removeEventListener('focus', this.onVis); } clearInterval(this.syPoll); if (this.onHash) window.removeEventListener('hashchange', this.onHash); clearInterval(this.tick); if (this.mo) this.mo.disconnect(); [this.t1, this.t2, this.t3, this.t4, this.t5].forEach(clearTimeout); }
 
   isFramed() { return !!this.props.framed && this.props.framed !== 'false'; }
   introOn() { return !(this.props.intro === false || this.props.intro === 'false'); }
@@ -1574,8 +1640,51 @@ class Component extends DCLogic {
   }
 
   save(data, quiet) { if (!quiet) data.mod = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} this.setState({ data }); if (!quiet && window.GWSync) window.GWSync.schedule(); }
-  loadSocial() { const G = window.GWSync, A = this.state.acct; if (!G || !A || !A.user) return; this.setState({ socialBusy: true }); G.social().then(s => this.setState({ social: s || this.state.social, socialBusy: false })).catch(() => this.setState({ socialBusy: false })); }
-  closeFriend(cb) { this.animOut(this.friendRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ friend: null, unfArm: false }); if (cb) cb(); }); }
+  loadSocial(quiet) { const G = window.GWSync, A = this.state.acct; if (!G || !A || !A.user || this.socLoading) return; this.socLoading = true; if (!quiet) this.setState({ socialBusy: true });
+    G.social().then(s => { this.socLoading = false; this.setState({ social: s || this.state.social, socialBusy: false }); if (s) this.socialNotify(s, A.user.id); }).catch(() => { this.socLoading = false; this.setState({ socialBusy: false }); }); }
+  socialNotify(s, uid) { const k = 'gw-social-seen-' + uid; let seen = null; try { seen = JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) {}
+    const req = s.requests.map(r => r.id), acc = s.following.filter(f => f.status === 'accepted').map(f => f.id); try { localStorage.setItem(k, JSON.stringify({ req, acc })); } catch (e) {}
+    const newReq = s.requests.filter(r => !seen || !seen.req.includes(r.id)), newAcc = seen ? s.following.filter(f => f.status === 'accepted' && !seen.acc.includes(f.id)) : [], msg = [];
+    if (newReq.length) msg.push(newReq.length === 1 ? '@' + newReq[0].username + ' wants to follow you' : newReq.length + ' new follow requests');
+    if (newAcc.length) msg.push(newAcc.length === 1 ? '@' + newAcc[0].username + ' accepted your request' : newAcc.length + ' requests accepted');
+    if (msg.length) this.toast(msg.join(' · ')); }
+
+  vwEls() { const el = this.vwRef.current, v = this.state.viewer; if (!el || !v) return {}; return { el, track: el.querySelector('[data-vw-track]'), img: el.querySelectorAll('[data-vw-img]')[v.idx] }; }
+  vwFit() { const { el, img } = this.vwEls(); if (!el || !img) return null; const W = el.clientWidth, H = el.clientHeight, nw = img.naturalWidth || W, nh = img.naturalHeight || H, f = Math.min(W / nw, H / nh); return { W, H, iw: nw * f, ih: nh * f }; }
+  vwApply(anim) { const { img } = this.vwEls(), g = this.vw; if (!img || !g) return; img.style.transition = anim ? 'transform .28s cubic-bezier(.2,.8,.2,1)' : 'none'; img.style.transform = 'translate(' + g.tx + 'px,' + g.ty + 'px) scale(' + g.s + ')'; }
+  vwLayout(anim, dx) { const { track } = this.vwEls(), v = this.state.viewer; if (!track) return; track.style.transition = anim ? 'transform .32s cubic-bezier(.2,.8,.2,1)' : 'none'; track.style.transform = 'translateX(calc(' + (-v.idx * 100) + '% + ' + (dx || 0) + 'px))'; }
+  vwClamp() { const g = this.vw, F = this.vwFit(); if (!F) return; if (g.s <= 1) { g.s = 1; g.tx = 0; g.ty = 0; return; } const mx = Math.max(0, (F.iw * g.s - F.W) / 2), my = Math.max(0, (F.ih * g.s - F.H) / 2); g.tx = Math.max(-mx, Math.min(mx, g.tx)); g.ty = Math.max(-my, Math.min(my, g.ty)); }
+  vwZoomAt(s1, x, y, anim) { const g = this.vw, r = this.vwRef.current.getBoundingClientRect(), cx = x - r.left - r.width / 2, cy = y - r.top - r.height / 2; s1 = Math.max(1, Math.min(6, s1)); const k = s1 / g.s; g.tx = cx - k * (cx - g.tx); g.ty = cy - k * (cy - g.ty); g.s = s1; this.vwClamp(); this.vwApply(anim); }
+  vwBg(a, anim) { const el = this.vwRef.current; if (!el) return; el.style.transition = anim ? 'background .25s' : 'none'; el.style.background = 'rgba(0,0,0,' + a + ')'; }
+  openViewer(photos, idx, sync) { if (!photos || !photos.length) return; this.vwSync = sync; this.vw = { s: 1, tx: 0, ty: 0, ptrs: new Map() };
+    this.setState({ viewer: { photos: photos.slice(), idx: Math.max(0, Math.min(photos.length - 1, idx || 0)) }, vwHide: false }, () => { this.vwLayout(false); const el = this.vwRef.current; if (el && el.animate && !this.reduce) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' }); }); }
+  closeViewer() { const v = this.state.viewer; if (!v || this.vwClosing) return; this.vwClosing = true; const el = this.vwRef.current;
+    this.animOut(el, [{ opacity: 1 }, { opacity: 0 }], 200, () => { this.vwClosing = false; if (this.vwSync) this.vwSync(v.idx); this.vw = null; this.setState({ viewer: null }); }); }
+  vwGo(i) { const v = this.state.viewer; if (!v) return; const j = Math.max(0, Math.min(v.photos.length - 1, i)); if (j !== v.idx) { this.vw.s = 1; this.vw.tx = 0; this.vw.ty = 0; this.vwApply(false); } this.setState({ viewer: Object.assign({}, v, { idx: j }) }, () => this.vwLayout(true)); }
+  vwBegin() { const g = this.vw, P = Array.from(g.ptrs.values()); g.base = { s: g.s, tx: g.tx, ty: g.ty }; g.mode = null;
+    if (P.length >= 2) { g.mode = 'pinch'; g.multi = true; g.d0 = Math.hypot(P[0].x - P[1].x, P[0].y - P[1].y) || 1; g.m0 = { x: (P[0].x + P[1].x) / 2, y: (P[0].y + P[1].y) / 2 }; }
+    else if (P.length === 1) { g.start = { x: P[0].x, y: P[0].y }; g.t0 = Date.now(); } }
+  vwDown(e) { const g = this.vw; if (!g || this.vwClosing) return; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (er) {} if (!g.ptrs.size) { g.moved = false; g.multi = false; } g.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); this.vwBegin(); }
+  vwMove(e) { const g = this.vw; if (!g || !g.ptrs.has(e.pointerId)) return; g.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); const P = Array.from(g.ptrs.values()), el = this.vwRef.current;
+    if (g.mode === 'pinch' && P.length >= 2) { const r = el.getBoundingClientRect(), ox = r.left + r.width / 2, oy = r.top + r.height / 2, d = Math.hypot(P[0].x - P[1].x, P[0].y - P[1].y), mx = (P[0].x + P[1].x) / 2 - ox, my = (P[0].y + P[1].y) / 2 - oy;
+      const s = Math.max(0.7, Math.min(8, g.base.s * d / g.d0)), k = s / g.base.s; g.s = s; g.tx = mx - k * (g.m0.x - ox - g.base.tx); g.ty = my - k * (g.m0.y - oy - g.base.ty); g.moved = true; this.vwApply(false); return; }
+    if (!g.start) return; const dx = P[0].x - g.start.x, dy = P[0].y - g.start.y;
+    if (!g.mode) { if (Math.hypot(dx, dy) < 6) return; g.moved = true; g.mode = g.s > 1.01 ? 'pan' : Math.abs(dx) > Math.abs(dy) ? 'swipe' : 'dismiss'; }
+    if (g.mode === 'pan') { g.tx = g.base.tx + dx; g.ty = g.base.ty + dy; this.vwApply(false); }
+    else if (g.mode === 'swipe') { const v = this.state.viewer, edge = (v.idx === 0 && dx > 0) || (v.idx === v.photos.length - 1 && dx < 0); this.vwLayout(false, edge ? dx / 3 : dx); }
+    else if (g.mode === 'dismiss') { g.tx = dx * 0.4; g.ty = dy; g.s = Math.max(0.75, 1 - Math.abs(dy) / 1200); this.vwApply(false); this.vwBg(Math.max(0.15, 1 - Math.abs(dy) / 360), false); } }
+  vwUp(e) { const g = this.vw; if (!g || !g.ptrs.has(e.pointerId)) return; const p = g.ptrs.get(e.pointerId); g.ptrs.delete(e.pointerId);
+    if (g.ptrs.size) { this.vwBegin(); return; }
+    const mode = g.mode, el = this.vwRef.current, dt = Math.max(1, Date.now() - (g.t0 || 0)), dx = g.start ? p.x - g.start.x : 0, dy = g.start ? p.y - g.start.y : 0;
+    if (g.multi || mode === 'pinch' || mode === 'pan') { this.vwClamp(); this.vwApply(true); return; }
+    if (mode === 'swipe') { const v = this.state.viewer, w = el.clientWidth, vel = dx / dt; let i = v.idx; if (dx < -w * 0.2 || vel < -0.5) i++; else if (dx > w * 0.2 || vel > 0.5) i--; i = Math.max(0, Math.min(v.photos.length - 1, i)); if (i !== v.idx) this.vwGo(i); else this.vwLayout(true); return; }
+    if (mode === 'dismiss') { if (Math.abs(dy) > 110 || Math.abs(dy / dt) > 0.6) this.closeViewer(); else { g.s = 1; g.tx = 0; g.ty = 0; this.vwApply(true); this.vwBg(1, true); } return; }
+    if (g.moved) return; const now = Date.now(), L = this.vwTap;
+    if (L && now - L.t < 300 && Math.hypot(p.x - L.x, p.y - L.y) < 40) { clearTimeout(this.vwTapT); this.vwTap = null; if (g.s > 1.01) { g.s = 1; g.tx = 0; g.ty = 0; this.vwApply(true); } else this.vwZoomAt(2.5, p.x, p.y, true); }
+    else { this.vwTap = { t: now, x: p.x, y: p.y }; clearTimeout(this.vwTapT); this.vwTapT = setTimeout(() => { this.vwTap = null; this.setState(s => ({ vwHide: !s.vwHide })); }, 300); } }
+  vwWheel(e) { const g = this.vw; if (!g) return; this.vwZoomAt(g.s * Math.exp(-e.deltaY * 0.0025), e.clientX, e.clientY, false); }
+  closeFItem() { this.animOut(this.fItemRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => this.setState({ fItem: null })); }
+  closeFriend(cb) { this.animOut(this.friendRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ friend: null, fItem: null, unfArm: false }); if (cb) cb(); }); }
   prof() { const d = this.state.data; return d.profiles.find(p => p.id === d.activeId) || d.profiles[0]; }
   mutate(fn) { const data = JSON.parse(JSON.stringify(this.state.data)); const p = data.profiles.find(x => x.id === data.activeId) || data.profiles[0]; fn(p, data); this.save(data); }
   mutItem(id, fn) { this.mutate(p => { const it = p.items.find(x => x.id === id); if (it) fn(it, p); }); }
@@ -1796,32 +1905,49 @@ class Component extends DCLogic {
     const openF = (id, tab) => () => this.setState({ friend: id, friendTab: tab, unfArm: false });
     const feed = [];
     SO.following.filter(f => f.status === 'accepted').forEach(f => { const L = SO.lists[f.id]; if (!L) return; const who = '@' + f.username, all = (L.wish || []).concat(L.coll || []);
-      (L.wish || []).forEach(i => { if (i.a) feed.push({ d: i.a, who, txt: 'added ' + i.n + ' to their wishlist', ph: (i.ph || [])[0], on: openF(f.id, 'wish') }); });
-      (L.coll || []).forEach(i => { if (!i.ow && i.o) feed.push({ d: i.o, who, txt: 'got ' + i.n, ph: (i.ph || [])[0], on: openF(f.id, 'coll') }); });
+      (L.wish || []).forEach(i => { if (i.a) feed.push({ d: i.a, who, av: f.avatar, av: f.avatar, txt: 'added ' + i.n + ' to their wishlist', ph: (i.ph || [])[0], on: openF(f.id, 'wish') }); });
+      (L.coll || []).forEach(i => { if (!i.ow && i.o) feed.push({ d: i.o, who, av: f.avatar, av: f.avatar, txt: 'got ' + i.n, ph: (i.ph || [])[0], on: openF(f.id, 'coll') }); });
       (L.outfits || []).forEach(o => { const hit = all.find(x => (o.ids || []).includes(x.id) && (x.ph || []).length), ph = (o.ph || [])[0] || (hit ? hit.ph[0] : '');
-        if (o.cr) feed.push({ d: o.cr, who, txt: 'made an outfit: ' + o.n, ph, on: openF(f.id, 'outfits') });
-        if (o.lw && o.lw !== o.cr) feed.push({ d: o.lw, who, txt: 'wore ' + o.n, ph, on: openF(f.id, 'outfits') }); }); });
+        if (o.cr) feed.push({ d: o.cr, who, av: f.avatar, av: f.avatar, txt: 'made an outfit: ' + o.n, ph, on: openF(f.id, 'outfits') });
+        if (o.lw && o.lw !== o.cr) feed.push({ d: o.lw, who, av: f.avatar, av: f.avatar, txt: 'wore ' + o.n, ph, on: openF(f.id, 'outfits') }); }); });
     feed.sort((a, b) => String(b.d).localeCompare(String(a.d)));
     const doFollow = async () => { if (st.followBusy || !G) return; this.setState({ followBusy: true, followMsg: '' }); try { const u = await G.follow(st.followIn); this.setState({ followBusy: false, followIn: '', followMsg: 'Request sent to @' + u + '.', followErr: false }); this.loadSocial(); } catch (e) { this.setState({ followBusy: false, followMsg: (e && e.message) || 'Couldn’t follow.', followErr: true }); } };
     const fr = { needAcct: !A.configured, signedIn: !!(A.configured && A.user), handle: A.username ? '@' + A.username : A.email || p.name,
-      followerTxt: plural(SO.followers.length, 'follower'), followIn: st.followIn || '', onFollowIn: e => this.setState({ followIn: e.target.value }), onFollowKey: e => { if (e.key === 'Enter') { e.preventDefault(); doFollow(); } },
+      followerTxt: plural(SO.followers.length, 'follower'), handleTop: A.configured && A.user ? '' : (A.username ? '@' + A.username : A.email || p.name),
+      myInitial: ini(A.username || p.name), av: A.avatar || '', hasAv: !!A.avatar, avBusy: !!st.avBusy,
+      avSub: plural(SO.followers.length, 'follower') + ' · ' + (A.avatar ? 'Tap photo to change' : 'Tap to add a photo'),
+      removeLabel: st.avDelArm ? 'Remove?' : 'Remove',
+      onAvatar: async e => { const fl = e.target.files && e.target.files[0]; e.target.value = ''; if (!fl || !G || st.avBusy) return; this.setState({ avBusy: true, avDelArm: false }); try { await G.setAvatar(await squareAvatar(fl)); this.toast('Profile photo updated'); } catch (er) { this.toast((er && er.message) || 'Couldn’t update your photo'); } this.setState({ avBusy: false }); },
+      removeAv: async () => { if (!st.avDelArm) { this.setState({ avDelArm: true }); clearTimeout(this.avT); this.avT = setTimeout(() => this.setState({ avDelArm: false }), 3000); return; } this.setState({ avBusy: true, avDelArm: false }); try { await G.setAvatar(null); this.toast('Profile photo removed'); } catch (er) { this.toast((er && er.message) || 'Couldn’t remove your photo'); } this.setState({ avBusy: false }); }, followIn: st.followIn || '', onFollowIn: e => this.setState({ followIn: e.target.value }), onFollowKey: e => { if (e.key === 'Enter') { e.preventDefault(); doFollow(); } },
       follow: e => { this.bump(e.currentTarget, 1.06); doFollow(); }, followLabel: st.followBusy ? '…' : 'Follow', followMsg: st.followMsg || '', msgColor: st.followErr ? '#ff453a' : '#a1a1a6',
-      requests: SO.requests.map(r => ({ name: '@' + r.username, initial: ini(r.username), onAccept: async () => { try { await G.accept(r.id); } catch (e) {} this.loadSocial(); this.toast('@' + r.username + ' can now follow you'); }, onDecline: async () => { try { await G.decline(r.id); } catch (e) {} this.loadSocial(); } })), hasRequests: SO.requests.length > 0,
-      following: SO.following.map(f => { const ok = f.status === 'accepted'; return { name: '@' + f.username, initial: ini(f.username), sub: ok ? ' ' : 'Requested', ring: ok ? '0 0 0 2px ' + ACC : '0 0 0 1px #3a3a3c', fg: ok ? '#f5f5f7' : '#6e6e73', onOpen: ok ? openF(f.id, 'wish') : () => this.toast('Waiting for @' + f.username + ' to accept') }; }), hasFollowing: SO.following.length > 0,
-      feed: feed.slice(0, 50).map(e => ({ who: e.who, initial: ini(e.who), txt: e.txt, when: agoTxt(e.d), photo: e.ph || '', hasPhoto: !!e.ph, onOpen: e.on })), hasFeed: feed.length > 0, noFeed: !feed.length,
+      requests: SO.requests.map(r => ({ name: '@' + r.username, initial: ini(r.username), av: r.avatar || '', hasAv: !!r.avatar, onAccept: async () => { try { await G.accept(r.id); } catch (e) {} this.loadSocial(); this.toast('@' + r.username + ' can now follow you'); }, onDecline: async () => { try { await G.decline(r.id); } catch (e) {} this.loadSocial(); } })), hasRequests: SO.requests.length > 0,
+      following: SO.following.map(f => { const ok = f.status === 'accepted'; return { name: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar, sub: ok ? ' ' : 'Requested', ring: ok ? '0 0 0 2px ' + ACC : '0 0 0 1px #3a3a3c', fg: ok ? '#f5f5f7' : '#6e6e73', onOpen: ok ? openF(f.id, 'wish') : () => this.toast('Waiting for @' + f.username + ' to accept') }; }), hasFollowing: SO.following.length > 0,
+      feed: feed.slice(0, 50).map(e => ({ who: e.who, initial: ini(e.who), av: e.av || '', hasAv: !!e.av, txt: e.txt, when: agoTxt(e.d), photo: e.ph || '', hasPhoto: !!e.ph, onOpen: e.on })), hasFeed: feed.length > 0, noFeed: !feed.length,
       busy: !!st.socialBusy, refresh: () => { this.loadSocial(); if (G) G.sync(); } };
     const fU = st.friend ? SO.following.find(x => x.id === st.friend) : null, fL = fU ? SO.lists[fU.id] || {} : null;
     let fv = { tabs: [], wish: [], collGroups: [], outfits: [] };
+    let fi = { photos: [], stars: [], rows: [] };
+    const addF = i => { if (mineKey.has(fKey(i))) return false; this.mutate(pp => { pp.items.push({ id: uid(), name: i.n, brand: i.b || '', category: i.cat || '', url: i.u || '', photos: (i.ph || []).slice(), currency: i.c || '€', price: i.p == null ? null : i.p, history: i.p == null ? [] : [{ date: todayISO(), price: i.p }], rating: 3, status: 'wanted', size: '', colour: '', m2m: false, added: todayISO() }); }); this.toast('Added to your wishlist'); return true; };
+    const openI = (id, kind) => () => this.setState({ fItem: { id, kind }, fiIdx: 0 });
     if (fU) { const ft = st.friendTab || 'wish', W = fL.wish || [], C = fL.coll || [], O = fL.outfits || [], all = W.concat(C), cg = new Map();
+      const FI = st.fItem ? (st.fItem.kind === 'coll' ? C : W).find(x => x.id === st.fItem.id) : null;
+      if (FI) { const isW = st.fItem.kind !== 'coll', have = mineKey.has(fKey(FI)), phs = (FI.ph || []), host = (() => { try { return new URL(FI.u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } })();
+        const rows = [['Brand', FI.b], ['Category', FI.g || FI.cat], ['Size', FI.m ? 'Made to measure' : FI.s], ['Colour', FI.co], ['Status', isW ? '' : FI.ow ? 'On the way' : 'Owned'], [isW ? 'Added' : 'Since', isW ? (FI.a ? fmtD(FI.a) : '') : (FI.o ? fmtD(FI.o) : '')]].filter(r => r[1]).map(([k, v]) => ({ k, v: String(v) }));
+        fi = { back: '@' + fU.username, kicker: isW ? 'On their wishlist' : 'In their collection', name: FI.n, initial: ini(FI.n), photos: phs.map(src => ({ src })), hasPhotos: phs.length > 0, noPhotos: !phs.length, multi: phs.length > 1, counter: ((st.fiIdx || 0) + 1) + ' / ' + phs.length,
+          onScroll: e => { const el = e.currentTarget, k = Math.round(el.scrollLeft / el.clientWidth); if (k !== (st.fiIdx || 0)) this.setState({ fiIdx: k }); },
+          price: FI.p == null ? '' : money(FI.c || '€', FI.p), hasPrice: FI.p != null, hasStars: isW && !!FI.r, stars: this.stars(FI.r || 0), rows, hasRows: rows.length > 0,
+          url: FI.u || '', hasUrl: !!host, host, addLabel: have ? 'On your list' : 'Add to my wishlist', addBg: have ? '#1c1c1e' : ACC, addFg: have ? '#6e6e73' : '#000',
+          onAdd: e => { if (have) return; this.bump(e.currentTarget, 1.04); addF(FI); }, onBack: () => this.closeFItem(),
+          onZoom: () => this.openViewer(phs, st.fiIdx || 0, i => { const el = this.fiCarRef.current; if (el) el.scrollTo({ left: i * el.clientWidth }); this.setState({ fiIdx: i }); }) }; }
       C.forEach(i => { const g = i.g || cgroupOf({ category: i.cat, name: i.n }, []) || 'Other'; if (!cg.has(g)) cg.set(g, []); cg.get(g).push(i); });
-      fv = { name: '@' + fU.username, sub: W.length + ' wanted · ' + C.length + ' in collection · ' + plural(O.length, 'outfit'),
+      fv = { name: '@' + fU.username, initial: ini(fU.username), av: fU.avatar || '', hasAv: !!fU.avatar, sub: W.length + ' wanted · ' + C.length + ' in collection · ' + plural(O.length, 'outfit'),
         tabs: [['wish', 'Wishlist'], ['coll', 'Collection'], ['outfits', 'Outfits']].map(([k, l]) => ({ label: l, bg: ft === k ? '#636366' : 'transparent', onTap: () => this.setState({ friendTab: k }) })),
         isWish: ft === 'wish' && W.length > 0, isColl: ft === 'coll' && C.length > 0, isOut: ft === 'outfits' && O.length > 0,
         empty: (ft === 'wish' && !W.length) || (ft === 'coll' && !C.length) || (ft === 'outfits' && !O.length),
         emptyTxt: ft === 'wish' ? 'Their wishlist is empty.' : ft === 'coll' ? 'Nothing in their collection yet.' : 'No outfits yet.',
-        wish: W.slice().sort((a, b) => (b.r || 0) - (a.r || 0)).map(i => { const have = mineKey.has(fKey(i)), ph = (i.ph || [])[0]; return { name: i.n, brand: i.b || '', price: i.p == null ? '' : '· ' + money(i.c || '€', i.p), photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(i.n), stars: this.stars(i.r || 0), addLabel: have ? 'On your list' : 'Add', addColor: have ? '#6e6e73' : ACC,
-          onAdd: e => { if (have) return; this.bump(e.currentTarget, 1.1); this.mutate(pp => { pp.items.push({ id: uid(), name: i.n, brand: i.b || '', category: i.cat || '', url: i.u || '', photos: (i.ph || []).slice(), currency: i.c || '€', price: i.p == null ? null : i.p, history: i.p == null ? [] : [{ date: todayISO(), price: i.p }], rating: 3, status: 'wanted', size: '', colour: '', m2m: false, added: todayISO() }); }); this.toast('Added to your wishlist'); } }; }),
-        collGroups: Array.from(cg.entries()).map(([title, a]) => ({ title, count: String(a.length), items: a.map(i => { const ph = (i.ph || [])[0]; return { name: i.n, sub: [i.b, i.ow ? 'On the way' : ''].filter(Boolean).join(' · ') || ' ', photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(i.n) }; }) })),
+        wish: W.slice().sort((a, b) => (b.r || 0) - (a.r || 0)).map(i => { const have = mineKey.has(fKey(i)), ph = (i.ph || [])[0]; return { name: i.n, brand: i.b || '', price: i.p == null ? '' : '· ' + money(i.c || '€', i.p), photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(i.n), stars: this.stars(i.r || 0), addLabel: have ? 'On your list' : 'Add', addColor: have ? '#6e6e73' : ACC, onOpen: openI(i.id, 'wish'),
+          onAdd: e => { e.stopPropagation(); if (have) return; this.bump(e.currentTarget, 1.1); addF(i); } }; }),
+        collGroups: Array.from(cg.entries()).map(([title, a]) => ({ title, count: String(a.length), items: a.map(i => { const ph = (i.ph || [])[0]; return { name: i.n, sub: [i.b, i.ow ? 'On the way' : ''].filter(Boolean).join(' · ') || ' ', photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(i.n), onOpen: openI(i.id, 'coll') }; }) })),
         outfits: O.slice().reverse().map(o => { const its = (o.ids || []).map(id => all.find(x => x.id === id)).filter(Boolean).map(x => ({ id: x.id, name: x.n, category: x.cat, g: x.g, photos: x.ph || [] })), cov = (o.ph || [])[0]; return { name: o.n, sub: plural(its.length, 'piece') + (o.w ? ' · Worn ' + o.w + '×' : ''), cover: cov || '', hasCover: !!cov, noCover: !cov, board: cov ? [] : this.board(its, o.pos) }; }),
         onBack: () => this.closeFriend(), unfLabel: st.unfArm ? 'Tap again to unfollow' : 'Unfollow',
         onUnfollow: () => { if (!st.unfArm) { this.setState({ unfArm: true }); return; } const id = fU.id; this.closeFriend(async () => { try { await G.unfollow(id); } catch (e) {} this.loadSocial(); this.toast('Unfollowed'); }); } };
@@ -1916,7 +2042,9 @@ class Component extends DCLogic {
       canRestore: seedMissing.length > 0, restoreTxt: plural(seedMissing.length, 'item') + (seedP && seedP.session && !p.session ? ', your measurements' : '') + ' and your budget from this app’s saved copy. Nothing gets removed.',
       restoreSeed: () => { const add = seedMissing.map(i => JSON.parse(JSON.stringify(i))), n = add.length; this.closeSheet(() => { this.mutate(pp => { pp.items = pp.items.concat(add.filter(i => !pp.items.some(x => x.id === i.id))); if (!pp.session && seedP.session) pp.session = JSON.parse(JSON.stringify(seedP.session)); if (!(pp.budget && pp.budget.amount) && seedP.budget && seedP.budget.amount) pp.budget = Object.assign({}, seedP.budget); if (pp.name === 'Me' && seedP.name) pp.name = seedP.name; }); this.toast('Restored ' + plural(n, 'item')); }); },
       isFriends: st.tab === 'friends', tabFriends: st.tab === 'friends' ? ACC : '#8e8e93',
-      goFriends: e => { this.goTab('friends', e); this.loadSocial(); }, fr, hasFriend: !!fU, fv, friendRef: this.friendRef,
+      goFriends: e => { this.goTab('friends', e); this.loadSocial(); }, fr, hasFriend: !!fU, fv, friendRef: this.friendRef, hasFItem: !!(fU && fi.name), fi, fItemRef: this.fItemRef, fiCarRef: this.fiCarRef,
+      hasViewer: !!st.viewer, vwRef: this.vwRef, vwDown: e => this.vwDown(e), vwMove: e => this.vwMove(e), vwUp: e => this.vwUp(e), vwWheel: e => this.vwWheel(e), vwStop: e => e.stopPropagation(),
+      vw: st.viewer ? { photos: st.viewer.photos.map(src => ({ src })), multi: st.viewer.photos.length > 1, counter: (st.viewer.idx + 1) + ' of ' + st.viewer.photos.length, chrome: st.vwHide ? '0' : '1', chromePe: st.vwHide ? 'none' : 'auto', onClose: () => this.closeViewer() } : { photos: [] },
       fvTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 8px)', gateTop: framed ? '64px' : 'calc(env(safe-area-inset-top) + 24px)',
       showGate: gate, gLoading: gStep === 'loading', gEmail: gStep === 'email', gCode: gStep === 'code', gName: gStep === 'name', gShowBtn: gate && gStep !== 'loading',
       authEmail: st.authEmail || '', onAuthEmail: e => this.setState({ authEmail: e.target.value, authErr: '' }), authCode: st.authCode || '', onAuthCode: e => this.setState({ authCode: e.target.value.replace(/\D/g, '').slice(0, 8), authErr: '' }),
@@ -1986,10 +2114,11 @@ class Component extends DCLogic {
         if (navigator.share) navigator.share({ title, text: (p.name || 'I') + ' wants this: ' + title, url }).catch(() => {});
         else { try { navigator.clipboard.writeText(url); } catch (er) {} this.toast('Link copied'); } },
       hasDetail: !!dIt, d, closeDetail: () => this.closeDetail(), openEdit: () => dIt && this.openForm(dIt),
+      carOpen: () => { if (this.carMoved) { this.carMoved = false; return; } if (dIt) this.openViewer(dIt.photos || [], st.photoIdx, i => this.carGo(i)); },
       carRef: this.carRef, carPrev: () => this.carGo(st.photoIdx - 1), carNext: () => this.carGo(st.photoIdx + 1),
       carDown: e => { if (e.pointerType !== 'mouse') return; const el = e.currentTarget; this.drag = { x: e.clientX, s: el.scrollLeft, moved: false }; el.style.scrollSnapType = 'none'; el.style.cursor = 'grabbing'; try { el.setPointerCapture(e.pointerId); } catch (er) {} },
       carMove: e => { const g = this.drag; if (!g) return; const dx = e.clientX - g.x; if (Math.abs(dx) > 3) g.moved = true; e.currentTarget.scrollLeft = g.s - dx; },
-      carUp: e => { const g = this.drag; if (!g) return; this.drag = null; const el = e.currentTarget, w = el.clientWidth, dx = e.clientX - g.x; el.style.cursor = 'grab'; let i = Math.round(g.s / w); if (dx < -w * 0.15) i++; else if (dx > w * 0.15) i--; i = Math.max(0, Math.min(el.children.length - 1, i)); el.scrollTo({ left: i * w, behavior: 'smooth' }); setTimeout(() => { el.style.scrollSnapType = 'x mandatory'; }, 400); this.setState({ photoIdx: i }); },
+      carUp: e => { const g = this.drag; if (!g) return; this.drag = null; const el = e.currentTarget, w = el.clientWidth, dx = e.clientX - g.x; el.style.cursor = 'grab'; let i = Math.round(g.s / w); if (dx < -w * 0.15) i++; else if (dx > w * 0.15) i--; i = Math.max(0, Math.min(el.children.length - 1, i)); el.scrollTo({ left: i * w, behavior: 'smooth' }); setTimeout(() => { el.style.scrollSnapType = 'x mandatory'; }, 400); this.carMoved = Math.abs(dx) > 5; this.setState({ photoIdx: i }); },
       onCarScroll: e => { if (this.drag) return; const el = e.currentTarget, i = Math.round(el.scrollLeft / el.clientWidth); if (i !== st.photoIdx) this.setState({ photoIdx: i }); },
       copyLabel: st.copied ? 'Copied' : 'Copy as list',
       copyNeeds: e => { if (!dIt) return; this.bump(e.currentTarget, 1.08); const txt = p.name + ' · ' + (dIt.brand || '') + ' · ' + dIt.name + '\n' + d.needRows.map(r => r.label + ': ' + r.value).join('\n');

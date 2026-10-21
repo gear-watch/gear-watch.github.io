@@ -7,6 +7,7 @@
   const subs = new Set();
   const S = { configured: !!(cfg().url && cfg().key), ready: false, user: null, email: '', username: null, needName: false, status: 'idle', lastSync: null, error: '', firstDone: false };
   const emit = () => subs.forEach(f => { try { f(Object.assign({}, S)); } catch (e) {} });
+  async function profSel(q) { let r = await q('id,username,avatar'); if (r.error && /avatar/i.test(r.error.message || '')) r = await q('id,username'); return r; }
   const set = o => { Object.assign(S, o); emit(); };
   const meta = () => { try { return JSON.parse(localStorage.getItem(META)) || {}; } catch (e) { return {}; } };
   const setMeta = o => { const m = Object.assign(meta(), o); try { localStorage.setItem(META, JSON.stringify(m)); } catch (e) {} return m; };
@@ -33,16 +34,16 @@
       window.addEventListener('online', () => { connect().then(() => schedule(0)); });
       window.addEventListener('offline', () => set({ status: 'offline' }));
       document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') schedule(0); }); }
-    if (!(await connect())) { const u = cachedUser(); set({ ready: true, user: u, email: u ? u.email : '', status: 'offline', firstDone: true, error: why }); return; }
+    if (!(await connect())) { const u = cachedUser(); set({ ready: true, user: u, email: u ? u.email : '', avatar: u ? meta().avatar || null : null, status: 'offline', firstDone: true, error: why }); return; }
     set({ ready: true });
   }
 
   async function onSession(s) {
     const u = s ? s.user : null, uid = u ? u.id : null;
     if (uid === lastUid) return; lastUid = uid;
-    if (!u) { set({ user: null, email: '', username: null, needName: false, firstDone: false }); return; }
-    set({ user: { id: u.id, email: u.email }, email: u.email || '' });
-    try { const { data, error } = await sb.from('profiles').select('username').eq('id', uid).maybeSingle(); if (error) throw error; set({ username: data ? data.username : null, needName: !data }); }
+    if (!u) { set({ user: null, email: '', username: null, avatar: null, needName: false, firstDone: false }); return; }
+    const mm = meta(); set({ user: { id: u.id, email: u.email }, email: u.email || '', avatar: mm.uid === uid ? mm.avatar || null : null });
+    try { const { data, error } = await profSel(c => sb.from('profiles').select(c).eq('id', uid).maybeSingle()); if (error) throw error; const avv = data && data.avatar || null; set({ username: data ? data.username : null, needName: !data, avatar: avv }); setMeta({ avatar: avv }); }
     catch (e) { set({ needName: false }); }
     await sync(); set({ firstDone: true });
   }
@@ -88,8 +89,8 @@
     const web = a => (a || []).filter(x => /^https?:/.test(x)).slice(0, 4);
     const items = p.items || [];
     return {
-      wish: items.filter(i => i.status === 'wanted').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, ph: web(i.photos), u: i.url, c: i.currency, p: i.price, r: i.rating, a: i.added })),
-      coll: items.filter(i => i.status === 'owned' || i.status === 'ordered').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, g: i.cgroup, ph: web(i.photos), o: i.ownedOn || i.orderedOn || i.added, ow: i.status === 'ordered' ? 1 : undefined })),
+      wish: items.filter(i => i.status === 'wanted').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, ph: web(i.photos), u: i.url, c: i.currency, p: i.price, r: i.rating, a: i.added, s: i.size || undefined, co: i.colour || undefined, m: i.m2m ? 1 : undefined })),
+      coll: items.filter(i => i.status === 'owned' || i.status === 'ordered').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, g: i.cgroup, ph: web(i.photos), o: i.ownedOn || i.orderedOn || i.added, ow: i.status === 'ordered' ? 1 : undefined, s: i.size || undefined, co: i.colour || undefined, m: i.m2m ? 1 : undefined, u: i.url })),
       outfits: (p.outfits || []).map((o, i) => ({ id: o.id, n: o.name || 'Outfit ' + (i + 1), ids: o.itemIds, pos: o.pos, ph: web(o.photos), w: (o.worn || []).length, lw: (o.worn || []).slice(-1)[0], cr: o.created }))
     };
   }
@@ -130,14 +131,14 @@
   async function social() {
     if (!sb || !S.user) return null; const me = S.user.id;
     const [a, b] = await Promise.all([sb.from('follows').select('followee,status').eq('follower', me), sb.from('follows').select('follower,status').eq('followee', me)]);
-    const out = a.data || [], inc = b.data || [], ids = [...new Set(out.map(x => x.followee).concat(inc.map(x => x.follower)))], names = {}, lists = {};
-    if (ids.length) { const r = await sb.from('profiles').select('id,username').in('id', ids); (r.data || []).forEach(x => { names[x.id] = x.username; }); }
+    const out = a.data || [], inc = b.data || [], ids = [...new Set(out.map(x => x.followee).concat(inc.map(x => x.follower)))], names = {}, avs = {}, lists = {};
+    if (ids.length) { const r = await profSel(c => sb.from('profiles').select(c).in('id', ids)); (r.data || []).forEach(x => { names[x.id] = x.username; avs[x.id] = x.avatar || null; }); }
     const acc = out.filter(x => x.status === 'accepted').map(x => x.followee);
     if (acc.length) { const r = await sb.from('public_lists').select('user_id,list').in('user_id', acc); (r.data || []).forEach(x => { lists[x.user_id] = x.list; }); }
     return {
-      following: out.map(x => ({ id: x.followee, username: names[x.followee] || 'unknown', status: x.status })),
-      requests: inc.filter(x => x.status === 'pending').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown' })),
-      followers: inc.filter(x => x.status === 'accepted').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown' })),
+      following: out.map(x => ({ id: x.followee, username: names[x.followee] || 'unknown', avatar: avs[x.followee] || null, status: x.status })),
+      requests: inc.filter(x => x.status === 'pending').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown', avatar: avs[x.follower] || null })),
+      followers: inc.filter(x => x.status === 'accepted').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown', avatar: avs[x.follower] || null })),
       lists
     };
   }
@@ -166,6 +167,17 @@
     if (r.error) { const m = r.error.message || ''; throw new Error(r.error.code === '23505' && /username/i.test(m) ? '@' + u + ' is taken.' : 'Couldn’t save: ' + m); }
     set({ username: u, needName: false }); schedule(0);
   }
+  async function setAvatar(src) {
+    if (!navigator.onLine || !(await connect()) || !S.user) throw new Error(why || 'You’re offline. Try again when you’re connected.');
+    const me = S.user.id; let url = null;
+    if (src) { const blob = await (await fetch(src)).blob(), path = me + '/avatar-' + hash(src) + '.jpg';
+      const r = await sb.storage.from('photos').upload(path, blob, { contentType: 'image/jpeg', upsert: false, cacheControl: '31536000' });
+      if (r.error && !/exist|duplicate/i.test(r.error.message || '')) throw new Error('Couldn’t upload: ' + r.error.message);
+      url = sb.storage.from('photos').getPublicUrl(path).data.publicUrl; }
+    const r = await sb.from('profiles').update({ avatar: url }).eq('id', me);
+    if (r.error) throw new Error(/avatar/i.test(r.error.message || '') ? 'Profile photos need a database update. Run supabase/setup.sql again.' : 'Couldn’t save: ' + r.error.message);
+    set({ avatar: url }); setMeta({ avatar: url });
+  }
   async function sendCode(email) {
     if (!(await connect())) throw new Error(why || 'You’re offline.');
     const r = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: true } });
@@ -181,7 +193,7 @@
   }
 
   window.GWSync = {
-    init, schedule, sync, social, follow, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
+    init, schedule, sync, social, setAvatar, follow, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
     attach: h => { host = h; },
     on: f => { subs.add(f); f(Object.assign({}, S)); return () => subs.delete(f); },
     state: () => Object.assign({}, S)

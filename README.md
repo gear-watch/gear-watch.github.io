@@ -16,3 +16,7 @@ Gear wishlist with budget, measurements (Fitlog) and daily price checks.
 - New item in the app? Profiles → **Copy watch list**, paste over `watchlist.json`, commit.
 
 Your wishlist itself is stored in your browser (localStorage), not in the repo.
+
+## Prices for every user
+
+The daily check only covers `watchlist.json`. To check every user's items when they open the app, set up the free price helper in `price-worker/` (see its README) and paste its address into `config.js`.

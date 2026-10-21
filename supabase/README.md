@@ -177,3 +177,7 @@ Pick **one**. Brevo works without owning a website domain. Resend needs a domain
 - First sign-in uploads what's already on the phone. On a new device you get your list from the account.
 - Changes sync in the background and wait while you're offline.
 - Followers only see your wishlist, collection and outfits. Not what you paid, sizes or measurements. You approve each follower.
+
+## Profile photos (update)
+
+Profile photos need one new database column. Open Supabase → SQL Editor, paste all of `setup.sql` again and press Run. It's safe to run more than once. Until then the app works as before, but saving a profile photo shows a message asking for this update.
