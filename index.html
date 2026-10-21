@@ -2117,7 +2117,7 @@ class Component extends DCLogic {
     try { await G.storyPost({ files: C.files.map(f => ({ blob: f.blob, type: f.type, w: f.w, h: f.h, dur: f.dur })), caption: C.caption, items: C.items, poll, audience: C.audience, blur: C.blur, onProgress: p => this.scSet({ prog: p }) });
       C.files.forEach(f => { try { URL.revokeObjectURL(f.url); } catch (e) {} }); this.setState({ sc: null }); this.toast(C.audience === 'close' ? 'Shared with close friends' : 'Story shared'); this.loadStories(); }
     catch (e) { this.scSet({ busy: false }); this.toast((e && e.message) || 'Couldn’t share your story'); } }
-  storyVals(x) { const st = this.state, S = st.stories || {}, X = this.storyIdx(), A = st.acct || {}, me = S.me || (A.user || {}).id, ACC = 'var(--gw-accent,#ffd60a)', ini = x.ini, SO = x.SO;
+  storyVals(x) { const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's'); const st = this.state, S = st.stories || {}, X = this.storyIdx(), A = st.acct || {}, me = S.me || (A.user || {}).id, ACC = 'var(--gw-accent,#ffd60a)', ini = x.ini, SO = x.SO;
     const prof = id => (S.prof || {})[id] || SO.following.find(f => f.id === id) || SO.requests.find(f => f.id === id) || null;
     const hlList = uid => { const m = X.hl.get(uid); return m ? Array.from(m.entries()).map(([name, list]) => { const m0 = (list[list.length - 1].media || [])[0] || {}, th = m0.type === 'image' ? m0.url : ''; return { name, thumb: th || '', hasThumb: !!th, initial: ini(name), onOpen: () => this.openHighlight(uid, name) }; }) : []; };
     const tog = on => ({ track: on ? '#30d158' : '#48484a', knob: on ? 'translateX(20px)' : 'none' });
