@@ -131,7 +131,7 @@ input::placeholder{color:#6e6e73;}
       </sc-if>
       <sc-if value="{{ noBudget }}" hint-placeholder-val="{{ true }}">
         <span data-anim="up" style="font-family:var(--font-display);font-size:24px;font-weight:600;line-height:1.17;">Set a monthly budget.</span>
-        <span data-anim="up" style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;margin-top:4px;">See when you can afford what’s next. Unused budget carries over.</span>
+        <span data-anim="up" style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;margin-top:4px;">See when you can afford what’s next. Resets every payday.</span>
         <button data-anim="pop" onClick="{{ openBudget }}" style="align-self:flex-start;margin-top:12px;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Set budget</button>
       </sc-if>
       <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ false }}">
@@ -570,6 +570,12 @@ input::placeholder{color:#6e6e73;}
       <div style="display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;">
         <sc-for list="{{ d.statusTabs }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.onTap }}" style="flex:1;border:0;border-radius:7px;padding:6px 0;font-size:14px;cursor:pointer;color:#f5f5f7;background:{{ t.bg }};transition:background .25s;">{{ t.label }}</button></sc-for>
       </div>
+      <sc-if value="{{ d.hasPaid }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:8px;font-size:14px;letter-spacing:-0.224px;color:#d1d1d6;">
+          <span style="flex:1;min-width:0;">{{ d.paidTxt }}</span>
+          <button onClick="{{ d.editPaid }}" style="border:0;background:none;padding:0;color:var(--gw-accent,#ffd60a);font-size:14px;cursor:pointer;flex:none;">Edit</button>
+        </div>
+      </sc-if>
       <sc-if value="{{ d.isWanted }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;align-items:center;gap:8px;font-size:14px;letter-spacing:-0.224px;color:#d1d1d6;">
           <span data-anim="pulse" style="width:8px;height:8px;border-radius:9999px;background:{{ d.affordDot }};flex:none;"></span>
@@ -956,7 +962,18 @@ input::placeholder{color:#6e6e73;}
       <div style="padding:12px 16px 0;display:flex;gap:8px;flex-wrap:wrap;">
         <sc-for list="{{ sheetChips }}" as="c" hint-placeholder-count="4"><button data-anim="pop" onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;background:{{ c.bg }};color:{{ c.color }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for>
       </div>
-      <div data-anim="up" style="padding:12px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Unused budget carries over to the next month. Orders you mark from today count against it. Prices in $ and £ are converted at an approximate rate.</div>
+      <div data-anim="up" style="margin:16px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#3a3a3c;">
+        <label style="background:#2c2c2e;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;font-size:17px;cursor:pointer;">
+          <span>Payday</span>
+          <span style="display:flex;align-items:center;gap:4px;color:#a1a1a6;"><span>The</span><select value="{{ paydayIn }}" onChange="{{ onPayday }}" style="background:none;border:0;color:var(--gw-accent,#ffd60a);font-size:17px;font-family:inherit;font-weight:600;appearance:none;-webkit-appearance:none;padding:0;cursor:pointer;outline:none;width:{{ paydayW }};text-align:center;text-align-last:center;"><sc-for list="{{ paydayOpts }}" as="o" hint-placeholder-count="1"><option value="{{ o.v }}">{{ o.label }}</option></sc-for></select><span>of each month</span></span>
+        </label>
+        <label style="background:#2c2c2e;display:flex;flex-direction:column;gap:4px;padding:12px 16px;cursor:text;">
+          <span style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:17px;"><span>{{ spentLabel }}</span><span style="display:flex;align-items:baseline;gap:2px;color:#a1a1a6;"><span>€</span><input value="{{ spentIn }}" onChange="{{ onSpentIn }}" placeholder="0" inputmode="decimal" style="width:72px;background:none;border:0;color:#f5f5f7;font-size:17px;font-family:inherit;text-align:right;padding:0;outline:none;"></span></span>
+          <sc-if value="{{ hasAppSpent }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#a1a1a6;">Plus {{ appSpentTxt }} in orders you marked in GearWatch.</span></sc-if>
+        </label>
+      </div>
+      <sc-if value="{{ hasSheetLeft }}" hint-placeholder-val="{{ false }}"><div data-anim="up" style="padding:12px 20px 0;font-size:17px;font-weight:600;">{{ sheetLeft }}</div></sc-if>
+      <div data-anim="up" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Resets to the full amount every payday. Orders you mark in GearWatch count automatically. Prices in $ and £ are converted at an approximate rate.</div>
       <sc-if value="{{ hasBudget }}" hint-placeholder-val="{{ false }}"><button onClick="{{ clearBudget }}" style="margin:16px 12px 0;border:0;background:none;color:#ff453a;font-size:17px;padding:8px;cursor:pointer;">Remove budget</button></sc-if>
     </sc-if>
 
@@ -1000,6 +1017,22 @@ input::placeholder{color:#6e6e73;}
           <input value="{{ newGrp }}" onChange="{{ onNewGrp }}" placeholder="Category name, e.g. Collars" style="flex:1;min-width:0;background:#2c2c2e;border:0;border-radius:8px;padding:10px 12px;font-size:17px;color:#f5f5f7;">
           <button onClick="{{ addGrp }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:8px;padding:0 16px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Add</button>
         </div>
+      </sc-if>
+    </sc-if>
+
+    <sc-if value="{{ isSheetPaid }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="padding:4px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ pd.item }}</div>
+      <div data-anim="up" style="margin:8px 16px 0;background:#2c2c2e;border-radius:18px;padding:12px 12px 12px 16px;display:flex;align-items:center;gap:8px;">
+        <span style="font-family:var(--font-display);font-size:34px;font-weight:600;color:#a1a1a6;">{{ pd.sym }}</span>
+        <input value="{{ pd.amt }}" onChange="{{ pd.onAmt }}" placeholder="{{ pd.ph }}" inputmode="decimal" style="flex:1;min-width:0;background:none;border:0;font-family:var(--font-display);font-size:34px;font-weight:600;color:#f5f5f7;padding:0;outline:none;">
+        <span style="flex:none;display:flex;background:#3a3a3c;border-radius:8px;padding:2px;gap:2px;"><sc-for list="{{ pd.curs }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.onTap }}" style="border:0;border-radius:7px;padding:4px 10px;font-size:14px;cursor:pointer;color:#f5f5f7;background:{{ c.bg }};transition:background .25s;">{{ c.label }}</button></sc-for></span>
+      </div>
+      <div data-anim="up" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;text-wrap:pretty;">{{ pd.hint }}</div>
+      <sc-if value="{{ pd.hasBudget }}" hint-placeholder-val="{{ true }}">
+        <button data-anim="up" onClick="{{ pd.onCount }}" style="margin:16px 16px 0;width:calc(100% - 32px);border:0;background:#2c2c2e;border-radius:18px;padding:12px 16px;display:flex;align-items:center;gap:12px;color:#f5f5f7;cursor:pointer;text-align:left;font-family:inherit;">
+          <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-size:17px;">Take it out of this month’s budget</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ pd.countSub }}</span></span>
+          <span style="flex:none;width:51px;height:31px;border-radius:9999px;background:{{ pd.trackBg }};position:relative;transition:background .2s;"><span style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:9999px;background:#f5f5f7;transform:{{ pd.knobX }};transition:transform .2s;"></span></span>
+        </button>
       </sc-if>
     </sc-if>
 
@@ -1204,7 +1237,7 @@ input::placeholder{color:#6e6e73;}
         <div data-anim="right" data-delay="0" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 24px 8px;gap:8px;">
           <span data-anim="pop" data-delay="100" style="width:56px;height:56px;border-radius:18px;background:#1c1c1e;color:var(--gw-accent,#ffd60a);display:grid;place-items:center;margin-bottom:12px;font-family:var(--font-display);font-size:28px;font-weight:600;">€</span>
           <span data-anim="up" data-delay="200" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.12;letter-spacing:-0.374px;">Set a monthly budget.</span>
-          <span data-anim="up" data-delay="300" style="font-size:17px;color:#a1a1a6;line-height:1.41;text-wrap:pretty;">Unused money carries over. GearWatch tells you when the next piece fits.</span>
+          <span data-anim="up" data-delay="300" style="font-size:17px;color:#a1a1a6;line-height:1.41;text-wrap:pretty;">Set how much you can spend each month. GearWatch tells you when the next piece fits.</span>
           <div data-anim="scale" data-delay="400" style="margin-top:20px;background:#1c1c1e;border-radius:18px;padding:14px 20px;display:flex;align-items:baseline;gap:8px;">
             <span style="font-family:var(--font-display);font-size:40px;font-weight:600;color:#6e6e73;">€</span>
             <input value="{{ introBudget }}" onChange="{{ onIntroBudget }}" placeholder="0" inputmode="decimal" style="flex:1;min-width:0;background:none;border:0;font-family:var(--font-display);font-size:40px;font-weight:600;color:#f5f5f7;padding:0;outline:none;">
@@ -1436,6 +1469,11 @@ function CountUp(props) {
 const uid = () => Math.random().toString(36).slice(2, 10);
 const pad = n => String(n).padStart(2, '0');
 const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const dim = (y, m) => new Date(y, m + 1, 0).getDate();
+const isoD = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const payOn = (y, m, day) => { const a = new Date(y, m, 1); return new Date(a.getFullYear(), a.getMonth(), Math.min(day, dim(a.getFullYear(), a.getMonth()))); };
+const payPeriod = (day, now) => { now = now || new Date(); const y = now.getFullYear(), m = now.getMonth(); let s = payOn(y, m, day); if (now.getDate() < s.getDate()) s = payOn(y, m - 1, day); return { start: s, next: payOn(s.getFullYear(), s.getMonth() + 1, day) }; };
+const ordinal = n => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
 const fmtD = s => { const d = new Date(s + 'T12:00:00'); return d.getDate() + ' ' + MON[d.getMonth()]; };
 const num = v => (Math.round(v * 100) % 100 ? v.toFixed(2) : String(Math.round(v)));
 const money = (c, v) => c + num(v);
@@ -1700,10 +1738,11 @@ class Component extends DCLogic {
   dropItem() { return this.prof().items.filter(i => i.status === 'wanted' && dropOf(i) > 0).sort((a, b) => dropOf(b) - dropOf(a))[0]; }
   budgetInfo(p) {
     const b = p.budget || {}; if (!b.amount) return null;
-    const s = new Date(b.since + 'T12:00:00'), n = new Date();
-    const months = Math.max(1, (n.getFullYear() - s.getFullYear()) * 12 + n.getMonth() - s.getMonth() + 1);
-    const spent = p.items.filter(i => i.orderedOn && i.orderedOn >= b.since).reduce((a, i) => a + paidEur(i), 0);
-    return { amount: b.amount, months, spent, avail: b.amount * months - spent };
+    const day = b.payday || 1, per = payPeriod(day), startISO = isoD(per.start);
+    const from = b.since && b.since > startISO ? b.since : startISO;
+    const appSpent = p.items.filter(i => i.orderedOn && i.orderedOn >= from && !i.noBudget).reduce((a, i) => a + paidEur(i), 0);
+    const manual = (b.extra || {})[startISO] || 0, spent = appSpent + manual;
+    return { amount: b.amount, day, start: per.start, next: per.next, startISO, from, appSpent, manual, spent, avail: b.amount - spent };
   }
   afford(it, bi) {
     const e = eurOf(it);
@@ -1711,8 +1750,8 @@ class Component extends DCLogic {
     if (!bi) return { txt: 'Set a monthly budget to see when you can buy this.', dot: '#636366', pct: 0, need: true };
     const pct = Math.max(0, Math.min(1, bi.avail / e));
     if (bi.avail >= e) return { txt: 'You can buy this now. €' + Math.round(bi.avail - e) + ' left after.', dot: '#30d158', pct };
-    const m = Math.ceil((e - Math.max(0, bi.avail)) / bi.amount), d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + m);
-    return { txt: 'Affordable in ' + m + (m === 1 ? ' month' : ' months') + ', ' + MON[d.getMonth()] + ' ' + d.getFullYear() + '.', dot: '#ff9f0a', pct };
+    const m = Math.ceil((e - Math.max(0, bi.avail)) / bi.amount), d = payOn(bi.start.getFullYear(), bi.start.getMonth() + m, bi.day);
+    return { txt: m === 1 ? 'Affordable on payday, ' + d.getDate() + ' ' + MON[d.getMonth()] + '.' : 'Affordable on ' + d.getDate() + ' ' + MON[d.getMonth()] + ' ' + d.getFullYear() + ' if you save ' + m + ' paydays.', dot: '#ff9f0a', pct };
   }
   stars(r) { return [1, 2, 3, 4, 5].map(n => ({ fill: n <= r ? ACC : '#48484a' })); }
   vm(it, rank) {
@@ -1811,13 +1850,22 @@ class Component extends DCLogic {
       this.toast(isNew ? (f.status === 'owned' ? 'Added to your collection' : 'Added to your wishlist') : 'Saved');
     });
   }
+  openPaid(it, to) { this.setState({ sheet: 'paid', paid: { id: it.id, to, amt: it.paid != null ? String(it.paid) : '', cur: it.paid != null ? it.paidCur || '€' : '€', count: !it.noBudget } }); }
+  savePaid() { const P = this.state.paid; if (!P) return; this.closeSheet(() => {
+      this.mutItem(P.id, it => { const was = it.status; it.status = P.to; if (!it.orderedOn) it.orderedOn = todayISO(); if (P.to === 'owned') it.ownedOn = it.ownedOn || todayISO(); else delete it.ownedOn;
+        const a = toNum(P.amt); if (String(P.amt || '').trim() !== '') { it.paid = a; it.paidCur = P.cur; } else if (it.paid == null && it.price != null) { it.paid = Math.round(eurOf(it) * 100) / 100; it.paidCur = '€'; }
+        if (P.count) delete it.noBudget; else it.noBudget = true; });
+      this.setState({ paid: null }); this.toast(P.to === 'owned' ? 'Marked as owned' : 'Marked as ordered'); }); }
   setStatus(id, s) {
     this.mutItem(id, it => { if (it.status === s) return; it.status = s;
-      if (s === 'wanted') { delete it.orderedOn; delete it.paid; delete it.paidCur; delete it.ownedOn; }
+      if (s === 'wanted') { delete it.orderedOn; delete it.paid; delete it.paidCur; delete it.ownedOn; delete it.noBudget; }
       else { if (!it.orderedOn) { it.orderedOn = todayISO(); if (it.price != null) { it.paid = it.price; it.paidCur = it.currency; } } if (s === 'owned') it.ownedOn = todayISO(); else delete it.ownedOn; } });
   }
-  commitBudget(amt, extra) {
-    this.mutate((p, data) => { p.budget = { amount: amt, since: (p.budget && p.budget.amount && p.budget.since) || todayISO() }; if (extra) extra(p, data); });
+  commitBudget(amt, extra, o) {
+    this.mutate((p, data) => { const b0 = p.budget || {}, b = { amount: amt, since: (b0.amount && b0.since) || todayISO(), payday: (o && o.payday) || b0.payday || 1, extra: Object.assign({}, b0.extra || {}) };
+      if (o && o.spent != null) { const k = isoD(payPeriod(b.payday).start); if (o.spent > 0) b.extra[k] = o.spent; else delete b.extra[k]; }
+      Object.keys(b.extra).sort().slice(0, -6).forEach(k => delete b.extra[k]);
+      p.budget = b; if (extra) extra(p, data); });
   }
   finishIntro(amt) {
     this.animOut(this.introRef.current, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(1.08)' }], 420, () => {
@@ -1995,7 +2043,9 @@ class Component extends DCLogic {
         canPrev: st.photoIdx > 0, canNext: st.photoIdx < ph.length - 1,
         dots: ph.map((_, i) => ({ onTap: () => this.carGo(i), bg: i === st.photoIdx ? '#f5f5f7' : 'rgba(245,245,247,0.4)', w: i === st.photoIdx ? '18px' : '7px' })),
         stars: [1, 2, 3, 4, 5].map(n => ({ fill: n <= dIt.rating ? ACC : '#48484a', label: n + ' stars', onTap: e => { this.bump(e.currentTarget, 1.45); this.mutItem(dIt.id, it => { it.rating = n; }); } })),
-        statusTabs: [['wanted', 'Wanted'], ['ordered', 'Ordered'], ['owned', 'Owned']].map(([k, l]) => ({ label: l, bg: dIt.status === k ? '#636366' : 'transparent', onTap: e => { this.bump(e.currentTarget, 1.06); this.setStatus(dIt.id, k); } })),
+        statusTabs: [['wanted', 'Wanted'], ['ordered', 'Ordered'], ['owned', 'Owned']].map(([k, l]) => ({ label: l, bg: dIt.status === k ? '#636366' : 'transparent', onTap: e => { this.bump(e.currentTarget, 1.06); if (k !== 'wanted' && dIt.status === 'wanted') this.openPaid(dIt, k); else this.setStatus(dIt.id, k); } })),
+        hasPaid: dIt.status !== 'wanted' && dIt.paid != null, editPaid: () => this.openPaid(dIt, dIt.status),
+        paidTxt: dIt.paid == null ? '' : 'Paid ' + money(dIt.paidCur || '€', dIt.paid) + (dIt.paidCur && dIt.paidCur !== '€' ? ' (≈ €' + Math.round(paidEur(dIt)) + ')' : '') + (bi ? (dIt.noBudget ? ' · not in budget' : ' · counted in budget') : ''),
         checkTxt: !dIt.url ? 'No link, so the price isn’t checked' : !dIt.checked ? 'Price not checked yet' : dIt.checkErr ? dIt.checkErr + ' · tried ' + agoTxt(dIt.checked) : 'Price checked ' + agoTxt(dIt.checked) + (dIt.surcharge ? ' · incl. +' + Math.round(dIt.surcharge * 100) + '% made to measure' : ''),
         checkColor: dIt.checked && !dIt.checkErr ? '#30d158' : dIt.checkErr ? '#ff9f0a' : '#6e6e73',
         isWanted: dIt.status === 'wanted', afford: a.txt, affordDot: a.dot, needBudget: !!a.need,
@@ -2014,7 +2064,7 @@ class Component extends DCLogic {
     }
 
     const f = st.form || {};
-    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: ['Monthly budget', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null], cpick: ['Collection category', null] }[st.sheet] || ['', null];
+    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: ['Monthly budget', 'Save'], paid: [st.paid && st.paid.to === 'owned' ? 'Mark as owned' : 'Mark as ordered', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null], cpick: ['Collection category', null] }[st.sheet] || ['', null];
     const canSave = st.sheet === 'form' ? !!(f.name || '').trim() : st.sheet === 'budget' ? toNum(st.budgetIn) > 0 : true;
     const pv = st.pointId ? this.fval(vals, st.pointId) : null;
     const chips = (cur, set) => BUDGET_CHIPS.map(n => { const on = toNum(cur) === n; return { label: '€' + n, bg: on ? ACC : '#1c1c1e', color: on ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.12); set(String(n)); } }; });
@@ -2092,13 +2142,13 @@ class Component extends DCLogic {
       hasNext: !!nextIt, next, nextAfford: af.txt, affordDot: af.dot, progressPct: Math.round(af.pct * 100) + '%',
       hasBudget: !!bi, noBudget: !bi, showBudgetPill: !!bi && mode !== 'B',
       availEl: bi ? React.createElement(CountUp, { value: Math.round(bi.avail), prefix: '€' }) : '', availColor: bi && bi.avail < 0 ? '#ff453a' : ACC,
-      budgetSub: bi ? '€' + num(bi.amount) + ' a month · unused budget carries over' : '',
+      budgetSub: bi ? '€' + num(bi.amount) + ' a month · resets on the ' + ordinal(bi.day) + (bi.spent > 0 ? ' · €' + Math.round(bi.spent) + ' spent' : '') : '',
       hasRest: rest.length > 0, groups, wishEmpty: !wanted.length,
       groupTabs: [['rank', 'Rank'], ['brand', 'Brand'], ['cat', 'Category']].map(([k, l]) => ({ label: l, bg: st.group === k ? '#636366' : 'transparent', onTap: () => this.setState({ group: k }) })),
       hasOnWay: onWay.length > 0, onWay, onWayCount: onWay.length, hasOwned: owned.length > 0, noOwned: !owned.length, owned,
       openAdd: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.15); this.openForm(null); },
       openProfiles: () => this.setState({ sheet: 'profiles', newProfile: '', soArm: false }),
-      openBudget: () => this.setState({ sheet: 'budget', budgetIn: p.budget && p.budget.amount ? String(p.budget.amount) : '' }),
+      openBudget: () => { const b = p.budget || {}, day = b.payday || 1, k = isoD(payPeriod(day).start), sp = (b.extra || {})[k]; this.setState({ sheet: 'budget', budgetIn: b.amount ? String(b.amount) : '', paydayIn: String(day), spentIn: sp ? String(sp) : '' }); },
 
       hasSession, noSession: !hasSession, measuredAgo: days <= 0 ? 'Measured today' : days === 1 ? 'Measured yesterday' : 'Measured ' + days + ' days ago',
       measuredSub: hasSession ? fmtD(p.session.date) + ' · ' + Object.keys(vals).length + ' measurements' : '',
@@ -2140,15 +2190,26 @@ class Component extends DCLogic {
       sheetAction: () => {
         if (!canSave) return;
         if (st.sheet === 'form') { this.saveForm(); return; }
+        if (st.sheet === 'paid') { this.savePaid(); return; }
         if (st.sheet === 'budget') {
           const amt = toNum(st.budgetIn), morph = !bi && mode === 'B' && !/budget/i.test(L);
           this.closeSheet(() => {
-            const go = () => { this.commitBudget(amt); this.toast(morph ? 'Budget set. Here’s what’s next.' : 'Budget set. €' + num(amt) + ' a month.'); };
+            const go = () => { this.commitBudget(amt, null, { payday: Number(st.paydayIn) || 1, spent: toNum(st.spentIn) || 0 }); this.toast(morph ? 'Budget set. Here’s what’s next.' : 'Budget saved. Resets on the ' + ordinal(Number(st.paydayIn) || 1) + '.'); };
             if (morph && this.bPanelRef.current) this.animOut(this.bPanelRef.current, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.9) translateY(-20px)' }], 360, go); else go();
           });
         }
       },
-      isSheetForm: st.sheet === 'form', isSheetBudget: st.sheet === 'budget', isSheetProfiles: st.sheet === 'profiles', isSheetPoint: st.sheet === 'point',
+      isSheetForm: st.sheet === 'form', isSheetBudget: st.sheet === 'budget', isSheetPaid: st.sheet === 'paid',
+      pd: (() => { const P = st.paid, it = P ? p.items.find(x => x.id === P.id) : null; if (!it) return { curs: [] };
+        const setP = o => this.setState(s => ({ paid: Object.assign({}, s.paid, o) })), SYMS = { '€': '€', '$': '$', '£': '£' }, est = eurOf(it);
+        const ph = P.cur === '€' ? (est != null ? num(Math.round(est * 100) / 100) : '0') : (it.price != null && it.currency === P.cur ? num(it.price) : '0');
+        const amtE = (String(P.amt || '').trim() !== '' ? toNum(P.amt) : toNum(ph)) * (FX[P.cur] || 1);
+        const inPer = bi && !it.noBudget && it.orderedOn && it.orderedOn >= bi.from ? paidEur(it) : 0, left = bi ? bi.avail + inPer - amtE : 0;
+        return { item: it.name + (it.brand ? ' · ' + it.brand : ''), sym: P.cur, amt: P.amt, ph, onAmt: e => setP({ amt: e.target.value }),
+          curs: Object.keys(SYMS).map(c => ({ label: c, bg: P.cur === c ? '#636366' : 'transparent', onTap: () => setP({ cur: c }) })),
+          hint: (it.price != null ? 'Shop price ' + money(it.currency, it.price) + (it.currency !== '€' && est != null ? ' (≈ €' + Math.round(est) + ')' : '') + '. ' : '') + 'Enter what you actually paid, with shipping, fees and conversion.',
+          hasBudget: !!bi, onCount: () => setP({ count: !P.count }), trackBg: P.count ? '#30d158' : '#48484a', knobX: P.count ? 'translateX(20px)' : 'none',
+          countSub: !bi ? '' : P.count ? (left < 0 ? '€' + Math.round(-left) + ' over budget until ' : '€' + Math.round(left) + ' left until ') + bi.next.getDate() + ' ' + MON[bi.next.getMonth()] + '.' : 'Your budget stays at €' + Math.round(bi.avail + inPer) + '.' }; })(), isSheetProfiles: st.sheet === 'profiles', isSheetPoint: st.sheet === 'point',
       f, fetchMsg: st.fetchMsg, fetching: st.fetching,
       fUrl: e => this.setF('url', e.target.value), fName: e => this.setF('name', e.target.value), fBrand: e => this.setF('brand', e.target.value),
       fPrice: e => this.setF('price', e.target.value), fSize: e => this.setF('size', e.target.value), fColour: e => this.setF('colour', e.target.value),
@@ -2176,6 +2237,11 @@ class Component extends DCLogic {
       fPhotos: (f.photos || []).map((src, i) => ({ src, onRemove: () => this.setF('photos', f.photos.filter((_, j) => j !== i)) })),
       onPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await Promise.all(files.map(readPhoto))).filter(Boolean); this.setState(s => ({ form: Object.assign({}, s.form, { photos: (s.form.photos || []).concat(out) }) })); },
       budgetIn: st.budgetIn, onBudgetIn: e => this.setState({ budgetIn: e.target.value }),
+      paydayIn: st.paydayIn || '1', paydayW: (ordinal(Number(st.paydayIn) || 1).length * 0.62 + 0.2) + 'em', onPayday: e => this.setState({ paydayIn: e.target.value, spentIn: '' }), paydayOpts: Array.from({ length: 31 }, (_, i) => ({ v: String(i + 1), label: ordinal(i + 1) })),
+      spentIn: st.spentIn || '', onSpentIn: e => this.setState({ spentIn: e.target.value }),
+      ...(() => { const day = Number(st.paydayIn) || 1, per = payPeriod(day), sISO = isoD(per.start), bs = (p.budget && p.budget.amount && p.budget.since) || todayISO(), from = bs > sISO ? bs : sISO, app = p.items.filter(i => i.orderedOn && i.orderedOn >= from && !i.noBudget).reduce((a, i) => a + paidEur(i), 0), amt = toNum(st.budgetIn) || 0, left = amt - app - (toNum(st.spentIn) || 0);
+        return { spentLabel: 'Spent since ' + per.start.getDate() + ' ' + MON[per.start.getMonth()], hasAppSpent: app > 0, appSpentTxt: '€' + Math.round(app),
+          sheetLeft: amt > 0 ? (left < 0 ? '€' + Math.round(-left) + ' over budget' : '€' + Math.round(left) + ' left') + ' until payday on ' + per.next.getDate() + ' ' + MON[per.next.getMonth()] + '.' : '', hasSheetLeft: amt > 0 }; })(),
       sheetChips: chips(st.budgetIn, v => this.setState({ budgetIn: v })).map(c => Object.assign(c, { bg: c.bg === '#1c1c1e' ? '#2c2c2e' : c.bg })),
       clearBudget: () => this.closeSheet(() => this.mutate(pp => { pp.budget = { amount: null, since: null }; })),
       profileRows: st.data.profiles.map(pp => { const n = pp.items.filter(i => i.status === 'wanted').length; return { name: pp.name, sub: pp.id === p.id ? '✓' : n + (n === 1 ? ' item' : ' items'), color: pp.id === p.id ? ACC : '#a1a1a6', onTap: () => this.closeSheet(() => { this.save(Object.assign({}, this.state.data, { activeId: pp.id })); this.setState({ detail: null }); }) }; }),
