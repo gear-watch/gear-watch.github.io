@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=14"></script>
+<script src="./sync.js?v=16"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -398,7 +398,7 @@ input::placeholder{color:#6e6e73;}
         <input type="file" accept="image/*" onChange="{{ fr.onAvatar }}" style="display:none;">
       </label>
       <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
-        <span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ fr.handle }}</span>
+        <span onClick="{{ fr.openMe }}" style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;">{{ fr.handle }}</span>
         <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fr.avSub }}</span>
       </span>
       <sc-if value="{{ fr.hasAv }}" hint-placeholder-val="{{ false }}"><button onClick="{{ fr.removeAv }}" style="flex:none;border:0;background:none;color:#a1a1a6;font-size:14px;padding:8px 4px;cursor:pointer;">{{ fr.removeLabel }}</button></sc-if>
@@ -448,14 +448,14 @@ input::placeholder{color:#6e6e73;}
       <div data-anim="right" style="padding:16px 20px 8px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;"><span style="font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Friends</span><sc-if value="{{ fr.hasFollowing }}" hint-placeholder-val="{{ false }}"><button onClick="{{ fr.toggleEdit }}" style="border:0;background:none;padding:0;color:var(--gw-accent,#ffd60a);font-size:14px;cursor:pointer;">{{ fr.editLabel }}</button></sc-if></div>
       <div style="display:flex;gap:14px;overflow-x:auto;padding:6px 20px 4px;scrollbar-width:none;">
         <button data-anim="pop" onClick="{{ sx.myOpen }}" style="position:relative;flex:none;width:64px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#f5f5f7;" style-active="transform:scale(0.95);">
-            <span style="width:56px;height:56px;border-radius:9999px;background:#1c1c1e;box-shadow:{{ sx.myRing }};display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;color:#f5f5f7;position:relative;overflow:hidden;"><span>{{ fr.myInitial }}</span><sc-if value="{{ fr.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fr.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
+            <span style="display:block;padding:4px;margin:-4px;border-radius:9999px;background:{{ sx.myRingBg }};"><span style="width:56px;height:56px;border-radius:9999px;background:#1c1c1e;box-shadow:{{ sx.myGap }};display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;color:#f5f5f7;position:relative;overflow:hidden;"><span>{{ fr.myInitial }}</span><sc-if value="{{ fr.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fr.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span></span>
             <span onClick="{{ sx.myAdd }}" style="position:absolute;top:36px;right:2px;width:22px;height:22px;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;box-shadow:0 0 0 2px #000;"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 3v10M3 8h10"></path></svg></span>
             <span style="font-size:12px;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Your story</span>
             <span style="font-size:11px;color:#a1a1a6;">{{ sx.mySub }}</span>
           </button>
         <sc-for list="{{ fr.following }}" as="f" hint-placeholder-count="3">
           <button data-anim="pop" onClick="{{ f.onOpen }}" onPointerDown="{{ f.onDown }}" onPointerMove="{{ f.onMoveH }}" onPointerUp="{{ f.onUpH }}" onPointerCancel="{{ f.onUpH }}" onPointerLeave="{{ f.onUpH }}" onContextMenu="{{ f.noMenu }}" style="position:relative;flex:none;width:64px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#f5f5f7;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;" style-active="transform:scale(0.95);">
-            <span style="width:56px;height:56px;border-radius:9999px;background:#1c1c1e;box-shadow:{{ f.ring }};display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;color:{{ f.fg }};position:relative;overflow:hidden;"><span>{{ f.initial }}</span><sc-if value="{{ f.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ f.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
+            <span style="display:block;padding:4px;margin:-4px;border-radius:9999px;background:{{ f.ringBg }};"><span style="width:56px;height:56px;border-radius:9999px;background:#1c1c1e;box-shadow:{{ f.gap }};display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;color:{{ f.fg }};position:relative;overflow:hidden;"><span>{{ f.initial }}</span><sc-if value="{{ f.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ f.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span></span>
             <span style="font-size:12px;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ f.name }}</span>
             <span style="font-size:11px;color:{{ f.subColor }};">{{ f.sub }}</span>
             <sc-if value="{{ f.showX }}" hint-placeholder-val="{{ false }}"><span data-anim="pop" style="position:absolute;top:-2px;right:2px;width:22px;height:22px;border-radius:9999px;background:#ff453a;color:#f5f5f7;display:grid;place-items:center;box-shadow:0 0 0 2px #000;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 5h6"></path></svg></span></sc-if>
@@ -502,8 +502,8 @@ input::placeholder{color:#6e6e73;}
         <div style="padding:0 16px 8px;display:flex;flex-direction:column;gap:12px;">
           <sc-for list="{{ day.cards }}" as="c" hint-placeholder-count="2">
             <div data-anim="up" style="background:#1c1c1e;border-radius:18px;overflow:hidden;">
-              <div onClick="{{ c.onWho }}" style="display:flex;align-items:center;gap:10px;padding:12px 16px 12px 12px;cursor:pointer;">
-                <span style="position:relative;overflow:hidden;width:32px;height:32px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-size:13px;font-weight:600;flex:none;box-shadow:{{ c.ringSh }};"><span>{{ c.initial }}</span><sc-if value="{{ c.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ c.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
+              <div onClick="{{ c.onProfile }}" style="display:flex;align-items:center;gap:10px;padding:12px 16px 12px 12px;cursor:pointer;">
+                <span onClick="{{ c.onAv }}" style="position:relative;overflow:hidden;width:32px;height:32px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-size:13px;font-weight:600;flex:none;box-shadow:{{ c.ringSh }};"><span>{{ c.initial }}</span><sc-if value="{{ c.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ c.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
                 <span style="flex:1;min-width:0;font-size:14px;letter-spacing:-0.224px;line-height:1.36;"><span style="font-weight:600;">{{ c.who }}</span> <span style="color:#a1a1a6;">{{ c.verb }}</span></span>
               </div>
               <sc-if value="{{ c.single }}" hint-placeholder-val="{{ true }}">
@@ -807,7 +807,7 @@ input::placeholder{color:#6e6e73;}
 <sc-if value="{{ hasFriend }}" hint-placeholder-val="{{ false }}">
   <div ref="{{ friendRef }}" data-anim="push" data-delay="0" style="position:absolute;inset:0;z-index:21;background:#000;overflow-y:auto;scrollbar-width:none;padding-top:{{ fvTop }};padding-bottom:40px;box-shadow:-20px 0 40px rgba(0,0,0,0.5);">
     <div style="padding:0 8px;"><button onClick="{{ fv.onBack }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">‹ Friends</button></div>
-    <div data-anim="scale" style="padding:4px 20px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;"><span onClick="{{ fv.onAv }}" style="cursor:{{ fv.avCursor }};position:relative;overflow:hidden;width:80px;height:80px;border-radius:9999px;background:#1c1c1e;display:grid;place-items:center;font-family:var(--font-display);font-size:32px;font-weight:600;color:#f5f5f7;"><span>{{ fv.initial }}</span><sc-if value="{{ fv.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fv.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span><button onClick="{{ fv.onUnfollow }}" style="flex:none;border:0;background:{{ fv.pillBg }};color:#f5f5f7;border-radius:9999px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s;" style-active="transform:scale(0.95);"><sc-if value="{{ fv.pillCheck }}" hint-placeholder-val="{{ true }}"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg></sc-if><span>{{ fv.pillLabel }}</span></button></div>
+    <div data-anim="scale" style="padding:4px 20px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;"><span onClick="{{ fv.onAv }}" style="cursor:{{ fv.avCursor }};position:relative;overflow:hidden;width:80px;height:80px;border-radius:9999px;background:#1c1c1e;display:grid;place-items:center;font-family:var(--font-display);font-size:32px;font-weight:600;color:#f5f5f7;"><span>{{ fv.initial }}</span><sc-if value="{{ fv.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fv.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span><sc-if value="{{ fv.notMe }}" hint-placeholder-val="{{ true }}"><button onClick="{{ fv.onUnfollow }}" style="flex:none;border:0;background:{{ fv.pillBg }};color:#f5f5f7;border-radius:9999px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s;" style-active="transform:scale(0.95);"><sc-if value="{{ fv.pillCheck }}" hint-placeholder-val="{{ true }}"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg></sc-if><span>{{ fv.pillLabel }}</span></button></sc-if></div>
     <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;overflow:hidden;text-overflow:ellipsis;">{{ fv.name }}</div>
     <div data-anim="up" style="padding:2px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fv.sub }}</div>
     <sc-if value="{{ sx.fvHasHl }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:14px;overflow-x:auto;padding:14px 20px 2px;scrollbar-width:none;"><sc-for list="{{ sx.fvHl }}" as="h" hint-placeholder-count="2"><button data-anim="pop" onClick="{{ h.onOpen }}" style="flex:none;width:64px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#f5f5f7;" style-active="transform:scale(0.95);">
@@ -875,7 +875,7 @@ input::placeholder{color:#6e6e73;}
       </div>
     </sc-if>
     <sc-if value="{{ fv.empty }}" hint-placeholder-val="{{ false }}"><div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fv.emptyTxt }}</div></sc-if>
-    <div style="padding:24px 16px 0;display:flex;justify-content:center;"><button onClick="{{ fv.onUnfollow }}" style="border:0;background:none;color:#ff453a;font-size:17px;padding:8px;cursor:pointer;">{{ fv.unfLabel }}</button></div>
+    <sc-if value="{{ fv.notMe }}" hint-placeholder-val="{{ true }}"><div style="padding:24px 16px 0;display:flex;justify-content:center;"><button onClick="{{ fv.onUnfollow }}" style="border:0;background:none;color:#ff453a;font-size:17px;padding:8px;cursor:pointer;">{{ fv.unfLabel }}</button></div></sc-if>
   </div>
 </sc-if>
 <sc-if value="{{ hasFOutfit }}" hint-placeholder-val="{{ false }}">
@@ -2213,8 +2213,12 @@ class Component extends DCLogic {
   storyIdx() { const S = this.state.stories; if (this._sxFor === S && this._sx) return this._sx; const now = Date.now(), by = new Map(), hl = new Map(), seen = new Set((S && S.seenIds) || []), me = S && S.me;
     ((S && S.list) || []).forEach(s => { if (new Date(s.expires_at).getTime() > now) { if (!by.has(s.user_id)) by.set(s.user_id, []); by.get(s.user_id).push(s); }
       if (s.highlight) { if (!hl.has(s.user_id)) hl.set(s.user_id, new Map()); const m = hl.get(s.user_id); if (!m.has(s.highlight)) m.set(s.highlight, []); m.get(s.highlight).push(s); } });
-    const ring = id => { const l = by.get(id); if (!l || !l.length) return 'none'; if (id === me) return 'mine'; return l.some(s => !seen.has(s.id)) ? 'new' : 'seen'; };
+    const ring = id => { const l = by.get(id); if (!l || !l.length) return 'none'; if (id === me) { const ms = this.mySeen(); return l.some(s => !ms.includes(s.id)) ? 'mine' : 'seen'; } return l.some(s => !seen.has(s.id)) ? 'new' : 'seen'; };
     this._sxFor = S; this._sx = { by, hl, seen, ring, me, has: id => !!(by.get(id) || []).length }; return this._sx; }
+  mySeen() { if (!this._mySeen) { try { this._mySeen = JSON.parse(localStorage.getItem('gw-my-seen') || '[]'); } catch (e) { this._mySeen = []; } } return this._mySeen; }
+  svRingBg(id) { const X = this.storyIdx(), l = X.by.get(id) || []; if (!l.length) return 'transparent'; const mine = id === X.me, mySeen = mine ? this.mySeen() : null, unseen = s => mine ? !mySeen.includes(s.id) : !X.seen.has(s.id), A = 'var(--gw-accent,#ffd60a)', G = '#48484a';
+    if (l.length === 1) return unseen(l[0]) ? A : G; const seg = 360 / l.length, gap = Math.min(8, seg * 0.25);
+    return 'conic-gradient(' + l.map((s, i) => { const c = unseen(s) ? A : G, a = i * seg; return c + ' ' + a + 'deg ' + (a + seg - gap) + 'deg, transparent ' + (a + seg - gap) + 'deg ' + (a + seg) + 'deg'; }).join(', ') + ')'; }
   svRing(r) { return r === 'new' || r === 'mine' ? '0 0 0 2px #000, 0 0 0 4px var(--gw-accent,#ffd60a)' : r === 'seen' ? '0 0 0 2px #000, 0 0 0 4px #48484a' : 'none'; }
   snap(it) { return { id: it.id, n: it.name, b: it.brand || '', cat: it.category || '', g: it.cgroup || '', ph: (it.photos || []).filter(x => /^https?:/.test(x)).slice(0, 1), u: it.url || '', p: it.price == null ? null : it.price, c: it.currency || '€' }; }
   segsOf(e) { const out = []; ((e && e.list) || []).forEach(s => (s.media || []).forEach((m, mi) => out.push({ s, m, mi }))); return out; }
@@ -2236,7 +2240,9 @@ class Component extends DCLogic {
       const bar = el.querySelectorAll('[data-sv-fill]')[c.v.si]; if (bar) bar.style.width = Math.min(100, p * 100) + '%';
       if (p >= 1) { this.svNext(); return; } this.svRaf = requestAnimationFrame(tick); };
     this.svRaf = requestAnimationFrame(tick); }
-  svMark() { const c = this.svCur(), S = this.state.stories, G = window.GWSync; if (!c || !c.g || !S || !G) return; const sid = c.g.s.id; if (c.g.s.user_id === S.me || (S.seenIds || []).includes(sid)) return;
+  svMark() { const c = this.svCur(), S = this.state.stories, G = window.GWSync; if (!c || !c.g || !S || !G) return; const sid = c.g.s.id;
+    if (c.g.s.user_id === S.me) { const m = this.mySeen(); if (!m.includes(sid)) { const n = m.concat(sid).slice(-60); try { localStorage.setItem('gw-my-seen', JSON.stringify(n)); } catch (e) {} this._mySeen = n; this._sxFor = null; this.forceUpdate(); } return; }
+    if ((S.seenIds || []).includes(sid)) return;
     try { G.storyView(sid); } catch (e) {} this.setState({ stories: Object.assign({}, S, { seenIds: (S.seenIds || []).concat(sid) }) }); }
   svGo(si) { const c = this.svCur(); if (!c) return; if (si >= c.segs.length) { this.svUser(1); return; } if (si < 0) { if (c.v.ui > 0) this.svUser(-1, true); else this.svT = 0; return; }
     this.setState({ sv: Object.assign({}, c.v, { si }), svPanel: null, svDelArm: false }, () => this.svStart()); }
@@ -2343,7 +2349,7 @@ class Component extends DCLogic {
     const hlList = uid => { const m = X.hl.get(uid); return m ? Array.from(m.entries()).map(([name, list]) => { const m0 = (list[list.length - 1].media || [])[0] || {}, th = m0.type === 'image' ? m0.url : ''; return { name, thumb: th || '', hasThumb: !!th, initial: ini(name), onOpen: () => this.openHighlight(uid, name) }; }) : []; };
     const tog = on => ({ track: on ? '#30d158' : '#48484a', knob: on ? 'translateX(20px)' : 'none' });
     const out = { svRef: this.svRef, scRef: this.scRef, hasSV: !!st.sv, hasSC: !!st.sc, svDown: e => this.svDown(e), svMove: e => this.svMove(e), svUp: e => this.svUp(e), svStop: e => e.stopPropagation(),
-      sx: { myRing: this.svRing(X.has(me) ? 'mine' : 'none'), myOpen: () => (X.has(me) ? this.openStories([me], me) : this.openComposer()), myAdd: e => { e.stopPropagation(); this.openComposer(); }, mySub: X.has(me) ? relT(X.by.get(me).slice(-1)[0].created_at) : ' ',
+      sx: { myRing: this.svRing(X.ring(me)), myRingBg: this.svRingBg(me), myGap: X.has(me) ? '0 0 0 2px #000' : 'none', myOpen: () => (X.has(me) ? this.openStories([me], me) : this.openComposer()), myAdd: e => { e.stopPropagation(); this.openComposer(); }, mySub: X.has(me) ? relT(X.by.get(me).slice(-1)[0].created_at) : ' ',
         myHl: hlList(me), myHasHl: X.hl.has(me), fvHl: st.friend ? hlList(st.friend) : [], fvHasHl: !!(st.friend && X.hl.has(st.friend)) },
       hasStoryAsk: !!st.storyAsk, ask: st.storyAsk ? { title: st.storyAsk.title, sub: st.storyAsk.sub || '', no: () => this.setState({ storyAsk: null }), yes: () => this.openComposer(st.storyAsk) } : {},
       askBottom: x.framed ? '104px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 96px)', svStageTop: x.framed ? '44px' : 'env(safe-area-inset-top)', svStageBot: x.framed ? '84px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 64px)', sv: {}, sc: {} };
@@ -2700,7 +2706,7 @@ class Component extends DCLogic {
       if (x && r === 'friend') { this.setState({ followIn: '', sugg: [] }); openF(x.id, 'wish')(); } else if (x && r === 'incoming') { this.setState({ followIn: '', sugg: [] }); doAccept(x); } else if (x && r === 'pending') this.toast('Waiting for @' + x.username + ' to accept'); else doFollow(x ? x.username : n); };
 
     const X = this.storyIdx(), storyFriends = SO.following.filter(f => f.status === 'accepted' && X.has(f.id)).map(f => f.id);
-    const fr = { needAcct: !A.configured, signedIn: !!(A.configured && A.user), handle: A.username ? '@' + A.username : A.email || p.name,
+    const fr = { openMe: () => { const id = (A.user || {}).id; if (id) this.setState({ friend: id, friendTab: 'wish', fOutfit: null, fItem: null, unfArm: false }); }, needAcct: !A.configured, signedIn: !!(A.configured && A.user), handle: A.username ? '@' + A.username : A.email || p.name,
       followerTxt: plural(SO.followers.length, 'follower'), handleTop: A.configured && A.user ? '' : (A.username ? '@' + A.username : A.email || p.name),
       myInitial: ini(A.username || p.name), av: A.avatar || '', hasAv: !!A.avatar, avBusy: !!st.avBusy,
       avSub: plural(SO.following.filter(f => f.status === 'accepted').length, 'friend') + ' · ' + (A.avatar ? 'Tap photo to change' : 'Tap to add a photo'),
@@ -2726,19 +2732,20 @@ class Component extends DCLogic {
       requests: SO.requests.map(r => ({ name: '@' + r.username, initial: ini(r.username), av: r.avatar || '', hasAv: !!r.avatar, onAccept: () => doAccept(r), onDecline: async () => { try { await G.decline(r.id); } catch (e) {} this.loadSocial(); } })), hasRequests: SO.requests.length > 0,
       editLabel: st.frEdit ? 'Done' : 'Edit', toggleEdit: () => this.setState({ frEdit: !st.frEdit, frArm: null }),
       following: SO.following.map(f => { const ok = f.status === 'accepted', armed = st.frEdit && st.frArm === f.id; return { name: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar,
-        showX: !!st.frEdit, subColor: armed ? '#ff453a' : '#a1a1a6', sub: armed ? (ok ? 'Tap to remove' : 'Tap to cancel') : ok ? ' ' : 'Requested', ring: ok ? this.svRing(X.ring(f.id)) : '0 0 0 1px #3a3a3c', fg: ok ? '#f5f5f7' : '#6e6e73', onDown: e => { if (st.frEdit || !ok) return; clearTimeout(this.frHoldT); this.frHeld = false; const x0 = e.clientX, y0 = e.clientY; this.frHoldXY = [x0, y0]; this.frHoldT = setTimeout(() => { this.frHeld = true; try { navigator.vibrate && navigator.vibrate(10); } catch (er) {} this.setState({ frMenu: f.id }); }, 450); },
+        showX: !!st.frEdit, subColor: armed ? '#ff453a' : '#a1a1a6', sub: armed ? (ok ? 'Tap to remove' : 'Tap to cancel') : ok ? ' ' : 'Requested', ring: ok ? this.svRing(X.ring(f.id)) : '0 0 0 1px #3a3a3c', ringBg: ok ? this.svRingBg(f.id) : 'transparent', gap: ok && X.has(f.id) ? '0 0 0 2px #000' : ok ? 'none' : '0 0 0 1px #3a3a3c', fg: ok ? '#f5f5f7' : '#6e6e73', onDown: e => { if (st.frEdit || !ok) return; clearTimeout(this.frHoldT); this.frHeld = false; const x0 = e.clientX, y0 = e.clientY; this.frHoldXY = [x0, y0]; this.frHoldT = setTimeout(() => { this.frHeld = true; try { navigator.vibrate && navigator.vibrate(10); } catch (er) {} this.setState({ frMenu: f.id }); }, 450); },
         onMoveH: e => { const p0 = this.frHoldXY; if (p0 && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) > 8) clearTimeout(this.frHoldT); }, onUpH: () => clearTimeout(this.frHoldT), noMenu: e => e.preventDefault(),
         onOpen: (real => e => { if (this.frHeld) { this.frHeld = false; return; } real(e); })(st.frEdit ? (armed ? async () => { this.setState({ frArm: null }); try { await G.unfollow(f.id); } catch (e) {} this.loadSocial(); this.toast(ok ? 'Removed @' + f.username : 'Request cancelled'); } : () => this.setState({ frArm: f.id })) : ok ? (X.has(f.id) ? () => this.openStories(storyFriends, f.id) : openF(f.id, 'wish')) : () => openPersonObj(f)) }; }), hasFollowing: SO.following.length > 0,
       feed: feed.slice(0, 50).map(e => ({ who: e.who, initial: ini(e.who), av: e.av || '', hasAv: !!e.av, txt: e.txt, when: agoTxt(e.d), photo: e.ph || '', hasPhoto: !!e.ph, onOpen: e.on })), hasFeed: feed.length > 0, noFeed: !feed.length,
       busy: !!st.socialBusy, refresh: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.loadSocial(false, true); if (G) G.schedule(0); } };
-    const fU = st.friend ? SO.following.find(x => x.id === st.friend) : null, fL = fU ? SO.lists[fU.id] || {} : null;
+    const meId = (A.user || {}).id, isMeV = !!(st.friend && st.friend === meId), fU = isMeV ? { id: meId, username: A.username || 'you', avatar: A.avatar || null } : st.friend ? SO.following.find(x => x.id === st.friend) : null, fL = isMeV ? ((G && G.publicList && G.publicList()) || {}) : fU ? SO.lists[fU.id] || {} : null;
     let fv = { tabs: [], wish: [], collGroups: [], outfits: [] };
     let fi = { photos: [], stars: [], rows: [] }, fo = { items: [], board: [] };
     const addF = i => { if (mineKey.has(fKey(i))) return false; this.mutate(pp => { pp.items.push({ id: uid(), name: i.n, brand: i.b || '', category: i.cat || '', url: i.u || '', photos: (i.ph || []).slice(), currency: i.c || '€', price: i.p == null ? null : i.p, history: i.p == null ? [] : [{ date: todayISO(), price: i.p }], rating: 3, status: 'wanted', size: '', colour: '', m2m: false, added: todayISO() }); }); this.toast('Added to your wishlist'); return true; };
     const openI = (id, kind) => () => this.setState({ fItem: { id, kind }, fiIdx: 0 });
     { const groups = new Map();
       SO.following.filter(f => f.status === 'accepted').forEach(f => { const L = SO.lists[f.id]; if (!L) return; const all = (L.wish || []).concat(L.coll || []);
-        const push = (kind, d, obj, ts) => { if (!d) return; d = String(d).slice(0, 10); const k = f.id + '|' + kind + '|' + d; if (!groups.has(k)) groups.set(k, { f, kind, d, t: 0, list: [] }); const g = groups.get(k); g.t = Math.max(g.t, ts || 0); g.list.push(Object.assign({ _t: ts || 0 }, obj)); };
+        const upT = L._up ? Date.parse(L._up) : 0, upD = upT ? isoD(new Date(upT)) : '';
+        const push = (kind, d, obj, ts) => { if (!d) return; d = String(d).slice(0, 10); if (!ts && d === upD) ts = upT; const k = f.id + '|' + kind + '|' + d; if (!groups.has(k)) groups.set(k, { f, kind, d, t: 0, list: [] }); const g = groups.get(k); g.t = Math.max(g.t, ts || 0); g.list.push(Object.assign({ _t: ts || 0 }, obj)); };
         (L.wish || []).forEach(i => push('wish', i.a, i, i.at)); (L.coll || []).forEach(i => { if (!i.ow) push('coll', i.o, i, i.ot); });
         (L.outfits || []).forEach(o => { const hit = all.find(x => (o.ids || []).includes(x.id) && (x.ph || []).length), oo = Object.assign({}, o, { _ph: (o.ph || [])[0] || (hit ? hit.ph[0] : ''), _n: (o.ids || []).filter(id => all.some(x => x.id === id)).length });
           push('outfit', o.cr, oo, o.ct); if (o.lw && o.lw !== o.cr) push('wore', o.lw, oo, o.wt); }); });
@@ -2748,7 +2755,7 @@ class Component extends DCLogic {
       const pTxt = i => (i.p == null ? '' : money(i.c || '€', i.p));
       const card = g => { const f = g.f, n = g.list.length, one = g.list[0], isO = g.kind === 'outfit' || g.kind === 'wore';
         const verb = g.kind === 'wish' ? (n > 1 ? 'added ' + n + ' things to their wishlist' : 'added to their wishlist') : g.kind === 'coll' ? (n > 1 ? 'got ' + n + ' new pieces' : 'got something new') : g.kind === 'outfit' ? (n > 1 ? 'made ' + n + ' outfits' : 'made an outfit') : (n > 1 ? 'wore ' + n + ' outfits' : 'wore an outfit');
-        const base = { who: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar, verb, onWho: X.has(f.id) ? () => this.openStories(storyFriends, f.id) : openF(f.id, isO ? 'outfits' : g.kind), ringSh: this.svRing(X.ring(f.id)) };
+        const base = { who: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar, verb, onWho: X.has(f.id) ? () => this.openStories(storyFriends, f.id) : openF(f.id, isO ? 'outfits' : g.kind), onProfile: openF(f.id, isO ? 'outfits' : g.kind), onAv: e => { if (!X.has(f.id)) return; e.stopPropagation(); this.openStories(storyFriends, f.id); }, ringSh: this.svRing(X.ring(f.id)) };
         if (n === 1) { const img = isO ? one._ph : (one.ph || [])[0], have = !isO && mineKey.has(fKey(one));
           return Object.assign(base, { single: true, multi: false, tiles: [], img: img || '', hasImg: !!img, noImg: !img, itemInitial: ini(one.n), title: one.n,
             sub: isO ? plural(one._n, 'piece') + (one.w ? ' · Worn ' + one.w + '×' : '') : [one.b, pTxt(one)].filter(Boolean).join(' · ') || ' ',
@@ -2778,7 +2785,7 @@ class Component extends DCLogic {
           items: its.map(([x, k]) => { const ph = (x.ph || [])[0]; return { name: x.n, sub: [x.b, k === 'wish' ? 'On their wishlist' : x.ow ? 'On the way' : ''].filter(Boolean).join(' · ') || ' ', photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(x.n), onOpen: () => this.setState({ fItem: { id: x.id, kind: k }, fiIdx: 0 }) }; }),
           hasItems: its.length > 0, onBack: () => this.closeFOutfit() }; }
       C.forEach(i => { const g = i.g || cgroupOf({ category: i.cat, name: i.n }, []) || 'Other'; if (!cg.has(g)) cg.set(g, []); cg.get(g).push(i); });
-      fv = { name: '@' + fU.username, initial: ini(fU.username), av: fU.avatar || '', hasAv: !!fU.avatar, avCursor: fU.avatar ? 'zoom-in' : 'default', onAv: () => { if (fU.avatar) this.openViewer([fU.avatar], 0); }, sub: W.length + ' wanted · ' + C.length + ' in collection · ' + plural(O.length, 'outfit'),
+      fv = { notMe: !isMeV, name: '@' + fU.username, initial: ini(fU.username), av: fU.avatar || '', hasAv: !!fU.avatar, avCursor: fU.avatar ? 'zoom-in' : 'default', onAv: () => { if (fU.avatar) this.openViewer([fU.avatar], 0); }, sub: W.length + ' wanted · ' + C.length + ' in collection · ' + plural(O.length, 'outfit'),
         tabs: [['wish', 'Wishlist'], ['coll', 'Collection'], ['outfits', 'Outfits'], ['friends', 'Friends']].map(([k, l]) => ({ label: l, bg: ft === k ? '#636366' : 'transparent', onTap: () => { this.setState({ friendTab: k }); if (k === 'friends') this.loadFof(fU.id); } })),
         ...(() => { const FO = (st.fof || {})[fU.id] || {}, FL = FO.list || [], mut = FL.filter(x => relOf(x.id) === 'friend').length; if (ft === 'friends' && !FO.list && !FO.busy && !FO.err) setTimeout(() => this.loadFof(fU.id), 0);
           return { isFr: ft === 'friends' && FL.length > 0, frHead: plural(FL.length, 'friend') + (mut ? ' · ' + mut + ' mutual' : ''), hasFrMsg: ft === 'friends' && (!FO.list || !FL.length || !!FO.err), frMsg: FO.err ? FO.err : !FO.list ? 'Loading their friends…' : 'No friends to show yet.',

@@ -92,7 +92,7 @@
     return {
       wish: items.filter(i => i.status === 'wanted').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, ph: web(i.photos), u: i.url, c: i.currency, p: i.price, r: i.rating, a: i.added, at: i.addedAt || undefined, s: i.size || undefined, co: i.colour || undefined, z: i.zip || undefined, m: i.m2m ? 1 : undefined })),
       coll: items.filter(i => i.status === 'owned' || i.status === 'ordered').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, g: i.cgroup, ph: web(i.photos), o: i.ownedOn || i.orderedOn || i.added, ot: i.ownedAt || i.addedAt || undefined, ow: i.status === 'ordered' ? 1 : undefined, rc: i.status === 'owned' && i.rec ? i.rec : undefined, s: i.size || undefined, co: i.colour || undefined, z: i.zip || undefined, m: i.m2m ? 1 : undefined, u: i.url })),
-      outfits: (p.outfits || []).map((o, i) => ({ id: o.id, n: o.name || 'Outfit ' + (i + 1), ids: o.itemIds, pos: o.pos, ph: web(o.photos), w: (o.worn || []).length, lw: (o.worn || []).slice(-1)[0], cr: o.created, ct: o.createdAt || undefined, wt: o.wornAt || undefined }))
+      outfits: (p.outfits || []).map((o, i) => ({ id: o.id, n: o.name || 'Outfit ' + (i + 1), ids: o.itemIds, sz: o.sizes && Object.keys(o.sizes).length ? o.sizes : undefined, tg: o.tags && Object.keys(o.tags).length ? o.tags : undefined, ph: web(o.photos), w: (o.worn || []).length, lw: (o.worn || []).slice(-1)[0], cr: o.created, ct: o.createdAt || undefined, wt: o.wornAt || undefined }))
     };
   }
 
@@ -145,7 +145,7 @@
     const out = a.data || [], inc = b.data || [], ids = [...new Set(out.map(x => x.followee).concat(inc.map(x => x.follower)))], names = {}, avs = {}, lists = {};
     if (ids.length) { const r = await profSel(c => sb.from('profiles').select(c).in('id', ids)); if (r.error) throw new Error(r.error.message); (r.data || []).forEach(x => { names[x.id] = x.username; avs[x.id] = x.avatar || null; }); }
     const acc = out.filter(x => x.status === 'accepted').map(x => x.followee);
-    if (acc.length) { const r = await sb.from('public_lists').select('user_id,list').in('user_id', acc); if (r.error) throw new Error(r.error.message); (r.data || []).forEach(x => { lists[x.user_id] = x.list; }); }
+    if (acc.length) { const r = await sb.from('public_lists').select('user_id,list,updated_at').in('user_id', acc); if (r.error) throw new Error(r.error.message); (r.data || []).forEach(x => { lists[x.user_id] = Object.assign({}, x.list, { _up: x.updated_at || null }); }); }
     return {
       following: out.map(x => ({ id: x.followee, username: names[x.followee] || 'unknown', avatar: avs[x.followee] || null, status: x.status })),
       requests: inc.filter(x => x.status === 'pending').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown', avatar: avs[x.follower] || null })),
@@ -281,7 +281,7 @@
   }
 
   window.GWSync = {
-    init, schedule, sync, social, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
+    init, schedule, sync, social, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
     attach: h => { host = h; },
     on: f => { subs.add(f); f(Object.assign({}, S)); return () => subs.delete(f); },
     state: () => Object.assign({}, S)
