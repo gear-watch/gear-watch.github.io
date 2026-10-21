@@ -28,7 +28,7 @@ input:focus,textarea:focus{outline:2px solid #ffd60a;outline-offset:0;}
 input::placeholder{color:#6e6e73;}
 </style>
 </helmet>
-<div ref="{{ rootRef }}" style="position:relative;height:{{ rootH }};--gw-accent:{{ accent }};color-scheme:dark;max-width:{{ maxW }};margin:0 auto;display:flex;flex-direction:column;overflow:hidden;background:#000;color:#f5f5f7;font-family:var(--font-text);font-size:17px;line-height:1.47;letter-spacing:-0.374px;">
+<div ref="{{ rootRef }}" style="position:{{ rootPos }};top:0;left:0;right:0;bottom:0;height:{{ rootH }};--gw-accent:{{ accent }};color-scheme:dark;max-width:{{ maxW }};margin:0 auto;display:flex;flex-direction:column;overflow:hidden;background:#000;color:#f5f5f7;font-family:var(--font-text);font-size:17px;line-height:1.47;letter-spacing:-0.374px;">
 
 <sc-if value="{{ framed }}" hint-placeholder-val="{{ false }}">
   <div style="position:absolute;top:0;left:0;right:0;height:44px;z-index:90;display:flex;align-items:center;padding:0 28px;font-size:15px;font-weight:600;letter-spacing:-0.2px;pointer-events:none;">9:41</div>
@@ -549,7 +549,7 @@ input::placeholder{color:#6e6e73;}
 </sc-if>
 </div>
 
-<div style="position:absolute;left:0;right:0;bottom:0;z-index:10;background:rgba(22,22,23,0.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid #2c2c2e;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px 0 calc(max(env(safe-area-inset-bottom), 16px) + {{ tabPadB }});">
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:10;background:rgba(22,22,23,0.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid #2c2c2e;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px 0 {{ tabPadBot }};">
   <button onClick="{{ goWish }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabWish }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg>
     <span>Wishlist</span>
@@ -1890,7 +1890,7 @@ class Component extends DCLogic {
       const A = window.GWSync && window.GWSync.state ? window.GWSync.state() : {}; if (A.user && A.firstDone && A.username) this.openPerson(name); else this.pendingAdd = name; };
     addFromHash();
     this.onHash = () => { addFromHash(); const s2 = readShare(); this.setState({ shared: s2 && s2.n ? s2 : null }); }; window.addEventListener('hashchange', this.onHash);
-    if (!this.isFramed()) document.body.style.background = '#000';
+    if (!this.isFramed()) { document.body.style.background = '#000'; [document.documentElement, document.body].forEach(el => { el.style.overflow = 'hidden'; el.style.height = '100%'; el.style.overscrollBehavior = 'none'; }); }
     this.reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.seen = new WeakSet();
     const root = this.rootRef.current;
@@ -2608,8 +2608,8 @@ class Component extends DCLogic {
 
     return {
       rootRef: this.rootRef, scrollRef: this.scrollRef, detailRef: this.detailRef, sheetRef: this.sheetRef, backdropRef: this.backdropRef, introRef: this.introRef, bPanelRef: this.bPanelRef, toastRef: this.toastRef, figRef: this.figRef,
-      framed, rootH: framed ? '100%' : '100dvh', maxW: framed ? 'none' : '430px', topPad: framed ? '44px' : 'calc(env(safe-area-inset-top) + 8px)',
-      chipTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 12px)', tabPadB: framed ? '24px' : '8px', introPadB: framed ? '40px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 16px)',
+      framed, rootH: framed ? '100%' : 'auto', rootPos: framed ? 'relative' : 'fixed', maxW: framed ? 'none' : '430px', topPad: framed ? '44px' : 'calc(env(safe-area-inset-top) + 8px)',
+      chipTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 12px)', tabPadB: framed ? '24px' : '8px', tabPadBot: framed ? '24px' : 'max(env(safe-area-inset-bottom), 10px)', introPadB: framed ? '40px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 16px)',
       toastBottom: framed ? '108px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 92px)',
       accent: this.props.accent || '#ffd60a',
       isWish: st.tab === 'wish', isCollection: st.tab === 'coll', isMeasure: st.tab === 'meas',
