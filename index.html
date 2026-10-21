@@ -1566,7 +1566,8 @@ class Component extends DCLogic {
     idb.all().then(c => this.setState({ cuts: c || {}, cutsReady: true }));
     const hook = () => { const G = window.GWSync; if (!G) return false;
       G.attach({ get: () => this.state.data, apply: d => { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} this.setState({ data: d }); } });
-      this.unsubSync = G.on(s => { const prev = this.state.acct && this.state.acct.user ? this.state.acct.user.id : null; this.setState({ acct: s }); if (!s.user) { this.socialFor = null; this.setState({ social: null }); } else if (s.firstDone && this.socialFor !== s.user.id) { this.socialFor = s.user.id; this.loadSocial(); } });
+      this.unsubSync = G.on(s => { const prev = this.state.acct && this.state.acct.user ? this.state.acct.user.id : null; this.setState({ acct: s }); if (!s.user) { this.socialFor = null; this.cacheFor = null; this.setState({ social: null }); } else { if (this.cacheFor !== s.user.id) { this.cacheFor = s.user.id; try { const c = JSON.parse(localStorage.getItem('gw-social-cache-' + s.user.id) || 'null'); if (c) this.setState({ social: c }); } catch (e) {} }
+        if (s.firstDone && this.socialFor !== s.user.id) { this.socialFor = s.user.id; if (!this.loadSocial()) this.socialFor = null; } } });
       G.init(); return true; };
     this.onVis = () => { if (document.visibilityState === 'visible') this.loadSocial(true); }; document.addEventListener('visibilitychange', this.onVis); window.addEventListener('focus', this.onVis);
     this.onKey = e => { const v = this.state.viewer; if (!v) return; if (e.key === 'Escape') this.closeViewer(); else if (e.key === 'ArrowRight') this.vwGo(v.idx + 1); else if (e.key === 'ArrowLeft') this.vwGo(v.idx - 1); }; window.addEventListener('keydown', this.onKey);
@@ -1640,8 +1641,10 @@ class Component extends DCLogic {
   }
 
   save(data, quiet) { if (!quiet) data.mod = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} this.setState({ data }); if (!quiet && window.GWSync) window.GWSync.schedule(); }
-  loadSocial(quiet) { const G = window.GWSync, A = this.state.acct; if (!G || !A || !A.user || this.socLoading) return; this.socLoading = true; if (!quiet) this.setState({ socialBusy: true });
-    G.social().then(s => { this.socLoading = false; this.setState({ social: s || this.state.social, socialBusy: false }); if (s) this.socialNotify(s, A.user.id); }).catch(() => { this.socLoading = false; this.setState({ socialBusy: false }); }); }
+  loadSocial(quiet) { const G = window.GWSync, A = G && G.state ? G.state() : null; if (!A || !A.user || this.socLoading) return false; this.socLoading = true; if (!quiet) this.setState({ socialBusy: true }); const uid = A.user.id;
+    G.social().then(s => { this.socLoading = false; if (!s) { this.socialFor = null; this.setState({ socialBusy: false }); if (navigator.onLine && (this.socRetry = (this.socRetry || 0) + 1) < 6) setTimeout(() => this.loadSocial(true), 2000); return; } this.socRetry = 0;
+      this.setState({ social: s, socialBusy: false }); try { localStorage.setItem('gw-social-cache-' + uid, JSON.stringify(s)); } catch (e) {} this.socialNotify(s, uid); })
+      .catch(() => { this.socLoading = false; this.socialFor = null; this.setState({ socialBusy: false }); if (navigator.onLine && (this.socRetry = (this.socRetry || 0) + 1) < 6) setTimeout(() => this.loadSocial(true), 4000); }); return true; }
   socialNotify(s, uid) { const k = 'gw-social-seen-' + uid; let seen = null; try { seen = JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) {}
     const req = s.requests.map(r => r.id), acc = s.following.filter(f => f.status === 'accepted').map(f => f.id); try { localStorage.setItem(k, JSON.stringify({ req, acc })); } catch (e) {}
     const newReq = s.requests.filter(r => !seen || !seen.req.includes(r.id)), newAcc = seen ? s.following.filter(f => f.status === 'accepted' && !seen.acc.includes(f.id)) : [], msg = [];
