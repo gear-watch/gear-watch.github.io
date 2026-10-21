@@ -433,13 +433,14 @@ input::placeholder{color:#6e6e73;}
       </div>
     </sc-if>
     <sc-if value="{{ fr.hasFollowing }}" hint-placeholder-val="{{ false }}">
-      <div data-anim="right" style="padding:16px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Friends</div>
+      <div data-anim="right" style="padding:16px 20px 8px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;"><span style="font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Friends</span><button onClick="{{ fr.toggleEdit }}" style="border:0;background:none;padding:0;color:var(--gw-accent,#ffd60a);font-size:14px;cursor:pointer;">{{ fr.editLabel }}</button></div>
       <div style="display:flex;gap:14px;overflow-x:auto;padding:2px 20px;scrollbar-width:none;">
         <sc-for list="{{ fr.following }}" as="f" hint-placeholder-count="3">
-          <button data-anim="pop" onClick="{{ f.onOpen }}" style="flex:none;width:64px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#f5f5f7;" style-active="transform:scale(0.95);">
+          <button data-anim="pop" onClick="{{ f.onOpen }}" style="position:relative;flex:none;width:64px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#f5f5f7;" style-active="transform:scale(0.95);">
             <span style="width:56px;height:56px;border-radius:9999px;background:#1c1c1e;box-shadow:{{ f.ring }};display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;color:{{ f.fg }};position:relative;overflow:hidden;"><span>{{ f.initial }}</span><sc-if value="{{ f.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ f.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
             <span style="font-size:12px;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ f.name }}</span>
-            <span style="font-size:11px;color:#a1a1a6;">{{ f.sub }}</span>
+            <span style="font-size:11px;color:{{ f.subColor }};">{{ f.sub }}</span>
+            <sc-if value="{{ f.showX }}" hint-placeholder-val="{{ false }}"><span data-anim="pop" style="position:absolute;top:-2px;right:2px;width:22px;height:22px;border-radius:9999px;background:#ff453a;color:#f5f5f7;display:grid;place-items:center;box-shadow:0 0 0 2px #000;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 5h6"></path></svg></span></sc-if>
           </button>
         </sc-for>
       </div>
@@ -449,15 +450,40 @@ input::placeholder{color:#6e6e73;}
       <button onClick="{{ fr.refresh }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:14px;padding:4px;cursor:pointer;display:flex;align-items:center;gap:6px;"><sc-if value="{{ fr.busy }}" hint-placeholder-val="{{ false }}"><span data-anim="spin" style="width:10px;height:10px;border-radius:9999px;border:2px solid #48484a;border-top-color:var(--gw-accent,#ffd60a);"></span></sc-if><span>Refresh</span></button>
     </div>
     <sc-if value="{{ fr.hasFeed }}" hint-placeholder-val="{{ false }}">
-      <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
-        <sc-for list="{{ fr.feed }}" as="e" hint-placeholder-count="4">
-          <div data-anim="up" onClick="{{ e.onOpen }}" style="background:#1c1c1e;display:flex;align-items:center;gap:12px;padding:12px 16px 12px 12px;cursor:pointer;transition:background .2s;" style-active="background:#2c2c2e;">
-            <span style="position:relative;overflow:hidden;width:36px;height:36px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-size:14px;font-weight:600;flex:none;"><span>{{ e.initial }}</span><sc-if value="{{ e.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ e.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
-            <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-size:14px;letter-spacing:-0.224px;line-height:1.36;text-wrap:pretty;"><span style="font-weight:600;">{{ e.who }}</span> {{ e.txt }}</span><span style="font-size:12px;color:#a1a1a6;">{{ e.when }}</span></span>
-            <sc-if value="{{ e.hasPhoto }}" hint-placeholder-val="{{ true }}"><img src="{{ e.photo }}" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;"></sc-if>
-          </div>
-        </sc-for>
-      </div>
+      <sc-for list="{{ fr.feedDays }}" as="day" hint-placeholder-count="1">
+        <div data-anim="right" style="padding:12px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ day.label }}</div>
+        <div style="padding:0 16px 8px;display:flex;flex-direction:column;gap:12px;">
+          <sc-for list="{{ day.cards }}" as="c" hint-placeholder-count="2">
+            <div data-anim="up" style="background:#1c1c1e;border-radius:18px;overflow:hidden;">
+              <div onClick="{{ c.onWho }}" style="display:flex;align-items:center;gap:10px;padding:12px 16px 12px 12px;cursor:pointer;">
+                <span style="position:relative;overflow:hidden;width:32px;height:32px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-size:13px;font-weight:600;flex:none;"><span>{{ c.initial }}</span><sc-if value="{{ c.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ c.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
+                <span style="flex:1;min-width:0;font-size:14px;letter-spacing:-0.224px;line-height:1.36;"><span style="font-weight:600;">{{ c.who }}</span> <span style="color:#a1a1a6;">{{ c.verb }}</span></span>
+              </div>
+              <sc-if value="{{ c.single }}" hint-placeholder-val="{{ true }}">
+                <div onClick="{{ c.onOpen }}" style="cursor:pointer;">
+                  <sc-if value="{{ c.hasImg }}" hint-placeholder-val="{{ true }}"><img src="{{ c.img }}" alt="" style="display:block;width:100%;aspect-ratio:4/5;max-height:440px;object-fit:cover;object-position:top;background:#2c2c2e;"></sc-if>
+                  <sc-if value="{{ c.noImg }}" hint-placeholder-val="{{ false }}"><div style="aspect-ratio:16/9;background:#2c2c2e;display:grid;place-items:center;font-family:var(--font-display);font-size:40px;font-weight:600;color:#48484a;">{{ c.itemInitial }}</div></sc-if>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 16px 14px;">
+                  <span onClick="{{ c.onOpen }}" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;cursor:pointer;"><span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.title }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.sub }}</span></span>
+                  <sc-if value="{{ c.hasBtn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ c.onBtn }}" style="flex:none;border:0;background:#2c2c2e;color:{{ c.btnColor }};border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">{{ c.btnLabel }}</button></sc-if>
+                </div>
+              </sc-if>
+              <sc-if value="{{ c.multi }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 16px 14px;scroll-snap-type:x proximity;">
+                  <sc-for list="{{ c.tiles }}" as="t" hint-placeholder-count="3">
+                    <div onClick="{{ t.onOpen }}" style="flex:none;width:136px;display:flex;flex-direction:column;gap:2px;cursor:pointer;scroll-snap-align:start;">
+                      <div style="width:136px;aspect-ratio:4/5;border-radius:8px;overflow:hidden;background:#2c2c2e;display:grid;place-items:center;color:#48484a;font-weight:600;font-size:24px;margin-bottom:6px;"><sc-if value="{{ t.hasImg }}" hint-placeholder-val="{{ true }}"><img src="{{ t.img }}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;"></sc-if><sc-if value="{{ t.noImg }}" hint-placeholder-val="{{ false }}"><span>{{ t.initial }}</span></sc-if></div>
+                      <span style="font-size:14px;letter-spacing:-0.224px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.name }}</span>
+                      <span style="font-size:12px;color:#a1a1a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.sub }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
     </sc-if>
     <sc-if value="{{ fr.noFeed }}" hint-placeholder-val="{{ true }}">
       <div data-anim="scale" style="margin:0 16px;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:4px;">
@@ -730,7 +756,7 @@ input::placeholder{color:#6e6e73;}
 <sc-if value="{{ hasFriend }}" hint-placeholder-val="{{ false }}">
   <div ref="{{ friendRef }}" data-anim="push" data-delay="0" style="position:absolute;inset:0;z-index:21;background:#000;overflow-y:auto;scrollbar-width:none;padding-top:{{ fvTop }};padding-bottom:40px;box-shadow:-20px 0 40px rgba(0,0,0,0.5);">
     <div style="padding:0 8px;"><button onClick="{{ fv.onBack }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">‹ Friends</button></div>
-    <div data-anim="scale" style="padding:4px 20px 12px;"><span onClick="{{ fv.onAv }}" style="cursor:{{ fv.avCursor }};position:relative;overflow:hidden;width:80px;height:80px;border-radius:9999px;background:#1c1c1e;display:grid;place-items:center;font-family:var(--font-display);font-size:32px;font-weight:600;color:#f5f5f7;"><span>{{ fv.initial }}</span><sc-if value="{{ fv.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fv.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span></div>
+    <div data-anim="scale" style="padding:4px 20px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;"><span onClick="{{ fv.onAv }}" style="cursor:{{ fv.avCursor }};position:relative;overflow:hidden;width:80px;height:80px;border-radius:9999px;background:#1c1c1e;display:grid;place-items:center;font-family:var(--font-display);font-size:32px;font-weight:600;color:#f5f5f7;"><span>{{ fv.initial }}</span><sc-if value="{{ fv.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fv.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span><button onClick="{{ fv.onUnfollow }}" style="flex:none;border:0;background:{{ fv.pillBg }};color:#f5f5f7;border-radius:9999px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .2s;" style-active="transform:scale(0.95);"><sc-if value="{{ fv.pillCheck }}" hint-placeholder-val="{{ true }}"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg></sc-if><span>{{ fv.pillLabel }}</span></button></div>
     <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;overflow:hidden;text-overflow:ellipsis;">{{ fv.name }}</div>
     <div data-anim="up" style="padding:2px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fv.sub }}</div>
     <div data-anim="up" style="margin:16px 16px 0;display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;">
@@ -2125,7 +2151,9 @@ class Component extends DCLogic {
         onOpen: () => { if (r === 'friend') { this.setState({ followIn: '', sugg: [] }); openF(x.id, 'wish')(); } else openPersonObj(x); } }; }),
       canInvite: !!(A.configured && A.user && A.username), invite: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.openInvite(); }, followMsg: st.followMsg || '', msgColor: st.followErr ? '#ff453a' : '#a1a1a6',
       requests: SO.requests.map(r => ({ name: '@' + r.username, initial: ini(r.username), av: r.avatar || '', hasAv: !!r.avatar, onAccept: () => doAccept(r), onDecline: async () => { try { await G.decline(r.id); } catch (e) {} this.loadSocial(); } })), hasRequests: SO.requests.length > 0,
-      following: SO.following.map(f => { const ok = f.status === 'accepted'; return { name: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar, sub: ok ? ' ' : 'Requested', ring: ok ? '0 0 0 2px ' + ACC : '0 0 0 1px #3a3a3c', fg: ok ? '#f5f5f7' : '#6e6e73', onOpen: ok ? openF(f.id, 'wish') : () => openPersonObj(f) }; }), hasFollowing: SO.following.length > 0,
+      editLabel: st.frEdit ? 'Done' : 'Edit', toggleEdit: () => this.setState({ frEdit: !st.frEdit, frArm: null }),
+      following: SO.following.map(f => { const ok = f.status === 'accepted', armed = st.frEdit && st.frArm === f.id; return { name: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar,
+        showX: !!st.frEdit, subColor: armed ? '#ff453a' : '#a1a1a6', sub: armed ? (ok ? 'Tap to remove' : 'Tap to cancel') : ok ? ' ' : 'Requested', ring: ok ? '0 0 0 2px ' + ACC : '0 0 0 1px #3a3a3c', fg: ok ? '#f5f5f7' : '#6e6e73', onOpen: st.frEdit ? (armed ? async () => { this.setState({ frArm: null }); try { await G.unfollow(f.id); } catch (e) {} this.loadSocial(); this.toast(ok ? 'Removed @' + f.username : 'Request cancelled'); } : () => this.setState({ frArm: f.id })) : ok ? openF(f.id, 'wish') : () => openPersonObj(f) }; }), hasFollowing: SO.following.length > 0,
       feed: feed.slice(0, 50).map(e => ({ who: e.who, initial: ini(e.who), av: e.av || '', hasAv: !!e.av, txt: e.txt, when: agoTxt(e.d), photo: e.ph || '', hasPhoto: !!e.ph, onOpen: e.on })), hasFeed: feed.length > 0, noFeed: !feed.length,
       busy: !!st.socialBusy, refresh: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.loadSocial(false, true); if (G) G.schedule(0); } };
     const fU = st.friend ? SO.following.find(x => x.id === st.friend) : null, fL = fU ? SO.lists[fU.id] || {} : null;
@@ -2133,6 +2161,29 @@ class Component extends DCLogic {
     let fi = { photos: [], stars: [], rows: [] };
     const addF = i => { if (mineKey.has(fKey(i))) return false; this.mutate(pp => { pp.items.push({ id: uid(), name: i.n, brand: i.b || '', category: i.cat || '', url: i.u || '', photos: (i.ph || []).slice(), currency: i.c || '€', price: i.p == null ? null : i.p, history: i.p == null ? [] : [{ date: todayISO(), price: i.p }], rating: 3, status: 'wanted', size: '', colour: '', m2m: false, added: todayISO() }); }); this.toast('Added to your wishlist'); return true; };
     const openI = (id, kind) => () => this.setState({ fItem: { id, kind }, fiIdx: 0 });
+    { const groups = new Map();
+      SO.following.filter(f => f.status === 'accepted').forEach(f => { const L = SO.lists[f.id]; if (!L) return; const all = (L.wish || []).concat(L.coll || []);
+        const push = (kind, d, obj) => { if (!d) return; d = String(d).slice(0, 10); const k = f.id + '|' + kind + '|' + d; if (!groups.has(k)) groups.set(k, { f, kind, d, list: [] }); groups.get(k).list.push(obj); };
+        (L.wish || []).forEach(i => push('wish', i.a, i)); (L.coll || []).forEach(i => { if (!i.ow) push('coll', i.o, i); });
+        (L.outfits || []).forEach(o => { const hit = all.find(x => (o.ids || []).includes(x.id) && (x.ph || []).length), oo = Object.assign({}, o, { _ph: (o.ph || [])[0] || (hit ? hit.ph[0] : ''), _n: (o.ids || []).filter(id => all.some(x => x.id === id)).length });
+          push('outfit', o.cr, oo); if (o.lw && o.lw !== o.cr) push('wore', o.lw, oo); }); });
+      const t0 = new Date(); t0.setHours(12, 0, 0, 0);
+      const dayLbl = iso => { const d = new Date(iso + 'T12:00:00'), n = Math.round((t0 - d) / 864e5); return n <= 0 ? 'Today' : n === 1 ? 'Yesterday' : n < 7 ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][d.getDay()] : d.getDate() + ' ' + MON[d.getMonth()] + (d.getFullYear() !== t0.getFullYear() ? ' ' + d.getFullYear() : ''); };
+      const itemOpen = (f, kind, i) => () => this.setState({ friend: f.id, friendTab: kind, fItem: { id: i.id, kind }, fiIdx: 0, unfArm: false });
+      const pTxt = i => (i.p == null ? '' : money(i.c || '€', i.p));
+      const card = g => { const f = g.f, n = g.list.length, one = g.list[0], isO = g.kind === 'outfit' || g.kind === 'wore';
+        const verb = g.kind === 'wish' ? (n > 1 ? 'added ' + n + ' things to their wishlist' : 'added to their wishlist') : g.kind === 'coll' ? (n > 1 ? 'got ' + n + ' new pieces' : 'got something new') : g.kind === 'outfit' ? (n > 1 ? 'made ' + n + ' outfits' : 'made an outfit') : (n > 1 ? 'wore ' + n + ' outfits' : 'wore an outfit');
+        const base = { who: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar, verb, onWho: openF(f.id, isO ? 'outfits' : g.kind) };
+        if (n === 1) { const img = isO ? one._ph : (one.ph || [])[0], have = !isO && mineKey.has(fKey(one));
+          return Object.assign(base, { single: true, multi: false, tiles: [], img: img || '', hasImg: !!img, noImg: !img, itemInitial: ini(one.n), title: one.n,
+            sub: isO ? plural(one._n, 'piece') + (one.w ? ' · Worn ' + one.w + '×' : '') : [one.b, pTxt(one)].filter(Boolean).join(' · ') || ' ',
+            onOpen: isO ? openF(f.id, 'outfits') : itemOpen(f, g.kind, one), hasBtn: !isO, btnLabel: have ? 'On your list' : 'Add', btnColor: have ? '#6e6e73' : ACC,
+            onBtn: e => { e.stopPropagation(); if (have) return; this.bump(e.currentTarget, 1.1); addF(one); } }); }
+        return Object.assign(base, { single: false, multi: true, tiles: g.list.map(i => { const img = isO ? i._ph : (i.ph || [])[0]; return { img: img || '', hasImg: !!img, noImg: !img, initial: ini(i.n), name: i.n,
+          sub: isO ? plural(i._n, 'piece') : [i.b, pTxt(i)].filter(Boolean).join(' · ') || ' ', onOpen: isO ? openF(f.id, 'outfits') : itemOpen(f, g.kind, i) }; }) }); };
+      const days = []; Array.from(groups.values()).sort((a, b) => b.d.localeCompare(a.d)).slice(0, 30).forEach(g => { const l = dayLbl(g.d); let D = days[days.length - 1]; if (!D || D.label !== l) days.push(D = { label: l, cards: [] }); D.cards.push(card(g)); });
+      Object.assign(fr, { feedDays: days, hasFeed: days.length > 0, noFeed: !days.length }); }
+
     if (fU) { const ft = st.friendTab || 'wish', W = fL.wish || [], C = fL.coll || [], O = fL.outfits || [], all = W.concat(C), cg = new Map();
       const FI = st.fItem ? (st.fItem.kind === 'coll' ? C : W).find(x => x.id === st.fItem.id) : null;
       if (FI) { const isW = st.fItem.kind !== 'coll', have = mineKey.has(fKey(FI)), phs = (FI.ph || []), host = (() => { try { return new URL(FI.u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } })();
@@ -2153,8 +2204,8 @@ class Component extends DCLogic {
           onAdd: e => { e.stopPropagation(); if (have) return; this.bump(e.currentTarget, 1.1); addF(i); } }; }),
         collGroups: Array.from(cg.entries()).map(([title, a]) => ({ title, count: String(a.length), items: a.map(i => { const ph = (i.ph || [])[0]; return { name: i.n, sub: [i.b, i.ow ? 'On the way' : ''].filter(Boolean).join(' · ') || ' ', photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(i.n), onOpen: openI(i.id, 'coll') }; }) })),
         outfits: O.slice().reverse().map(o => { const its = (o.ids || []).map(id => all.find(x => x.id === id)).filter(Boolean).map(x => ({ id: x.id, name: x.n, category: x.cat, g: x.g, photos: x.ph || [] })), cov = (o.ph || [])[0]; return { name: o.n, sub: plural(its.length, 'piece') + (o.w ? ' · Worn ' + o.w + '×' : ''), cover: cov || '', hasCover: !!cov, noCover: !cov, board: cov ? [] : this.board(its, o.pos) }; }),
-        onBack: () => this.closeFriend(), unfLabel: st.unfArm ? 'Tap again to remove' : 'Remove friend',
-        onUnfollow: () => { if (!st.unfArm) { this.setState({ unfArm: true }); return; } const id = fU.id; this.closeFriend(async () => { try { await G.unfollow(id); } catch (e) {} this.loadSocial(); this.toast('Removed @' + fU.username); }); } };
+        onBack: () => this.closeFriend(), unfLabel: st.unfArm ? 'Tap again to remove' : 'Remove friend', pillBg: st.unfArm ? '#ff453a' : '#2c2c2e', pillCheck: !st.unfArm, pillLabel: st.unfArm ? 'Remove friend?' : 'Friends',
+        onUnfollow: () => { if (!st.unfArm) { this.setState({ unfArm: true }); clearTimeout(this.unfT); this.unfT = setTimeout(() => this.setState({ unfArm: false }), 3500); return; } const id = fU.id; this.closeFriend(async () => { try { await G.unfollow(id); } catch (e) {} this.loadSocial(); this.toast('Removed @' + fU.username); }); } };
     }
     const doSend = async () => { const em = (st.authEmail || '').trim(); if (!/^\S+@\S+\.\S+$/.test(em)) { this.setState({ authErr: 'Enter your email address.' }); return; } this.setState({ authBusy: true, authErr: '' }); try { await G.sendCode(em); this.setState({ authSent: true, authBusy: false, authCode: '' }); } catch (e) { this.setState({ authBusy: false, authErr: (e && e.message) || 'Couldn’t send the email.' }); } };
     const doVerify = async () => { const c = (st.authCode || '').replace(/\D/g, ''); if (c.length < 6) { this.setState({ authErr: 'Type the code from the email.' }); return; } this.setState({ authBusy: true, authErr: '' }); try { await G.verify((st.authEmail || '').trim(), c); this.setState({ authBusy: false, authCode: '' }); } catch (e) { this.setState({ authBusy: false, authErr: 'That code didn’t work. Check it or send a new one.' }); } };
