@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Your GearWatch code</title>
+<style>
+  @media (max-width: 620px) { .px { padding-left: 20px !important; padding-right: 20px !important; } .code { font-size: 34px !important; letter-spacing: 8px !important; } }
+  :root { color-scheme: light dark; }
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#0b0b0c;-webkit-text-size-adjust:100%;">
+<span style="display:none;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#0b0b0c;">Your GearWatch sign-in code is {{ .Token }}. It works once and expires in an hour.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</span>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0b0b0c" style="background-color:#0b0b0c;">
+  <tr>
+    <td align="center" style="padding:32px 12px;">
+      <!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+
+        <tr>
+          <td class="px" style="padding:8px 40px 28px 40px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="48" style="width:48px;"><img src="{{ .SiteURL }}/icons/apple-touch-icon.png" width="48" height="48" alt="GearWatch" style="display:block;width:48px;height:48px;border:0;border-radius:12px;"></td>
+                <td style="padding-left:12px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:21px;font-weight:600;letter-spacing:-0.3px;color:#f5f5f7;mso-line-height-rule:exactly;line-height:24px;">GearWatch</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td bgcolor="#1c1c1e" style="background-color:#1c1c1e;border-radius:18px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr><td height="4" bgcolor="#ffd60a" style="height:4px;background-color:#ffd60a;border-radius:18px 18px 0 0;font-size:0;line-height:0;">&nbsp;</td></tr>
+              <tr>
+                <td class="px" style="padding:36px 40px 8px 40px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                  <div style="font-size:13px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;color:#ffd60a;mso-line-height-rule:exactly;line-height:18px;">Sign in</div>
+                  <div style="padding-top:8px;font-size:34px;font-weight:600;letter-spacing:-0.6px;color:#f5f5f7;mso-line-height-rule:exactly;line-height:40px;">Your code.</div>
+                  <div style="padding-top:10px;font-size:17px;color:#a1a1a6;mso-line-height-rule:exactly;line-height:25px;">Type it in GearWatch to get your wishlist, collection and outfits on this device.</div>
+                </td>
+              </tr>
+              <tr>
+                <td class="px" style="padding:24px 40px 8px 40px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td align="center" bgcolor="#2c2c2e" style="background-color:#2c2c2e;border-radius:14px;padding:22px 12px;">
+                        <div class="code" style="font-family:'SF Mono',Menlo,Consolas,'Courier New',monospace;font-size:40px;font-weight:700;letter-spacing:12px;color:#ffd60a;mso-line-height-rule:exactly;line-height:48px;">{{ .Token }}</div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td class="px" style="padding:12px 40px 32px 40px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;color:#8e8e93;mso-line-height-rule:exactly;line-height:20px;">Works once. Expires in an hour.</td>
+              </tr>
+              <tr><td class="px" style="padding:0 40px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td height="1" bgcolor="#2c2c2e" style="height:1px;background-color:#2c2c2e;font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr>
+              <tr>
+                <td class="px" style="padding:28px 40px 8px 40px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                  <div style="font-size:17px;font-weight:600;color:#f5f5f7;mso-line-height-rule:exactly;line-height:24px;">Opening this in Safari?</div>
+                  <div style="padding-top:4px;font-size:14px;color:#a1a1a6;mso-line-height-rule:exactly;line-height:20px;">Tap the button instead. It doesn’t work in the home-screen app, so use the code there.</div>
+                </td>
+              </tr>
+              <tr>
+                <td class="px" style="padding:16px 40px 36px 40px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td align="center" bgcolor="#ffd60a" style="background-color:#ffd60a;border-radius:9999px;">
+                        <a href="{{ .ConfirmationURL }}" style="display:block;padding:12px 24px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:17px;font-weight:600;color:#000000;text-decoration:none;border-radius:9999px;mso-line-height-rule:exactly;line-height:22px;">Sign in with a link</a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="px" style="padding:24px 40px 8px 40px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:12px;color:#6e6e73;mso-line-height-rule:exactly;line-height:18px;">
+            Didn’t ask for this? Ignore it. Nobody can sign in without the code.<br>
+            Sent to {{ .Email }} by GearWatch.
+          </td>
+        </tr>
+
+      </table>
+      <!--[if mso]></td></tr></table><![endif]-->
+    </td>
+  </tr>
+</table>
+</body>
+</html>
