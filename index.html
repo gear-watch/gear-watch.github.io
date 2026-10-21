@@ -855,7 +855,7 @@ input::placeholder{color:#6e6e73;}
           <button onClick="{{ ph.onRemove }}" aria-label="Remove photo" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:9999px;border:0;background:#48484a;color:#f5f5f7;font-size:13px;line-height:1;cursor:pointer;">×</button>
         </div>
       </sc-for>
-      <label style="flex:none;width:72px;height:96px;border-radius:8px;border:1px dashed #48484a;display:grid;place-items:center;color:#a1a1a6;font-size:12px;cursor:pointer;text-align:center;line-height:1.2;box-sizing:border-box;">Add<br>photos<input type="file" accept="image/*" multiple onChange="{{ bdPhotos }}" style="display:none;"></label>
+      <label style="flex:none;width:72px;height:96px;border-radius:8px;border:1px dashed #48484a;display:grid;place-items:center;color:#a1a1a6;font-size:12px;cursor:pointer;text-align:center;line-height:1.2;box-sizing:border-box;">Add<br>photos<input type="file" accept="image/*" multiple="{{ true }}" onChange="{{ bdPhotos }}" style="display:none;"></label>
     </div>
     <div style="padding:6px 20px 0;font-size:12px;color:#6e6e73;">Optional. The first photo is the cover; tap another to make it the cover. Without a photo, the flat-lay is used.</div>
     <div style="padding:28px 20px 0;font-family:var(--font-display);font-size:21px;font-weight:600;">Your collection</div>
@@ -914,15 +914,17 @@ input::placeholder{color:#6e6e73;}
         <div style="padding:0 20px;font-size:12px;color:#6e6e73;">Tap a photo to leave it out. Add your own below.</div>
       </sc-if>
 
-      <div data-anim="up" style="padding:12px 16px 0;display:flex;gap:8px;overflow-x:auto;">
+      <div data-anim="up" style="padding:12px 16px 0;display:grid;grid-template-columns:repeat(auto-fill,72px);gap:12px;">
         <sc-for list="{{ fPhotos }}" as="ph" hint-placeholder-count="0">
-          <div data-anim="pop" style="position:relative;flex:none;">
-            <img src="{{ ph.src }}" alt="" style="width:72px;height:72px;border-radius:8px;object-fit:cover;object-position:top;display:block;">
-            <button onClick="{{ ph.onRemove }}" aria-label="Remove photo" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:9999px;border:0;background:#48484a;color:#f5f5f7;font-size:13px;line-height:1;cursor:pointer;">×</button>
+          <div data-anim="pop" onPointerDown="{{ ph.onDown }}" onPointerMove="{{ phMove }}" onPointerUp="{{ phUp }}" onPointerCancel="{{ phUp }}" style="position:relative;width:72px;height:72px;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;">
+            <img src="{{ ph.src }}" alt="" draggable="false" style="width:72px;height:72px;border-radius:8px;object-fit:cover;object-position:top;display:block;pointer-events:none;">
+            <sc-if value="{{ ph.cover }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:4px;bottom:4px;background:rgba(0,0,0,0.65);color:#f5f5f7;border-radius:9999px;padding:2px 6px;font-size:10px;font-weight:600;pointer-events:none;">Cover</span></sc-if>
+            <button onPointerDown="{{ phStop }}" onClick="{{ ph.onRemove }}" aria-label="Remove photo" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:9999px;border:0;background:#48484a;color:#f5f5f7;font-size:13px;line-height:1;cursor:pointer;">×</button>
           </div>
         </sc-for>
-        <label style="flex:none;width:72px;height:72px;border-radius:8px;border:1px dashed #48484a;display:grid;place-items:center;color:#a1a1a6;font-size:12px;cursor:pointer;text-align:center;line-height:1.2;">Add<br>photos<input type="file" accept="image/*" multiple onChange="{{ onPhotos }}" style="display:none;"></label>
+        <label style="width:72px;height:72px;box-sizing:border-box;border-radius:8px;border:1px dashed #48484a;display:grid;place-items:center;color:#a1a1a6;font-size:12px;cursor:pointer;text-align:center;line-height:1.2;">Add<br>photos<input type="file" accept="image/*" multiple="{{ true }}" onChange="{{ onPhotos }}" style="display:none;"></label>
       </div>
+      <sc-if value="{{ fMultiPh }}" hint-placeholder-val="{{ false }}"><div style="padding:6px 20px 0;font-size:12px;color:#6e6e73;">Drag to reorder. The first photo is the cover. Tap to view.</div></sc-if>
 
       <div data-anim="up" style="margin:16px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#38383a;">
         <div style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;gap:12px;"><span style="flex:none;width:72px;color:#a1a1a6;">Name</span><input value="{{ f.name }}" onChange="{{ fName }}" placeholder="Required" style="flex:1;min-width:0;background:none;border:0;font-size:17px;color:#f5f5f7;padding:0;"></div>
@@ -1771,6 +1773,18 @@ class Component extends DCLogic {
   cropWheel(e) { const g = this.cg; if (!g) return; const r = this.cropEls().stage.getBoundingClientRect(), cx = e.clientX - r.left - r.width / 2, cy = e.clientY - r.top - r.height / 2, z = Math.max(1, Math.min(8, g.z * Math.exp(-e.deltaY * 0.0025))), k = z / g.z; g.tx = cx - k * (cx - g.tx); g.ty = cy - k * (cy - g.ty); g.z = z; this.cropApply(); }
   async useCrop() { const G = window.GWSync; if (!this.cg || !G || this.state.avBusy) return; const c = document.createElement('canvas'); c.width = c.height = 640; this.cropDraw(c, 640); const data = c.toDataURL('image/jpeg', 0.88);
     this.closeCrop(); this.setState({ avBusy: true, avDelArm: false }); try { await G.setAvatar(data); this.toast('Profile photo updated'); } catch (er) { this.toast((er && er.message) || 'Couldn’t update your photo'); } this.setState({ avBusy: false }); }
+  phDown(e, i) { if (e.button > 0) return; const tile = e.currentTarget, grid = tile.parentElement, n = ((this.state.form || {}).photos || []).length, R = Array.from(grid.children).slice(0, n).map(c => c.getBoundingClientRect());
+    this.pd = { i, id: e.pointerId, x0: e.clientX, y0: e.clientY, gx: e.clientX - R[i].left, gy: e.clientY - R[i].top, grid, R, on: false }; try { tile.setPointerCapture(e.pointerId); } catch (er) {} }
+  phPlace(cx, cy) { const d = this.pd; if (!d) return; const kids = d.grid.children; d.R.forEach((r, k) => { const el = kids[k]; if (!el) return; el.style.transition = k === d.i ? 'box-shadow .2s' : 'transform .2s';
+      if (k === d.i) { el.style.zIndex = '3'; el.style.transform = 'translate(' + (cx - d.gx - r.left) + 'px,' + (cy - d.gy - r.top) + 'px) scale(1.08)'; el.style.boxShadow = '0 8px 24px rgba(0,0,0,0.5)'; el.style.borderRadius = '8px'; }
+      else { el.style.zIndex = ''; el.style.transform = ''; el.style.boxShadow = ''; } }); }
+  phMove(e) { const d = this.pd; if (!d || e.pointerId !== d.id) return; if (!d.on) { if (Math.hypot(e.clientX - d.x0, e.clientY - d.y0) < 5) return; d.on = true; }
+    const cx = e.clientX, cy = e.clientY; let j = d.i, best = 1e9; d.R.forEach((r, k) => { const q = Math.hypot(cx - (r.left + r.width / 2), cy - (r.top + r.height / 2)); if (q < best) { best = q; j = k; } });
+    if (j !== d.i) { const from = d.i; d.i = j; this.setState(s => { const ph = (s.form.photos || []).slice(); ph.splice(j, 0, ph.splice(from, 1)[0]); return { form: Object.assign({}, s.form, { photos: ph }) }; }, () => this.phPlace(d.lx, d.ly)); }
+    d.lx = cx; d.ly = cy; this.phPlace(cx, cy); }
+  phUp(e) { const d = this.pd; if (!d || e.pointerId !== d.id) return; this.pd = null; const kids = d.grid.children;
+    d.R.forEach((r, k) => { const el = kids[k]; if (!el) return; el.style.transition = 'transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s'; el.style.transform = ''; el.style.boxShadow = ''; setTimeout(() => { el.style.zIndex = ''; }, 230); });
+    if (!d.on) { const ph = (this.state.form || {}).photos || []; if (ph.length) this.openViewer(ph, d.i); } }
   closeFItem() { this.animOut(this.fItemRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => this.setState({ fItem: null })); }
   closeFriend(cb) { this.animOut(this.friendRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ friend: null, fItem: null, unfArm: false }); if (cb) cb(); }); }
   prof() { const d = this.state.data; return d.profiles.find(p => p.id === d.activeId) || d.profiles[0]; }
@@ -2277,7 +2291,8 @@ class Component extends DCLogic {
       sizeLocked: !!f.m2m, sizeFree: !f.m2m, sizeOpen: !f.m2m && !!st.sizeOpen,
       sizeLabel: f.size && f.size !== 'Made to measure' ? f.size : 'Choose a size', sizeColor: f.size && f.size !== 'Made to measure' ? '#f5f5f7' : '#6e6e73',
       sizeRot: st.sizeOpen ? '180deg' : '0deg', toggleSize: () => this.setState({ sizeOpen: !st.sizeOpen }),
-      fPhotos: (f.photos || []).map((src, i) => ({ src, onRemove: () => this.setF('photos', f.photos.filter((_, j) => j !== i)) })),
+      fPhotos: (f.photos || []).map((src, i) => ({ src, cover: i === 0 && f.photos.length > 1, onDown: e => this.phDown(e, i), onRemove: () => this.setF('photos', f.photos.filter((_, j) => j !== i)) })),
+      fMultiPh: (f.photos || []).length > 1, phMove: e => this.phMove(e), phUp: e => this.phUp(e), phStop: e => e.stopPropagation(),
       onPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await Promise.all(files.map(readPhoto))).filter(Boolean); this.setState(s => ({ form: Object.assign({}, s.form, { photos: (s.form.photos || []).concat(out) }) })); },
       budgetIn: st.budgetIn, onBudgetIn: e => this.setState({ budgetIn: e.target.value }),
       paydayIn: st.paydayIn || '1', paydayW: (ordinal(Number(st.paydayIn) || 1).length * 0.62 + 0.2) + 'em', onPayday: e => this.setState({ paydayIn: e.target.value, spentIn: '' }), paydayOpts: Array.from({ length: 31 }, (_, i) => ({ v: String(i + 1), label: ordinal(i + 1) })),
