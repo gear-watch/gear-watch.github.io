@@ -81,3 +81,104 @@ grant execute on function public.accept_friend(uuid) to authenticated;
 insert into public.follows (follower, followee, status)
   select followee, follower, 'accepted' from public.follows where status = 'accepted'
   on conflict (follower, followee) do update set status = 'accepted';
+
+-- ===== Stories =====
+-- Photos and videos that disappear after 24 hours, unless pinned as a Highlight.
+create table if not exists public.stories (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now() + interval '24 hours',
+  audience text not null default 'all' check (audience in ('all', 'close')),
+  blur boolean not null default false,
+  caption text check (char_length(caption) <= 300),
+  media jsonb not null default '[]',
+  items jsonb not null default '[]',
+  poll jsonb,
+  highlight text check (char_length(highlight) <= 30)
+);
+create index if not exists stories_user_idx on public.stories (user_id, created_at desc);
+
+-- Close friends: only you can see or change your list.
+create table if not exists public.close_friends (
+  owner uuid references auth.users on delete cascade,
+  friend uuid references auth.users on delete cascade,
+  primary key (owner, friend)
+);
+alter table public.close_friends enable row level security;
+drop policy if exists "own close friends" on public.close_friends;
+create policy "own close friends" on public.close_friends for all to authenticated using (owner = auth.uid()) with check (owner = auth.uid());
+
+-- Who may see a story: its owner, or a friend while it's live (or pinned), and only close friends for close-friends stories.
+create or replace function public.can_see_story_id(sid uuid) returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from stories s where s.id = sid and (
+    s.user_id = auth.uid() or (
+      (s.expires_at > now() or s.highlight is not null)
+      and exists (select 1 from follows f where f.follower = auth.uid() and f.followee = s.user_id and f.status = 'accepted')
+      and (s.audience = 'all' or exists (select 1 from close_friends c where c.owner = s.user_id and c.friend = auth.uid())))));
+$$;
+grant execute on function public.can_see_story_id(uuid) to authenticated;
+create or replace function public.owns_story(sid uuid) returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from stories s where s.id = sid and s.user_id = auth.uid());
+$$;
+grant execute on function public.owns_story(uuid) to authenticated;
+
+alter table public.stories enable row level security;
+drop policy if exists "see stories" on public.stories;
+create policy "see stories" on public.stories for select to authenticated using (public.can_see_story_id(id));
+drop policy if exists "post stories" on public.stories;
+create policy "post stories" on public.stories for insert to authenticated with check (user_id = auth.uid());
+drop policy if exists "edit own stories" on public.stories;
+create policy "edit own stories" on public.stories for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists "delete own stories" on public.stories;
+create policy "delete own stories" on public.stories for delete to authenticated using (user_id = auth.uid());
+
+create table if not exists public.story_views (
+  story_id uuid references public.stories on delete cascade, viewer uuid references auth.users on delete cascade,
+  seen_at timestamptz not null default now(), primary key (story_id, viewer));
+alter table public.story_views enable row level security;
+drop policy if exists "log view" on public.story_views;
+create policy "log view" on public.story_views for insert to authenticated with check (viewer = auth.uid() and public.can_see_story_id(story_id));
+drop policy if exists "see views" on public.story_views;
+create policy "see views" on public.story_views for select to authenticated using (viewer = auth.uid() or public.owns_story(story_id));
+
+create table if not exists public.story_reactions (
+  story_id uuid references public.stories on delete cascade, user_id uuid references auth.users on delete cascade,
+  kind text not null check (kind in ('paw', 'flame', 'want')), created_at timestamptz not null default now(), primary key (story_id, user_id, kind));
+alter table public.story_reactions enable row level security;
+drop policy if exists "react" on public.story_reactions;
+create policy "react" on public.story_reactions for insert to authenticated with check (user_id = auth.uid() and public.can_see_story_id(story_id));
+drop policy if exists "unreact" on public.story_reactions;
+create policy "unreact" on public.story_reactions for delete to authenticated using (user_id = auth.uid());
+drop policy if exists "see reactions" on public.story_reactions;
+create policy "see reactions" on public.story_reactions for select to authenticated using (user_id = auth.uid() or public.owns_story(story_id));
+
+create table if not exists public.story_replies (
+  id uuid primary key default gen_random_uuid(), story_id uuid references public.stories on delete cascade,
+  from_user uuid references auth.users on delete cascade, body text not null check (char_length(body) between 1 and 500), created_at timestamptz not null default now());
+alter table public.story_replies enable row level security;
+drop policy if exists "reply" on public.story_replies;
+create policy "reply" on public.story_replies for insert to authenticated with check (from_user = auth.uid() and public.can_see_story_id(story_id));
+drop policy if exists "see replies" on public.story_replies;
+create policy "see replies" on public.story_replies for select to authenticated using (from_user = auth.uid() or public.owns_story(story_id));
+
+create table if not exists public.story_votes (
+  story_id uuid references public.stories on delete cascade, user_id uuid references auth.users on delete cascade,
+  choice int not null check (choice between 0 and 3), primary key (story_id, user_id));
+alter table public.story_votes enable row level security;
+drop policy if exists "vote" on public.story_votes;
+create policy "vote" on public.story_votes for insert to authenticated with check (user_id = auth.uid() and public.can_see_story_id(story_id));
+drop policy if exists "change vote" on public.story_votes;
+create policy "change vote" on public.story_votes for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists "see votes" on public.story_votes;
+create policy "see votes" on public.story_votes for select to authenticated using (public.can_see_story_id(story_id));
+
+-- Story files are private: only the owner and friends allowed to see the story can open them.
+insert into storage.buckets (id, name, public) values ('stories', 'stories', false) on conflict (id) do nothing;
+drop policy if exists "upload own story files" on storage.objects;
+create policy "upload own story files" on storage.objects for insert to authenticated with check (bucket_id = 'stories' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "delete own story files" on storage.objects;
+create policy "delete own story files" on storage.objects for delete to authenticated using (bucket_id = 'stories' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "read allowed story files" on storage.objects;
+create policy "read allowed story files" on storage.objects for select to authenticated using (
+  bucket_id = 'stories' and ((storage.foldername(name))[1] = auth.uid()::text or public.can_see_story_id(((storage.foldername(name))[2])::uuid)));

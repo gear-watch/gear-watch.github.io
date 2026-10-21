@@ -208,6 +208,49 @@
     if (r.error) throw new Error(/avatar/i.test(r.error.message || '') ? 'Profile photos need a database update. Run supabase/setup.sql again.' : 'Couldn’t save: ' + r.error.message);
     set({ avatar: url }); setMeta({ avatar: url });
   }
+
+  // ===== Stories =====
+  const urlCache = new Map(); // path -> { url, until }
+  async function signed(paths) {
+    const now = Date.now(), need = [...new Set(paths)].filter(p => { const c = urlCache.get(p); return !c || c.until < now; });
+    for (let i = 0; i < need.length; i += 100) {
+      const r = await sb.storage.from('stories').createSignedUrls(need.slice(i, i + 100), 3600);
+      (r.data || []).forEach(x => { if (x.signedUrl) urlCache.set(x.path, { url: x.signedUrl, until: now + 50 * 60000 }); });
+    }
+    const out = {}; paths.forEach(p => { const c = urlCache.get(p); if (c) out[p] = c.url; }); return out;
+  }
+  async function storiesLoad() {
+    if (!sb) await connect(); if (!sb || !S.user) return null; if (!(await fresh())) return null; const me = S.user.id, nowISO = new Date().toISOString();
+    const r = await sb.from('stories').select('id,user_id,created_at,expires_at,audience,blur,caption,media,items,poll,highlight').or('expires_at.gt.' + nowISO + ',highlight.not.is.null').order('created_at', { ascending: true }).limit(400);
+    if (r.error) { if (/stories/i.test(r.error.message || '') && /exist|schema/i.test(r.error.message || '')) return { missing: true, list: [] }; throw new Error(r.error.message); }
+    const list = r.data || [], ids = list.map(s => s.id), urls = await signed(list.flatMap(s => (s.media || []).map(m => m.path)));
+    list.forEach(s => (s.media || []).forEach(m => { m.url = urls[m.path] || ''; }));
+    const mine = list.filter(s => s.user_id === me).map(s => s.id), polls = list.filter(s => s.poll).map(s => s.id);
+    const q = (t, sel, col, vals) => vals.length ? sb.from(t).select(sel).in(col, vals) : Promise.resolve({ data: [] });
+    const NONE = ['00000000-0000-0000-0000-000000000000'];
+    const [sv, vw, rx, rp, vt, cf] = await Promise.all([sb.from('story_views').select('story_id').eq('viewer', me).in('story_id', ids.length ? ids : NONE), q('story_views', 'story_id,viewer,seen_at', 'story_id', mine), q('story_reactions', 'story_id,user_id,kind,created_at', 'story_id', ids), q('story_replies', 'id,story_id,from_user,body,created_at', 'story_id', mine), q('story_votes', 'story_id,user_id,choice', 'story_id', polls), sb.from('close_friends').select('friend').eq('owner', me)]);
+    const who = [...new Set([].concat((vw.data || []).map(x => x.viewer), (rx.data || []).map(x => x.user_id), (rp.data || []).map(x => x.from_user)))].filter(id => id !== me), prof = {};
+    if (who.length) { const pr = await profSel(c => sb.from('profiles').select(c).in('id', who)); (pr.data || []).forEach(x => { prof[x.id] = { id: x.id, username: x.username, avatar: x.avatar || null }; }); }
+    return { list, me, seenIds: (sv.data || []).map(x => x.story_id), views: (vw.data || []).filter(x => x.viewer !== me), reactions: rx.data || [], replies: rp.data || [], votes: vt.data || [], close: (cf.data || []).map(x => x.friend), prof };
+  }
+  async function storyPost(o) {
+    if (!navigator.onLine || !(await connect()) || !S.user) throw new Error('You’re offline. Try again when you’re connected.');
+    const me = S.user.id, sid = (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); })), media = [];
+    for (let i = 0; i < o.files.length; i++) { const f = o.files[i], ext = f.type === 'video' ? ((f.blob.type.split('/')[1] || 'mp4').replace('quicktime', 'mov')) : 'jpg', path = me + '/' + sid + '/' + i + '.' + ext;
+      const u = await sb.storage.from('stories').upload(path, f.blob, { contentType: f.blob.type || (f.type === 'video' ? 'video/mp4' : 'image/jpeg'), upsert: false });
+      if (u.error) throw new Error(/bucket/i.test(u.error.message || '') ? 'Stories need a database update. Run supabase/setup.sql again.' : 'Couldn’t upload: ' + u.error.message);
+      media.push({ path, type: f.type, w: f.w || null, h: f.h || null, dur: f.dur || null }); if (o.onProgress) o.onProgress((i + 1) / o.files.length); }
+    const r = await sb.from('stories').insert({ id: sid, user_id: me, audience: o.audience === 'close' ? 'close' : 'all', blur: !!o.blur, caption: (o.caption || '').trim().slice(0, 300) || null, media, items: o.items || [], poll: o.poll || null });
+    if (r.error) throw new Error(/stories/i.test(r.error.message || '') ? 'Stories need a database update. Run supabase/setup.sql again.' : 'Couldn’t post: ' + r.error.message);
+    return sid;
+  }
+  const storyView = sid => sb && S.user ? sb.from('story_views').upsert({ story_id: sid, viewer: S.user.id }, { onConflict: 'story_id,viewer', ignoreDuplicates: true }) : null;
+  async function storyReact(sid, kind, on) { if (on) return sb.from('story_reactions').upsert({ story_id: sid, user_id: S.user.id, kind }, { onConflict: 'story_id,user_id,kind', ignoreDuplicates: true }); return sb.from('story_reactions').delete().eq('story_id', sid).eq('user_id', S.user.id).eq('kind', kind); }
+  async function storyReply(sid, body) { const r = await sb.from('story_replies').insert({ story_id: sid, from_user: S.user.id, body: String(body).trim().slice(0, 500) }); if (r.error) throw new Error(r.error.message); }
+  async function storyVote(sid, choice) { const r = await sb.from('story_votes').upsert({ story_id: sid, user_id: S.user.id, choice }, { onConflict: 'story_id,user_id' }); if (r.error) throw new Error(r.error.message); }
+  async function storyPin(sid, name) { const r = await sb.from('stories').update({ highlight: name ? String(name).slice(0, 30) : null }).eq('id', sid); if (r.error) throw new Error(r.error.message); }
+  async function storyDelete(s) { await sb.storage.from('stories').remove((s.media || []).map(m => m.path)); const r = await sb.from('stories').delete().eq('id', s.id); if (r.error) throw new Error(r.error.message); }
+  async function closeSet(id, on) { const me = S.user.id; const r = on ? await sb.from('close_friends').upsert({ owner: me, friend: id }, { onConflict: 'owner,friend', ignoreDuplicates: true }) : await sb.from('close_friends').delete().eq('owner', me).eq('friend', id); if (r.error) throw new Error(r.error.message); }
   async function sendCode(email) {
     if (!(await connect())) throw new Error(why || 'You’re offline.');
     const r = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: true } });
@@ -223,7 +266,7 @@
   }
 
   window.GWSync = {
-    init, schedule, sync, social, setAvatar, follow, findUser, searchUsers, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
+    init, schedule, sync, social, setAvatar, follow, findUser, searchUsers, storiesLoad, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
     attach: h => { host = h; },
     on: f => { subs.add(f); f(Object.assign({}, S)); return () => subs.delete(f); },
     state: () => Object.assign({}, S)
