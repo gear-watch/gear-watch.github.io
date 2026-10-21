@@ -247,7 +247,7 @@
     for (let i = 0; i < o.files.length; i++) { const f = o.files[i], ext = f.type === 'video' ? ((f.blob.type.split('/')[1] || 'mp4').replace('quicktime', 'mov')) : 'jpg', path = me + '/' + sid + '/' + i + '.' + ext;
       const u = await sb.storage.from('stories').upload(path, f.blob, { contentType: f.blob.type || (f.type === 'video' ? 'video/mp4' : 'image/jpeg'), upsert: false });
       if (u.error) throw new Error(/bucket/i.test(u.error.message || '') ? 'Stories need a database update. Run supabase/setup.sql again.' : 'Couldn’t upload: ' + u.error.message);
-      media.push({ path, type: f.type, w: f.w || null, h: f.h || null, dur: f.dur || null }); if (o.onProgress) o.onProgress((i + 1) / o.files.length); }
+      media.push({ path, type: f.type, w: f.w || null, h: f.h || null, dur: f.dur || null, tags: (f.tags || []).slice(0, 12).map(g => ({ id: g.id, x: g.x, y: g.y })) }); if (o.onProgress) o.onProgress((i + 1) / o.files.length); }
     const r = await sb.from('stories').insert({ id: sid, user_id: me, audience: o.audience === 'close' ? 'close' : 'all', blur: !!o.blur, caption: (o.caption || '').trim().slice(0, 300) || null, media, items: o.items || [], poll: o.poll || null });
     if (r.error) throw new Error(/stories/i.test(r.error.message || '') ? 'Stories need a database update. Run supabase/setup.sql again.' : 'Couldn’t post: ' + r.error.message);
     return sid;
