@@ -62,7 +62,18 @@ async function check(entry) {
       }
     } catch { /* fall through to the page */ }
   }
-  const html = await get(url);
+  let html = '', blocked = null;
+  try { html = await get(url); } catch (e) { blocked = e; }
+  const found = html ? parse(html) : null; if (found) return found;
+  // Some shops (Libidex, behind Cloudflare) block server requests. Retry through a public page reader.
+  const txt = await fetch('https://r.jina.ai/' + url, { headers: { 'x-return-format': 'text', 'user-agent': UA } }).then(r => (r.ok ? r.text() : '')).catch(() => '');
+  if (txt) { const lb = txt.match(LIBI); if (lb) return { price: num(lb[1]), cur: 'GBP' }; const f2 = parse(txt); if (f2) return f2; }
+  throw new Error(blocked ? 'Shop blocked the check (' + blocked.message + ')' : 'No price found on ' + host);
+}
+
+// Libidex text: "£119.95 ($160.4 approx )", or "Regular Price £84.95 Special Price £76.46 (...approx)". The first one is the product's own price.
+const LIBI = /(?:Regular Price\s*£\s?[\d,]+\.\d{2}\s*Special Price\s*)?£\s?([\d,]+\.\d{2})\s*\([^)]*approx/i;
+function parse(html) {
   // Magento (Libidex): the final (sale) price. Amount is in the store currency.
   const mg = html.match(/data-price-amount=["']([\d.]+)["'][^>]*data-price-type=["']finalPrice/i) || html.match(/data-price-type=["']finalPrice["'][^>]*data-price-amount=["']([\d.]+)/i);
   if (mg) return { price: num(mg[1]), cur: null };
@@ -73,11 +84,12 @@ async function check(entry) {
   // Latex Catfish (OpenCart): "$29.00 USD BASE PRICE".
   const cf = html.replace(/<[^>]+>/g, ' ').match(/[$€£]\s?([\d,]+\.\d{2})\s*(USD|EUR|GBP)\s*(?:[$€£]\s?[\d,]+\.\d{2}\s*(?:USD|EUR|GBP)\s*)?BASE PRICE/i);
   if (cf) return { price: num(cf[1]), cur: cf[2] };
+  const lt = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').match(LIBI); if (lt) return { price: num(lt[1]), cur: 'GBP' };
   // Plain-text fallback: first non-zero price on the page (skips an empty "$0.00" cart).
   for (const t of html.replace(/<[^>]+>/g, ' ').matchAll(/([$€£])\s?([\d,]+\.\d{2})\s*(USD|EUR|GBP)?/g)) {
     if (num(t[2]) > 0) return { price: num(t[2]), cur: t[3] || ({ '$': 'USD', '€': 'EUR', '£': 'GBP' })[t[1]] };
   }
-  throw new Error('No price found on ' + host);
+  return null;
 }
 
 

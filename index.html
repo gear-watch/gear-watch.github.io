@@ -1543,7 +1543,7 @@ class Component extends DCLogic {
     data.profiles.forEach(p => p.items.forEach(it => {
       const e = it.url && map[normUrl(it.url)]; if (!e || !e.checked || (it.checked && e.checked <= it.checked)) return; changed = true;
       it.checked = e.checked; it.checkErr = null;
-      if (!e.ok || e.price == null) { it.checkErr = 'Couldn’t read the price'; return; }
+      if (!e.ok || e.price == null) { it.checkErr = /blocked/i.test(e.error || '') ? 'The shop blocked the price check' : 'Couldn’t read the price'; return; }
       if (e.currency && it.currency && e.currency !== it.currency) { it.checkErr = 'Shop shows ' + e.currency + e.price; return; }
       const np = Math.round(e.price * (1 + (it.surcharge || 0)) * 100) / 100;
       if (it.price !== np) { if (!(it.history || []).length && it.price != null) it.history = [{ date: it.added || e.checked.slice(0, 10), price: it.price }]; it.history = (it.history || []).concat({ date: e.checked.slice(0, 10), price: np }); it.price = np; }
