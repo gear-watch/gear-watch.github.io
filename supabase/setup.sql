@@ -182,3 +182,38 @@ create policy "delete own story files" on storage.objects for delete to authenti
 drop policy if exists "read allowed story files" on storage.objects;
 create policy "read allowed story files" on storage.objects for select to authenticated using (
   bucket_id = 'stories' and ((storage.foldername(name))[1] = auth.uid()::text or public.can_see_story_id(((storage.foldername(name))[2])::uuid)));
+
+
+-- Friends of friends: see a friend's friend list, and suggestions from 2+ mutual friends.
+create or replace function public.my_friend_ids(who uuid)
+returns setof uuid language sql stable security definer set search_path = public as $$
+  select case when follower = who then followee else follower end from public.follows
+  where status = 'accepted' and (follower = who or followee = who)
+$$;
+revoke all on function public.my_friend_ids(uuid) from public, anon, authenticated;
+
+create or replace function public.friends_of(target uuid)
+returns table (id uuid, username text, avatar text)
+language sql stable security definer set search_path = public as $$
+  select distinct p.id, p.username, p.avatar from public.profiles p
+  where p.id in (select public.my_friend_ids(target)) and p.id <> auth.uid()
+    and (target = auth.uid() or target in (select public.my_friend_ids(auth.uid())))
+  order by p.username
+$$;
+grant execute on function public.friends_of(uuid) to authenticated;
+
+create or replace function public.friend_suggestions()
+returns table (id uuid, username text, avatar text, mutuals int, via text[])
+language sql stable security definer set search_path = public as $$
+  with mine as (select public.my_friend_ids(auth.uid()) as uid),
+  fof as (select f.uid as via, public.my_friend_ids(f.uid) as cand from mine f)
+  select p.id, p.username, p.avatar, count(distinct fof.via)::int, (array_agg(distinct vp.username))[1:3]
+  from fof join public.profiles p on p.id = fof.cand join public.profiles vp on vp.id = fof.via
+  where fof.cand <> auth.uid() and fof.cand not in (select uid from mine)
+    and not exists (select 1 from public.follows x where (x.follower = auth.uid() and x.followee = fof.cand) or (x.followee = auth.uid() and x.follower = fof.cand))
+  group by p.id, p.username, p.avatar
+  having count(distinct fof.via) >= 2
+  order by 4 desc, p.username
+  limit 12
+$$;
+grant execute on function public.friend_suggestions() to authenticated;

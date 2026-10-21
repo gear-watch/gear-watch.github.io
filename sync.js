@@ -80,7 +80,7 @@
       return sb.storage.from('photos').getPublicUrl(path).data.publicUrl;
     };
     for (const p of gw.profiles || []) {
-      for (const it of p.items || []) if (it.photos) it.photos = await Promise.all(it.photos.map(up));
+      for (const it of p.items || []) { if (it.photos) it.photos = await Promise.all(it.photos.map(up)); if (it.origs) it.origs = await Promise.all(it.origs.map(async x => Object.assign({}, x, { c: await up(x.c), o: await up(x.o) }))); }
       for (const o of p.outfits || []) if (o.photos) o.photos = await Promise.all(o.photos.map(up));
     }
   }
@@ -91,7 +91,7 @@
     const items = (p.items || []).filter(i => !i.private);
     return {
       wish: items.filter(i => i.status === 'wanted').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, ph: web(i.photos), u: i.url, c: i.currency, p: i.price, r: i.rating, a: i.added, s: i.size || undefined, co: i.colour || undefined, m: i.m2m ? 1 : undefined })),
-      coll: items.filter(i => i.status === 'owned' || i.status === 'ordered').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, g: i.cgroup, ph: web(i.photos), o: i.ownedOn || i.orderedOn || i.added, ow: i.status === 'ordered' ? 1 : undefined, s: i.size || undefined, co: i.colour || undefined, m: i.m2m ? 1 : undefined, u: i.url })),
+      coll: items.filter(i => i.status === 'owned' || i.status === 'ordered').map(i => ({ id: i.id, n: i.name, b: i.brand, cat: i.category, g: i.cgroup, ph: web(i.photos), o: i.ownedOn || i.orderedOn || i.added, ow: i.status === 'ordered' ? 1 : undefined, rc: i.status === 'owned' && i.rec ? i.rec : undefined, s: i.size || undefined, co: i.colour || undefined, m: i.m2m ? 1 : undefined, u: i.url })),
       outfits: (p.outfits || []).map((o, i) => ({ id: o.id, n: o.name || 'Outfit ' + (i + 1), ids: o.itemIds, pos: o.pos, ph: web(o.photos), w: (o.worn || []).length, lw: (o.worn || []).slice(-1)[0], cr: o.created }))
     };
   }
@@ -184,6 +184,13 @@
     const r = await profSel(c => sb.from('profiles').select(c).ilike('username', pat).neq('id', S.user.id).order('username').limit(6));
     return (r.data || []).map(x => ({ id: x.id, username: x.username, avatar: x.avatar || null }));
   }
+  const rpcErr = e => new Error(/function|schema cache|does not exist/i.test((e && e.message) || '') ? 'Run supabase/setup.sql again to turn this on.' : (e && e.message) || 'Couldn’t load');
+  async function friendsOf(id) { if (!sb) await connect(); if (!sb || !S.user) return null;
+    const r = await sb.rpc('friends_of', { target: id }); if (r.error) throw rpcErr(r.error);
+    return (r.data || []).map(x => ({ id: x.id, username: x.username, avatar: x.avatar || null })); }
+  async function suggestions() { if (!sb || !S.user) return [];
+    const r = await sb.rpc('friend_suggestions'); if (r.error) return [];
+    return (r.data || []).map(x => ({ id: x.id, username: x.username, avatar: x.avatar || null, mutuals: x.mutuals || 0, via: x.via || [] })); }
   const decline = id => sb.from('follows').delete().eq('follower', id).eq('followee', S.user.id);
   async function setUsername(name) {
     const u = uname(name);
@@ -274,7 +281,7 @@
   }
 
   window.GWSync = {
-    init, schedule, sync, social, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
+    init, schedule, sync, social, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
     attach: h => { host = h; },
     on: f => { subs.add(f); f(Object.assign({}, S)); return () => subs.delete(f); },
     state: () => Object.assign({}, S)

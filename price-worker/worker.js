@@ -277,6 +277,14 @@ async function one(entry, ctx, force) {
   return [key, out];
 }
 
+async function imgProxy(u) {
+  if (!/^https?:\/\//.test(u)) return json({ error: 'Not a valid link' }, 400);
+  try { const r = await fetch(u, { headers: { 'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1', accept: 'image/avif,image/webp,image/*,*/*;q=0.8' }, cf: { cacheTtl: 86400, cacheEverything: true } });
+    const ct = r.headers.get('content-type') || ''; if (!r.ok || !/^image\//.test(ct)) return json({ error: 'Not an image' }, 502);
+    return new Response(r.body, { headers: Object.assign({ 'content-type': ct, 'cache-control': 'public, max-age=86400' }, CORS) });
+  } catch (e) { return json({ error: String(e.message || e) }, 502); }
+}
+
 export default {
   async fetch(req, env, ctx) {
     READER_KEY = (env && env.JINA_KEY) || '';
@@ -284,6 +292,7 @@ export default {
     if (req.method === 'GET') {
       const sp = new URL(req.url).searchParams, url = sp.get('url');
       if (sp.get('lookup')) return json(await lookupOne(sp.get('lookup'), ctx));
+      if (sp.get('img')) return imgProxy(sp.get('img'));
       if (!url) return json({ ok: true, about: 'GearWatch price helper. Add ?url=<product link> to test a price, or ?lookup=<product link> to test filling in a new item.' });
       const r = await one({ url, currency: new URL(req.url).searchParams.get('cur') || '€' }, ctx, true);
       return json(r ? Object.assign({ key: r[0] }, r[1]) : { error: 'Not a valid link' });

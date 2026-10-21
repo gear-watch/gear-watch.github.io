@@ -18,9 +18,9 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=9"></script>
+<script src="./sync.js?v=10"></script>
 <style>
-html,body{margin:0;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
 a:hover{text-decoration:underline;}
 input,button,textarea{font-family:inherit;}
@@ -463,6 +463,20 @@ input::placeholder{color:#6e6e73;}
         </sc-for>
       </div>
     </sc-if>
+    <sc-if value="{{ fr.hasMayKnow }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="right" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">People you may know</div>
+      <div style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;">
+        <sc-for list="{{ fr.mayKnow }}" as="m" hint-placeholder-count="2">
+          <div data-anim="pop" onClick="{{ m.onOpen }}" style="position:relative;flex:none;width:140px;box-sizing:border-box;background:#1c1c1e;border-radius:18px;padding:16px 12px 12px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;text-align:center;">
+            <button onClick="{{ m.onHide }}" aria-label="Hide suggestion" style="position:absolute;top:4px;right:4px;width:32px;height:32px;border:0;background:none;color:#6e6e73;cursor:pointer;display:grid;place-items:center;padding:0;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 2l6 6M8 2l-6 6"></path></svg></button>
+            <span style="position:relative;overflow:hidden;width:56px;height:56px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;flex:none;margin-bottom:6px;"><span>{{ m.initial }}</span><sc-if value="{{ m.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ m.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
+            <span style="font-size:14px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ m.name }}</span>
+            <span style="font-size:12px;color:#a1a1a6;line-height:1.33;min-height:32px;text-wrap:pretty;">{{ m.sub }}</span>
+            <button onClick="{{ m.onAdd }}" style="align-self:stretch;margin-top:8px;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:6px 0;font-size:14px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">Add</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
     <div style="padding:20px 16px 8px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
       <span data-anim="up" style="font-family:var(--font-display);font-size:21px;font-weight:600;">Feed</span>
       <button onClick="{{ fr.refresh }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:14px;padding:4px;cursor:pointer;display:flex;align-items:center;gap:6px;"><sc-if value="{{ fr.busy }}" hint-placeholder-val="{{ false }}"><span data-anim="spin" style="width:10px;height:10px;border-radius:9999px;border:2px solid #48484a;border-top-color:var(--gw-accent,#ffd60a);"></span></sc-if><span>Refresh</span></button>
@@ -557,25 +571,25 @@ input::placeholder{color:#6e6e73;}
 </sc-if>
 </div>
 
-<div style="position:absolute;left:0;right:0;bottom:0;z-index:10;background:rgba(22,22,23,0.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid #2c2c2e;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px 0 {{ tabPadBot }};">
-  <button onClick="{{ goWish }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabWish }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg>
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:10;background:rgba(18,18,19,0.94);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid #2c2c2e;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:8px 4px {{ tabPadBot }};">
+  <button onClick="{{ goWish }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ tabWish }};font-size:11px;letter-spacing:0;padding:0;min-width:0;transition:color .25s;">
+    <span style="display:flex;align-items:center;justify-content:center;width:56px;height:32px;border-radius:9999px;background:{{ tabWishBg }};transition:background .25s;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg></span>
     <span>Wishlist</span>
   </button>
-  <button onClick="{{ goCollection }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabColl }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8V6.5a3 3 0 016 0V8"></path></svg>
+  <button onClick="{{ goCollection }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ tabColl }};font-size:11px;letter-spacing:0;padding:0;min-width:0;transition:color .25s;">
+    <span style="display:flex;align-items:center;justify-content:center;width:56px;height:32px;border-radius:9999px;background:{{ tabCollBg }};transition:background .25s;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8V6.5a3 3 0 016 0V8"></path></svg></span>
     <span>Collection</span>
   </button>
-  <button onClick="{{ goMeasure }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabMeas }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="1.5"></rect><path d="M6.5 8v3M10 8v4M13.5 8v3M17 8v4"></path></svg>
+  <button onClick="{{ goMeasure }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ tabMeas }};font-size:11px;letter-spacing:0;padding:0;min-width:0;transition:color .25s;">
+    <span style="display:flex;align-items:center;justify-content:center;width:56px;height:32px;border-radius:9999px;background:{{ tabMeasBg }};transition:background .25s;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="1.5"></rect><path d="M6.5 8v3M10 8v4M13.5 8v3M17 8v4"></path></svg></span>
     <span>Measurements</span>
   </button>
-  <button onClick="{{ goSize }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabSize }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3.5 4h8l9 9-7.5 7.5-9-9z"></path><circle cx="8" cy="8.5" r="1.4"></circle></svg>
+  <button onClick="{{ goSize }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ tabSize }};font-size:11px;letter-spacing:0;padding:0;min-width:0;transition:color .25s;">
+    <span style="display:flex;align-items:center;justify-content:center;width:56px;height:32px;border-radius:9999px;background:{{ tabSizeBg }};transition:background .25s;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3.5 4h8l9 9-7.5 7.5-9-9z"></path><circle cx="8" cy="8.5" r="1.4"></circle></svg></span>
     <span>Size check</span>
   </button>
-  <button onClick="{{ goFriends }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabFriends }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;position:relative;">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="8.5" r="3.2"></circle><path d="M3.5 19.5c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"></path><circle cx="16.5" cy="9.5" r="2.6"></circle><path d="M15.6 14.6c2.5-.2 4.4 1.3 5 4.4"></path></svg>
+  <button onClick="{{ goFriends }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ tabFriends }};font-size:11px;letter-spacing:0;padding:0;min-width:0;transition:color .25s;position:relative;">
+    <span style="display:flex;align-items:center;justify-content:center;width:56px;height:32px;border-radius:9999px;background:{{ tabFriendsBg }};transition:background .25s;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="8.5" r="3.2"></circle><path d="M3.5 19.5c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"></path><circle cx="16.5" cy="9.5" r="2.6"></circle><path d="M15.6 14.6c2.5-.2 4.4 1.3 5 4.4"></path></svg></span>
     <span>Friends</span>
     <sc-if value="{{ fr.hasRequests }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:2px;left:calc(50% + 8px);width:8px;height:8px;border-radius:9999px;background:var(--gw-accent,#ffd60a);"></span></sc-if>
   </button>
@@ -621,7 +635,7 @@ input::placeholder{color:#6e6e73;}
 
     <div data-anim="up" style="margin:20px 16px 0;background:#1c1c1e;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">How much you want it</span>
+        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ d.starsLbl }}</span>
         <div style="display:flex;gap:4px;">
           <sc-for list="{{ d.stars }}" as="s" hint-placeholder-count="5"><button data-anim="pop" onClick="{{ s.onTap }}" aria-label="{{ s.label }}" style="border:0;background:none;padding:2px;cursor:pointer;display:grid;"><svg width="26" height="26" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}" style="transition:fill .25s;"></path></svg></button></sc-for>
         </div>
@@ -649,6 +663,10 @@ input::placeholder{color:#6e6e73;}
         </div>
       </sc-if>
       <sc-if value="{{ d.hasOrderInfo }}" hint-placeholder-val="{{ false }}"><span data-anim="fade" style="font-size:14px;color:#d1d1d6;letter-spacing:-0.224px;">{{ d.orderInfo }}</span></sc-if>
+    </div>
+    <div data-anim="up" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:12px 16px;display:flex;flex-direction:column;gap:4px;">
+      <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Notes</span>
+      <textarea value="{{ d.notes }}" onChange="{{ d.onNotes }}" onBlur="{{ d.saveNotes }}" placeholder="{{ d.notesPh }}" rows="2" style="background:none;border:0;padding:0;font-size:17px;line-height:1.47;color:#f5f5f7;resize:none;outline:none;"></textarea>
     </div>
 
     <sc-if value="{{ d.hasHist }}" hint-placeholder-val="{{ false }}">
@@ -828,6 +846,19 @@ input::placeholder{color:#6e6e73;}
         </sc-for>
       </div>
     </sc-if>
+    <sc-if value="{{ fv.hasFrMsg }}" hint-placeholder-val="{{ false }}"><div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fv.frMsg }}</div></sc-if>
+    <sc-if value="{{ fv.isFr }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="right" style="padding:20px 20px 8px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fv.frHead }}</div>
+      <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+        <sc-for list="{{ fv.frList }}" as="p" hint-placeholder-count="3">
+          <div onClick="{{ p.onOpen }}" style="background:#1c1c1e;display:flex;align-items:center;gap:12px;padding:10px 16px 10px 12px;cursor:pointer;transition:background .2s;" style-active="background:#2c2c2e;">
+            <span style="position:relative;overflow:hidden;width:40px;height:40px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-size:14px;font-weight:600;flex:none;"><span>{{ p.initial }}</span><sc-if value="{{ p.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ p.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.name }}</span><sc-if value="{{ p.hasSub }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ p.sub }}</span></sc-if></span>
+            <sc-if value="{{ p.hasBtn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ p.onBtn }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:6px 14px;font-size:14px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">{{ p.btnLabel }}</button></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
     <sc-if value="{{ fv.empty }}" hint-placeholder-val="{{ false }}"><div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fv.emptyTxt }}</div></sc-if>
     <div style="padding:24px 16px 0;display:flex;justify-content:center;"><button onClick="{{ fv.onUnfollow }}" style="border:0;background:none;color:#ff453a;font-size:17px;padding:8px;cursor:pointer;">{{ fv.unfLabel }}</button></div>
   </div>
@@ -849,7 +880,7 @@ input::placeholder{color:#6e6e73;}
       <span style="font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1.14;letter-spacing:-0.374px;text-wrap:pretty;">{{ fi.name }}</span>
       <div style="display:flex;align-items:center;gap:12px;padding-top:4px;">
         <sc-if value="{{ fi.hasPrice }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--font-display);font-size:21px;font-weight:600;">{{ fi.price }}</span></sc-if>
-        <sc-if value="{{ fi.hasStars }}" hint-placeholder-val="{{ true }}"><span style="display:flex;gap:3px;"><sc-for list="{{ fi.stars }}" as="s" hint-placeholder-count="5"><svg width="14" height="14" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}"></path></svg></sc-for></span></sc-if>
+        <sc-if value="{{ fi.hasStars }}" hint-placeholder-val="{{ true }}"><span style="display:flex;align-items:center;gap:8px;"><span style="display:flex;gap:3px;"><sc-for list="{{ fi.stars }}" as="s" hint-placeholder-count="5"><svg width="14" height="14" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}"></path></svg></sc-for></span><span style="font-size:12px;color:#a1a1a6;">{{ fi.starsLbl }}</span></span></sc-if>
       </div>
     </div>
     <sc-if value="{{ fi.hasRows }}" hint-placeholder-val="{{ true }}">
@@ -983,7 +1014,7 @@ input::placeholder{color:#6e6e73;}
     </div>
     <div data-sc-box="1" style="flex:none;height:44%;min-height:220px;position:relative;margin:0 16px;border-radius:18px;overflow:hidden;background:#1c1c1e;">
       <sc-if value="{{ sc.hasMedia }}" hint-placeholder-val="{{ false }}">
-        <div onScroll="{{ sc.onScroll }}" style="display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;"><sc-for list="{{ sc.media }}" as="m" hint-placeholder-count="1"><div onClick="{{ m.onTap }}" style="position:relative;flex:none;width:100%;height:100%;scroll-snap-align:start;cursor:crosshair;"><sc-if value="{{ m.isImg }}" hint-placeholder-val="{{ true }}"><img src="{{ m.src }}" alt="" style="width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;"></sc-if><sc-if value="{{ m.isVid }}" hint-placeholder-val="{{ false }}"><video src="{{ m.src }}" muted="{{ true }}" playsinline="{{ true }}" autoplay="{{ true }}" loop="{{ true }}" style="width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;"></video></sc-if><sc-for list="{{ m.pins }}" as="t" hint-placeholder-count="0"><button data-sv-ui="1" onClick="{{ t.onRemove }}" style="position:absolute;left:{{ t.x }};top:{{ t.y }};transform:translate(-50%,-6px);border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;z-index:2;"><span style="width:12px;height:12px;border-radius:9999px;background:#f5f5f7;box-shadow:0 0 0 3px rgba(0,0,0,0.35);"></span><span style="background:rgba(28,28,30,0.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:#f5f5f7;border-radius:9999px;padding:4px 10px;font-size:12px;font-weight:600;white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis;">{{ t.name }}</span></button></sc-for></div></sc-for></div>
+        <div onScroll="{{ sc.onScroll }}" style="display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;"><sc-for list="{{ sc.media }}" as="m" hint-placeholder-count="1"><div onClick="{{ m.onTap }}" style="position:relative;flex:none;width:100%;height:100%;scroll-snap-align:start;cursor:crosshair;"><sc-if value="{{ m.isImg }}" hint-placeholder-val="{{ true }}"><img src="{{ m.src }}" alt="" style="width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;"></sc-if><sc-if value="{{ m.isVid }}" hint-placeholder-val="{{ false }}"><video src="{{ m.src }}" muted="{{ true }}" playsinline="{{ true }}" autoplay="{{ true }}" loop="{{ true }}" style="width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;"></video></sc-if><sc-for list="{{ m.pins }}" as="t" hint-placeholder-count="0"><button data-sv-ui="1" onClick="{{ t.onRemove }}" onPointerDown="{{ t.onDown }}" onContextMenu="{{ t.noMenu }}" style="position:absolute;left:{{ t.x }};top:{{ t.y }};transform:translate(-50%,-6px);border:0;background:none;padding:0;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;display:flex;flex-direction:column;align-items:center;gap:4px;z-index:2;"><span style="width:12px;height:12px;border-radius:9999px;background:#f5f5f7;box-shadow:0 0 0 3px rgba(0,0,0,0.35);"></span><span style="background:rgba(28,28,30,0.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:#f5f5f7;border-radius:9999px;padding:4px 10px;font-size:12px;font-weight:600;white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis;">{{ t.name }}</span></button></sc-for></div></sc-for></div>
         <button onClick="{{ sc.removeCur }}" aria-label="Remove" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border:0;border-radius:9999px;background:rgba(28,28,30,0.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:#f5f5f7;display:grid;place-items:center;cursor:pointer;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button>
         <sc-if value="{{ sc.multi }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:12px;top:12px;background:rgba(28,28,30,0.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-radius:9999px;padding:4px 10px;font-size:12px;font-weight:600;">{{ sc.counter }}</span></sc-if>
       </sc-if>
@@ -1132,12 +1163,13 @@ input::placeholder{color:#6e6e73;}
           <div data-anim="pop" onPointerDown="{{ ph.onDown }}" onPointerMove="{{ phMove }}" onPointerUp="{{ phUp }}" onPointerCancel="{{ phUp }}" style="position:relative;width:72px;height:72px;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;">
             <img src="{{ ph.src }}" alt="" draggable="false" style="width:72px;height:72px;border-radius:8px;object-fit:cover;object-position:top;display:block;pointer-events:none;">
             <sc-if value="{{ ph.cover }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:4px;bottom:4px;background:rgba(0,0,0,0.65);color:#f5f5f7;border-radius:9999px;padding:2px 6px;font-size:10px;font-weight:600;pointer-events:none;">Cover</span></sc-if>
+            <sc-if value="{{ ph.canCrop }}" hint-placeholder-val="{{ false }}"><button onPointerDown="{{ phStop }}" onClick="{{ ph.onCrop }}" aria-label="Crop photo" style="position:absolute;right:4px;bottom:4px;width:26px;height:26px;border-radius:9999px;border:0;padding:0;background:rgba(0,0,0,0.65);color:#f5f5f7;display:grid;place-items:center;cursor:pointer;"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.5V12h10.5"></path><path d="M1.5 4H12v10.5"></path></svg></button></sc-if>
             <button onPointerDown="{{ phStop }}" onClick="{{ ph.onRemove }}" aria-label="Remove photo" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:9999px;border:0;background:#48484a;color:#f5f5f7;font-size:13px;line-height:1;cursor:pointer;">×</button>
           </div>
         </sc-for>
         <label style="width:72px;height:72px;box-sizing:border-box;border-radius:8px;border:1px dashed #48484a;display:grid;place-items:center;color:#a1a1a6;font-size:12px;cursor:pointer;text-align:center;line-height:1.2;">Add<br>photos<input type="file" accept="image/*" multiple="{{ true }}" onChange="{{ onPhotos }}" style="display:none;"></label>
       </div>
-      <sc-if value="{{ fMultiPh }}" hint-placeholder-val="{{ false }}"><div style="padding:6px 20px 0;font-size:12px;color:#6e6e73;">Drag to reorder. The first photo is the cover. Tap to view.</div></sc-if>
+      <sc-if value="{{ fMultiPh }}" hint-placeholder-val="{{ false }}"><div style="padding:6px 20px 0;font-size:12px;color:#6e6e73;">Drag to reorder. The first photo is the cover. Tap to view. Crop your own photos to show just one piece.</div></sc-if>
 
       <div data-anim="up" style="margin:16px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#38383a;">
         <div style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;gap:12px;"><span style="flex:none;width:72px;color:#a1a1a6;">Name</span><input value="{{ f.name }}" onChange="{{ fName }}" placeholder="Required" style="flex:1;min-width:0;background:none;border:0;font-size:17px;color:#f5f5f7;padding:0;"></div>
@@ -1183,10 +1215,12 @@ input::placeholder{color:#6e6e73;}
         </div>
       </sc-if>
 
-      <div data-anim="up" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">How much you want it</div>
+      <div data-anim="up" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ fStarsLbl }}</div>
       <div style="padding:0 16px;display:flex;gap:4px;">
         <sc-for list="{{ fStars }}" as="s" hint-placeholder-count="5"><button data-anim="pop" onClick="{{ s.onTap }}" aria-label="{{ s.label }}" style="border:0;background:none;padding:2px;cursor:pointer;display:grid;"><svg width="30" height="30" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}" style="transition:fill .25s;"></path></svg></button></sc-for>
       </div>
+      <div data-anim="up" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Notes</div>
+      <div style="padding:0 16px;"><textarea value="{{ f.notes }}" onChange="{{ fNotes }}" placeholder="{{ fNotesPh }}" rows="3" style="display:block;width:100%;box-sizing:border-box;background:#2c2c2e;border:0;border-radius:18px;padding:12px 16px;font-size:17px;line-height:1.47;color:#f5f5f7;resize:none;"></textarea></div>
     </sc-if>
 
     <sc-if value="{{ isSheetBudget }}" hint-placeholder-val="{{ false }}">
@@ -1313,6 +1347,32 @@ input::placeholder{color:#6e6e73;}
         </div>
       </div>
     </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasPc }}" hint-placeholder-val="{{ false }}">
+  <div data-anim="fade" data-delay="0" style="position:absolute;inset:0;z-index:120;background:#000;display:flex;flex-direction:column;padding-top:{{ topPad }};">
+    <div style="flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 8px;">
+      <button onClick="{{ pcv.cancel }}" style="justify-self:start;border:0;background:none;color:#f5f5f7;font-size:17px;padding:8px;cursor:pointer;">Cancel</button>
+      <span style="font-weight:600;">Crop photo</span>
+      <button onClick="{{ pcv.done }}" style="justify-self:end;border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;font-weight:600;padding:8px;cursor:pointer;">{{ pcv.doneLabel }}</button>
+    </div>
+    <div ref="{{ pcBoxRef }}" style="flex:1;min-height:0;position:relative;margin:16px 24px;">
+      <sc-if value="{{ pcv.ready }}" hint-placeholder-val="{{ false }}">
+        <div onPointerDown="{{ pcv.onDown }}" style="position:absolute;left:{{ pcv.l }};top:{{ pcv.t }};width:{{ pcv.w }};height:{{ pcv.h }};touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;">
+          <div style="position:absolute;inset:0;overflow:hidden;"><img src="{{ pcv.src }}" alt="" draggable="false" style="width:100%;height:100%;display:block;pointer-events:none;"></div>
+          <div ref="{{ pcRectRef }}" style="position:absolute;left:{{ pcv.rl }};top:{{ pcv.rt }};width:{{ pcv.rw }};height:{{ pcv.rh }};box-shadow:0 0 0 9999px rgba(0,0,0,0.62);outline:1px solid rgba(245,245,247,0.9);cursor:move;">
+            <span style="position:absolute;left:33.33%;top:0;bottom:0;width:1px;background:rgba(245,245,247,0.3);pointer-events:none;"></span><span style="position:absolute;left:66.66%;top:0;bottom:0;width:1px;background:rgba(245,245,247,0.3);pointer-events:none;"></span><span style="position:absolute;top:33.33%;left:0;right:0;height:1px;background:rgba(245,245,247,0.3);pointer-events:none;"></span><span style="position:absolute;top:66.66%;left:0;right:0;height:1px;background:rgba(245,245,247,0.3);pointer-events:none;"></span>
+            <span style="position:absolute;left:-3px;top:-3px;width:20px;height:20px;border-left:3px solid #f5f5f7;border-top:3px solid #f5f5f7;pointer-events:none;"></span><span style="position:absolute;right:-3px;top:-3px;width:20px;height:20px;border-right:3px solid #f5f5f7;border-top:3px solid #f5f5f7;pointer-events:none;"></span><span style="position:absolute;left:-3px;bottom:-3px;width:20px;height:20px;border-left:3px solid #f5f5f7;border-bottom:3px solid #f5f5f7;pointer-events:none;"></span><span style="position:absolute;right:-3px;bottom:-3px;width:20px;height:20px;border-right:3px solid #f5f5f7;border-bottom:3px solid #f5f5f7;pointer-events:none;"></span>
+            <span data-h="nw" style="position:absolute;left:-18px;top:-18px;width:36px;height:36px;"></span><span data-h="ne" style="position:absolute;right:-18px;top:-18px;width:36px;height:36px;"></span><span data-h="sw" style="position:absolute;left:-18px;bottom:-18px;width:36px;height:36px;"></span><span data-h="se" style="position:absolute;right:-18px;bottom:-18px;width:36px;height:36px;"></span>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+    <div style="flex:none;display:flex;align-items:center;gap:12px;padding:0 20px calc(max(env(safe-area-inset-bottom), 16px) + 12px);">
+      <span style="flex:1;min-width:0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;text-wrap:pretty;">Drag the corners to frame the piece you want to show. The original photo is kept.</span>
+      <sc-if value="{{ pcv.canReset }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pcv.reset }}" style="flex:none;border:0;background:#1c1c1e;color:#f5f5f7;border-radius:9999px;padding:8px 14px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Use original</button></sc-if>
+    </div>
   </div>
 </sc-if>
 
@@ -1841,7 +1901,7 @@ const relT = iso => { const m = Math.round((Date.now() - new Date(iso).getTime()
 const STORY_MS = 10000;
 class Component extends DCLogic {
   state = { data: load(), tab: 'wish', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null, coll: 'items', outfit: null, builder: null, cuts: {}, cutsReady: false, cpickId: null, cpickQ: false, ovDel: false, newGrpOpen: false, newGrp: '', bdragId: null, acct: null, social: null, friend: null, friendTab: 'wish', followIn: '', followMsg: '', authEmail: '', authCode: '', unameIn: '', authErr: '' };
-  outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef(); fItemRef = React.createRef(); fiCarRef = React.createRef(); vwRef = React.createRef(); qrRef = React.createRef(); svRef = React.createRef(); scRef = React.createRef(); cropRef = React.createRef();
+  outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef(); fItemRef = React.createRef(); fiCarRef = React.createRef(); vwRef = React.createRef(); qrRef = React.createRef(); svRef = React.createRef(); scRef = React.createRef(); cropRef = React.createRef(); pcBoxRef = React.createRef(); pcRectRef = React.createRef();
   heroRef = React.createRef(); carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
   introRef = React.createRef(); bPanelRef = React.createRef(); toastRef = React.createRef(); figRef = React.createRef();
 
@@ -1970,7 +2030,7 @@ class Component extends DCLogic {
     const retry = ms => { if (navigator.onLine && (this.socRetry = (this.socRetry || 0) + 1) < 6) setTimeout(() => this.loadSocial(true), ms); };
     Promise.race([G.social(), to]).then(s => { if (tok !== this.socTok) return; this.socLoading = false;
         if (!s) { this.socialFor = null; this.setState({ socialBusy: false }); if (manual) this.toast('Couldn’t refresh. Still signing in, try again in a moment.'); retry(2000); return; }
-        this.socRetry = 0; this.setState({ social: s, socialBusy: false }); try { localStorage.setItem('gw-social-cache-' + uid, JSON.stringify(s)); } catch (e) {} this.socialNotify(s, uid); this.loadStories(); if (manual) this.toast('Up to date'); })
+        this.socRetry = 0; this.setState({ social: s, socialBusy: false }); try { localStorage.setItem('gw-social-cache-' + uid, JSON.stringify(s)); } catch (e) {} this.socialNotify(s, uid); this.loadStories(); this.loadMayKnow(); if (this.state.friend && this.state.friendTab === 'friends') this.loadFof(this.state.friend, true); if (manual) this.toast('Up to date'); })
       .catch(e => { if (tok !== this.socTok) return; this.socLoading = false; this.socialFor = null; this.setState({ socialBusy: false }); if (manual) this.toast('Couldn’t refresh. ' + ((e && e.message) || '')); retry(4000); });
     return true; }
   socialNotify(s, uid) { const k = 'gw-social-seen-' + uid; let seen = null; try { seen = JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) {}
@@ -2128,6 +2188,48 @@ class Component extends DCLogic {
     if (msg.length) setTimeout(() => this.toast(msg.join(' · ')), 1200); }
   askStory(o) { const A = this.state.acct || {}; if (!A.configured || !A.user) return; this.setState({ storyAsk: o }); clearTimeout(this.askT); this.askT = setTimeout(() => this.setState({ storyAsk: null }), 9000); }
   scSet(o) { this.setState(z => (z.sc ? { sc: Object.assign({}, z.sc, o) } : null)); }
+  pinDown(e, fi, id) { if (e.button > 0) return; e.stopPropagation(); const btn = e.currentTarget, box = btn.parentElement, pid = e.pointerId, x0 = e.clientX, y0 = e.clientY, base = 'translate(-50%,-6px)';
+    let live = false, moved = false, lx = x0, ly = y0; this.pinHeld = false;
+    const end = () => { clearTimeout(T); window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); };
+    const T = setTimeout(() => { live = true; this.pinHeld = true; btn.style.transition = 'transform .15s'; btn.style.transform = base + ' scale(1.15)'; btn.style.zIndex = '5'; btn.style.cursor = 'grabbing'; try { navigator.vibrate && navigator.vibrate(10); } catch (_) {} }, 260);
+    const mv = ev => { if (ev.pointerId !== pid) return; if (!live) { if (Math.hypot(ev.clientX - x0, ev.clientY - y0) > 8) end(); return; }
+      ev.preventDefault(); moved = true; lx = ev.clientX; ly = ev.clientY; const r = box.getBoundingClientRect(); btn.style.transition = 'none'; btn.style.left = Math.max(0, Math.min(r.width, lx - r.left)) + 'px'; btn.style.top = Math.max(0, Math.min(r.height, ly - r.top)) + 'px'; };
+    const up = ev => { if (ev.pointerId !== pid) return; end(); if (!live) return; btn.style.transition = 'transform .15s'; btn.style.transform = base; btn.style.zIndex = ''; btn.style.cursor = ''; if (!moved) return;
+      const C = this.state.sc; if (!C || !C.files[fi]) return; const f = C.files[fi], r = box.getBoundingClientRect(), B = this.fitBox(f.w, f.h, r.width, r.height, false); if (!B.ok) return;
+      const q = v => Math.round(Math.max(0, Math.min(1, v)) * 1000) / 1000, px = q((lx - r.left - B.ox) / B.dw), py = q((ly - r.top - B.oy) / B.dh);
+      this.scSet({ files: C.files.map((g, j) => j === fi ? Object.assign({}, g, { tags: (g.tags || []).map(t => t.id === id ? Object.assign({}, t, { x: px, y: py }) : t) }) : g) }); };
+    window.addEventListener('pointermove', mv, { passive: false }); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up); }
+  pcOpen(i) { const f = this.state.form; if (!f) return; const cur = (f.photos || [])[i]; if (!cur) return; const e = (f.origs || []).find(x => x.c === cur), src = e ? e.o : cur;
+    const im = new Image(); im.onload = () => this.setState({ pc: { i, cur, src, rect: (e && e.r) || { x: 0.1, y: 0.1, w: 0.8, h: 0.8 }, iw: im.naturalWidth, ih: im.naturalHeight, hadOrig: !!e } }, () => setTimeout(() => this.pcMeasure(), 40));
+    im.onerror = () => this.toast('Couldn’t open that photo'); im.src = src; }
+  pcMeasure() { const el = this.pcBoxRef.current; if (!el) return; const b = { w: el.clientWidth, h: el.clientHeight }, o = this.state.pcBox || {}; if (b.w !== o.w || b.h !== o.h) this.setState({ pcBox: b }); }
+  pcDown(e, dw, dh) { const P = this.state.pc, el = this.pcRectRef.current; if (!P || !el || e.button > 0) return; e.preventDefault(); const area = e.currentTarget, rr = area.getBoundingClientRect(), pid = e.pointerId;
+    const hEl = e.target.closest ? e.target.closest('[data-h]') : null, cl = (v, a, b) => Math.max(a, Math.min(b, v)), p0 = { x: cl((e.clientX - rr.left) / dw, 0, 1), y: cl((e.clientY - rr.top) / dh, 0, 1) }, r0 = Object.assign({}, P.rect), MIN = 0.06;
+    const inside = p0.x >= r0.x && p0.x <= r0.x + r0.w && p0.y >= r0.y && p0.y <= r0.y + r0.h, M = hEl ? hEl.getAttribute('data-h') : inside ? 'move' : 'new'; let r = r0;
+    const mv = ev => { if (ev.pointerId !== pid) return; ev.preventDefault(); const p = { x: cl((ev.clientX - rr.left) / dw, 0, 1), y: cl((ev.clientY - rr.top) / dh, 0, 1) }, dx = p.x - p0.x, dy = p.y - p0.y;
+      if (M === 'move') r = { x: cl(r0.x + dx, 0, 1 - r0.w), y: cl(r0.y + dy, 0, 1 - r0.h), w: r0.w, h: r0.h };
+      else if (M === 'new') { const x1 = Math.min(p0.x, p.x), y1 = Math.min(p0.y, p.y); r = { x: x1, y: y1, w: Math.min(Math.max(MIN, Math.abs(dx)), 1 - x1), h: Math.min(Math.max(MIN, Math.abs(dy)), 1 - y1) }; }
+      else { let L = r0.x, T = r0.y, Rr = r0.x + r0.w, Bt = r0.y + r0.h; if (M.includes('w')) L = cl(r0.x + dx, 0, Rr - MIN); if (M.includes('e')) Rr = cl(r0.x + r0.w + dx, L + MIN, 1); if (M.includes('n')) T = cl(r0.y + dy, 0, Bt - MIN); if (M.includes('s')) Bt = cl(r0.y + r0.h + dy, T + MIN, 1); r = { x: L, y: T, w: Rr - L, h: Bt - T }; }
+      el.style.left = r.x * dw + 'px'; el.style.top = r.y * dh + 'px'; el.style.width = r.w * dw + 'px'; el.style.height = r.h * dh + 'px'; };
+    const up = ev => { if (ev.pointerId !== pid) return; window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); this.setState(s => (s.pc ? { pc: Object.assign({}, s.pc, { rect: r }) } : null)); };
+    window.addEventListener('pointermove', mv, { passive: false }); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up); }
+  pcLoad(src) { const one = u => new Promise((res, rej) => { const im = new Image(); if (/^https?:/.test(u)) im.crossOrigin = 'anonymous'; im.onload = () => { try { const c = document.createElement('canvas'); c.width = c.height = 2; c.getContext('2d').drawImage(im, 0, 0, 2, 2); c.toDataURL(); res(im); } catch (e) { rej(e); } }; im.onerror = rej; im.src = u; });
+    if (!/^https?:/.test(src)) return one(src); const api = window.GW_PRICE_API || '';
+    return one(src + (src.includes('?') ? '&' : '?') + 'gwcors=1'); }
+  async pcDone() { const P = this.state.pc; if (!P || P.busy) return; const r = P.rect; if (r.x < 0.01 && r.y < 0.01 && r.w > 0.98 && r.h > 0.98) return this.pcReset();
+    this.setState({ pc: Object.assign({}, P, { busy: true }) });
+    try { const im = await this.pcLoad(P.src), W = im.naturalWidth, H = im.naturalHeight, sw = Math.max(1, Math.round(r.w * W)), sh = Math.max(1, Math.round(r.h * H)), k = Math.min(1, 1200 / Math.max(sw, sh)), c = document.createElement('canvas');
+      c.width = Math.round(sw * k); c.height = Math.round(sh * k); c.getContext('2d').drawImage(im, Math.round(r.x * W), Math.round(r.y * H), sw, sh, 0, 0, c.width, c.height); const out = c.toDataURL('image/jpeg', 0.86);
+      this.setState(s => { const f = s.form; if (!f) return { pc: null }; const ph = (f.photos || []).slice(), at = ph[P.i] === P.cur ? P.i : ph.indexOf(P.cur); if (at < 0) return { pc: null }; ph[at] = out;
+        return { pc: null, form: Object.assign({}, f, { photos: ph, origs: (f.origs || []).filter(x => x.c !== P.cur).concat({ c: out, o: P.src, r }) }) }; });
+      this.toast('Cropped. The original is kept.'); }
+    catch (e) { this.setState(s => (s.pc ? { pc: Object.assign({}, s.pc, { busy: false }) } : null)); this.toast('Couldn’t crop that photo. Try again when you’re online.'); } }
+  pcReset() { const P = this.state.pc; if (!P) return; this.setState(s => { const f = s.form; if (!f || !P.hadOrig) return { pc: null }; const ph = (f.photos || []).slice(), at = ph.indexOf(P.cur); if (at >= 0) ph[at] = P.src;
+      return { pc: null, form: Object.assign({}, f, { photos: ph, origs: (f.origs || []).filter(x => x.c !== P.cur) }) }; }); }
+  loadFof(id, force) { const G = window.GWSync; if (!G || !G.friendsOf || !id) return; const cur = (this.state.fof || {})[id]; if (cur && cur.busy) return; if (cur && cur.list && !force && Date.now() - (cur.at || 0) < 60000) return;
+    const put = v => this.setState(s => ({ fof: Object.assign({}, s.fof, { [id]: v }) })); put(Object.assign({}, cur, { busy: true, err: '' }));
+    G.friendsOf(id).then(list => put({ list: list || [], at: Date.now() })).catch(e => put({ list: (cur && cur.list) || null, err: (e && e.message) || 'Couldn’t load their friends.' })); }
+  loadMayKnow() { const G = window.GWSync; if (!G || !G.suggestions) return; G.suggestions().then(l => this.setState({ mayKnow: l || [] })).catch(() => {}); }
   openComposer(pre) { setTimeout(() => this.scMeasure(), 60); this.setState({ storyAsk: null, sc: { files: [], idx: 0, caption: '', items: (pre && pre.items) || [], poll: null, audience: 'all', blur: false, busy: false, prog: 0, panel: null } }, () => {
       const el = this.scRef.current; if (el && el.animate && !this.reduce) el.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' });
       ((pre && pre.photos) || []).forEach(src => fetch(src).then(r => r.blob()).then(b => this.scAdd([b])).catch(() => {})); }); }
@@ -2202,10 +2304,10 @@ class Component extends DCLogic {
       const SBX = st.scBox || {}, byId = id => C.items.find(q => q.id === id);
       const placePin = (fi, id) => { const at = C.pinAt; if (!at) return; this.scSet({ files: C.files.map((f, j) => j === fi ? Object.assign({}, f, { tags: (f.tags || []).filter(t => t.id !== id).concat({ id, x: at.x, y: at.y }) }) : f), pinAt: null, panel: null }); };
       out.sc = { media: C.files.map((f, fi) => { const FB = this.fitBox(f.w, f.h, SBX.w, SBX.h, false); return { src: f.url, isImg: f.type !== 'video', isVid: f.type === 'video',
-          pins: FB.ok ? (f.tags || []).map(t => { const i = byId(t.id); return i ? { name: i.n, x: (FB.ox + t.x * FB.dw) + 'px', y: (FB.oy + t.y * FB.dh) + 'px', onRemove: e => { e.stopPropagation(); this.scSet({ files: C.files.map((g, j) => j === fi ? Object.assign({}, g, { tags: (g.tags || []).filter(q => q !== t) }) : g) }); } } : null; }).filter(Boolean) : [],
+          pins: FB.ok ? (f.tags || []).map(t => { const i = byId(t.id); return i ? { name: i.n, x: (FB.ox + t.x * FB.dw) + 'px', y: (FB.oy + t.y * FB.dh) + 'px', onDown: e => this.pinDown(e, fi, t.id), noMenu: e => e.preventDefault(), onRemove: e => { e.stopPropagation(); if (this.pinHeld) { this.pinHeld = false; return; } this.scSet({ files: C.files.map((g, j) => j === fi ? Object.assign({}, g, { tags: (g.tags || []).filter(q => q !== t) }) : g) }); } } : null; }).filter(Boolean) : [],
           onTap: e => { const r = e.currentTarget.getBoundingClientRect(), B = this.fitBox(f.w, f.h, r.width, r.height, false); if (!B.ok) return; const px = (e.clientX - r.left - B.ox) / B.dw, py = (e.clientY - r.top - B.oy) / B.dh; if (px < 0 || px > 1 || py < 0 || py > 1) return;
             this.scSet({ pinAt: { fi, x: Math.round(px * 1000) / 1000, y: Math.round(py * 1000) / 1000 }, panel: C.items.length ? 'pin' : 'tag' }); } }; }),
-        pinHint: C.items.length ? 'Tap the photo to point out where each item is. Tap a label to remove it.' : 'Tap the photo to tag what you’re wearing in that spot.',
+        pinHint: C.items.length ? 'Tap the photo to point out where each item is. Hold a label to move it, tap it to remove.' : 'Tap the photo to tag what you’re wearing in that spot.',
         isPinP: C.panel === 'pin', pinChoices: C.items.map(i => { const ph = (i.ph || [])[0]; return { name: i.n, photo: ph || '', hasPhoto: !!ph, initial: ini(i.n), onTap: () => placePin(C.pinAt ? C.pinAt.fi : 0, i.id) }; }), pinOther: () => this.scSet({ panel: 'tag' }), hasMedia: C.files.length > 0, noMedia: !C.files.length, multi: C.files.length > 1, counter: (C.idx + 1) + ' / ' + C.files.length,
         onScroll: e => { const el = e.currentTarget, i = Math.round(el.scrollLeft / el.clientWidth); if (i !== C.idx) this.scSet({ idx: i }); }, removeCur: () => this.scRemove(C.idx),
         onFiles: e => { const fl = Array.from(e.target.files || []); e.target.value = ''; this.scAdd(fl); }, canAddMore: C.files.length < 10,
@@ -2305,8 +2407,8 @@ class Component extends DCLogic {
   fval(vals, id) { const v = vals[id]; if (v == null) return null; if (id === 'shoe') return { v: String(v), u: 'EU' }; return this.state.unit === 'in' ? { v: (v / 2.54).toFixed(1), u: 'in' } : { v: num(v), u: 'cm' }; }
   setF(k, v) { this.setState(s => ({ form: Object.assign({}, s.form, { [k]: v }) })); }
   openForm(it, status) {
-    const f = it ? { id: it.id, url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, photos: (it.photos || []).slice() }
-      : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: '€', size: '', colour: '', m2m: false, rating: 3, photos: [], status: status || 'wanted' };
+    const f = it ? { id: it.id, url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, rec: it.rec || 0, notes: it.notes || '', status: it.status, origs: (it.origs || []).slice(), photos: (it.photos || []).slice() }
+      : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: '€', size: '', colour: '', m2m: false, rating: 3, rec: 0, notes: '', origs: [], photos: [], status: status || 'wanted' };
     f.found = [];
     this.setState({ sheet: 'form', form: f, fetchMsg: '', fetching: false, newCatOpen: false, sizeOpen: false });
   }
@@ -2337,7 +2439,7 @@ class Component extends DCLogic {
     const price = pr == null || isNaN(pr) ? null : pr, t = todayISO();
     const photos = (f.found || []).filter(x => x.on).map(x => x.src).concat(f.photos || []);
     const size = f.m2m ? 'Made to measure' : (f.size === 'Made to measure' ? '' : f.size);
-    const base = { url: f.url.trim(), name: f.name.trim(), brand: f.brand.trim(), category: f.category, currency: f.currency, size, colour: f.colour, m2m: f.m2m, rating: f.rating, photos };
+    const base = { url: f.url.trim(), name: f.name.trim(), brand: f.brand.trim(), category: f.category, currency: f.currency, size, colour: f.colour, m2m: f.m2m, rating: f.rating, rec: f.rec || 0, notes: (f.notes || '').trim(), origs: (f.origs || []).filter(x => photos.includes(x.c)), photos };
     const isNew = !f.id;
     this.closeSheet(() => {
       this.mutate(p => {
@@ -2378,6 +2480,10 @@ class Component extends DCLogic {
     });
   }
 
+  fullH() {
+    const sa = window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+    return sa && innerHeight > innerWidth ? Math.max(screen.height, innerHeight) + 'px' : '100dvh';
+  }
   renderVals() {
     const st = this.state, p = this.prof(), framed = this.isFramed();
     const L = this.props.landing || 'Auto';
@@ -2488,6 +2594,11 @@ class Component extends DCLogic {
       onAvatar: e => { const fl = e.target.files && e.target.files[0]; e.target.value = ''; if (fl && !st.avBusy) this.openCrop(fl); },
       removeAv: async () => { if (!st.avDelArm) { this.setState({ avDelArm: true }); clearTimeout(this.avT); this.avT = setTimeout(() => this.setState({ avDelArm: false }), 3000); return; } this.setState({ avBusy: true, avDelArm: false }); try { await G.setAvatar(null); this.toast('Profile photo removed'); } catch (er) { this.toast((er && er.message) || 'Couldn’t remove your photo'); } this.setState({ avBusy: false }); }, followIn: st.followIn || '', onFollowIn: e => { const v = e.target.value; this.setState({ followIn: v, followMsg: '' }); clearTimeout(this.sugT); this.sugT = setTimeout(() => this.searchUsers(v), 220); }, onFollowKey: e => { if (e.key === 'Enter') { e.preventDefault(); goName(st.followIn); } },
       follow: e => { this.bump(e.currentTarget, 1.06); goName(st.followIn); }, followLabel: st.followBusy ? '…' : 'Add',
+      ...(() => { let hid = []; try { hid = JSON.parse(localStorage.getItem('gw-mayknow-hide') || '[]'); } catch (e) {} const L = (st.mayKnow || []).filter(x => relOf(x.id) === 'none' && !hid.includes(x.id) && !(st.mkHid || []).includes(x.id)).slice(0, 10);
+        return { hasMayKnow: L.length > 0, mayKnow: L.map(x => { const via = (x.via || []).filter(Boolean); return { name: '@' + x.username, initial: ini(x.username), av: x.avatar || '', hasAv: !!x.avatar,
+          sub: via.length ? 'Friends with @' + via[0] + (x.mutuals > 1 ? ' and ' + (x.mutuals - 1) + ' more' : '') : plural(x.mutuals || 2, 'mutual friend'),
+          onOpen: () => openPersonObj(x), onAdd: e => { e.stopPropagation(); this.bump(e.currentTarget, 1.06); doFollow(x.username); },
+          onHide: e => { e.stopPropagation(); try { localStorage.setItem('gw-mayknow-hide', JSON.stringify(hid.concat(x.id).slice(-200))); } catch (er) {} this.setState({ mkHid: (st.mkHid || []).concat(x.id) }); } }; }) }; })(),
       hasSugg: sList.length > 0, sugg: sList.map(x => { const r = relOf(x.id); return { name: '@' + x.username, initial: ini(x.username), av: x.avatar || '', hasAv: !!x.avatar,
         sub: r === 'friend' ? 'Friend' : r === 'pending' ? 'Request sent' : r === 'incoming' ? 'Wants to be friends' : '', hasSub: r !== 'none', hasBtn: r === 'none' || r === 'incoming', btnLabel: r === 'incoming' ? 'Accept' : 'Add',
         onBtn: e => { e.stopPropagation(); this.bump(e.currentTarget, 1.08); if (r === 'incoming') { this.setState({ followIn: '', sugg: [] }); doAccept(x); } else doFollow(x.username); },
@@ -2533,13 +2644,18 @@ class Component extends DCLogic {
         const rows = [['Brand', FI.b], ['Category', FI.g || FI.cat], ['Size', FI.m ? 'Made to measure' : FI.s], ['Colour', FI.co], ['Status', isW ? '' : FI.ow ? 'On the way' : 'Owned'], [isW ? 'Added' : 'Since', isW ? (FI.a ? fmtD(FI.a) : '') : (FI.o ? fmtD(FI.o) : '')]].filter(r => r[1]).map(([k, v]) => ({ k, v: String(v) }));
         fi = { back: '@' + fU.username, kicker: isW ? 'On their wishlist' : 'In their collection', name: FI.n, initial: ini(FI.n), photos: phs.map(src => ({ src })), hasPhotos: phs.length > 0, noPhotos: !phs.length, multi: phs.length > 1, counter: ((st.fiIdx || 0) + 1) + ' / ' + phs.length,
           onScroll: e => { const el = e.currentTarget, k = Math.round(el.scrollLeft / el.clientWidth); if (k !== (st.fiIdx || 0)) this.setState({ fiIdx: k }); },
-          price: FI.p == null ? '' : money(FI.c || '€', FI.p), hasPrice: FI.p != null, hasStars: isW && !!FI.r, stars: this.stars(FI.r || 0), rows, hasRows: rows.length > 0,
+          price: FI.p == null ? '' : money(FI.c || '€', FI.p), hasPrice: FI.p != null, hasStars: isW ? !!FI.r : !!FI.rc, stars: this.stars((isW ? FI.r : FI.rc) || 0), starsLbl: isW ? 'How much they want it' : 'Recommends it', rows, hasRows: rows.length > 0,
           url: FI.u || '', hasUrl: !!host, host, addLabel: have ? 'On your list' : 'Add to my wishlist', addBg: have ? '#1c1c1e' : ACC, addFg: have ? '#6e6e73' : '#000',
           onAdd: e => { if (have) return; this.bump(e.currentTarget, 1.04); addF(FI); }, onBack: () => this.closeFItem(),
           onZoom: () => this.openViewer(phs, st.fiIdx || 0, i => { const el = this.fiCarRef.current; if (el) el.scrollTo({ left: i * el.clientWidth }); this.setState({ fiIdx: i }); }) }; }
       C.forEach(i => { const g = i.g || cgroupOf({ category: i.cat, name: i.n }, []) || 'Other'; if (!cg.has(g)) cg.set(g, []); cg.get(g).push(i); });
       fv = { name: '@' + fU.username, initial: ini(fU.username), av: fU.avatar || '', hasAv: !!fU.avatar, avCursor: fU.avatar ? 'zoom-in' : 'default', onAv: () => { if (fU.avatar) this.openViewer([fU.avatar], 0); }, sub: W.length + ' wanted · ' + C.length + ' in collection · ' + plural(O.length, 'outfit'),
-        tabs: [['wish', 'Wishlist'], ['coll', 'Collection'], ['outfits', 'Outfits']].map(([k, l]) => ({ label: l, bg: ft === k ? '#636366' : 'transparent', onTap: () => this.setState({ friendTab: k }) })),
+        tabs: [['wish', 'Wishlist'], ['coll', 'Collection'], ['outfits', 'Outfits'], ['friends', 'Friends']].map(([k, l]) => ({ label: l, bg: ft === k ? '#636366' : 'transparent', onTap: () => { this.setState({ friendTab: k }); if (k === 'friends') this.loadFof(fU.id); } })),
+        ...(() => { const FO = (st.fof || {})[fU.id] || {}, FL = FO.list || [], mut = FL.filter(x => relOf(x.id) === 'friend').length; if (ft === 'friends' && !FO.list && !FO.busy && !FO.err) setTimeout(() => this.loadFof(fU.id), 0);
+          return { isFr: ft === 'friends' && FL.length > 0, frHead: plural(FL.length, 'friend') + (mut ? ' · ' + mut + ' mutual' : ''), hasFrMsg: ft === 'friends' && (!FO.list || !FL.length || !!FO.err), frMsg: FO.err ? FO.err : !FO.list ? 'Loading their friends…' : 'No friends to show yet.',
+            frList: FL.slice().sort((a, b) => (relOf(a.id) === 'friend' ? 0 : 1) - (relOf(b.id) === 'friend' ? 0 : 1) || a.username.localeCompare(b.username)).map(x => { const r = relOf(x.id); return { name: '@' + x.username, initial: ini(x.username), av: x.avatar || '', hasAv: !!x.avatar,
+              sub: r === 'friend' ? 'Your friend too' : r === 'pending' ? 'Request sent' : r === 'incoming' ? 'Wants to be friends' : '', hasSub: r !== 'none', hasBtn: r === 'none' || r === 'incoming', btnLabel: r === 'incoming' ? 'Accept' : 'Add',
+              onBtn: e => { e.stopPropagation(); this.bump(e.currentTarget, 1.08); if (r === 'incoming') doAccept(x); else doFollow(x.username); }, onOpen: () => { if (r === 'friend') openF(x.id, 'wish')(); else openPersonObj(x); } }; }) }; })(),
         isWish: ft === 'wish' && W.length > 0, isColl: ft === 'coll' && C.length > 0, isOut: ft === 'outfits' && O.length > 0,
         empty: (ft === 'wish' && !W.length) || (ft === 'coll' && !C.length) || (ft === 'outfits' && !O.length),
         emptyTxt: ft === 'wish' ? 'Their wishlist is empty.' : ft === 'coll' ? 'Nothing in their collection yet.' : 'No outfits yet.',
@@ -2583,7 +2699,9 @@ class Component extends DCLogic {
         photos: ph.map(src => ({ src })), hasPhotos: !!ph.length, noPhotos: !ph.length, multi: ph.length > 1,
         canPrev: st.photoIdx > 0, canNext: st.photoIdx < ph.length - 1,
         dots: ph.map((_, i) => ({ onTap: () => this.carGo(i), bg: i === st.photoIdx ? '#f5f5f7' : 'rgba(245,245,247,0.4)', w: i === st.photoIdx ? '18px' : '7px' })),
-        stars: [1, 2, 3, 4, 5].map(n => ({ fill: n <= dIt.rating ? ACC : '#48484a', label: n + ' stars', onTap: e => { this.bump(e.currentTarget, 1.45); this.mutItem(dIt.id, it => { it.rating = n; }); } })),
+        stars: [1, 2, 3, 4, 5].map(n => { const k = dIt.status === 'owned' ? 'rec' : 'rating'; return { fill: n <= (dIt[k] || 0) ? ACC : '#48484a', label: n + ' stars', onTap: e => { this.bump(e.currentTarget, 1.45); this.mutItem(dIt.id, it => { it[k] = it[k] === n && k === 'rec' ? 0 : n; }); } }; }),
+        starsLbl: dIt.status === 'owned' ? 'Would you recommend it?' : 'How much you want it', notes: st.dNotes != null && st.dNotesId === dIt.id ? st.dNotes : (dIt.notes || ''), notesPh: dIt.status === 'owned' ? 'Fit, feel, care tips, what to wear it with' : 'Size to order, colour options, waiting for a sale',
+        onNotes: e => this.setState({ dNotes: e.target.value, dNotesId: dIt.id }), saveNotes: () => { if (st.dNotes == null || st.dNotesId !== dIt.id) return; const v = st.dNotes.trim(), id = dIt.id; this.setState({ dNotes: null }); if (v !== (dIt.notes || '')) this.mutItem(id, it => { it.notes = v; }); },
         statusTabs: [['wanted', 'Wanted'], ['ordered', 'Ordered'], ['owned', 'Owned']].map(([k, l]) => ({ label: l, bg: dIt.status === k ? '#636366' : 'transparent', onTap: e => { this.bump(e.currentTarget, 1.06); if (k !== 'wanted' && dIt.status === 'wanted') this.openPaid(dIt, k); else { const was = dIt.status; this.setStatus(dIt.id, k); if (k === 'owned' && was !== 'owned') setTimeout(() => this.askStory({ title: 'Share it as a story?', sub: dIt.name + ' arrived', items: [this.snap(dIt)], photos: (dIt.photos || []).filter(u => /^data:|supabase/.test(u)).slice(0, 3) }), 700); } } })),
         showVis: !!(A.configured && A.user), visSub: dIt.private ? 'Only you can see this item' : 'Friends can see this item', visTrack: dIt.private ? '#48484a' : '#30d158', visKnob: dIt.private ? 'none' : 'translateX(20px)',
         toggleVis: () => { const pv = !dIt.private; this.mutItem(dIt.id, it => { if (pv) it.private = true; else delete it.private; }); this.toast(pv ? 'Hidden from friends' : 'Visible to friends'); },
@@ -2615,13 +2733,16 @@ class Component extends DCLogic {
     const ip = st.introPage, introAmt = toNum(st.introBudget);
 
     return {
-      rootRef: this.rootRef, scrollRef: this.scrollRef, detailRef: this.detailRef, sheetRef: this.sheetRef, backdropRef: this.backdropRef, introRef: this.introRef, bPanelRef: this.bPanelRef, toastRef: this.toastRef, figRef: this.figRef,
-      framed, rootH: framed ? '100%' : 'auto', rootPos: framed ? 'relative' : 'fixed', maxW: framed ? 'none' : '430px', topPad: framed ? '44px' : 'calc(env(safe-area-inset-top) + 8px)',
-      chipTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 12px)', tabPadB: framed ? '24px' : '8px', tabPadBot: framed ? '24px' : 'max(env(safe-area-inset-bottom), 10px)', introPadB: framed ? '40px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 16px)',
+      rootRef: this.rootRef, pcBoxRef: this.pcBoxRef, pcRectRef: this.pcRectRef, scrollRef: this.scrollRef, detailRef: this.detailRef, sheetRef: this.sheetRef, backdropRef: this.backdropRef, introRef: this.introRef, bPanelRef: this.bPanelRef, toastRef: this.toastRef, figRef: this.figRef,
+      framed, rootH: framed ? '100%' : this.fullH(), rootPos: framed ? 'relative' : 'fixed', maxW: framed ? 'none' : '430px', topPad: framed ? '44px' : 'calc(env(safe-area-inset-top) + 8px)',
+      chipTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 12px)', tabPadB: framed ? '24px' : '8px', tabPadBot: framed ? '24px' : 'max(env(safe-area-inset-bottom), 12px)', introPadB: framed ? '40px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 16px)',
+      hasPc: !!st.pc, pcv: (() => { const P = st.pc, B = st.pcBox; if (!P) return {}; const base = { cancel: () => this.setState({ pc: null }), done: () => this.pcDone(), reset: () => this.pcReset(), canReset: P.hadOrig, doneLabel: P.busy ? 'Saving…' : 'Done', src: P.src };
+        if (!B || !B.w || !P.iw) return Object.assign(base, { ready: false }); const k = Math.min(B.w / P.iw, B.h / P.ih), dw = P.iw * k, dh = P.ih * k, r = P.rect, px = v => v + 'px';
+        return Object.assign(base, { ready: true, l: px((B.w - dw) / 2), t: px((B.h - dh) / 2), w: px(dw), h: px(dh), rl: px(r.x * dw), rt: px(r.y * dh), rw: px(r.w * dw), rh: px(r.h * dh), onDown: e => this.pcDown(e, dw, dh) }); })(),
       toastBottom: framed ? '108px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 92px)',
       accent: this.props.accent || '#ffd60a',
       isWish: st.tab === 'wish', isCollection: st.tab === 'coll', isMeasure: st.tab === 'meas',
-      tabWish: st.tab === 'wish' ? ACC : '#8e8e93', tabColl: st.tab === 'coll' ? ACC : '#8e8e93', tabMeas: st.tab === 'meas' ? ACC : '#8e8e93',
+      tabWish: st.tab === 'wish' ? ACC : '#8e8e93', tabWishBg: st.tab === 'wish' ? 'rgba(255,214,10,0.16)' : 'transparent', tabCollBg: st.tab === 'coll' ? 'rgba(255,214,10,0.16)' : 'transparent', tabMeasBg: st.tab === 'meas' ? 'rgba(255,214,10,0.16)' : 'transparent', tabSizeBg: st.tab === 'size' ? 'rgba(255,214,10,0.16)' : 'transparent', tabFriendsBg: st.tab === 'friends' ? 'rgba(255,214,10,0.16)' : 'transparent', tabColl: st.tab === 'coll' ? ACC : '#8e8e93', tabMeas: st.tab === 'meas' ? ACC : '#8e8e93',
       goWish: e => this.goTab('wish', e), goCollection: e => this.goTab('coll', e), goMeasure: e => this.goTab('meas', e), goSize: e => { this.setState({ szBrand: null }); this.goTab('size', e); },
       isSize: st.tab === 'size', tabSize: st.tab === 'size' ? ACC : '#8e8e93',
       ...(() => { const BR = window.FITLOG_BRANDS || [], sb = st.szBrand ? BR.find(b => b.id === st.szBrand) : null, inch = st.unit === 'in';
@@ -2784,7 +2905,8 @@ class Component extends DCLogic {
         if (!hit) this.save(Object.assign({}, st.data, { customCats: (st.data.customCats || []).concat(name) }));
         this.setF('category', hit || name); this.setState({ newCatOpen: false, newCat: '' }); },
       catChips: CATS.concat(st.data.customCats || []).map(c => ({ label: c, bg: f.category === c ? ACC : '#2c2c2e', color: f.category === c ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.1); this.setF('category', c); } })),
-      fStars: [1, 2, 3, 4, 5].map(n => ({ fill: n <= (f.rating || 0) ? ACC : '#48484a', label: n + ' stars', onTap: e => { this.bump(e.currentTarget, 1.45); this.setF('rating', n); } })),
+      fStars: [1, 2, 3, 4, 5].map(n => { const k = f.status === 'owned' ? 'rec' : 'rating'; return { fill: n <= (f[k] || 0) ? ACC : '#48484a', label: n + ' stars', onTap: e => { this.bump(e.currentTarget, 1.45); this.setF(k, f[k] === n && k === 'rec' ? 0 : n); } }; }),
+      fStarsLbl: f.status === 'owned' ? 'Would you recommend it?' : 'How much you want it', fNotes: e => this.setF('notes', e.target.value), fNotesPh: f.status === 'owned' ? 'Fit, feel, care tips, what to wear it with' : 'Size to order, colour options, waiting for a sale',
       hasFound: !!(f.found || []).length,
       foundSub: (f.found || []).filter(x => x.on).length + ' of ' + (f.found || []).length + ' selected',
       fFound: (f.found || []).map((x, i) => ({ src: x.src, opacity: x.on ? '1' : '0.35', ring: x.on ? '0 0 0 2px ' + ACC : '0 0 0 1px #48484a', checkBg: x.on ? ACC : 'rgba(28,28,30,0.72)', checkOp: x.on ? '1' : '0',
@@ -2794,7 +2916,7 @@ class Component extends DCLogic {
       sizeLocked: !!f.m2m, sizeFree: !f.m2m, sizeOpen: !f.m2m && !!st.sizeOpen,
       sizeLabel: f.size && f.size !== 'Made to measure' ? f.size : 'Choose a size', sizeColor: f.size && f.size !== 'Made to measure' ? '#f5f5f7' : '#6e6e73',
       sizeRot: st.sizeOpen ? '180deg' : '0deg', toggleSize: () => this.setState({ sizeOpen: !st.sizeOpen }),
-      fPhotos: (f.photos || []).map((src, i) => ({ src, cover: i === 0 && f.photos.length > 1, onDown: e => this.phDown(e, i), onRemove: () => this.setF('photos', f.photos.filter((_, j) => j !== i)) })),
+      fPhotos: (f.photos || []).map((src, i) => ({ src, cover: i === 0 && f.photos.length > 1, canCrop: /^data:image\//.test(src) || /\/storage\/v1\/object\/public\/photos\//.test(src) || (f.origs || []).some(x => x.c === src), onCrop: e => { e.stopPropagation(); this.pcOpen(i); }, onDown: e => this.phDown(e, i), onRemove: () => this.setF('photos', f.photos.filter((_, j) => j !== i)) })),
       fMultiPh: (f.photos || []).length > 1, phMove: e => this.phMove(e), phUp: e => this.phUp(e), phStop: e => e.stopPropagation(),
       onPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await Promise.all(files.map(readPhoto))).filter(Boolean); this.setState(s => ({ form: Object.assign({}, s.form, { photos: (s.form.photos || []).concat(out) }) })); },
       budgetIn: st.budgetIn, onBudgetIn: e => this.setState({ budgetIn: e.target.value }),
