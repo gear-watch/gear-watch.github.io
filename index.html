@@ -2924,7 +2924,7 @@ class Component extends DCLogic {
       tgJoin: () => { try { localStorage.setItem('gw-tg-hide', 'joined'); } catch (e) {} setTimeout(() => this.setState({ tgHide: true }), 400); },
       tgClose: () => { try { localStorage.setItem('gw-tg-hide', 'dismissed'); } catch (e) {} this.setState({ tgHide: true }); },
       isFriends: st.tab === 'friends', tabFriends: st.tab === 'friends' ? ACC : '#8e8e93',
-      goFriends: e => { this.goTab('friends', e); this.loadSocial(); }, fr, ...this.storyVals({ SO, ini, addF, mineKey, fKey, framed }), hasFriend: !!fU, fv, isSheetPerson: st.sheet === 'person', isSheetInvite: st.sheet === 'invite', qrRef: this.qrRef,
+      goFriends: e => { this.goTab('friends', e); this.loadSocial(); }, fr, ...this.storyVals({ SO, ini, addF, mineKey, fKey, framed }), hasFriend: !!fU && !st.fFromFeed, fv, isSheetPerson: st.sheet === 'person', isSheetInvite: st.sheet === 'invite', qrRef: this.qrRef,
       ps: (() => { const P = st.person; if (!P) return {}; const r = relOf(P.id), x = SO.following.concat(SO.requests).find(y => y.id === P.id) || P, close = cb => this.closeSheet(cb);
         const base = { name: '@' + x.username, initial: ini(x.username), av: x.avatar || '', hasAv: !!x.avatar, avCursor: x.avatar ? 'zoom-in' : 'default', onAv: () => { if (x.avatar) this.openViewer([x.avatar], 0); }, altFg: '#a1a1a6' };
         if (r === 'friend') return Object.assign(base, { sub: 'You’re friends.', hasMain: true, mainLabel: 'View profile', mainBg: ACC, mainFg: '#000', onMain: () => close(() => openF(x.id, 'wish')()), hasAlt: false });
