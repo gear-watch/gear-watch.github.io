@@ -1604,7 +1604,7 @@ class Component extends DCLogic {
     data.profiles.forEach(p => p.items.forEach(it => {
       let e = it.url && map[normUrl(it.url)]; if (!e || !e.checked || (it.checked && e.checked <= it.checked)) return; changed = true;
       it.checked = e.checked; it.checkErr = null;
-      it.checkHow = e.how || null; it.checkNote = null;
+      it.checkHow = e.how || null; it.checkNote = e.stale && e.okAt ? 'shop blocked a new check, price read ' + agoTxt(e.okAt) : null;
       if (!e.ok || e.price == null) { it.checkErr = /blocked/i.test(e.error || '') ? 'The shop blocked the price check' : /no price/i.test(e.error || '') ? 'No price found on the page' : 'Couldn’t read the price'; return; }
       let ep = e.price; if (e.currency && it.currency && e.currency !== it.currency && FX[e.currency] && FX[it.currency]) { it.checkNote = 'Shop showed ' + e.currency + num(e.price) + ', converted'; ep = Math.round(e.price * FX[e.currency] / FX[it.currency] * 100) / 100; e = Object.assign({}, e, { price: ep, currency: it.currency }); }
       if (e.currency && it.currency && e.currency !== it.currency) { it.checkErr = 'Shop shows ' + e.currency + e.price; return; }
@@ -1618,7 +1618,7 @@ class Component extends DCLogic {
     try { const r = await fetch(api, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ items: [{ url: it.url, currency: it.currency }], force: true }) });
       const j = await r.json(), e = (j.items || {})[k];
       if (!e) this.toast('No answer from the price helper');
-      else { this.applyPrices({ [k]: Object.assign({}, e, { checked: new Date().toISOString() }) }); this.toast(e.ok ? 'Found ' + money(e.currency || it.currency, e.price) + (e.how ? ' · ' + e.how : '') : (e.error || 'No price found')); }
+      else { this.applyPrices({ [k]: Object.assign({}, e, { checked: new Date().toISOString() }) }); this.toast(e.ok && e.stale ? 'Shop blocked a new check. Kept ' + money(e.currency || it.currency, e.price) + ' from ' + agoTxt(e.okAt) + '.' : e.ok ? 'Found ' + money(e.currency || it.currency, e.price) + (e.how ? ' · ' + e.how : '') : (e.error || 'No price found')); }
     } catch (er) { this.toast('Couldn’t reach the price helper'); }
     this.setState({ checking: null }); }
   async syncPrices() {
@@ -1877,24 +1877,26 @@ class Component extends DCLogic {
     f.found = [];
     this.setState({ sheet: 'form', form: f, fetchMsg: '', fetching: false, newCatOpen: false, sizeOpen: false });
   }
-  fillFromLink() {
+  async fillFromLink() {
     const raw = (this.state.form.url || '').trim(); if (!raw) { this.setState({ fetchMsg: 'Paste a link first.' }); return; }
-    this.setState({ fetchMsg: 'Looking up the page…', fetching: true });
-    setTimeout(() => {
-      let host = '', slug = '';
-      try { const x = new URL(/^https?:/.test(raw) ? raw : 'https://' + raw); host = x.hostname.replace(/^www\./, ''); slug = (x.pathname.split('/').filter(Boolean).pop() || '').replace(/\.html?$/, ''); }
-      catch (e) { this.setState({ fetchMsg: 'That doesn’t look like a link.', fetching: false }); return; }
-      const s = slug.toLowerCase();
-      const brand = /kinkfox/.test(host) ? 'Kinkfox' : /libidex/.test(host) ? 'Libidex' : /bluewolf/.test(host) ? 'Blue Wolf Collective' : /kinkprojects/.test(host) ? 'Kinkprojects' : /regulation/.test(host) ? 'Regulation' : host.split('.')[0].replace(/^\w/, c => c.toUpperCase());
-      const cur = /libidex|regulation/.test(host) ? '£' : /kinkfox|kinkprojects/.test(host) ? '$' : '€';
-      const name = s.replace(/-copy$/, '').split('-').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      const category = /hood|mask/.test(s) ? 'Hood' : /harness/.test(s) ? 'Harness' : /gag/.test(s) ? 'Gags' : /cuff|restraint/.test(s) ? 'Cuffs' : /short|brief/.test(s) ? 'Shorts' : /glove/.test(s) ? 'Gloves' : /sock|stocking/.test(s) ? 'Socks' : /surf/.test(s) ? 'Surfsuit' : /suit/.test(s) ? 'Catsuit' : 'Accessory';
-      const price = KNOWN[s], pics = KNOWN_PHOTOS[s] || [];
-      const missing = [price == null ? 'price' : null, pics.length ? null : 'photos'].filter(Boolean);
-      this.setState(st => ({ fetching: false, form: Object.assign({}, st.form, { name: st.form.name || name, brand, currency: cur, category, price: price != null ? String(price) : st.form.price, m2m: st.form.m2m || /made-to-(order|measure)/.test(s) || /kinkfox|kinkprojects/.test(host),
-          found: pics.filter(src => !(st.form.photos || []).includes(src)).map(src => ({ src, on: true })) }),
-        fetchMsg: 'Filled in from ' + host + '.' + (missing.length ? ' No ' + missing.join(' or ') + ' found, add ' + (missing.length > 1 ? 'them' : 'it') + ' below.' : '') }));
-    }, 900);
+    let host = '', slug = '', href = '';
+    try { const x = new URL(/^https?:/.test(raw) ? raw : 'https://' + raw); href = x.href; host = x.hostname.replace(/^www\./, ''); slug = (x.pathname.split('/').filter(Boolean).pop() || '').replace(/\.html?$/, ''); }
+    catch (e) { this.setState({ fetchMsg: 'That doesn’t look like a link.', fetching: false }); return; }
+    this.setState({ fetchMsg: 'Reading the shop’s page…', fetching: true });
+    const api = (window.GW_PRICE_API || '').trim(); let L = null, why = '';
+    if (api) { try { const r = await fetch(api, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ lookup: href }) }); const j = await r.json(); if (j && j.ok) L = j; else why = (j && j.error) || ''; } catch (e) { why = 'Couldn’t reach the price helper.'; } }
+    const s = slug.toLowerCase();
+    const gBrand = /kinkfox/.test(host) ? 'Kinkfox' : /libidex/.test(host) ? 'Libidex' : /bluewolf/.test(host) ? 'Blue Wolf Collective' : /kinkprojects/.test(host) ? 'Kinkprojects' : /regulation/.test(host) ? 'Regulation' : host.split('.')[0].replace(/^\w/, c => c.toUpperCase());
+    const gCur = /libidex|regulation/.test(host) ? '£' : /kinkfox|kinkprojects/.test(host) ? '$' : '€';
+    const gName = s.replace(/-copy$/, '').split('-').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const name = (L && L.name) || gName, n = name.toLowerCase() + ' ' + s;
+    const category = /hood|mask/.test(n) ? 'Hood' : /harness/.test(n) ? 'Harness' : /gag/.test(n) ? 'Gags' : /cuff|restraint/.test(n) ? 'Cuffs' : /short|brief/.test(n) ? 'Shorts' : /glove/.test(n) ? 'Gloves' : /sock|stocking/.test(n) ? 'Socks' : /surf/.test(n) ? 'Surfsuit' : /suit/.test(n) ? 'Catsuit' : 'Accessory';
+    const price = L && L.price != null ? Math.round(L.price * 100) / 100 : KNOWN[s], pics = (L && L.images && L.images.length ? L.images : KNOWN_PHOTOS[s]) || [];
+    const cur = L && ['€', '$', '£'].includes(L.currency) ? L.currency : gCur, brand = (L && L.brand) || gBrand;
+    const missing = [price == null ? 'price' : null, pics.length ? null : 'photos'].filter(Boolean);
+    this.setState(st => ({ fetching: false, form: Object.assign({}, st.form, { url: href, name: st.form.name || name, brand: st.form.brand || brand, currency: cur, category, price: price != null ? String(price) : st.form.price, m2m: st.form.m2m || /made-to-(order|measure)/.test(s) || /kinkfox|kinkprojects/.test(host),
+        found: pics.filter(src => !(st.form.photos || []).includes(src)).map(src => ({ src, on: true })) }),
+      fetchMsg: (L ? 'Filled in from ' + host + '.' : 'Couldn’t read ' + host + (why ? ' (' + why.replace(/\.$/, '') + ')' : '') + ', so this is a guess from the link.') + (missing.length ? ' No ' + missing.join(' or ') + ' found, add ' + (missing.length > 1 ? 'them' : 'it') + ' below.' : '') }));
   }
   saveForm() {
     const f = this.state.form; if (!f.name.trim()) return;
