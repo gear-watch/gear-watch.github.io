@@ -2374,7 +2374,7 @@ class Component extends DCLogic {
     (p.outfits || []).forEach(o => { if (o.created === t && !o.createdAt) o.createdAt = now; const lw = String((o.worn || []).slice(-1)[0] || '').slice(0, 10); if (lw === t && o.wornAtD !== t) { o.wornAt = now; o.wornAtD = t; } }); }
   flSession() { let raw = null; try { raw = localStorage.getItem('fitlog.v2'); } catch (e) {} if (raw === this._flRaw) return this._flSess; this._flRaw = raw; this._flSess = null;
     try { const d = JSON.parse(raw), pr = d && ((d.profiles || []).find(x => x.id === d.activeId) || (d.profiles || [])[0]), ss = ((pr && pr.sessions) || []).filter(s => s && s.values && Object.keys(s.values).length);
-      if (ss.length) { const s = ss.reduce((a, b) => (String(b.date) >= String(a.date) ? b : a)); this._flSess = { date: s.date, values: s.values }; } } catch (e) {}
+      if (ss.length) { const ord = ss.map((s, i) => [s, i]).sort((a, b) => String(a[0].date).localeCompare(String(b[0].date)) || a[1] - b[1]).map(x => x[0]), values = {}; ord.forEach(s => Object.assign(values, s.values)); this._flSess = { date: ord[ord.length - 1].date, values }; } } catch (e) {}
     return this._flSess; }
   closeFOutfit() { this.animOut(this.fOutRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => this.setState({ fOutfit: null })); }
   mutItem(id, fn) { this.mutate(p => { const it = p.items.find(x => x.id === id); if (it) fn(it, p); }); }
@@ -2447,7 +2447,7 @@ class Component extends DCLogic {
     if (this.state.cpickQ) { const left = this.unsureIds().filter(x => x !== id); if (left.length) { this.setState({ cpickId: left[0], newGrpOpen: false, newGrp: '' }); return; } this.closeSheet(() => this.toast('All sorted')); return; }
     this.closeSheet(() => this.toast('Moved to ' + g));
   }
-  fval(vals, id) { const v = vals[id]; if (v == null) return null; if (id === 'shoe') return { v: String(v), u: 'EU' }; return this.state.unit === 'in' ? { v: (v / 2.54).toFixed(1), u: 'in' } : { v: num(v), u: 'cm' }; }
+  fval(vals, id) { const v = vals[id]; if (v == null) return null; if (id === 'shoe') return { v: String(v), u: 'EU' }; return this.state.unit === 'in' ? { v: (v / 2.54).toFixed(1), u: 'in' } : { v: String(Math.round(v * 10) / 10), u: 'cm' }; }
   setF(k, v) { this.setState(s => ({ form: Object.assign({}, s.form, { [k]: v }) })); }
   openForm(it, status) {
     const f = it ? { id: it.id, url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, rec: it.rec || 0, notes: it.notes || '', status: it.status, origs: (it.origs || []).slice(), photos: (it.photos || []).slice() }

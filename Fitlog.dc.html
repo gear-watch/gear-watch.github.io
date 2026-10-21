@@ -567,6 +567,11 @@ input:focus,textarea:focus{outline:2px solid #0071e3;outline-offset:0;}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;startTab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;measure&quot;,&quot;brands&quot;,&quot;orders&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;classic&quot;,&quot;plum&quot;,&quot;gloss&quot;,&quot;orchid&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;embedded&quot;:{&quot;editor&quot;:null,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;topInset&quot;:{&quot;editor&quot;:null,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;},&quot;bottomInset&quot;:{&quot;editor&quot;:null,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;}}">
 const KEY = 'fitlog.v2';
+function mergeSameDay(data) { let ch = false;
+  (data.profiles || []).forEach(p => { const by = {}, keep = [], remap = {};
+    (p.sessions || []).forEach(s => { const k = by[s.date]; if (!k) { by[s.date] = s; keep.push(s); } else { k.values = Object.assign({}, k.values, s.values); remap[s.id] = k.id; ch = true; } });
+    if (keep.length !== (p.sessions || []).length) { p.sessions = keep; (p.orders || []).forEach(o => { if (remap[o.sessionId]) o.sessionId = remap[o.sessionId]; }); } });
+  return ch; }
 function migrate(data) {
   const src = window.FITLOG_BRANDS || [];
   let changed = false;
@@ -761,6 +766,7 @@ class Component extends DCLogic {
   init() {
     let data = null;
     try { data = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+    if (data && mergeSameDay(data)) this.persist(data);
     if (!data && window.FITLOG_BRANDS) { data = seed(); this.persist(data); }
     else if (data && window.FITLOG_BRANDS) { const m = migrate(JSON.parse(JSON.stringify(data))); if (m) { data = m; this.persist(data); } }
     this.fromGw = /[#&]measure\b/.test(location.hash || ''); if (this.fromGw) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
@@ -923,7 +929,7 @@ class Component extends DCLogic {
     const rootH = this.props.embedded ? '100%' : '100dvh';
     if (!d) return { rootH, th: THEMES[this.props.theme] || THEMES.gearwatch, scrollRef: this.scrollRef, topInset: tI, bottomInset: bI, tabHome: {}, tabMeasure: {}, tabBrands: {}, tabOrders: {} };
     const u = d.unit, prof = d.profiles.find(p => p.id === d.activeId) || d.profiles[0];
-    const sess = [...prof.sessions].sort((a, b) => b.date.localeCompare(a.date));
+    const sess = prof.sessions.map((x, i) => [x, i]).sort((a, b) => b[0].date.localeCompare(a[0].date) || b[1] - a[1]).map(x => x[0]);
     const latest = sess[0], prev = sess[1], lv = latest ? latest.values : {};
     const themeKey = THEMES[this.props.theme] ? this.props.theme : THEMES[d.theme] ? d.theme : 'gearwatch', thm = THEMES[themeKey];
     const mmOpen = s.measureMore != null ? s.measureMore : POINTS.some(p => !p.core && lv[p.id] != null);
@@ -1126,7 +1132,7 @@ class Component extends DCLogic {
       saveSession: () => {
         const values = {}; Object.entries(s.draft).forEach(([k, v]) => { const c = this.toCmP(k, v); if (c != null) values[k] = Math.round(c * 10) / 10; });
         if (!Object.keys(values).length) return this.flash('Enter at least one measurement');
-        this.mut((dd, pp) => { pp.sessions.push({ id: uid(), date: s.draftDate, values }); });
+        this.mut((dd, pp) => { const same = pp.sessions.find(x => x.date === s.draftDate); if (same) same.values = Object.assign({}, same.values, values); else pp.sessions.push({ id: uid(), date: s.draftDate, values }); });
         this.flash('Measurements saved'); if (this.fromGw) { this.fromGw = false; setTimeout(() => { location.href = './index.html#meas'; }, 700); return; } this.nav({ tab: 'home', draft: {}, draftDate: todayISO(), hints: {} });
       },
       toggleMore: () => this.setState({ showMore: !s.showMore }), moreLabel: s.showMore ? 'Show fewer points' : 'Show all ' + POINTS.length + ' points',
