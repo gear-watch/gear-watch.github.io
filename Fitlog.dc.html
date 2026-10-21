@@ -737,8 +737,7 @@ function resizeImg(file, max, q) {
   });
 }
 
-function seed() { const brands = JSON.parse(JSON.stringify(window.FITLOG_BRANDS || [])); const me = { id: uid(), name: 'Me', sessions: [], orders: [] }; return { v: 2, seedV: 3, unit: 'cm', staleDays: 91, theme: 'gearwatch', gwTheme: true, activeId: me.id, profiles: [me], brands, imports: (window.FITLOG_IMPORTS || []).map(i => i.id).concat('kinkfox-fix1') }; }
-function seedSample() {
+function seed() {
   const brands = JSON.parse(JSON.stringify(window.FITLOG_BRANDS || []));
   const s1 = uid(), s2 = uid();
   const me = { id: uid(), name: 'Me', sessions: [
@@ -761,7 +760,7 @@ class Component extends DCLogic {
   init() {
     let data = null;
     try { data = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
-    if (!data && window.FITLOG_BRANDS) { data = seed(); this.persist(data); }
+    if (!data && window.FITLOG_BRANDS) { const s0 = seed(); data = migrate(s0) || s0; this.persist(data); }
     else if (data && window.FITLOG_BRANDS) { const m = migrate(JSON.parse(JSON.stringify(data))); if (m) { data = m; this.persist(data); } }
     return { data, tab: this.props.startTab || 'home', view: null, brandId: null, garmentIdx: null, sizeIdx: null, editSize: 0,
       quickBrandId: null, quickGarmentIdx: null, figGroup: null, draft: {}, draftDate: todayISO(), showMore: false, hints: {},
@@ -769,7 +768,7 @@ class Component extends DCLogic {
   }
   componentDidMount() {
     if (!this.state.data) this._poll = setInterval(() => {
-      if (window.FITLOG_BRANDS) { clearInterval(this._poll); const data = seed(); this.persist(data); this.setState({ data }); }
+      if (window.FITLOG_BRANDS) { clearInterval(this._poll); const s0 = seed(); const data = migrate(s0) || s0; this.persist(data); this.setState({ data }); }
     }, 60);
     else {
       this.loadImgs(this.state.data);
