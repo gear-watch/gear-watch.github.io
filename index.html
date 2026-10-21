@@ -571,25 +571,25 @@ input::placeholder{color:#6e6e73;}
 </sc-if>
 </div>
 
-<div style="position:absolute;left:0;right:0;bottom:0;z-index:10;background:rgba(18,18,19,0.94);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid #2c2c2e;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:8px 4px {{ tabPadBot }};">
-  <button onClick="{{ goWish }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ tabWish }};font-size:11px;letter-spacing:0;padding:0;min-width:0;transition:color .25s;">
-    <span style="display:flex;align-items:center;justify-content:center;width:56px;height:32px;border-radius:9999px;background:{{ tabWishBg }};transition:background .25s;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg></span>
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:10;background:rgba(22,22,23,0.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid #2c2c2e;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px 0 {{ tabPadBot }};">
+  <button onClick="{{ goWish }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabWish }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg>
     <span>Wishlist</span>
   </button>
-  <button onClick="{{ goCollection }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ tabColl }};font-size:11px;letter-spacing:0;padding:0;min-width:0;transition:color .25s;">
-    <span style="display:flex;align-items:center;justify-content:center;width:56px;height:32px;border-radius:9999px;background:{{ tabCollBg }};transition:background .25s;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8V6.5a3 3 0 016 0V8"></path></svg></span>
+  <button onClick="{{ goCollection }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabColl }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8V6.5a3 3 0 016 0V8"></path></svg>
     <span>Collection</span>
   </button>
-  <button onClick="{{ goMeasure }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ tabMeas }};font-size:11px;letter-spacing:0;padding:0;min-width:0;transition:color .25s;">
-    <span style="display:flex;align-items:center;justify-content:center;width:56px;height:32px;border-radius:9999px;background:{{ tabMeasBg }};transition:background .25s;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="1.5"></rect><path d="M6.5 8v3M10 8v4M13.5 8v3M17 8v4"></path></svg></span>
+  <button onClick="{{ goMeasure }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabMeas }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="1.5"></rect><path d="M6.5 8v3M10 8v4M13.5 8v3M17 8v4"></path></svg>
     <span>Measurements</span>
   </button>
-  <button onClick="{{ goSize }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ tabSize }};font-size:11px;letter-spacing:0;padding:0;min-width:0;transition:color .25s;">
-    <span style="display:flex;align-items:center;justify-content:center;width:56px;height:32px;border-radius:9999px;background:{{ tabSizeBg }};transition:background .25s;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3.5 4h8l9 9-7.5 7.5-9-9z"></path><circle cx="8" cy="8.5" r="1.4"></circle></svg></span>
+  <button onClick="{{ goSize }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabSize }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3.5 4h8l9 9-7.5 7.5-9-9z"></path><circle cx="8" cy="8.5" r="1.4"></circle></svg>
     <span>Size check</span>
   </button>
-  <button onClick="{{ goFriends }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ tabFriends }};font-size:11px;letter-spacing:0;padding:0;min-width:0;transition:color .25s;position:relative;">
-    <span style="display:flex;align-items:center;justify-content:center;width:56px;height:32px;border-radius:9999px;background:{{ tabFriendsBg }};transition:background .25s;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="8.5" r="3.2"></circle><path d="M3.5 19.5c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"></path><circle cx="16.5" cy="9.5" r="2.6"></circle><path d="M15.6 14.6c2.5-.2 4.4 1.3 5 4.4"></path></svg></span>
+  <button onClick="{{ goFriends }}" style="border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:{{ tabFriends }};font-size:11px;letter-spacing:0;padding:4px 0;transition:color .25s;position:relative;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="8.5" r="3.2"></circle><path d="M3.5 19.5c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"></path><circle cx="16.5" cy="9.5" r="2.6"></circle><path d="M15.6 14.6c2.5-.2 4.4 1.3 5 4.4"></path></svg>
     <span>Friends</span>
     <sc-if value="{{ fr.hasRequests }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:2px;left:calc(50% + 8px);width:8px;height:8px;border-radius:9999px;background:var(--gw-accent,#ffd60a);"></span></sc-if>
   </button>
@@ -2784,8 +2784,8 @@ class Component extends DCLogic {
 
     return {
       rootRef: this.rootRef, pcBoxRef: this.pcBoxRef, pcRectRef: this.pcRectRef, scrollRef: this.scrollRef, detailRef: this.detailRef, sheetRef: this.sheetRef, backdropRef: this.backdropRef, introRef: this.introRef, bPanelRef: this.bPanelRef, toastRef: this.toastRef, figRef: this.figRef,
-      framed, rootH: framed ? '100%' : this.fullH(), rootPos: framed ? 'relative' : 'fixed', maxW: framed ? 'none' : '430px', topPad: framed ? '44px' : 'calc(env(safe-area-inset-top) + 8px)',
-      chipTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 12px)', tabPadB: framed ? '24px' : '8px', tabPadBot: framed ? '24px' : 'max(env(safe-area-inset-bottom), 12px)', introPadB: framed ? '40px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 16px)',
+      framed, rootH: framed ? '100%' : '100dvh', rootPos: 'relative', maxW: framed ? 'none' : '430px', topPad: framed ? '44px' : 'calc(env(safe-area-inset-top) + 8px)',
+      chipTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 12px)', tabPadB: framed ? '24px' : '8px', tabPadBot: framed ? '24px' : 'calc(env(safe-area-inset-bottom) + 8px)', introPadB: framed ? '40px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 16px)',
       hasPc: !!st.pc, pcv: (() => { const P = st.pc, B = st.pcBox; if (!P) return {}; const base = { cancel: () => this.setState({ pc: null }), done: () => this.pcDone(), reset: () => this.pcReset(), canReset: P.hadOrig, doneLabel: P.busy ? 'Saving…' : 'Done', src: P.src };
         if (!B || !B.w || !P.iw) return Object.assign(base, { ready: false }); const k = Math.min(B.w / P.iw, B.h / P.ih), dw = P.iw * k, dh = P.ih * k, r = P.rect, px = v => v + 'px';
         return Object.assign(base, { ready: true, l: px((B.w - dw) / 2), t: px((B.h - dh) / 2), w: px(dw), h: px(dh), rl: px(r.x * dw), rt: px(r.y * dh), rw: px(r.w * dw), rh: px(r.h * dh), onDown: e => this.pcDown(e, dw, dh) }); })(),
