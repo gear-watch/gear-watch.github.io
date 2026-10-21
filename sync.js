@@ -1,5 +1,6 @@
 // GearWatch account + sync layer (Supabase). Loaded by GearWatch; does nothing until config.js has a Supabase URL and key.
 (function () {
+  if (window.GWSync) return; // never run two copies; the app would talk to one that isn't signed in
   const META = 'gearwatch.sync', AUTH = 'gearwatch.auth', FL = 'fitlog.v2', GW = 'gearwatch.v1';
   const LIBS = ['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', 'https://unpkg.com/@supabase/supabase-js@2'];
   const cfg = () => ({ url: String(window.GW_SUPABASE_URL || '').trim(), key: String(window.GW_SUPABASE_ANON_KEY || '').trim() });
@@ -134,7 +135,6 @@
   const within = (p, ms) => Promise.race([p, new Promise(res => setTimeout(() => res('timeout'), ms))]);
   async function fresh() {
     try { const g = await within(sb.auth.getSession(), 5000); if (g === 'timeout') return true; const s = g.data && g.data.session; if (!s) return false;
-      if (s.expires_at && s.expires_at * 1000 < Date.now() + 60000) { const r = await within(sb.auth.refreshSession(), 8000); if (r === 'timeout') return true; if (r.error || !r.data.session) return false; }
       return true; } catch (e) { return true; }
   }
   async function social() {

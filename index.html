@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=5"></script>
+<script src="./sync.js?v=6"></script>
 <style>
 html,body{margin:0;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -1641,7 +1641,7 @@ class Component extends DCLogic {
   }
 
   save(data, quiet) { if (!quiet) data.mod = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} this.setState({ data }); if (!quiet && window.GWSync) window.GWSync.schedule(); }
-  loadSocial(quiet, manual) { const G = window.GWSync, A = G && G.state ? G.state() : null; if (!A || !A.user) { if (manual) this.toast('Sign in to see friends'); return false; }
+  loadSocial(quiet, manual) { const G = window.GWSync, A0 = G && G.state ? G.state() : null, A = A0 && A0.user ? A0 : this.state.acct; if (!G || !A || !A.user) { if (manual) this.toast('Sign in to see friends'); return false; }
     if (this.socLoading && !manual && Date.now() - (this.socStart || 0) < 15000) return false;
     const tok = (this.socTok = (this.socTok || 0) + 1), uid = A.user.id; this.socLoading = true; this.socStart = Date.now(); if (!quiet) this.setState({ socialBusy: true });
     const to = new Promise((_, rej) => setTimeout(() => rej(new Error('Took too long. Check your connection.')), 15000));
