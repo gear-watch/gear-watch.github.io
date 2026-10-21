@@ -379,10 +379,13 @@ input::placeholder{color:#6e6e73;}
   </div>
   <sc-if value="{{ fr.signedIn }}" hint-placeholder-val="{{ false }}">
     <div data-anim="up" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:12px 16px 12px 12px;display:flex;align-items:center;gap:12px;">
-      <label style="position:relative;flex:none;width:56px;height:56px;border-radius:9999px;background:#2c2c2e;overflow:hidden;display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;color:#f5f5f7;cursor:pointer;" style-active="transform:scale(0.95);">
-        <span>{{ fr.myInitial }}</span>
-        <sc-if value="{{ fr.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fr.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if>
-        <sc-if value="{{ fr.avBusy }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:grid;place-items:center;"><span data-anim="spin" style="width:18px;height:18px;border-radius:9999px;border:2px solid #48484a;border-top-color:var(--gw-accent,#ffd60a);"></span></span></sc-if>
+      <label aria-label="Change profile photo" style="position:relative;flex:none;width:56px;height:56px;cursor:pointer;" style-active="transform:scale(0.95);">
+        <span style="position:absolute;inset:0;border-radius:9999px;background:#2c2c2e;overflow:hidden;display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;color:#f5f5f7;">
+          <span>{{ fr.myInitial }}</span>
+          <sc-if value="{{ fr.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fr.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if>
+          <sc-if value="{{ fr.avBusy }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:grid;place-items:center;"><span data-anim="spin" style="width:18px;height:18px;border-radius:9999px;border:2px solid #48484a;border-top-color:var(--gw-accent,#ffd60a);"></span></span></sc-if>
+        </span>
+        <span style="position:absolute;right:-3px;bottom:-3px;width:24px;height:24px;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;box-shadow:0 0 0 3px #1c1c1e;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5l3 3L5 14H2v-3z"></path><path d="M9 4l3 3"></path></svg></span>
         <input type="file" accept="image/*" onChange="{{ fr.onAvatar }}" style="display:none;">
       </label>
       <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
@@ -709,7 +712,7 @@ input::placeholder{color:#6e6e73;}
 <sc-if value="{{ hasFriend }}" hint-placeholder-val="{{ false }}">
   <div ref="{{ friendRef }}" data-anim="push" data-delay="0" style="position:absolute;inset:0;z-index:21;background:#000;overflow-y:auto;scrollbar-width:none;padding-top:{{ fvTop }};padding-bottom:40px;box-shadow:-20px 0 40px rgba(0,0,0,0.5);">
     <div style="padding:0 8px;"><button onClick="{{ fv.onBack }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">‹ Friends</button></div>
-    <div data-anim="scale" style="padding:4px 20px 12px;"><span style="position:relative;overflow:hidden;width:80px;height:80px;border-radius:9999px;background:#1c1c1e;display:grid;place-items:center;font-family:var(--font-display);font-size:32px;font-weight:600;color:#f5f5f7;"><span>{{ fv.initial }}</span><sc-if value="{{ fv.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fv.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span></div>
+    <div data-anim="scale" style="padding:4px 20px 12px;"><span onClick="{{ fv.onAv }}" style="cursor:{{ fv.avCursor }};position:relative;overflow:hidden;width:80px;height:80px;border-radius:9999px;background:#1c1c1e;display:grid;place-items:center;font-family:var(--font-display);font-size:32px;font-weight:600;color:#f5f5f7;"><span>{{ fv.initial }}</span><sc-if value="{{ fv.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fv.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span></div>
     <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;overflow:hidden;text-overflow:ellipsis;">{{ fv.name }}</div>
     <div data-anim="up" style="padding:2px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ fv.sub }}</div>
     <div data-anim="up" style="margin:16px 16px 0;display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;">
@@ -805,6 +808,24 @@ input::placeholder{color:#6e6e73;}
       <button onPointerDown="{{ vwStop }}" onClick="{{ vw.onClose }}" aria-label="Close" style="flex:none;width:44px;height:44px;border:0;border-radius:9999px;background:rgba(44,44,46,0.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:#f5f5f7;display:grid;place-items:center;cursor:pointer;" style-active="transform:scale(0.95);"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"></path></svg></button>
       <sc-if value="{{ vw.multi }}" hint-placeholder-val="{{ false }}"><span style="background:rgba(44,44,46,0.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-radius:9999px;padding:6px 12px;font-size:14px;font-weight:600;color:#f5f5f7;">{{ vw.counter }}</span></sc-if>
       <span style="flex:none;width:44px;"></span>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ hasCrop }}" hint-placeholder-val="{{ false }}">
+  <div ref="{{ cropRef }}" style="position:absolute;inset:0;z-index:61;background:#000;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;">
+    <div style="flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:8px;padding-top:{{ fvTop }};">
+      <button onClick="{{ cropCancel }}" style="justify-self:start;border:0;background:none;color:#f5f5f7;font-size:17px;padding:8px;cursor:pointer;">Cancel</button>
+      <span style="font-weight:600;">Move and scale</span>
+      <button onClick="{{ cropUse }}" style="justify-self:end;border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;font-weight:600;padding:8px;cursor:pointer;">Use photo</button>
+    </div>
+    <div data-crop-stage="1" onPointerDown="{{ cropDown }}" onPointerMove="{{ cropMove }}" onPointerUp="{{ cropUp }}" onPointerCancel="{{ cropUp }}" onWheel="{{ cropWheel }}" style="flex:1;min-height:0;position:relative;overflow:hidden;touch-action:none;cursor:grab;">
+      <img data-crop-img="1" src="{{ crop.src }}" onLoad="{{ cropLoaded }}" alt="" draggable="false" style="position:absolute;left:50%;top:50%;max-width:none;opacity:0;pointer-events:none;will-change:transform;transform-origin:center;">
+      <div data-crop-ring="1" style="position:absolute;left:50%;top:50%;width:240px;height:240px;transform:translate(-50%,-50%);border-radius:9999px;box-shadow:0 0 0 9999px rgba(0,0,0,0.62);outline:1px solid rgba(245,245,247,0.5);pointer-events:none;"></div>
+    </div>
+    <div style="flex:none;display:flex;align-items:center;gap:16px;padding:16px 20px calc(env(safe-area-inset-bottom) + 20px);">
+      <span style="flex:1;min-width:0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;text-wrap:pretty;">Pinch or drag to fit. This is how friends will see it.</span>
+      <canvas data-crop-prev="1" width="160" height="160" style="flex:none;width:72px;height:72px;border-radius:9999px;background:#1c1c1e;"></canvas>
+      <canvas data-crop-prev="1" width="96" height="96" style="flex:none;width:40px;height:40px;border-radius:9999px;background:#1c1c1e;"></canvas>
     </div>
   </div>
 </sc-if>
@@ -1572,7 +1593,7 @@ const squareAvatar = file => new Promise((res, rej) => { const u = URL.createObj
   im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('Couldn’t read that photo.')); }; im.src = u; });
 class Component extends DCLogic {
   state = { data: load(), tab: 'wish', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null, coll: 'items', outfit: null, builder: null, cuts: {}, cutsReady: false, cpickId: null, cpickQ: false, ovDel: false, newGrpOpen: false, newGrp: '', bdragId: null, acct: null, social: null, friend: null, friendTab: 'wish', followIn: '', followMsg: '', authEmail: '', authCode: '', unameIn: '', authErr: '' };
-  outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef(); fItemRef = React.createRef(); fiCarRef = React.createRef(); vwRef = React.createRef();
+  outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef(); fItemRef = React.createRef(); fiCarRef = React.createRef(); vwRef = React.createRef(); cropRef = React.createRef();
   heroRef = React.createRef(); carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
   introRef = React.createRef(); bPanelRef = React.createRef(); toastRef = React.createRef(); figRef = React.createRef();
 
@@ -1730,6 +1751,26 @@ class Component extends DCLogic {
     if (L && now - L.t < 300 && Math.hypot(p.x - L.x, p.y - L.y) < 40) { clearTimeout(this.vwTapT); this.vwTap = null; if (g.s > 1.01) { g.s = 1; g.tx = 0; g.ty = 0; this.vwApply(true); } else this.vwZoomAt(2.5, p.x, p.y, true); }
     else { this.vwTap = { t: now, x: p.x, y: p.y }; clearTimeout(this.vwTapT); this.vwTapT = setTimeout(() => { this.vwTap = null; this.setState(s => ({ vwHide: !s.vwHide })); }, 300); } }
   vwWheel(e) { const g = this.vw; if (!g) return; this.vwZoomAt(g.s * Math.exp(-e.deltaY * 0.0025), e.clientX, e.clientY, false); }
+  openCrop(file) { if (!file) return; if (this.cropUrl) URL.revokeObjectURL(this.cropUrl); this.cropUrl = URL.createObjectURL(file); this.cg = null;
+    this.setState({ crop: { src: this.cropUrl } }, () => { const el = this.cropRef.current; if (el && el.animate && !this.reduce) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' }); }); }
+  closeCrop() { this.animOut(this.cropRef.current, [{ opacity: 1 }, { opacity: 0 }], 200, () => { this.setState({ crop: null }); this.cg = null; if (this.cropUrl) { URL.revokeObjectURL(this.cropUrl); this.cropUrl = null; } }); }
+  cropEls() { const el = this.cropRef.current; if (!el) return {}; return { el, stage: el.querySelector('[data-crop-stage]'), img: el.querySelector('[data-crop-img]'), ring: el.querySelector('[data-crop-ring]'), prev: el.querySelectorAll('[data-crop-prev]') }; }
+  cropInit() { const { stage, img, ring } = this.cropEls(); if (!stage || !img || !img.naturalWidth) return; const W = stage.clientWidth, H = stage.clientHeight, D = Math.max(120, Math.min(W, H) - 48), w = img.naturalWidth, h = img.naturalHeight;
+    img.style.width = w + 'px'; img.style.height = h + 'px'; ring.style.width = ring.style.height = D + 'px'; this.cg = { D, w, h, s0: D / Math.min(w, h), z: 1, tx: 0, ty: 0, ptrs: new Map() }; this.cropApply(); img.style.opacity = '1'; }
+  cropApply() { const g = this.cg, { img, prev } = this.cropEls(); if (!g || !img) return; const s = g.s0 * g.z, mx = Math.max(0, (g.w * s - g.D) / 2), my = Math.max(0, (g.h * s - g.D) / 2);
+    g.tx = Math.max(-mx, Math.min(mx, g.tx)); g.ty = Math.max(-my, Math.min(my, g.ty)); img.style.transform = 'translate(calc(-50% + ' + g.tx + 'px), calc(-50% + ' + g.ty + 'px)) scale(' + s + ')'; (prev || []).forEach(c => this.cropDraw(c, c.width)); }
+  cropDraw(c, n) { const g = this.cg, { img } = this.cropEls(); if (!g || !img) return; const s = g.s0 * g.z, size = g.D / s, sx = g.w / 2 + (-g.D / 2 - g.tx) / s, sy = g.h / 2 + (-g.D / 2 - g.ty) / s, ctx = c.getContext('2d');
+    ctx.fillStyle = '#1c1c1e'; ctx.fillRect(0, 0, n, n); ctx.imageSmoothingQuality = 'high'; ctx.drawImage(img, sx, sy, size, size, 0, 0, n, n); }
+  cropBegin() { const g = this.cg, P = Array.from(g.ptrs.values()); g.base = { z: g.z, tx: g.tx, ty: g.ty }; if (P.length >= 2) { g.d0 = Math.hypot(P[0].x - P[1].x, P[0].y - P[1].y) || 1; g.m0 = { x: (P[0].x + P[1].x) / 2, y: (P[0].y + P[1].y) / 2 }; } else if (P.length === 1) g.p0 = { x: P[0].x, y: P[0].y }; }
+  cropDown(e) { const g = this.cg; if (!g) return; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (er) {} g.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); this.cropBegin(); }
+  cropMove(e) { const g = this.cg; if (!g || !g.ptrs.has(e.pointerId)) return; g.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); const P = Array.from(g.ptrs.values()), r = this.cropEls().stage.getBoundingClientRect(), ox = r.left + r.width / 2, oy = r.top + r.height / 2;
+    if (P.length >= 2) { const d = Math.hypot(P[0].x - P[1].x, P[0].y - P[1].y), mx = (P[0].x + P[1].x) / 2 - ox, my = (P[0].y + P[1].y) / 2 - oy, z = Math.max(1, Math.min(8, g.base.z * d / g.d0)), k = z / g.base.z; g.z = z; g.tx = mx - k * (g.m0.x - ox - g.base.tx); g.ty = my - k * (g.m0.y - oy - g.base.ty); }
+    else if (g.p0) { g.tx = g.base.tx + P[0].x - g.p0.x; g.ty = g.base.ty + P[0].y - g.p0.y; }
+    this.cropApply(); }
+  cropUp(e) { const g = this.cg; if (!g) return; g.ptrs.delete(e.pointerId); if (g.ptrs.size) this.cropBegin(); }
+  cropWheel(e) { const g = this.cg; if (!g) return; const r = this.cropEls().stage.getBoundingClientRect(), cx = e.clientX - r.left - r.width / 2, cy = e.clientY - r.top - r.height / 2, z = Math.max(1, Math.min(8, g.z * Math.exp(-e.deltaY * 0.0025))), k = z / g.z; g.tx = cx - k * (cx - g.tx); g.ty = cy - k * (cy - g.ty); g.z = z; this.cropApply(); }
+  async useCrop() { const G = window.GWSync; if (!this.cg || !G || this.state.avBusy) return; const c = document.createElement('canvas'); c.width = c.height = 640; this.cropDraw(c, 640); const data = c.toDataURL('image/jpeg', 0.88);
+    this.closeCrop(); this.setState({ avBusy: true, avDelArm: false }); try { await G.setAvatar(data); this.toast('Profile photo updated'); } catch (er) { this.toast((er && er.message) || 'Couldn’t update your photo'); } this.setState({ avBusy: false }); }
   closeFItem() { this.animOut(this.fItemRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => this.setState({ fItem: null })); }
   closeFriend(cb) { this.animOut(this.friendRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ friend: null, fItem: null, unfArm: false }); if (cb) cb(); }); }
   prof() { const d = this.state.data; return d.profiles.find(p => p.id === d.activeId) || d.profiles[0]; }
@@ -1974,7 +2015,7 @@ class Component extends DCLogic {
       myInitial: ini(A.username || p.name), av: A.avatar || '', hasAv: !!A.avatar, avBusy: !!st.avBusy,
       avSub: plural(SO.followers.length, 'follower') + ' · ' + (A.avatar ? 'Tap photo to change' : 'Tap to add a photo'),
       removeLabel: st.avDelArm ? 'Remove?' : 'Remove',
-      onAvatar: async e => { const fl = e.target.files && e.target.files[0]; e.target.value = ''; if (!fl || !G || st.avBusy) return; this.setState({ avBusy: true, avDelArm: false }); try { await G.setAvatar(await squareAvatar(fl)); this.toast('Profile photo updated'); } catch (er) { this.toast((er && er.message) || 'Couldn’t update your photo'); } this.setState({ avBusy: false }); },
+      onAvatar: e => { const fl = e.target.files && e.target.files[0]; e.target.value = ''; if (fl && !st.avBusy) this.openCrop(fl); },
       removeAv: async () => { if (!st.avDelArm) { this.setState({ avDelArm: true }); clearTimeout(this.avT); this.avT = setTimeout(() => this.setState({ avDelArm: false }), 3000); return; } this.setState({ avBusy: true, avDelArm: false }); try { await G.setAvatar(null); this.toast('Profile photo removed'); } catch (er) { this.toast((er && er.message) || 'Couldn’t remove your photo'); } this.setState({ avBusy: false }); }, followIn: st.followIn || '', onFollowIn: e => this.setState({ followIn: e.target.value }), onFollowKey: e => { if (e.key === 'Enter') { e.preventDefault(); doFollow(); } },
       follow: e => { this.bump(e.currentTarget, 1.06); doFollow(); }, followLabel: st.followBusy ? '…' : 'Follow', followMsg: st.followMsg || '', msgColor: st.followErr ? '#ff453a' : '#a1a1a6',
       requests: SO.requests.map(r => ({ name: '@' + r.username, initial: ini(r.username), av: r.avatar || '', hasAv: !!r.avatar, onAccept: async () => { try { await G.accept(r.id); } catch (e) {} this.loadSocial(); this.toast('@' + r.username + ' can now follow you'); }, onDecline: async () => { try { await G.decline(r.id); } catch (e) {} this.loadSocial(); } })), hasRequests: SO.requests.length > 0,
@@ -1997,7 +2038,7 @@ class Component extends DCLogic {
           onAdd: e => { if (have) return; this.bump(e.currentTarget, 1.04); addF(FI); }, onBack: () => this.closeFItem(),
           onZoom: () => this.openViewer(phs, st.fiIdx || 0, i => { const el = this.fiCarRef.current; if (el) el.scrollTo({ left: i * el.clientWidth }); this.setState({ fiIdx: i }); }) }; }
       C.forEach(i => { const g = i.g || cgroupOf({ category: i.cat, name: i.n }, []) || 'Other'; if (!cg.has(g)) cg.set(g, []); cg.get(g).push(i); });
-      fv = { name: '@' + fU.username, initial: ini(fU.username), av: fU.avatar || '', hasAv: !!fU.avatar, sub: W.length + ' wanted · ' + C.length + ' in collection · ' + plural(O.length, 'outfit'),
+      fv = { name: '@' + fU.username, initial: ini(fU.username), av: fU.avatar || '', hasAv: !!fU.avatar, avCursor: fU.avatar ? 'zoom-in' : 'default', onAv: () => { if (fU.avatar) this.openViewer([fU.avatar], 0); }, sub: W.length + ' wanted · ' + C.length + ' in collection · ' + plural(O.length, 'outfit'),
         tabs: [['wish', 'Wishlist'], ['coll', 'Collection'], ['outfits', 'Outfits']].map(([k, l]) => ({ label: l, bg: ft === k ? '#636366' : 'transparent', onTap: () => this.setState({ friendTab: k }) })),
         isWish: ft === 'wish' && W.length > 0, isColl: ft === 'coll' && C.length > 0, isOut: ft === 'outfits' && O.length > 0,
         empty: (ft === 'wish' && !W.length) || (ft === 'coll' && !C.length) || (ft === 'outfits' && !O.length),
@@ -2102,6 +2143,8 @@ class Component extends DCLogic {
       restoreSeed: () => { const add = seedMissing.map(i => JSON.parse(JSON.stringify(i))), n = add.length; this.closeSheet(() => { this.mutate(pp => { pp.items = pp.items.concat(add.filter(i => !pp.items.some(x => x.id === i.id))); if (!pp.session && seedP.session) pp.session = JSON.parse(JSON.stringify(seedP.session)); if (!(pp.budget && pp.budget.amount) && seedP.budget && seedP.budget.amount) pp.budget = Object.assign({}, seedP.budget); if (pp.name === 'Me' && seedP.name) pp.name = seedP.name; }); this.toast('Restored ' + plural(n, 'item')); }); },
       isFriends: st.tab === 'friends', tabFriends: st.tab === 'friends' ? ACC : '#8e8e93',
       goFriends: e => { this.goTab('friends', e); this.loadSocial(); }, fr, hasFriend: !!fU, fv, friendRef: this.friendRef, hasFItem: !!(fU && fi.name), fi, fItemRef: this.fItemRef, fiCarRef: this.fiCarRef,
+      hasCrop: !!st.crop, crop: st.crop || {}, cropRef: this.cropRef, cropCancel: () => this.closeCrop(), cropUse: () => this.useCrop(), cropLoaded: () => this.cropInit(),
+      cropDown: e => this.cropDown(e), cropMove: e => this.cropMove(e), cropUp: e => this.cropUp(e), cropWheel: e => this.cropWheel(e),
       hasViewer: !!st.viewer, vwRef: this.vwRef, vwDown: e => this.vwDown(e), vwMove: e => this.vwMove(e), vwUp: e => this.vwUp(e), vwWheel: e => this.vwWheel(e), vwStop: e => e.stopPropagation(),
       vw: st.viewer ? { photos: st.viewer.photos.map(src => ({ src })), multi: st.viewer.photos.length > 1, counter: (st.viewer.idx + 1) + ' of ' + st.viewer.photos.length, chrome: st.vwHide ? '0' : '1', chromePe: st.vwHide ? 'none' : 'auto', onClose: () => this.closeViewer() } : { photos: [] },
       fvTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 8px)', gateTop: framed ? '64px' : 'calc(env(safe-area-inset-top) + 24px)',
