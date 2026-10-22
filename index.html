@@ -411,6 +411,45 @@ input::placeholder{color:#6e6e73;}
         </button>
       </sc-for>
     </div>
+    <sc-if value="{{ hm.quiet }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="right" style="padding:28px 20px 10px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Today</div>
+      <div data-anim="up" style="margin:0 16px;background:#1c1c1e;border-radius:18px;padding:12px 16px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">{{ hm.quietTxt }}</div>
+      <sc-if value="{{ hm.hasWhile }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="right" style="padding:28px 20px 10px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">While it’s quiet</div>
+        <div style="padding:0 16px;display:flex;flex-direction:column;gap:10px;">
+          <sc-if value="{{ hm.hasNudge }}" hint-placeholder-val="{{ false }}">
+            <div data-anim="up" style="position:relative;background:#1c1c1e;border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;"><button onClick="{{ hm.nudge.onHide }}" aria-label="Hide for a week" style="position:absolute;top:4px;right:4px;width:32px;height:32px;border:0;background:none;color:#6e6e73;cursor:pointer;display:grid;place-items:center;padding:0;z-index:1;"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7"></path></svg></button>
+              <span style="width:40px;height:40px;border-radius:12px;background:#2c2c2e;display:grid;place-items:center;flex:none;color:#f5f5f7;">
+                <sc-if value="{{ hm.nudge.isStory }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="15" height="11.5" rx="2.5"></rect><circle cx="10" cy="10.8" r="2.8"></circle></svg></sc-if>
+                <sc-if value="{{ hm.nudge.isOutfit }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"></rect><rect x="9" y="2" width="5" height="5" rx="1"></rect><rect x="2" y="9" width="5" height="5" rx="1"></rect><rect x="9" y="9" width="5" height="5" rx="1"></rect></svg></sc-if>
+                <sc-if value="{{ hm.nudge.isPhotos }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="1.5"></rect><path d="M2.5 11l3.5-3.5 3 3 2-2 2.5 2.5"></path></svg></sc-if>
+              </span>
+              <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding-right:16px;"><span style="font-weight:600;">{{ hm.nudge.title }}</span><span style="font-size:13px;color:#a1a1a6;line-height:1.38;text-wrap:pretty;">{{ hm.nudge.sub }}</span></span>
+              <button onClick="{{ hm.nudge.onCta }}" style="flex:none;align-self:flex-end;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">{{ hm.nudge.cta }}</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ hm.hasPick }}" hint-placeholder-val="{{ false }}">
+            <div data-anim="up" style="position:relative;background:#1c1c1e;border-radius:18px;overflow:hidden;"><button onClick="{{ hm.pick.onHide }}" aria-label="Hide for a week" style="position:absolute;top:4px;right:4px;width:32px;height:32px;border:0;background:none;color:#6e6e73;cursor:pointer;display:grid;place-items:center;padding:0;z-index:1;"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7"></path></svg></button>
+              <div onClick="{{ hm.pick.onOpen }}" style="display:flex;align-items:center;gap:10px;padding:12px 40px 10px 12px;cursor:pointer;"><span style="position:relative;overflow:hidden;width:32px;height:32px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-size:13px;font-weight:600;flex:none;"><span>{{ hm.pick.initial }}</span><sc-if value="{{ hm.pick.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ hm.pick.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span><span style="flex:1;min-width:0;font-size:14px;letter-spacing:-0.224px;"><span style="color:#a1a1a6;">From</span> <span style="font-weight:600;">{{ hm.pick.who }}</span><span style="color:#a1a1a6;">’s wishlist</span></span></div>
+              <div onClick="{{ hm.pick.onOpen }}" style="cursor:pointer;"><img src="{{ hm.pick.img }}" alt="" style="display:block;width:100%;aspect-ratio:4/5;max-height:360px;object-fit:cover;object-position:top;background:#2c2c2e;"></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 16px 14px;"><span onClick="{{ hm.pick.onOpen }}" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;cursor:pointer;"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ hm.pick.name }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ hm.pick.sub }}</span></span><button onClick="{{ hm.pick.onAdd }}" style="flex:none;border:0;background:#2c2c2e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:6px 14px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Want it too</button></div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hm.hasCatch }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="right" style="padding:28px 20px 10px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Catch up</div>
+        <div style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;">
+          <sc-for list="{{ hm.catch }}" as="h" hint-placeholder-count="3">
+            <button data-anim="pop" onClick="{{ h.onTap }}" style="position:relative;flex:none;width:110px;height:150px;border:0;padding:0;border-radius:14px;overflow:hidden;background:#2c2c2e;cursor:pointer;color:#f5f5f7;font-family:inherit;text-align:left;" style-active="transform:scale(0.96);">
+              <sc-if value="{{ h.isImg }}" hint-placeholder-val="{{ false }}"><img src="{{ h.src }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if>
+              <sc-if value="{{ h.isVid }}" hint-placeholder-val="{{ false }}"><video src="{{ h.vsrc }}" muted="{{ true }}" playsInline="{{ true }}" preload="metadata" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></video></sc-if>
+              <span style="position:absolute;left:0;right:0;bottom:0;padding:24px 8px 8px;background:linear-gradient(transparent, rgba(0,0,0,0.75));display:flex;flex-direction:column;"><span style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ h.who }}</span><span style="font-size:12px;color:#d1d1d6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ h.label }}</span></span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+    </sc-if>
     <sc-if value="{{ fr.hasFeed }}" hint-placeholder-val="{{ false }}">
       <sc-for list="{{ fr.feedDays }}" as="day" hint-placeholder-count="1">
         <div data-anim="right" style="padding:28px 20px 10px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ day.label }}</div>
@@ -447,11 +486,26 @@ input::placeholder{color:#6e6e73;}
         </div>
       </sc-for>
     </sc-if>
-    <sc-if value="{{ fr.noFeed }}" hint-placeholder-val="{{ true }}">
-      <div data-anim="scale" style="margin:24px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:4px;">
-        <span style="font-weight:600;">Nothing here yet.</span>
-        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Add a friend by username or send them an invite. Once they accept, you’ll see what they add, get and wear.</span>
+    <sc-if value="{{ hm.noFriends }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="scale" style="margin:20px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:6px;">
+        <span style="font-family:var(--font-display);font-size:24px;font-weight:600;line-height:1.17;letter-spacing:-0.3px;">Your feed fills up with friends.</span>
+        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;text-wrap:pretty;">See what they add, get and wear, and watch their stories.</span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"><button onClick="{{ fr.invite }}" style="border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Invite a friend</button><button onClick="{{ hm.findName }}" style="border:0;background:#2c2c2e;color:#f5f5f7;border-radius:9999px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Find by name</button></div>
       </div>
+      <sc-if value="{{ fr.hasMayKnow }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="right" style="padding:28px 20px 10px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">People you may know</div>
+        <div style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;">
+          <sc-for list="{{ fr.mayKnow }}" as="m" hint-placeholder-count="2">
+            <div data-anim="pop" onClick="{{ m.onOpen }}" style="position:relative;flex:none;width:140px;box-sizing:border-box;background:#1c1c1e;border-radius:18px;padding:16px 12px 12px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;text-align:center;">
+              <button onClick="{{ m.onHide }}" aria-label="Hide suggestion" style="position:absolute;top:4px;right:4px;width:32px;height:32px;border:0;background:none;color:#6e6e73;cursor:pointer;display:grid;place-items:center;padding:0;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 2l6 6M8 2l-6 6"></path></svg></button>
+              <span style="position:relative;overflow:hidden;width:56px;height:56px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;flex:none;margin-bottom:6px;"><span>{{ m.initial }}</span><sc-if value="{{ m.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ m.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
+              <span style="font-size:14px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ m.name }}</span>
+              <span style="font-size:12px;color:#a1a1a6;line-height:1.33;min-height:32px;text-wrap:pretty;">{{ m.sub }}</span>
+              <button onClick="{{ m.onAdd }}" style="align-self:stretch;margin-top:8px;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:6px 0;font-size:14px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">Add</button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
     </sc-if>
   </sc-if>
 </div>
@@ -2571,6 +2625,26 @@ class Component extends DCLogic {
       nt: { close: () => this.closeNt(), canMark: nw.length > 0, markAll: () => this.setState({ ntPrev: Date.now() }), hasNew: nw.length > 0, new: nw, hasOld: old.length > 0, old, empty: !shown.length,
         chips: [['all', 'All'], ['stories', 'Stories'], ['friends', 'Friends'], ['prices', 'Prices']].map(([k, l]) => ({ label: l, bg: F === k ? '#636366' : '#1c1c1e', fw: F === k ? '600' : '400', onTap: () => this.setState({ ntF: k }) })) } }; }
   feedWhen(g) { if (!g || !g.t) return ''; const d = new Date(g.t); if (isNaN(d)) return ''; if (String(g.d).slice(0, 10) === todayISO()) return relT(d.toISOString()); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  hidHome(k) { try { return Date.now() - (Number(localStorage.getItem('gw-hide-' + k)) || 0) < 7 * 86400000; } catch (e) { return false; } }
+  hideHome(k) { try { localStorage.setItem('gw-hide-' + k, String(Date.now())); } catch (e) {} this.forceUpdate(); }
+  homeVals(SO, fr, A, addF, mineKey, fKey) { const st = this.state, me = (A.user || {}).id, signed = !!(A.configured && A.user), acc = SO.following.filter(f => f.status === 'accepted'), loaded = !!st.social;
+    const noFriends = signed && loaded && !acc.length, days = fr.feedDays || [], quiet = signed && loaded && !noFriends && !(days[0] && days[0].label === 'Today');
+    const dayN = Math.floor(Date.now() / 86400000), D = st.data, P0 = D.profiles.find(x => x.id === D.activeId) || D.profiles[0], items = P0.items || [], X = this.storyIdx ? this.storyIdx() : null;
+    const owned = items.filter(i => i.status === 'owned'), noPh = items.filter(i => !(i.photos || []).length), noPhC = noPh.filter(i => i.status !== 'wanted').length;
+    const cands = [];
+    if (X && !X.has(me)) cands.push({ k: 'story', isStory: true, title: 'Post a story', sub: 'Show what you’re wearing today. Friends see it for 24 hours.', cta: 'Post', go: () => this.openComposer() });
+    if (owned.length >= 3) cands.push({ k: 'outfit', isOutfit: true, title: 'Make an outfit', sub: 'You have ' + owned.length + ' pieces in your collection. Put a look together.', cta: 'Create', go: () => this.openBuilder(null) });
+    if (noPh.length) cands.push({ k: 'photos', isPhotos: true, title: noPh.length === 1 ? 'Add a photo to 1 item' : 'Add photos to ' + noPh.length + ' items', sub: 'Items with a photo look better in your friends’ feeds.', cta: 'Show', go: () => this.goTab(noPhC >= noPh.length - noPhC ? 'coll' : 'wish') });
+    const nc = cands.filter(c => !this.hidHome('n-' + c.k)), n0 = nc.length ? nc[dayN % nc.length] : null;
+    const nudge = n0 ? Object.assign({ isStory: false, isOutfit: false, isPhotos: false }, n0, { onCta: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); n0.go(); }, onHide: () => this.hideHome('n-' + n0.k) }) : {};
+    const pool = []; acc.forEach(f => { const L = SO.lists[f.id]; ((L && L.wish) || []).forEach(i => { if ((i.ph || []).length && !mineKey.has(fKey(i)) && !this.hidHome('p-' + f.id + '-' + i.id)) pool.push([f, i]); }); });
+    const pk = pool.length ? pool[(dayN * 7) % pool.length] : null;
+    const pick = pk ? (([f, i]) => ({ who: '@' + f.username, initial: String(f.username || '?').charAt(0).toUpperCase(), av: f.avatar || '', hasAv: !!f.avatar, img: i.ph[0], name: i.n, sub: [i.b, i.p == null ? '' : money(i.c || '€', i.p)].filter(Boolean).join(' · ') || ' ',
+      onOpen: () => this.setState({ friend: f.id, friendTab: 'wish', fItem: { id: i.id, kind: 'wish' }, fiIdx: 0, unfArm: false, fOutfit: null, fFromFeed: true }), onAdd: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); addF(i); }, onHide: () => this.hideHome('p-' + f.id + '-' + i.id) }))(pk) : {};
+    const catchL = []; if (X && X.hl) acc.forEach(f => { const m = X.hl.get(f.id); if (!m) return; m.forEach((list, name) => { const s = list[list.length - 1] || {}, md = (s.media || [])[0] || {}; catchL.push({ who: '@' + f.username, label: name, src: md.url || '', isImg: !!md.url && md.type !== 'video', isVid: !!md.url && md.type === 'video', vsrc: md.url ? md.url + '#t=0.1' : '', onTap: () => this.openHighlight(f.id, name) }); }); });
+    return { hm: Object.assign({}, { noFriends, quiet, quietTxt: days[0] ? 'Quiet so far. Last post ' + (days[0].label === 'Yesterday' ? 'yesterday' : 'on ' + days[0].label) + '.' : 'Nothing from your friends yet. What they add, get and wear shows up here.',
+      hasWhile: !!n0 || !!pk, hasNudge: !!n0, nudge, hasPick: !!pk, pick, hasCatch: catchL.length > 0, catch: catchL.slice(0, 12),
+      findName: () => { this.goTab('friends'); this.loadSocial(); setTimeout(() => { const el = document.getElementById('gw-people-search'); if (el) el.focus(); }, 350); } }) }; }
   myHandle() { const G = window.GWSync, A = (G && G.state && G.state()) || {}, u = A.username || (this.state.acct || {}).username; return u ? '@' + u : ''; }
   toast(text) {
     clearTimeout(this.t4); this.setState({ toast: text });
@@ -3570,7 +3644,7 @@ class Component extends DCLogic {
       tgJoin: () => { try { localStorage.setItem('gw-tg-hide', 'joined'); } catch (e) {} setTimeout(() => this.setState({ tgHide: true }), 400); },
       tgClose: () => { try { localStorage.setItem('gw-tg-hide', 'dismissed'); } catch (e) {} this.setState({ tgHide: true }); },
       isHome: st.tab === 'home', tabHome: st.tab === 'home' ? ACC : '#8e8e93', tabHomeBg: st.tab === 'home' && wide ? '#1c1c1e' : 'transparent', goHome: e => { this.goTab('home', e); this.loadSocial(); },
-      ...this.ntVals(SO, fr, A),
+      ...(() => { const a = this.ntVals(SO, fr, A), b = this.homeVals(SO, fr, A, addF, mineKey, fKey); return Object.assign({}, a, { hm: Object.assign({}, a.hm, b.hm) }); })(),
       isFriends: st.tab === 'friends', tabFriends: st.tab === 'friends' ? ACC : '#8e8e93',
       goFriends: e => { this.goTab('friends', e); this.loadSocial(); }, fr, ...this.storyVals({ SO, ini, addF, mineKey, fKey, framed }), hasFriend: !!fU && !st.fFromFeed, fv, isSheetPerson: st.sheet === 'person', isSheetInvite: st.sheet === 'invite', qrRef: this.qrRef,
       ps: (() => { const P = st.person; if (!P) return {}; const r = relOf(P.id), x = SO.following.concat(SO.requests).find(y => y.id === P.id) || P, close = cb => this.closeSheet(cb);
