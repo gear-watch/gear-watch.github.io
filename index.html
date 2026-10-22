@@ -1278,7 +1278,7 @@ input::placeholder{color:#6e6e73;}
         <div style="padding:0 20px;font-size:12px;color:#6e6e73;">Tap a photo to leave it out. Add your own below.</div>
       </sc-if>
 
-      <div data-anim="up" style="padding:12px 16px 0;display:grid;grid-template-columns:repeat(auto-fill,72px);gap:12px;">
+      <div data-anim="up" onDragEnter="{{ phDragOver }}" onDragOver="{{ phDragOver }}" onDragLeave="{{ phDragLeave }}" onDrop="{{ phDrop }}" style="margin:12px 8px 0;padding:8px;border-radius:12px;outline:2px dashed {{ phDropRing }};outline-offset:-2px;background:{{ phDropBg }};transition:background .2s,outline-color .2s;display:grid;grid-template-columns:repeat(auto-fill,72px);gap:12px;">
         <sc-for list="{{ fPhotos }}" as="ph" hint-placeholder-count="0">
           <div data-anim="pop" onPointerDown="{{ ph.onDown }}" onPointerMove="{{ phMove }}" onPointerUp="{{ phUp }}" onPointerCancel="{{ phUp }}" style="position:relative;width:72px;height:72px;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;">
             <img src="{{ ph.src }}" alt="" draggable="false" style="width:72px;height:72px;border-radius:8px;object-fit:cover;object-position:top;display:block;pointer-events:none;">
@@ -1288,7 +1288,9 @@ input::placeholder{color:#6e6e73;}
           </div>
         </sc-for>
         <label style="width:72px;height:72px;box-sizing:border-box;border-radius:8px;border:1px dashed #48484a;display:grid;place-items:center;color:#a1a1a6;font-size:12px;cursor:pointer;text-align:center;line-height:1.2;">Add<br>photos<input type="file" accept="image/*,.dng" multiple="{{ true }}" onChange="{{ onPhotos }}" style="display:none;"></label>
+        <sc-if value="{{ canPastePh }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pastePh }}" style="width:72px;height:72px;box-sizing:border-box;border-radius:8px;border:1px dashed #48484a;display:grid;place-items:center;color:#a1a1a6;font-size:12px;cursor:pointer;text-align:center;line-height:1.2;background:none;padding:0;font-family:inherit;" style-active="transform:scale(0.95);"><span style="display:flex;flex-direction:column;align-items:center;gap:4px;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2.5" width="10" height="12" rx="1.5"></rect><path d="M6 2.5V1.5h4v1"></path></svg><span>Paste</span></span></button></sc-if>
       </div>
+      <div style="padding:6px 20px 0;font-size:12px;color:#6e6e73;">{{ phHint }}</div>
       <sc-if value="{{ fMultiPh }}" hint-placeholder-val="{{ false }}"><div style="padding:6px 20px 0;font-size:12px;color:#6e6e73;">Drag to reorder. The first photo is the cover. Tap to view. Crop your own photos to show just one piece.</div></sc-if>
 
       <div data-anim="up" style="margin:16px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#38383a;">
@@ -2152,6 +2154,7 @@ class Component extends DCLogic {
       G.init(); return true; };
     this.onVis = () => { if (document.visibilityState === 'visible') { this.loadSocial(true); this.forceUpdate(); } }; document.addEventListener('visibilitychange', this.onVis); window.addEventListener('focus', this.onVis);
     this.onRs = () => { this.svMeasure(); this.scMeasure(); const w = window.innerWidth; if ((w >= 900) !== ((this.state.vw || 0) >= 900)) this.setState({ vw: w }); }; window.addEventListener('resize', this.onRs);
+    this.onPaste = e => { if (this.state.sheet !== 'form' || !e.clipboardData) return; const files = Array.from(e.clipboardData.files || []).filter(f => /^image\//.test(f.type)); if (!files.length) return; e.preventDefault(); this.addFormFiles(files); }; window.addEventListener('paste', this.onPaste);
     this.onKey = e => { const v = this.state.viewer; if (!v) return; if (e.key === 'Escape') this.closeViewer(); else if (e.key === 'ArrowRight') this.vwGo(v.idx + 1); else if (e.key === 'ArrowLeft') this.vwGo(v.idx - 1); }; window.addEventListener('keydown', this.onKey);
     this.socPoll = setInterval(() => { if (document.visibilityState === 'visible') this.loadSocial(true); }, 30000);
     if (!hook()) { let n = 0; this.syPoll = setInterval(() => { if (hook() || ++n > 50) clearInterval(this.syPoll); }, 100); }
@@ -2176,6 +2179,21 @@ class Component extends DCLogic {
     this._pf = this.state.figTab; this._pt = this.state.tab; this._pg = this.state.group;
     this.drawFig();
   }
+  async addFormFiles(files) {
+    files = files.filter(f => f && (/^image\//.test(f.type) || /\.dng$/i.test(f.name || ''))); if (!files.length) return false;
+    const out = (await Promise.all(files.map(readPhoto))).filter(Boolean);
+    if (out.length < files.length) this.toast((files.length - out.length === 1 ? 'Couldn’t read a photo' : 'Couldn’t read ' + (files.length - out.length) + ' photos') + '. Try saving it as JPG or PNG first.');
+    if (out.length) { this.setState(s => s.form ? { form: Object.assign({}, s.form, { photos: (s.form.photos || []).concat(out) }) } : null); this.toast(out.length === 1 ? 'Photo added' : out.length + ' photos added'); }
+    return true;
+  }
+  async urlToFile(u) { try { const r = await fetch(u); if (!r.ok) return null; const b = await r.blob(); return /^image\//.test(b.type) ? new File([b], 'pasted.' + (b.type.split('/')[1] || 'jpg'), { type: b.type }) : null; } catch (e) { return null; } }
+  async pasteFromClipboard() {
+    try { const items = await navigator.clipboard.read(), files = [];
+      for (const it of items) { const ty = it.types.find(x => /^image\//.test(x)); if (ty) { const b = await it.getType(ty); files.push(new File([b], 'pasted.' + (ty.split('/')[1] || 'png'), { type: ty })); } }
+      if (!files.length) { this.toast('No photo on the clipboard. Copy an image first.'); return; }
+      this.addFormFiles(files);
+    } catch (e) { this.toast(e && e.name === 'NotAllowedError' ? 'Pasting was blocked. Allow clipboard access, or use Add photos.' : 'Couldn’t paste here. Use Add photos instead.'); }
+  }
   runSpent() {
     const el = this.spentRef.current, open = !!this._spOpen && !!el;
     if (!open) { this._spWas = false; return; }
@@ -2194,7 +2212,7 @@ class Component extends DCLogic {
     if (this._pg !== undefined && this._pg !== s.group) this.replay('[data-row]', 'up');
     this._pg = s.group;
   }
-  componentWillUnmount() { cancelAnimationFrame(this.svRaf); if (this.onRs) window.removeEventListener('resize', this.onRs); if (this.unsubSync) this.unsubSync(); if (this.onKey) window.removeEventListener('keydown', this.onKey); clearTimeout(this.vwTapT); clearInterval(this.socPoll); if (this.onVis) { document.removeEventListener('visibilitychange', this.onVis); window.removeEventListener('focus', this.onVis); } clearInterval(this.syPoll); if (this.onHash) window.removeEventListener('hashchange', this.onHash); clearInterval(this.tick); if (this.mo) this.mo.disconnect(); [this.t1, this.t2, this.t3, this.t4, this.t5].forEach(clearTimeout); }
+  componentWillUnmount() { cancelAnimationFrame(this.svRaf); if (this.onPaste) window.removeEventListener('paste', this.onPaste); if (this.onRs) window.removeEventListener('resize', this.onRs); if (this.unsubSync) this.unsubSync(); if (this.onKey) window.removeEventListener('keydown', this.onKey); clearTimeout(this.vwTapT); clearInterval(this.socPoll); if (this.onVis) { document.removeEventListener('visibilitychange', this.onVis); window.removeEventListener('focus', this.onVis); } clearInterval(this.syPoll); if (this.onHash) window.removeEventListener('hashchange', this.onHash); clearInterval(this.tick); if (this.mo) this.mo.disconnect(); [this.t1, this.t2, this.t3, this.t4, this.t5].forEach(clearTimeout); }
 
   isFramed() { return !!this.props.framed && this.props.framed !== 'false'; }
   introOn() { return !(this.props.intro === false || this.props.intro === 'false'); }
@@ -3259,6 +3277,16 @@ class Component extends DCLogic {
       sizeRot: st.sizeOpen ? '180deg' : '0deg', toggleSize: () => this.setState({ sizeOpen: !st.sizeOpen }),
       fPhotos: (f.photos || []).map((src, i) => ({ src, cover: i === 0 && f.photos.length > 1, canCrop: /^data:image\//.test(src) || /\/storage\/v1\/object\/public\/photos\//.test(src) || (f.origs || []).some(x => x.c === src), onCrop: e => { e.stopPropagation(); this.pcOpen(i); }, onDown: e => this.phDown(e, i), onRemove: () => this.setF('photos', f.photos.filter((_, j) => j !== i)) })),
       fMultiPh: (f.photos || []).length > 1, phMove: e => this.phMove(e), phUp: e => this.phUp(e), phStop: e => e.stopPropagation(),
+      canPastePh: !!(navigator.clipboard && navigator.clipboard.read), pastePh: e => { this.bump(e.currentTarget, 1.06); this.pasteFromClipboard(); },
+      phHint: (typeof matchMedia !== 'undefined' && matchMedia('(pointer: fine)').matches) ? 'Drop photos here, or paste one with ' + (/Mac|iPhone|iPad/.test(navigator.platform || '') ? '⌘' : 'Ctrl') + '+V.' : 'Copied a photo somewhere else? Tap Paste.',
+      phDropRing: st.phDrag ? ACC : 'transparent', phDropBg: st.phDrag ? 'rgba(255,214,10,0.08)' : 'transparent',
+      phDragOver: e => { const ty = Array.from((e.dataTransfer && e.dataTransfer.types) || []); if (!ty.includes('Files') && !ty.includes('text/uri-list')) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; clearTimeout(this.phDragT); if (!st.phDrag) this.setState({ phDrag: true }); },
+      phDragLeave: e => { if (e.currentTarget.contains(e.relatedTarget)) return; clearTimeout(this.phDragT); this.phDragT = setTimeout(() => this.setState({ phDrag: false }), 60); },
+      phDrop: async e => { e.preventDefault(); this.setState({ phDrag: false }); const dt = e.dataTransfer, files = Array.from(dt.files || []);
+        if (await this.addFormFiles(files)) return;
+        const html = dt.getData('text/html') || '', m = html.match(/<img[^>]+src=["']([^"']+)/i), u = (m && m[1]) || (dt.getData('text/uri-list') || '').split('\n').find(x => /^https?:|^data:image/.test(x.trim()));
+        if (!u) { this.toast('That isn’t a photo.'); return; }
+        const f = await this.urlToFile(u.trim()); if (!f || !(await this.addFormFiles([f]))) this.toast('That site won’t let photos be dragged out. Save it first, then drop the file.'); },
       onPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await Promise.all(files.map(readPhoto))).filter(Boolean); if (out.length < files.length) this.toast((files.length - out.length === 1 ? 'Couldn’t read a photo' : 'Couldn’t read ' + (files.length - out.length) + ' photos') + '. Try saving it as JPG or PNG first.'); this.setState(s => ({ form: Object.assign({}, s.form, { photos: (s.form.photos || []).concat(out) }) })); },
       budgetIn: st.budgetIn, onBudgetIn: e => this.setState({ budgetIn: e.target.value }),
       paydayIn: st.paydayIn || '1', paydayW: (ordinal(Number(st.paydayIn) || 1).length * 0.62 + 0.2) + 'em', onPayday: e => this.setState({ paydayIn: e.target.value, spentIn: '' }), paydayOpts: Array.from({ length: 31 }, (_, i) => ({ v: String(i + 1), label: ordinal(i + 1) })),
