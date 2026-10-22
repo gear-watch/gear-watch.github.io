@@ -8,7 +8,7 @@
   const subs = new Set();
   const S = { configured: !!(cfg().url && cfg().key), ready: false, user: null, email: '', username: null, needName: false, status: 'idle', lastSync: null, error: '', firstDone: false };
   const emit = () => subs.forEach(f => { try { f(Object.assign({}, S)); } catch (e) {} });
-  async function profSel(q) { let r = await q('id,username,avatar'); if (r.error && /avatar/i.test(r.error.message || '')) r = await q('id,username'); return r; }
+  async function profSel(q) { let r = await q('id,username,avatar,title'); if (r.error && /title/i.test(r.error.message || '')) r = await q('id,username,avatar'); if (r.error && /avatar/i.test(r.error.message || '')) r = await q('id,username'); return r; }
   const set = o => { Object.assign(S, o); emit(); };
   const meta = () => { try { return JSON.parse(localStorage.getItem(META)) || {}; } catch (e) { return {}; } };
   const setMeta = o => { const m = Object.assign(meta(), o); try { localStorage.setItem(META, JSON.stringify(m)); } catch (e) {} return m; };
@@ -44,7 +44,7 @@
     if (uid === lastUid) return; lastUid = uid;
     if (!u) { set({ user: null, email: '', username: null, avatar: null, needName: false, firstDone: false }); return; }
     const mm = meta(); set({ user: { id: u.id, email: u.email }, email: u.email || '', avatar: mm.uid === uid ? mm.avatar || null : null });
-    try { const { data, error } = await profSel(c => sb.from('profiles').select(c).eq('id', uid).maybeSingle()); if (error) throw error; const avv = data && data.avatar || null; set({ username: data ? data.username : null, needName: !data, avatar: avv }); setMeta({ avatar: avv }); }
+    try { const { data, error } = await profSel(c => sb.from('profiles').select(c).eq('id', uid).maybeSingle()); if (error) throw error; const avv = data && data.avatar || null; set({ username: data ? data.username : null, needName: !data, avatar: avv, title: (data && data.title) || null }); setMeta({ avatar: avv }); }
     catch (e) { set({ needName: false }); }
     await sync(); set({ firstDone: true });
   }
@@ -149,14 +149,14 @@
     if (!(await fresh())) return null;
     const [a, b] = await Promise.all([sb.from('follows').select('followee,status').eq('follower', me), sb.from('follows').select('follower,status').eq('followee', me)]);
     if (a.error || b.error) throw new Error((a.error || b.error).message || 'Couldn’t load friends');
-    const out = a.data || [], inc = b.data || [], ids = [...new Set(out.map(x => x.followee).concat(inc.map(x => x.follower)))], names = {}, avs = {}, lists = {};
-    if (ids.length) { const r = await profSel(c => sb.from('profiles').select(c).in('id', ids)); if (r.error) throw new Error(r.error.message); (r.data || []).forEach(x => { names[x.id] = x.username; avs[x.id] = x.avatar || null; }); }
+    const out = a.data || [], inc = b.data || [], ids = [...new Set(out.map(x => x.followee).concat(inc.map(x => x.follower)))], names = {}, avs = {}, tts = {}, lists = {};
+    if (ids.length) { const r = await profSel(c => sb.from('profiles').select(c).in('id', ids)); if (r.error) throw new Error(r.error.message); (r.data || []).forEach(x => { names[x.id] = x.username; avs[x.id] = x.avatar || null; tts[x.id] = x.title || null; }); }
     const acc = out.filter(x => x.status === 'accepted').map(x => x.followee);
     if (acc.length) { const r = await sb.from('public_lists').select('user_id,list,updated_at').in('user_id', acc); if (r.error) throw new Error(r.error.message); (r.data || []).forEach(x => { lists[x.user_id] = Object.assign({}, x.list, { _up: x.updated_at || null }); }); }
     return {
-      following: out.map(x => ({ id: x.followee, username: names[x.followee] || 'unknown', avatar: avs[x.followee] || null, status: x.status })),
-      requests: inc.filter(x => x.status === 'pending').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown', avatar: avs[x.follower] || null })),
-      followers: inc.filter(x => x.status === 'accepted').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown', avatar: avs[x.follower] || null })),
+      following: out.map(x => ({ id: x.followee, username: names[x.followee] || 'unknown', avatar: avs[x.followee] || null, title: tts[x.followee] || null, status: x.status })),
+      requests: inc.filter(x => x.status === 'pending').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown', avatar: avs[x.follower] || null, title: tts[x.follower] || null })),
+      followers: inc.filter(x => x.status === 'accepted').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown', avatar: avs[x.follower] || null, title: tts[x.follower] || null })),
       lists
     };
   }
@@ -183,7 +183,7 @@
   }
   async function findUser(name) {
     const u = uname(name); if (!u || !(await connect())) return null;
-    const r = await profSel(c => sb.from('profiles').select(c).eq('username', u).maybeSingle()); return r.data ? { id: r.data.id, username: r.data.username, avatar: r.data.avatar || null } : null;
+    const r = await profSel(c => sb.from('profiles').select(c).eq('username', u).maybeSingle()); return r.data ? { id: r.data.id, username: r.data.username, avatar: r.data.avatar || null, title: r.data.title || null } : null;
   }
   async function searchUsers(q) {
     const u = uname(q).replace(/[^a-z0-9_.]/g, ''); if (!u || !sb || !S.user) return [];
@@ -247,7 +247,7 @@
     const NONE = ['00000000-0000-0000-0000-000000000000'];
     const [sv, vw, rx, rp, vt, cf] = await Promise.all([sb.from('story_views').select('story_id').eq('viewer', me).in('story_id', ids.length ? ids : NONE), q('story_views', 'story_id,viewer,seen_at', 'story_id', mine), q('story_reactions', 'story_id,user_id,kind,created_at', 'story_id', ids), q('story_replies', 'id,story_id,from_user,body,created_at', 'story_id', mine), q('story_votes', 'story_id,user_id,choice', 'story_id', polls), sb.from('close_friends').select('friend').eq('owner', me)]);
     const who = [...new Set([].concat((vw.data || []).map(x => x.viewer), (rx.data || []).map(x => x.user_id), (rp.data || []).map(x => x.from_user)))].filter(id => id !== me), prof = {};
-    if (who.length) { const pr = await profSel(c => sb.from('profiles').select(c).in('id', who)); (pr.data || []).forEach(x => { prof[x.id] = { id: x.id, username: x.username, avatar: x.avatar || null }; }); }
+    if (who.length) { const pr = await profSel(c => sb.from('profiles').select(c).in('id', who)); (pr.data || []).forEach(x => { prof[x.id] = { id: x.id, username: x.username, avatar: x.avatar || null, title: x.title || null }; }); }
     return { list, me, seenIds: (sv.data || []).map(x => x.story_id), views: (vw.data || []).filter(x => x.viewer !== me), reactions: rx.data || [], replies: rp.data || [], votes: vt.data || [], close: (cf.data || []).map(x => x.friend), prof };
   }
   // Deletes your own stories that have ended (and aren't Highlights), files included. Runs from your own app.
