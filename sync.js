@@ -125,6 +125,7 @@
         await sb.from('public_lists').upsert({ user_id: uid, list: publicList(gw), updated_at: now });
         setMeta({ uid, base: gw.mod, flHash: hash(fl) });
       }
+      if (action === 'none' || action === 'pull') { try { const pl = publicList(host.get()), ph = hash(JSON.stringify(pl)); if (localStorage.getItem('gearwatch.plhash.' + uid) !== ph && !JSON.stringify(pl).includes('data:image')) { const r2 = await sb.from('public_lists').upsert({ user_id: uid, list: pl, updated_at: new Date().toISOString() }); if (!r2.error) localStorage.setItem('gearwatch.plhash.' + uid, ph); } } catch (e) {} }
       set({ status: 'synced', lastSync: Date.now() });
     } catch (e) { set({ status: navigator.onLine ? 'error' : 'offline', error: (e && e.message) || 'Sync failed' }); }
     busy = false; if (again) { again = false; schedule(500); }
