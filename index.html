@@ -2404,7 +2404,7 @@ async function rawToJpeg(f) {
   if (!best) throw new Error('Couldn’t read that DNG');
   return new Blob([await f.slice(best.s, f.size).arrayBuffer()], { type: 'image/jpeg' });
 }
-const VAPID_PUB = (typeof window !== 'undefined' && window.GW_VAPID_PUBLIC) || 'BJ_SxtbTTYMLZJkxq_NRdgTcTpNG_50YYonGd3eD6TDd2uPFEaZ7tXuWfvs9GYDVxzULtw1yHc3KE3Z71BkoZmw';
+const VAPID_PUB = (typeof window !== 'undefined' && window.GW_VAPID_PUBLIC) || 'BD_I2IHqmzYtmAHqrXiZEXCKnVLffaS7O54guTW8TyHlFmbKOgANzi0snkGgKMjA08txfsXLgDTRuaWGRmtqW18';
 const IOSLIKE = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 async function readAll(files, max) { const out = []; for (const f of files) { let r = await readPhoto(f, max); if (!r) { await new Promise(z => setTimeout(z, 300)); r = await readPhoto(f, max); } out.push(r); await new Promise(z => setTimeout(z, 0)); } return out; }
 function readPhoto(file, max) { return rawToJpeg(file).then(f => readPhoto0(f, max)).catch(() => null); }
