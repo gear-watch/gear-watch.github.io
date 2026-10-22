@@ -1721,7 +1721,7 @@ const FX = { '€': 1, '$': 0.86, '£': 1.15 };
 const CURS = ['€', '$', '£'];
 const ZIPS = ['Back through crotch', 'Half back zip', 'Front through crotch', 'Half front zip', 'Shoulder zip', 'Neck entry'];
 const ZIP_CATS = ['Catsuit', 'Surfsuit'];
-const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Socks', 'Cuffs', 'Gags', 'Accessory'];
+const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Socks', 'Cuffs', 'Gags', 'Leashes', 'Collars', 'Toys', 'Accessory'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const BUDGET_CHIPS = [50, 100, 150, 250];
 const KF_FORM = ['chest','underbust','waist','waistHip','hips','thigh','knee','calf','ankle','armpit','upperArm','elbow','forearm','wrist','armLength','neck','inseam','waistAnkle','torso','shoulder','head','height','shoe'];
@@ -1740,8 +1740,8 @@ const KNOWN_PHOTOS = {
   'cock-crusher-inflatable-shorts': ['./assets/gear/libidex-shorts.png']
 };
 const KNOWN = { 'alpha-pup-latex-suit': 85, 'latex-alpha-husky-suit': 136, 'pup-play-latex-catsuit': 108 };
-const CGROUPS = ['Catsuits', 'Tops', 'Bottoms / leggings', 'Shorts / briefs', 'Hoods / masks', 'Gloves', 'Socks / feet', 'Boots / shoes', 'Harnesses', 'Restraints', 'Accessories', 'Other'];
-const CAT2G = { Catsuit: 'Catsuits', Surfsuit: 'Catsuits', Leotard: 'Catsuits', Hood: 'Hoods / masks', Harness: 'Harnesses', Shorts: 'Shorts / briefs', Underwear: 'Shorts / briefs', Trousers: 'Bottoms / leggings', Tights: 'Bottoms / leggings', Skirt: 'Bottoms / leggings', Gloves: 'Gloves', Socks: 'Socks / feet', Cuffs: 'Restraints', Gags: 'Restraints' };
+const CGROUPS = ['Catsuits', 'Tops', 'Bottoms / leggings', 'Shorts / briefs', 'Hoods / masks', 'Gloves', 'Socks / feet', 'Boots / shoes', 'Harnesses', 'Restraints', 'Leashes / collars', 'Toys', 'Accessories', 'Other'];
+const CAT2G = { Leashes: 'Leashes / collars', Collars: 'Leashes / collars', Toys: 'Toys', Catsuit: 'Catsuits', Surfsuit: 'Catsuits', Leotard: 'Catsuits', Hood: 'Hoods / masks', Harness: 'Harnesses', Shorts: 'Shorts / briefs', Underwear: 'Shorts / briefs', Trousers: 'Bottoms / leggings', Tights: 'Bottoms / leggings', Skirt: 'Bottoms / leggings', Gloves: 'Gloves', Socks: 'Socks / feet', Cuffs: 'Restraints', Gags: 'Restraints' };
 const NAME_G = [[/cat ?suit|surf ?suit|body ?suit|leotard|zentai|onesie/i, 'Catsuits'], [/hood|mask/i, 'Hoods / masks'], [/harness/i, 'Harnesses'], [/glove|gauntlet|mitt/i, 'Gloves'], [/boot|shoe|sneaker|heel/i, 'Boots / shoes'], [/sock|stocking/i, 'Socks / feet'], [/legging|trouser|pants|jeans|tights|skirt/i, 'Bottoms / leggings'], [/shorts|brief|jock|thong|underwear|boxer/i, 'Shorts / briefs'], [/\btop\b|shirt|\btee\b|vest|\bbra\b|crop/i, 'Tops'], [/cuff|restraint|\bgag\b|shackle/i, 'Restraints']];
 function cgroupOf(it, custom) {
   if (it.cgroup) return it.cgroup;
@@ -1750,7 +1750,7 @@ function cgroupOf(it, custom) {
   if (it.category === 'Accessory') return 'Accessories';
   return (custom || []).find(x => x.toLowerCase() === String(it.category || '').toLowerCase()) || null;
 }
-const ZONE = { 'Hoods / masks': [50, 12, 26, 20, 6], 'Catsuits': [50, 50, 50, 72, 1], 'Tops': [50, 34, 40, 26, 4], 'Harnesses': [50, 36, 38, 30, 5], 'Bottoms / leggings': [50, 68, 36, 40, 2], 'Shorts / briefs': [50, 56, 30, 16, 3], 'Gloves': [15, 52, 24, 22, 6], 'Restraints': [85, 52, 24, 20, 7], 'Socks / feet': [34, 90, 26, 16, 2], 'Boots / shoes': [66, 88, 28, 20, 3], 'Accessories': [85, 17, 24, 18, 8], 'Other': [15, 17, 24, 18, 8] };
+const ZONE = { 'Hoods / masks': [50, 12, 26, 20, 6], 'Catsuits': [50, 50, 50, 72, 1], 'Tops': [50, 34, 40, 26, 4], 'Harnesses': [50, 36, 38, 30, 5], 'Bottoms / leggings': [50, 68, 36, 40, 2], 'Shorts / briefs': [50, 56, 30, 16, 3], 'Gloves': [15, 52, 24, 22, 6], 'Restraints': [85, 52, 24, 20, 7], 'Socks / feet': [34, 90, 26, 16, 2], 'Boots / shoes': [66, 88, 28, 20, 3], 'Accessories': [85, 17, 24, 18, 8], 'Leashes / collars': [50, 24, 24, 14, 7], 'Toys': [15, 80, 24, 18, 8], 'Other': [15, 17, 24, 18, 8] };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function boardLayout(list, pos) {
   const byZ = {}; list.forEach(x => { const z = ZONE[x.g] ? x.g : 'Other'; (byZ[z] = byZ[z] || []).push(x); });
