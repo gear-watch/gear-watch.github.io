@@ -2154,6 +2154,19 @@ class Component extends DCLogic {
       G.init(); return true; };
     this.onVis = () => { if (document.visibilityState === 'visible') { this.loadSocial(true); this.forceUpdate(); } }; document.addEventListener('visibilitychange', this.onVis); window.addEventListener('focus', this.onVis);
     this.onRs = () => { this.svMeasure(); this.scMeasure(); const w = window.innerWidth; if ((w >= 900) !== ((this.state.vw || 0) >= 900)) this.setState({ vw: w }); }; window.addEventListener('resize', this.onRs);
+    this.dsDown = e => { if (e.pointerType !== 'mouse' || e.button !== 0 || (e.target.closest && e.target.closest('input,textarea,select,[contenteditable]'))) return;
+      let el = e.target; while (el && el !== document.body) { if (el.scrollWidth > el.clientWidth + 1 && /auto|scroll/.test(getComputedStyle(el).overflowX)) break; el = el.parentElement; }
+      if (!el || el === document.body || el === this.heroRef.current || el === this.carRef.current) return;
+      this._ds = { el, x: e.clientX, sl: el.scrollLeft, moved: false, snap: el.style.scrollSnapType };
+    };
+    this.dsMove = e => { const d = this._ds; if (!d) return; const dx = e.clientX - d.x;
+      if (!d.moved) { if (Math.abs(dx) < 6) return; d.moved = true; d.el.style.scrollSnapType = 'none'; d.el.style.cursor = 'grabbing'; document.body.style.userSelect = 'none'; }
+      d.el.scrollLeft = d.sl - dx; };
+    this.dsUp = () => { const d = this._ds; this._ds = null; if (!d || !d.moved) return; d.el.style.cursor = ''; document.body.style.userSelect = '';
+      const sl = d.el.scrollLeft; d.el.style.scrollSnapType = d.snap; d.el.scrollLeft = sl;
+      const kill = ev => { ev.stopPropagation(); ev.preventDefault(); }; window.addEventListener('click', kill, { capture: true, once: true }); setTimeout(() => window.removeEventListener('click', kill, true), 0); };
+    this.dsDrag = e => { if (this._ds && e.target && e.target.tagName === 'IMG') e.preventDefault(); };
+    window.addEventListener('pointerdown', this.dsDown, true); window.addEventListener('pointermove', this.dsMove); window.addEventListener('pointerup', this.dsUp); window.addEventListener('pointercancel', this.dsUp); window.addEventListener('dragstart', this.dsDrag, true);
     this.onPaste = e => { if (this.state.sheet !== 'form' || !e.clipboardData) return; const files = Array.from(e.clipboardData.files || []).filter(f => /^image\//.test(f.type)); if (!files.length) return; e.preventDefault(); this.addFormFiles(files); }; window.addEventListener('paste', this.onPaste);
     this.onKey = e => { const v = this.state.viewer; if (!v) return; if (e.key === 'Escape') this.closeViewer(); else if (e.key === 'ArrowRight') this.vwGo(v.idx + 1); else if (e.key === 'ArrowLeft') this.vwGo(v.idx - 1); }; window.addEventListener('keydown', this.onKey);
     this.socPoll = setInterval(() => { if (document.visibilityState === 'visible') this.loadSocial(true); }, 30000);
@@ -2212,7 +2225,7 @@ class Component extends DCLogic {
     if (this._pg !== undefined && this._pg !== s.group) this.replay('[data-row]', 'up');
     this._pg = s.group;
   }
-  componentWillUnmount() { cancelAnimationFrame(this.svRaf); if (this.onPaste) window.removeEventListener('paste', this.onPaste); if (this.onRs) window.removeEventListener('resize', this.onRs); if (this.unsubSync) this.unsubSync(); if (this.onKey) window.removeEventListener('keydown', this.onKey); clearTimeout(this.vwTapT); clearInterval(this.socPoll); if (this.onVis) { document.removeEventListener('visibilitychange', this.onVis); window.removeEventListener('focus', this.onVis); } clearInterval(this.syPoll); if (this.onHash) window.removeEventListener('hashchange', this.onHash); clearInterval(this.tick); if (this.mo) this.mo.disconnect(); [this.t1, this.t2, this.t3, this.t4, this.t5].forEach(clearTimeout); }
+  componentWillUnmount() { cancelAnimationFrame(this.svRaf); if (this.onPaste) window.removeEventListener('paste', this.onPaste); window.removeEventListener('pointerdown', this.dsDown, true); window.removeEventListener('pointermove', this.dsMove); window.removeEventListener('pointerup', this.dsUp); window.removeEventListener('pointercancel', this.dsUp); window.removeEventListener('dragstart', this.dsDrag, true); if (this.onRs) window.removeEventListener('resize', this.onRs); if (this.unsubSync) this.unsubSync(); if (this.onKey) window.removeEventListener('keydown', this.onKey); clearTimeout(this.vwTapT); clearInterval(this.socPoll); if (this.onVis) { document.removeEventListener('visibilitychange', this.onVis); window.removeEventListener('focus', this.onVis); } clearInterval(this.syPoll); if (this.onHash) window.removeEventListener('hashchange', this.onHash); clearInterval(this.tick); if (this.mo) this.mo.disconnect(); [this.t1, this.t2, this.t3, this.t4, this.t5].forEach(clearTimeout); }
 
   isFramed() { return !!this.props.framed && this.props.framed !== 'false'; }
   introOn() { return !(this.props.intro === false || this.props.intro === 'false'); }
