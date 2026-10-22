@@ -394,25 +394,25 @@ begin
 exception when others then return;
 end $$;
 revoke all on function public.push_send(uuid, text, text, text, text) from public, anon, authenticated;
-create or replace function public.push_test() returns int language plpgsql security definer set search_path = public, private as $
+create or replace function public.push_test() returns int language plpgsql security definer set search_path = public, private as $$
 declare n int;
 begin
   if auth.uid() is null then raise exception 'Not signed in'; end if;
   select count(*) into n from public.push_subs where user_id = auth.uid();
   if not exists (select 1 from private.push_cfg where id = 1) then return -1; end if;
-  perform public.push_send(auth.uid(), 'friends', 'GearWatch', 'Test notification. If you see this, it works.', '#notifs');
+  perform public.push_send(auth.uid(), 'friends', 'Test', 'Notifications are working.', '#notifs');
   return n;
-end $;
+end $$;
 revoke all on function public.push_test() from public, anon; grant execute on function public.push_test() to authenticated;
 create or replace function public.push_follows_trg() returns trigger language plpgsql security definer set search_path = public as $$
 declare u text;
 begin
   if tg_op = 'INSERT' and new.status = 'pending' then
     select username into u from public.profiles where id = new.follower;
-    perform public.push_send(new.followee, 'friends', 'Friend request', '@' || coalesce(u, 'someone') || ' wants to be friends', '#notifs');
+    perform public.push_send(new.followee, 'friends', '@' || coalesce(u, 'someone'), 'wants to be friends', '#notifs');
   elsif tg_op = 'UPDATE' and old.status = 'pending' and new.status = 'accepted' then
     select username into u from public.profiles where id = new.followee;
-    perform public.push_send(new.follower, 'friends', 'Request accepted', '@' || coalesce(u, 'someone') || ' accepted your friend request', '#notifs');
+    perform public.push_send(new.follower, 'friends', '@' || coalesce(u, 'someone'), 'accepted your friend request', '#notifs');
   end if;
   return null;
 end $$;
@@ -424,7 +424,7 @@ begin
   select user_id into owner from public.stories where id = new.story_id;
   if owner is null or owner = new.user_id then return null; end if;
   select username into u from public.profiles where id = new.user_id;
-  perform public.push_send(owner, 'stories', 'New reaction', '@' || coalesce(u, 'someone') || ' reacted to your story', '#notifs');
+  perform public.push_send(owner, 'stories', '@' || coalesce(u, 'someone'), 'reacted to your story', '#notifs');
   return null;
 end $$;
 drop trigger if exists push_react on public.story_reactions;
@@ -435,7 +435,7 @@ begin
   select user_id into owner from public.stories where id = new.story_id;
   if owner is null or owner = new.from_user then return null; end if;
   select username into u from public.profiles where id = new.from_user;
-  perform public.push_send(owner, 'stories', '@' || coalesce(u, 'someone') || ' replied to your story', coalesce(new.body, ''), '#notifs');
+  perform public.push_send(owner, 'stories', '@' || coalesce(u, 'someone'), 'replied to your story: “' || left(coalesce(new.body, ''), 120) || '”', '#notifs');
   return null;
 end $$;
 drop trigger if exists push_reply on public.story_replies;

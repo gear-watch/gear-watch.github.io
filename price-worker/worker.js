@@ -358,9 +358,10 @@ const b64uD = s => { s = String(s || '').replace(/-/g, '+').replace(/_/g, '/'); 
 const cat = (...a) => { const o = new Uint8Array(a.reduce((n, x) => n + x.length, 0)); let i = 0; a.forEach(x => { o.set(x, i); i += x.length; }); return o; };
 async function hkdf(salt, ikm, info, len) { const k = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']); return new Uint8Array(await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt, info }, k, len * 8)); }
 let VAPID_KEY = null;
+let VAPID_SUB = '';
 async function vapidJwt(aud, env) {
   if (!VAPID_KEY) { const p = b64uD(env.VAPID_PUBLIC); VAPID_KEY = await crypto.subtle.importKey('jwk', { kty: 'EC', crv: 'P-256', d: env.VAPID_PRIVATE, x: b64uE(p.slice(1, 33)), y: b64uE(p.slice(33, 65)), ext: true }, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']); }
-  const te = new TextEncoder(), h = b64uE(te.encode(JSON.stringify({ typ: 'JWT', alg: 'ES256' }))), b = b64uE(te.encode(JSON.stringify({ aud, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: env.VAPID_SUBJECT || 'mailto:push@gearwatch.app' })));
+  const te = new TextEncoder(), h = b64uE(te.encode(JSON.stringify({ typ: 'JWT', alg: 'ES256' }))), b = b64uE(te.encode(JSON.stringify({ aud, exp: Math.floor(Date.now() / 1000) + 3600, sub: VAPID_SUB })));
   const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, VAPID_KEY, te.encode(h + '.' + b)); return h + '.' + b + '.' + b64uE(sig);
 }
 async function pushEncrypt(sub, text) {
@@ -376,13 +377,14 @@ async function pushRoute(req, env) {
   const H = { 'content-type': 'application/json' };
   if (!env || !env.PUSH_KEY || !env.VAPID_PUBLIC || !env.VAPID_PRIVATE) return new Response(JSON.stringify({ error: 'Push isn’t set up' }), { status: 503, headers: H });
   if (!sameKey(req.headers.get('x-push-key') || '', env.PUSH_KEY)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: H });
+  { const s = String(env.VAPID_SUBJECT || '').trim(); VAPID_SUB = /^mailto:[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(s) && !/@(localhost|example\.|.*\.(local|invalid|test))/i.test(s) || /^https:\/\/[^\s/]+\.[a-z]{2,}/i.test(s) ? s : new URL(req.url).origin; }
   let d; try { d = await req.json(); } catch (e) { return new Response('{"error":"Bad JSON"}', { status: 400, headers: H }); }
   const msg = JSON.stringify({ title: String(d.title || 'GearWatch').slice(0, 80), body: String(d.body || '').slice(0, 180), url: /^#[a-z0-9=&-]{0,40}$/i.test(d.url || '') ? d.url : '#notifs', tag: String(d.tag || '').slice(0, 20) });
-  const subs = (Array.isArray(d.subs) ? d.subs : []).slice(0, 20), out = { sent: 0, gone: [], failed: 0 };
-  await Promise.all(subs.map(async s => { try { const u = new URL(s.endpoint); if (u.protocol !== 'https:' || !PUSH_HOSTS.test(u.hostname)) { out.failed++; return; }
+  const subs = (Array.isArray(d.subs) ? d.subs : []).slice(0, 20), out = { sent: 0, gone: [], failed: 0, errors: [] };
+  await Promise.all(subs.map(async s => { try { const u = new URL(s.endpoint); if (u.protocol !== 'https:' || !PUSH_HOSTS.test(u.hostname)) { out.failed++; out.errors.push({ host: u.hostname, why: 'not an allowed push service' }); return; }
     const body = await pushEncrypt(s, msg), jwt = await vapidJwt(u.origin, env);
     const r = await fetch(s.endpoint, { method: 'POST', headers: { 'Content-Encoding': 'aes128gcm', 'Content-Type': 'application/octet-stream', TTL: '86400', Urgency: 'normal', Authorization: 'vapid t=' + jwt + ', k=' + env.VAPID_PUBLIC }, body });
-    if (r.status === 404 || r.status === 410) out.gone.push(s.endpoint); else if (r.ok) out.sent++; else out.failed++; } catch (e) { out.failed++; } }));
+    if (r.status === 404 || r.status === 410) out.gone.push(s.endpoint); else if (r.ok) out.sent++; else { out.failed++; let why = ''; try { why = (await r.text()).slice(0, 200); } catch (er) {} out.errors.push({ host: u.hostname, status: r.status, why }); } } catch (e) { out.failed++; out.errors.push({ why: String((e && e.message) || e).slice(0, 200) }); } }));
   return new Response(JSON.stringify(out), { headers: H });
 }
 
