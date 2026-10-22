@@ -2787,7 +2787,7 @@ class Component extends DCLogic {
       SO.following.filter(f => f.status === 'accepted').forEach(f => { const L = SO.lists[f.id]; if (!L) return; const all = (L.wish || []).concat(L.coll || []);
         const upT = L._up ? Date.parse(L._up) : 0, upD = upT ? isoD(new Date(upT)) : '';
         const push = (kind, d, obj, ts) => { if (!d) return; d = String(d).slice(0, 10); if (!ts && d === upD) ts = upT; const k = f.id + '|' + kind + '|' + d; if (!groups.has(k)) groups.set(k, { f, kind, d, t: 0, list: [] }); const g = groups.get(k); g.t = Math.max(g.t, ts || 0); g.list.push(Object.assign({ _t: ts || 0 }, obj)); };
-        (L.wish || []).forEach(i => push('wish', i.a, i, i.at)); (L.coll || []).forEach(i => { if (i.ow) return; if (i.ad) push('colladd', i.ad2 || i.o, i, i.ot); else push('coll', i.o, i, i.ot); });
+        (L.wish || []).forEach(i => push('wish', i.a, i, i.at)); (L.coll || []).forEach(i => { if (i.ow) return; if (i.ad || i.pre) push('colladd', i.ad2 || i.o || upD, i, i.ot || (i.ad2 || i.o ? 0 : upT)); else push('coll', i.o, i, i.ot); });
         (L.outfits || []).forEach(o => { const hit = all.find(x => (o.ids || []).includes(x.id) && (x.ph || []).length), oo = Object.assign({}, o, { _ph: (o.ph || [])[0] || (hit ? hit.ph[0] : ''), _n: (o.ids || []).filter(id => all.some(x => x.id === id)).length });
           push('outfit', o.cr, oo, o.ct); if (o.lw && o.lw !== o.cr) push('wore', o.lw, oo, o.wt); }); });
       const t0 = new Date(); t0.setHours(12, 0, 0, 0);
