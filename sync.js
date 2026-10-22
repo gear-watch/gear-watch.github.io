@@ -194,6 +194,9 @@
   async function suggestions() { if (!sb || !S.user) return [];
     const r = await sb.rpc('friend_suggestions'); if (r.error) return [];
     return (r.data || []).map(x => ({ id: x.id, username: x.username, avatar: x.avatar || null, mutuals: x.mutuals || 0, via: x.via || [] })); }
+  async function shareCreate(data) { if (!sb) await connect(); if (!sb || !S.user) return null; const A = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    for (let t = 0; t < 3; t++) { const id = Array.from(crypto.getRandomValues(new Uint8Array(7)), b => A[b % A.length]).join(''); const r = await sb.from('shares').insert({ id, data }); if (!r.error) return id; if (!/duplicate|exist/i.test(r.error.message || '')) return null; } return null; }
+  async function shareGet(id) { if (!sb) await connect(); if (!sb) return null; const r = await sb.from('shares').select('data').eq('id', id).maybeSingle(); return r.data ? r.data.data : null; }
   const decline = id => sb.from('follows').delete().eq('follower', id).eq('followee', S.user.id);
   async function setUsername(name) {
     const u = uname(name);
@@ -284,7 +287,7 @@
   }
 
   window.GWSync = {
-    init, schedule, sync, social, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
+    init, schedule, sync, social, shareCreate, shareGet, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
     attach: h => { host = h; },
     on: f => { subs.add(f); f(Object.assign({}, S)); return () => subs.delete(f); },
     state: () => Object.assign({}, S)

@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=24"></script>
+<script src="./sync.js?v=25"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -2089,13 +2089,13 @@ class Component extends DCLogic {
     this.socPoll = setInterval(() => { if (document.visibilityState === 'visible') this.loadSocial(true); }, 30000);
     if (!hook()) { let n = 0; this.syPoll = setInterval(() => { if (hook() || ++n > 50) clearInterval(this.syPoll); }, 100); }
     if (!window.FITLOG_BRANDS) { let n = 0; this.brPoll = setInterval(() => { if (window.FITLOG_BRANDS || ++n > 50) { clearInterval(this.brPoll); this.forceUpdate(); } }, 100); }
-    const sh = readShare(); if (sh && sh.n) this.setState({ shared: sh });
+    const sh = readShare(); if (sh && sh.n) this.setState({ shared: sh }); this.loadShort();
     const addFromHash = () => { const m = (location.hash || '').match(/[#&]add=([^&]+)/); if (!m) return; const name = decodeURIComponent(m[1]); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
       const A = window.GWSync && window.GWSync.state ? window.GWSync.state() : {}; if (A.user && A.firstDone && A.username) this.openPerson(name); else this.pendingAdd = name; };
     addFromHash();
     if (/^#meas\b/.test(location.hash || '')) { this.setState({ tab: 'meas' }); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
     this.onStor = e => { if (e.key === 'fitlog.v2') this.forceUpdate(); }; window.addEventListener('storage', this.onStor);
-    this.onHash = () => { addFromHash(); const s2 = readShare(); this.setState({ shared: s2 && s2.n ? s2 : null }); }; window.addEventListener('hashchange', this.onHash);
+    this.onHash = () => { addFromHash(); const s2 = readShare(); this.setState({ shared: s2 && s2.n ? s2 : null }); this.loadShort(); }; window.addEventListener('hashchange', this.onHash);
     if (!this.isFramed()) { document.body.style.background = '#000'; [document.documentElement, document.body].forEach(el => { el.style.overflow = 'hidden'; el.style.height = '100%'; el.style.overscrollBehavior = 'none'; }); }
     this.reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.seen = new WeakSet();
@@ -2160,6 +2160,11 @@ class Component extends DCLogic {
     this.t4 = setTimeout(() => this.animOut(this.toastRef.current, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(16px) scale(.9)' }], 260, () => this.setState({ toast: null })), 2600);
   }
 
+  loadShort() { const m = (location.hash || '').match(/[#&]s=([A-Za-z0-9]{5,12})/); if (!m) return; const id = m[1], tryGet = (n) => { const G = window.GWSync; if (!G || !G.shareGet) { if (n < 50) setTimeout(() => tryGet(n + 1), 100); return; } G.shareGet(id).then(d => { if (d && d.n) this.setState({ shared: d }); else this.toast('That link has expired or doesn’t exist'); }).catch(() => this.toast('Couldn’t open that link')); }; tryGet(0); }
+  async shareOut(payload, title, text) { const G = window.GWSync, base = location.origin + location.pathname; let url = null;
+    try { const id = G && G.shareCreate ? await G.shareCreate(payload) : null; if (id) url = base + '#s=' + id; } catch (e) {}
+    if (!url) url = base + '#share=' + b64e(payload);
+    if (navigator.share) navigator.share({ title, text, url }).catch(() => {}); else { try { await navigator.clipboard.writeText(url); } catch (er) {} this.toast('Link copied'); } }
   save(data, quiet) { if (!quiet) data.mod = Date.now(); let full = false; try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { full = true; } this.setState({ data }); if (!quiet && window.GWSync) window.GWSync.schedule(full ? 0 : undefined); if (full && !quiet) { const A = this.state.acct || {}; this.toast(A.user ? 'Phone storage is full. Uploading your photos now, keep the app open for a moment.' : 'Phone storage is full. Sign in so photos can be saved online.'); } }
   loadSocial(quiet, manual) { const G = window.GWSync, A0 = G && G.state ? G.state() : null, A = A0 && A0.user ? A0 : this.state.acct; if (!G || !A || !A.user) { if (manual) this.toast('Sign in to see friends'); return false; }
     if (this.socLoading && !manual && Date.now() - (this.socStart || 0) < 15000) return false;
@@ -2700,8 +2705,7 @@ class Component extends DCLogic {
         onDelete: () => { if (!st.ovDel) { this.setState({ ovDel: true }); return; } const id = ovO.id; this.closeOutfit(() => { this.mutate(pp => { pp.outfits = (pp.outfits || []).filter(o => o.id !== id); }); this.toast('Outfit deleted'); }); },
         onShare: e => { this.bump(e.currentTarget, 1.04); const abs = x => /^\.\//.test(x) ? new URL(x, location.href).href : x;
           const payload = { t: 'o', n: oName(ovO), f: p.name, it: its.map(it => { const src = (it.photos || []).find(x => !/^data:/.test(x)); return { n: it.name, b: it.brand || undefined, cat: it.category || undefined, g: gOf(it) || undefined, u: it.url || undefined, c: it.currency, p: it.price, s: it.size || undefined, ph: src ? abs(src) : undefined }; }), ps: ovO.pos && Object.keys(ovO.pos).length ? its.map(it => ovO.pos[it.id] ? [ovO.pos[it.id].x, ovO.pos[it.id].y] : 0) : undefined };
-          const url = location.origin + location.pathname + '#share=' + b64e(payload);
-          if (navigator.share) navigator.share({ title: payload.n, text: (p.name || 'My') + '’s outfit: ' + payload.n, url }).catch(() => {}); else { try { navigator.clipboard.writeText(url); } catch (er) {} this.toast('Link copied'); } } };
+          this.shareOut(payload, payload.n, (p.name || 'My') + '’s outfit: ' + payload.n); } };
     }
     const B = st.builder; let bd = { items: [], groups: [], photos: [] };
     if (B) { const sel = B.itemIds.map(id => byId[id]).filter(Boolean), cands = p.items.filter(i => i.status === 'owned' || i.status === 'ordered');
@@ -3051,10 +3055,7 @@ class Component extends DCLogic {
       shareItem: e => { if (!dIt) return; this.bump(e.currentTarget, 1.04);
         const ms = (d.needRows || []).filter(r => r.value !== 'Not measured').map(r => [r.label, r.value]);
         const payload = { n: dIt.name, b: dIt.brand || undefined, cat: dIt.category || undefined, u: dIt.url || undefined, c: dIt.currency, p: dIt.price, s: dIt.size || undefined, col: dIt.colour || undefined, m: dIt.m2m ? 1 : undefined, st: dIt.status !== 'wanted' ? dIt.status : undefined, ph: (dIt.photos || []).filter(x => !/^data:/.test(x)).slice(0, 6).map(x => /^\.\//.test(x) ? new URL(x, location.href).href : x), ms: ms.length ? ms : undefined, f: p.name, no: (dIt.needs && dIt.needs.note) || undefined };
-        const url = location.origin + location.pathname + '#share=' + b64e(payload);
-        const title = dIt.name + (dIt.size ? ' · ' + dIt.size : '');
-        if (navigator.share) navigator.share({ title, text: (p.name || 'I') + ' wants this: ' + title, url }).catch(() => {});
-        else { try { navigator.clipboard.writeText(url); } catch (er) {} this.toast('Link copied'); } },
+        const title = dIt.name + (dIt.size ? ' · ' + dIt.size : ''); this.shareOut(payload, title, (p.name || 'I') + ' wants this: ' + title); },
       hasDetail: !!dIt, d, closeDetail: () => this.closeDetail(), openEdit: () => dIt && this.openForm(dIt),
       carOpen: () => { if (this.carMoved) { this.carMoved = false; return; } if (dIt) this.openViewer(dIt.photos || [], st.photoIdx, i => this.carGo(i)); },
       carRef: this.carRef, carPrev: () => this.carGo(st.photoIdx - 1), carNext: () => this.carGo(st.photoIdx + 1),

@@ -217,3 +217,17 @@ language sql stable security definer set search_path = public as $$
   limit 12
 $$;
 grant execute on function public.friend_suggestions() to authenticated;
+
+
+-- Short share links: a small public record per shared item or outfit.
+create table if not exists public.shares (
+  id text primary key check (id ~ '^[A-Za-z0-9]{5,12}$'),
+  data jsonb not null,
+  owner uuid references auth.users on delete cascade default auth.uid(),
+  created_at timestamptz default now()
+);
+alter table public.shares enable row level security;
+drop policy if exists "anyone reads shares" on public.shares;
+create policy "anyone reads shares" on public.shares for select to anon, authenticated using (true);
+drop policy if exists "signed in creates shares" on public.shares;
+create policy "signed in creates shares" on public.shares for insert to authenticated with check (owner = auth.uid());
