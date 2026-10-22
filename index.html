@@ -698,7 +698,7 @@ input::placeholder{color:#6e6e73;}
       <sc-if value="{{ d.hasOrderInfo }}" hint-placeholder-val="{{ false }}"><span data-anim="fade" style="font-size:14px;color:#d1d1d6;letter-spacing:-0.224px;">{{ d.orderInfo }}</span></sc-if>
     </div>
     <div data-anim="up" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:12px 16px;display:flex;flex-direction:column;gap:4px;">
-      <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Notes</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Notes</span><sc-if value="{{ d.hasNoteSt }}" hint-placeholder-val="{{ false }}"><span data-anim="fade" data-delay="0" style="display:flex;align-items:center;gap:4px;font-size:12px;color:#a1a1a6;"><sc-if value="{{ d.noteSaved }}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#30d158" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path data-anim="draw" data-delay="0" d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg></sc-if><span>{{ d.noteSt }}</span></span></sc-if></div>
       <textarea value="{{ d.notes }}" onChange="{{ d.onNotes }}" onBlur="{{ d.saveNotes }}" placeholder="{{ d.notesPh }}" rows="2" style="background:none;border:0;padding:0;font-size:17px;line-height:1.47;color:#f5f5f7;resize:none;outline:none;"></textarea>
     </div>
 
@@ -1664,6 +1664,15 @@ input::placeholder{color:#6e6e73;}
     </div>
   </div>
 </sc-if>
+<sc-if value="{{ hasNudge }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;left:0;right:0;bottom:{{ toastBottom }};z-index:66;display:flex;justify-content:center;pointer-events:none;padding:0 16px;">
+    <div ref="{{ nudgeRef }}" data-anim="pop" data-delay="0" style="pointer-events:auto;position:relative;overflow:hidden;max-width:100%;box-sizing:border-box;background:#2c2c2e;border-radius:9999px;padding:6px 6px 6px 16px;display:flex;align-items:center;gap:10px;font-size:14px;letter-spacing:-0.224px;box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+      <span style="flex:1 1 auto;min-width:0;">{{ nudgeText }}</span>
+      <div style="display:flex;gap:4px;flex:none;"><sc-for list="{{ nudgeActs }}" as="a" hint-placeholder-count="1"><button onClick="{{ a.onTap }}" style="border:0;border-radius:9999px;padding:7px 12px;font:inherit;font-weight:600;cursor:pointer;background:{{ a.bg }};color:{{ a.fg }};" style-active="transform:scale(0.95);">{{ a.label }}</button></sc-for></div>
+      <span ref="{{ nudgeBarRef }}" style="position:absolute;left:18px;right:18px;bottom:2px;height:2px;border-radius:1px;background:var(--gw-accent,#ffd60a);opacity:0.6;transform-origin:left center;pointer-events:none;"></span>
+    </div>
+  </div>
+</sc-if>
 
 
 <sc-if value="{{ showGate }}" hint-placeholder-val="{{ false }}">
@@ -2168,11 +2177,14 @@ async function rawToJpeg(f) {
   if (!best) throw new Error('Couldn’t read that DNG');
   return new Blob([await f.slice(best.s, f.size).arrayBuffer()], { type: 'image/jpeg' });
 }
+const IOSLIKE = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+async function readAll(files, max) { const out = []; for (const f of files) { let r = await readPhoto(f, max); if (!r) { await new Promise(z => setTimeout(z, 300)); r = await readPhoto(f, max); } out.push(r); await new Promise(z => setTimeout(z, 0)); } return out; }
 function readPhoto(file, max) { return rawToJpeg(file).then(f => readPhoto0(f, max)).catch(() => null); }
 function readPhoto0(file, max) {
   const draw = (src, w, hh) => { const s = Math.min(1, (max || 900) / Math.max(w, hh)), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w * s)); c.height = Math.max(1, Math.round(hh * s)); c.getContext('2d').drawImage(src, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', 0.82); };
-  const viaImg = () => new Promise(res => { const u = URL.createObjectURL(file), img = new Image(); img.decoding = 'async'; img.onload = () => { try { res(draw(img, img.naturalWidth, img.naturalHeight)); } catch (er) { res(null); } URL.revokeObjectURL(u); }; img.onerror = () => { URL.revokeObjectURL(u); res(null); }; img.src = u; });
-  if (!window.createImageBitmap) return viaImg();
+  const viaImg = async () => { let b = file; if (IOSLIKE && b.arrayBuffer) { try { b = new Blob([await b.arrayBuffer()], { type: b.type || 'image/jpeg' }); } catch (er) {} }
+    return new Promise(res => { const u = URL.createObjectURL(b), img = new Image(); img.onload = () => { (img.decode ? img.decode().catch(() => {}) : Promise.resolve()).then(() => { try { res(img.naturalWidth > 1 ? draw(img, img.naturalWidth, img.naturalHeight) : null); } catch (er) { res(null); } URL.revokeObjectURL(u); }); }; img.onerror = () => { URL.revokeObjectURL(u); res(null); }; img.src = u; }); };
+  if (!window.createImageBitmap || IOSLIKE) return viaImg();
   return createImageBitmap(file, { resizeWidth: 1800, resizeQuality: 'medium' }).catch(() => createImageBitmap(file)).then(bm => { const out = draw(bm, bm.width, bm.height); if (bm.close) bm.close(); return out; }).catch(viaImg);
 }
 
@@ -2185,7 +2197,7 @@ class Component extends DCLogic {
   state = { data: load(), tab: 'wish', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null, coll: 'items', outfit: null, builder: null, cuts: {}, cutsReady: false, cpickId: null, cpickQ: false, ovDel: false, newGrpOpen: false, newGrp: '', bdragId: null, acct: null, social: null, friend: null, friendTab: 'wish', followIn: '', followMsg: '', authEmail: '', authCode: '', unameIn: '', authErr: '' };
   spentRef = React.createRef(); outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef(); fItemRef = React.createRef(); fiCarRef = React.createRef(); vwRef = React.createRef(); qrRef = React.createRef(); svRef = React.createRef(); scRef = React.createRef(); cropRef = React.createRef(); pcBoxRef = React.createRef(); fOutRef = React.createRef(); pcRectRef = React.createRef();
   heroRef = React.createRef(); carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
-  introRef = React.createRef(); bPanelRef = React.createRef(); toastRef = React.createRef(); figRef = React.createRef();
+  introRef = React.createRef(); bPanelRef = React.createRef(); toastRef = React.createRef(); nudgeRef = React.createRef(); nudgeBarRef = React.createRef(); figRef = React.createRef();
 
   applyPrices(map) {
     const data = JSON.parse(JSON.stringify(this.state.data)); let changed = false;
@@ -2274,7 +2286,7 @@ class Component extends DCLogic {
   }
   async addFormFiles(files) {
     files = files.filter(f => f && (/^image\//.test(f.type) || /\.dng$/i.test(f.name || ''))); if (!files.length) return false;
-    const out = (await Promise.all(files.map(readPhoto))).filter(Boolean);
+    const out = (await readAll(files)).filter(Boolean);
     if (out.length < files.length) this.toast((files.length - out.length === 1 ? 'Couldn’t read a photo' : 'Couldn’t read ' + (files.length - out.length) + ' photos') + '. Try saving it as JPG or PNG first.');
     if (out.length) { this.setState(s => s.form ? { form: Object.assign({}, s.form, { photos: (s.form.photos || []).concat(out) }) } : null); this.toast(out.length === 1 ? 'Photo added' : out.length + ' photos added'); }
     return true;
@@ -2345,6 +2357,11 @@ class Component extends DCLogic {
     clearTimeout(this.t1); clearTimeout(this.t2);
     this.t1 = setTimeout(() => { if (this.dropItem()) { this.setState({ notif: true }); this.t2 = setTimeout(() => this.setState({ notif: false }), 6000); } }, ms);
   }
+  saveDNotes(fin) { clearTimeout(this.noteT); const s = this.state; if (s.dNotes == null) return; const id = s.dNotesId, v = fin ? s.dNotes.trim() : s.dNotes, D = s.data, P0 = D.profiles.find(x => x.id === D.activeId) || D.profiles[0], it0 = (P0.items || []).find(x => x.id === id), ch = !!it0 && (it0.notes || '') !== v;
+    if (ch) this.mutItem(id, it => { it.notes = v; }); const show = ch || s.dNoteSt === 'typing'; this.setState(Object.assign(fin ? { dNotes: null } : {}, show ? { dNoteSt: 'saved' } : {})); if (show) { clearTimeout(this.noteT2); this.noteT2 = setTimeout(() => this.setState({ dNoteSt: null }), 2500); } }
+  openMyProfile(extra) { const G = window.GWSync, A = G && G.state ? G.state() : {}, id = (A.user || {}).id; if (id) this.setState(Object.assign({ friend: id, friendTab: 'wish', fOutfit: null, fItem: null, unfArm: false }, extra || {})); }
+  nudge(text, acts) { clearTimeout(this.nudgeT); this.setState({ nudge: { text, acts } }, () => { const b = this.nudgeBarRef.current; if (b && b.animate) b.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: 5000, easing: 'linear', fill: 'forwards' }); }); this.nudgeT = setTimeout(() => this.nudgeOff(), 5000); }
+  nudgeOff(cb) { clearTimeout(this.nudgeT); if (cb) { this.setState({ nudge: null }); cb(); return; } this.animOut(this.nudgeRef.current, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(16px) scale(.96)' }], 240, () => this.setState({ nudge: null })); }
   toast(text) {
     clearTimeout(this.t4); this.setState({ toast: text });
     this.t4 = setTimeout(() => this.animOut(this.toastRef.current, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(16px) scale(.9)' }], 260, () => this.setState({ toast: null })), 2600);
@@ -2485,7 +2502,9 @@ class Component extends DCLogic {
   cropUp(e) { const g = this.cg; if (!g) return; g.ptrs.delete(e.pointerId); if (g.ptrs.size) this.cropBegin(); }
   cropWheel(e) { const g = this.cg; if (!g) return; const r = this.cropEls().stage.getBoundingClientRect(), cx = e.clientX - r.left - r.width / 2, cy = e.clientY - r.top - r.height / 2, z = Math.max(1, Math.min(8, g.z * Math.exp(-e.deltaY * 0.0025))), k = z / g.z; g.tx = cx - k * (cx - g.tx); g.ty = cy - k * (cy - g.ty); g.z = z; this.cropApply(); }
   async useCrop() { const G = window.GWSync; if (!this.cg || !G || this.state.avBusy) return; const c = document.createElement('canvas'); c.width = c.height = 640; this.cropDraw(c, 640); const data = c.toDataURL('image/jpeg', 0.88);
-    this.closeCrop(); this.setState({ avBusy: true, avDelArm: false }); try { await G.setAvatar(data); this.mutate(pp => { pp.avatarAt = new Date().toISOString(); }); this.toast('Profile photo updated'); } catch (er) { this.toast((er && er.message) || 'Couldn’t update your photo'); } this.setState({ avBusy: false }); }
+    this.closeCrop(); this.setState({ avBusy: true, avDelArm: false }); try { await G.setAvatar(data); this.mutate(pp => { pp.avatarAt = new Date().toISOString(); }); { const D = this.state.data, P0 = D.profiles.find(x => x.id === D.activeId) || D.profiles[0], noBn = !P0.banner && !P0.bannerMode, A = G.state ? G.state() : {}, onMe = !!this.state.friend && this.state.friend === (A.user || {}).id, acts = [];
+      if (!onMe) acts.push({ label: 'View', fn: () => this.openMyProfile() }); if (noBn) acts.push({ label: 'Add banner', fn: () => this.openMyProfile({ bnSheet: true }) });
+      if (acts.length) this.nudge(noBn ? 'Photo updated. Add a banner?' : 'Profile photo updated', acts); else this.toast('Profile photo updated'); } } catch (er) { this.toast((er && er.message) || 'Couldn’t update your photo'); } this.setState({ avBusy: false }); }
   phDown(e, i) { if (e.button > 0) return; const tile = e.currentTarget, grid = tile.parentElement, n = ((this.state.form || {}).photos || []).length, R = Array.from(grid.children).slice(0, n).map(c => c.getBoundingClientRect());
     this.pd = { i, id: e.pointerId, x0: e.clientX, y0: e.clientY, gx: e.clientX - R[i].left, gy: e.clientY - R[i].top, grid, R, on: false }; try { tile.setPointerCapture(e.pointerId); } catch (er) {} }
   phPlace(cx, cy) { const d = this.pd; if (!d) return; const kids = d.grid.children; d.R.forEach((r, k) => { const el = kids[k]; if (!el) return; el.style.transition = k === d.i ? 'box-shadow .2s' : 'transform .2s';
@@ -2633,7 +2652,7 @@ class Component extends DCLogic {
       c.getContext('2d').drawImage(im, Math.round(r.x * W), Math.round(r.y * H), sw, sh, 0, 0, c.width, c.height); const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.9)); if (!blob) { this.toast('Couldn’t crop that photo'); return; }
       const url = URL.createObjectURL(blob), re = q => { const nx = (q.x - r.x) / r.w, ny = (q.y - r.y) / r.h; return nx >= 0 && nx <= 1 && ny >= 0 && ny <= 1 ? Object.assign({}, q, { x: nx, y: ny }) : null; };
       this.setState(z => { if (!z.sc) return { pc: null }; return { pc: null, sc: Object.assign({}, z.sc, { files: z.sc.files.map((g, j) => j !== P.fi ? g : Object.assign({}, g, { blob, url, w: c.width, h: c.height, tags: (g.tags || []).map(re).filter(Boolean), texts: (g.texts || []).map(re).filter(Boolean) })) }) }; }); return; }
-    if (P.mode === 'banner') { const im = await this.pcLoad(P.src).catch(() => null); if (!im) { this.toast('Couldn’t crop that photo'); return; } const W = im.naturalWidth, H = im.naturalHeight, sw = Math.round(r.w * W), sh = Math.round(r.h * H), k = Math.min(1, 1500 / sw), c = document.createElement('canvas'); c.width = Math.round(sw * k); c.height = Math.round(sh * k); c.getContext('2d').drawImage(im, Math.round(r.x * W), Math.round(r.y * H), sw, sh, 0, 0, c.width, c.height); const out = c.toDataURL('image/jpeg', 0.86); this.setState({ pc: null }); this.mutate(pp => { pp.banner = out; pp.bannerMode = 'image'; pp.bannerAt = new Date().toISOString(); }); this.toast('Banner saved'); return; } if (r.x < 0.01 && r.y < 0.01 && r.w > 0.98 && r.h > 0.98) return this.pcReset();
+    if (P.mode === 'banner') { const im = await this.pcLoad(P.src).catch(() => null); if (!im) { this.toast('Couldn’t crop that photo'); return; } const W = im.naturalWidth, H = im.naturalHeight, sw = Math.round(r.w * W), sh = Math.round(r.h * H), k = Math.min(1, 1500 / sw), c = document.createElement('canvas'); c.width = Math.round(sw * k); c.height = Math.round(sh * k); c.getContext('2d').drawImage(im, Math.round(r.x * W), Math.round(r.y * H), sw, sh, 0, 0, c.width, c.height); const out = c.toDataURL('image/jpeg', 0.86); this.setState({ pc: null }); this.mutate(pp => { pp.banner = out; pp.bannerMode = 'image'; pp.bannerAt = new Date().toISOString(); }); this.openMyProfile(); this.toast('Banner saved'); return; } if (r.x < 0.01 && r.y < 0.01 && r.w > 0.98 && r.h > 0.98) return this.pcReset();
     this.setState({ pc: Object.assign({}, P, { busy: true }) });
     try { const im = await this.pcLoad(P.src), W = im.naturalWidth, H = im.naturalHeight, sw = Math.max(1, Math.round(r.w * W)), sh = Math.max(1, Math.round(r.h * H)), k = Math.min(1, 1200 / Math.max(sw, sh)), c = document.createElement('canvas');
       c.width = Math.round(sw * k); c.height = Math.round(sh * k); c.getContext('2d').drawImage(im, Math.round(r.x * W), Math.round(r.y * H), sw, sh, 0, 0, c.width, c.height); const out = c.toDataURL('image/jpeg', 0.86);
@@ -3067,7 +3086,7 @@ class Component extends DCLogic {
     const fr = { bn, avTip: !!(A.configured && A.user && A.username && !A.avatar && !avTipOff && !st.avTipHid), avTipLater: () => { try { localStorage.setItem('gw-av-tip', '1'); } catch (e) {} this.setState({ avTipHid: true }); }, onAvatarTip: e => { const fl = e.target.files && e.target.files[0]; e.target.value = ''; if (fl && !st.avBusy) { try { localStorage.setItem('gw-av-tip', '1'); } catch (er) {} this.openCrop(fl); } }, openMe: () => { const id = (A.user || {}).id; if (id) this.setState({ friend: id, friendTab: 'wish', fOutfit: null, fItem: null, unfArm: false }); }, openMeCard: e => { if (e.target.closest && e.target.closest('label,button,input')) return; const id = (A.user || {}).id; if (id) this.setState({ friend: id, friendTab: 'wish', fOutfit: null, fItem: null, unfArm: false }); }, needAcct: !A.configured, signedIn: !!(A.configured && A.user), handle: A.username ? '@' + A.username : A.email || p.name,
       followerTxt: plural(SO.followers.length, 'follower'), handleTop: A.configured && A.user ? '' : (A.username ? '@' + A.username : A.email || p.name),
       myInitial: ini(A.username || p.name), av: A.avatar || '', hasAv: !!A.avatar, avBusy: !!st.avBusy,
-      avSub: plural(SO.following.filter(f => f.status === 'accepted').length, 'friend') + ' · ' + (A.avatar ? 'Tap photo to change' : 'Tap to add a photo'),
+      avSub: plural(SO.following.filter(f => f.status === 'accepted').length, 'friend') + ' · ' + (A.avatar ? 'View profile' : 'Tap to add a photo'),
       removeLabel: st.avDelArm ? 'Remove?' : 'Remove',
       onAvatar: e => { const fl = e.target.files && e.target.files[0]; e.target.value = ''; if (fl && !st.avBusy) this.openCrop(fl); },
       removeAv: async () => { if (!st.avDelArm) { this.setState({ avDelArm: true }); clearTimeout(this.avT); this.avT = setTimeout(() => this.setState({ avDelArm: false }), 3000); return; } this.setState({ avBusy: true, avDelArm: false }); try { await G.setAvatar(null); this.mutate(pp => { delete pp.avatarAt; }); this.toast('Profile photo removed'); } catch (er) { this.toast((er && er.message) || 'Couldn’t remove your photo'); } this.setState({ avBusy: false }); }, followIn: st.followIn || '', onFollowIn: e => { const v = e.target.value; this.setState({ followIn: v, followMsg: '' }); clearTimeout(this.sugT); this.sugT = setTimeout(() => this.searchUsers(v), 220); }, onFollowKey: e => { if (e.key === 'Enter') { e.preventDefault(); goName(st.followIn); } },
@@ -3178,9 +3197,9 @@ class Component extends DCLogic {
         onBanner: e => fvBannerPick(e), _x: async e => { const fl = e.target.files && e.target.files[0]; e.target.value = ''; if (!fl) return; const src = await readPhoto(fl, 2000); if (!src) { this.toast('Couldn’t read that photo'); return; } const im = new Image(); im.onload = () => { const iw = im.naturalWidth, ih = im.naturalHeight, r = iw / ih >= 3 ? { h: 1, w: ih * 3 / iw } : { w: 1, h: iw / 3 / ih }; r.x = (1 - r.w) / 2; r.y = (1 - r.h) / 2; this.setState({ pc: { mode: 'banner', src, iw, ih, rect: r, base: { w: r.w, h: r.h }, zoom: 100 } }, () => setTimeout(() => this.pcMeasure(), 40)); }; im.src = src; },
         removeBanner: () => { this.mutate(pp => { delete pp.banner; }); this.toast('Banner removed'); }, isHl: ft === 'hl' && hlL.length > 0, hlEmpty: ft === 'hl' && !hlL.length, hlEmptyTxt: isMeV ? 'Pin a story as a Highlight and it shows up here.' : 'No highlights yet.', hlTiles: hlL, name: '@' + fU.username, initial: ini(fU.username), av: fU.avatar || '', hasAv: !!fU.avatar, avCursor: fU.avatar ? 'zoom-in' : 'default', onAv: () => { if (fU.avatar) this.openViewer([fU.avatar], 0); }, sub: W.length + ' wanted · ' + C.length + ' in collection · ' + plural(O.length, 'outfit'),
         tabs: [['wish', 'Wishlist'], ['coll', 'Collection'], ['outfits', 'Outfits'], ['hl', 'Highlights'], ['friends', 'Friends']].map(([k, l]) => ({ label: l, bg: ft === k ? '#636366' : 'transparent', onTap: () => { this.setState({ friendTab: k }); if (k === 'friends') this.loadFof(fU.id); } })),
-        ...(() => { const FO = (st.fof || {})[fU.id] || {}, FL = FO.list || [], mut = FL.filter(x => relOf(x.id) === 'friend').length; if (ft === 'friends' && !FO.list && !FO.busy && !FO.err) setTimeout(() => this.loadFof(fU.id), 0);
+        ...(() => { const FO = (st.fof || {})[fU.id] || {}, FL0 = FO.list || [], meIn = !isMeV && !!meId && !!FO.list && relOf(fU.id) === 'friend' && !FL0.some(x => x.id === meId), FL = meIn ? [{ id: meId, username: A.username || 'you', avatar: A.avatar || null }].concat(FL0) : FL0, mut = FL.filter(x => relOf(x.id) === 'friend').length; if (ft === 'friends' && !FO.list && !FO.busy && !FO.err) setTimeout(() => this.loadFof(fU.id), 0);
           return { isFr: ft === 'friends' && FL.length > 0, frHead: plural(FL.length, 'friend') + (mut ? ' · ' + mut + ' mutual' : ''), hasFrMsg: ft === 'friends' && (!FO.list || !FL.length || !!FO.err), frMsg: FO.err ? FO.err : !FO.list ? 'Loading their friends…' : 'No friends to show yet.',
-            frList: FL.slice().sort((a, b) => (relOf(a.id) === 'friend' ? 0 : 1) - (relOf(b.id) === 'friend' ? 0 : 1) || a.username.localeCompare(b.username)).map(x => { const r = relOf(x.id); return { name: '@' + x.username, initial: ini(x.username), av: x.avatar || '', hasAv: !!x.avatar,
+            frList: FL.slice().sort((a, b) => (b.id === meId) - (a.id === meId) || (relOf(a.id) === 'friend' ? 0 : 1) - (relOf(b.id) === 'friend' ? 0 : 1) || a.username.localeCompare(b.username)).map(x => { if (x.id === meId) return { name: '@' + x.username, initial: ini(x.username), av: x.avatar || '', hasAv: !!x.avatar, sub: 'You', hasSub: true, hasBtn: false, btnLabel: '', onBtn: e => e.stopPropagation(), onOpen: () => this.openMyProfile() }; const r = relOf(x.id); return { name: '@' + x.username, initial: ini(x.username), av: x.avatar || '', hasAv: !!x.avatar,
               sub: r === 'friend' ? 'Your friend too' : r === 'pending' ? 'Request sent' : r === 'incoming' ? 'Wants to be friends' : '', hasSub: r !== 'none', hasBtn: r === 'none' || r === 'incoming', btnLabel: r === 'incoming' ? 'Accept' : 'Add',
               onBtn: e => { e.stopPropagation(); this.bump(e.currentTarget, 1.08); if (r === 'incoming') doAccept(x); else doFollow(x.username); }, onOpen: () => { if (r === 'friend') openF(x.id, 'wish')(); else openPersonObj(x); } }; }) }; })(),
         isWish: ft === 'wish' && W.length > 0, isColl: ft === 'coll' && C.length > 0, isOut: ft === 'outfits' && O.length > 0,
@@ -3232,7 +3251,8 @@ class Component extends DCLogic {
         dots: ph.map((_, i) => ({ onTap: () => this.carGo(i), bg: i === st.photoIdx ? '#f5f5f7' : 'rgba(245,245,247,0.4)', w: i === st.photoIdx ? '18px' : '7px' })),
         stars: [1, 2, 3, 4, 5].map(n => { const k = dIt.status === 'owned' ? 'rec' : 'rating'; return { fill: n <= (dIt[k] || 0) ? ACC : '#48484a', label: n + ' stars', onTap: e => { this.bump(e.currentTarget, 1.45); this.mutItem(dIt.id, it => { it[k] = it[k] === n && k === 'rec' ? 0 : n; }); } }; }),
         starsLbl: dIt.status === 'owned' ? 'Would you recommend it?' : 'How much you want it', notes: st.dNotes != null && st.dNotesId === dIt.id ? st.dNotes : (dIt.notes || ''), notesPh: dIt.status === 'owned' ? 'Fit, feel, care tips, what to wear it with' : 'Size to order, colour options, waiting for a sale',
-        onNotes: e => this.setState({ dNotes: e.target.value, dNotesId: dIt.id }), saveNotes: () => { if (st.dNotes == null || st.dNotesId !== dIt.id) return; const v = st.dNotes.trim(), id = dIt.id; this.setState({ dNotes: null }); if (v !== (dIt.notes || '')) this.mutItem(id, it => { it.notes = v; }); },
+        onNotes: e => { this.setState({ dNotes: e.target.value, dNotesId: dIt.id, dNoteSt: 'typing' }); clearTimeout(this.noteT); this.noteT = setTimeout(() => this.saveDNotes(false), 700); }, saveNotes: () => this.saveDNotes(true),
+        hasNoteSt: !!st.dNoteSt && st.dNotesId === dIt.id, noteSaved: st.dNoteSt === 'saved', noteSt: st.dNoteSt === 'saved' ? 'Saved' : 'Saving…',
         statusTabs: [['wanted', 'Wanted'], ['ordered', 'Ordered'], ['owned', 'Owned']].map(([k, l]) => ({ label: l, bg: dIt.status === k ? '#636366' : 'transparent', onTap: e => { this.bump(e.currentTarget, 1.06); if (k !== 'wanted' && dIt.status === 'wanted') this.openPaid(dIt, k); else { const was = dIt.status; this.setStatus(dIt.id, k); if (k === 'owned' && was !== 'owned') setTimeout(() => this.askStory({ title: 'Share it as a story?', sub: dIt.name + ' arrived', items: [this.snap(dIt)], photos: (dIt.photos || []).filter(u => /^data:|supabase/.test(u)).slice(0, 3) }), 700); } } })),
         showVis: !!(A.configured && A.user), visSub: dIt.private ? 'Only you can see this item' : 'Friends can see this item', visTrack: dIt.private ? '#48484a' : '#30d158', visKnob: dIt.private ? 'none' : 'translateX(20px)',
         toggleVis: () => { const pv = !dIt.private; this.mutItem(dIt.id, it => { if (pv) it.private = true; else delete it.private; }); this.toast(pv ? 'Hidden from friends' : 'Visible to friends'); },
@@ -3348,7 +3368,7 @@ class Component extends DCLogic {
       bdCancel: () => this.closeBuilder(), bdSave: () => this.saveBuilder(),
       bdName: e => { const v = e.target.value; this.setState(s => ({ builder: Object.assign({}, s.builder, { name: v }) })); },
       bdReset: () => this.setState(s => ({ builder: Object.assign({}, s.builder, (s.builder.photos || []).length ? { tags: {} } : { sizes: {} }) })),
-      bdPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await Promise.all(files.map(readPhoto))).filter(Boolean); if (out.length < files.length) this.toast('Couldn’t read ' + (files.length - out.length === 1 ? 'a photo' : (files.length - out.length) + ' photos') + '. Try saving it as JPG or PNG first.'); this.setState(s => s.builder ? { builder: Object.assign({}, s.builder, { photos: (s.builder.photos || []).concat(out) }) } : null); },
+      bdPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await readAll(files)).filter(Boolean); if (out.length < files.length) this.toast('Couldn’t read ' + (files.length - out.length === 1 ? 'a photo' : (files.length - out.length) + ' photos') + '. Try saving it as JPG or PNG first.'); this.setState(s => s.builder ? { builder: Object.assign({}, s.builder, { photos: (s.builder.photos || []).concat(out) }) } : null); },
       isSheetCpick: st.sheet === 'cpick', cp, newGrpOpen: !!st.newGrpOpen, newGrp: st.newGrp || '',
       onNewGrp: e => this.setState({ newGrp: e.target.value }),
       toggleNewGrp: e => { this.bump(e.currentTarget, 1.1); this.setState({ newGrpOpen: !st.newGrpOpen, newGrp: '' }); },
@@ -3487,7 +3507,7 @@ class Component extends DCLogic {
         const html = dt.getData('text/html') || '', m = html.match(/<img[^>]+src=["']([^"']+)/i), u = (m && m[1]) || (dt.getData('text/uri-list') || '').split('\n').find(x => /^https?:|^data:image/.test(x.trim()));
         if (!u) { this.toast('That isn’t a photo.'); return; }
         const f = await this.urlToFile(u.trim()); if (!f || !(await this.addFormFiles([f]))) this.toast('That site won’t let photos be dragged out. Save it first, then drop the file.'); },
-      onPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await Promise.all(files.map(readPhoto))).filter(Boolean); if (out.length < files.length) this.toast((files.length - out.length === 1 ? 'Couldn’t read a photo' : 'Couldn’t read ' + (files.length - out.length) + ' photos') + '. Try saving it as JPG or PNG first.'); this.setState(s => ({ form: Object.assign({}, s.form, { photos: (s.form.photos || []).concat(out) }) })); },
+      onPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await readAll(files)).filter(Boolean); if (out.length < files.length) this.toast((files.length - out.length === 1 ? 'Couldn’t read a photo' : 'Couldn’t read ' + (files.length - out.length) + ' photos') + '. Try saving it as JPG or PNG first.'); this.setState(s => ({ form: Object.assign({}, s.form, { photos: (s.form.photos || []).concat(out) }) })); },
       budgetIn: st.budgetIn, onBudgetIn: e => this.setState({ budgetIn: e.target.value }),
       paydayIn: st.paydayIn || '1', paydayW: (ordinal(Number(st.paydayIn) || 1).length * 0.62 + 0.2) + 'em', onPayday: e => this.setState({ paydayIn: e.target.value, spentIn: '' }), paydayOpts: Array.from({ length: 31 }, (_, i) => ({ v: String(i + 1), label: ordinal(i + 1) })),
       spentIn: st.spentIn || '', onSpentIn: e => this.setState({ spentIn: e.target.value }),
@@ -3510,6 +3530,7 @@ class Component extends DCLogic {
       pointFig: st.pointId ? bodyFig({ single: true, lines: [{ id: st.pointId }] }) : null,
       pointVal: pv ? pv.v : '—', pointUnit: pv ? pv.u : '', pointHint: st.pointId && PT[st.pointId] ? PT[st.pointId].hint : '', pointDate: hasSession ? 'Measured ' + fmtD(sess.date) : '',
       hasToast: !!st.toast, toastText: st.toast || '',
+      hasNudge: !!st.nudge, nudgeText: (st.nudge || {}).text || '', nudgeRef: this.nudgeRef, nudgeBarRef: this.nudgeBarRef, nudgeActs: ((st.nudge || {}).acts || []).map((a, i, L) => ({ label: a.label, bg: i === L.length - 1 ? 'var(--gw-accent,#ffd60a)' : '#48484a', fg: i === L.length - 1 ? '#000' : '#f5f5f7', onTap: () => this.nudgeOff(a.fn) })),
       heroRef: this.heroRef,
       ...(() => { const s = dropIt, showNext = !s || !nextIt || s.id !== nextIt.id, multi = !!s && showNext, hi = multi ? (st.heroIdx || 0) : 0;
         const go = i => { const el = this.heroRef.current; if (el) el.scrollTo({ left: i * el.clientWidth, behavior: this.reduce ? 'auto' : 'smooth' }); this.setState({ heroIdx: i }); };
