@@ -25,13 +25,44 @@
     const c = cfg();
     try { sb = window.supabase.createClient(c.url, c.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: AUTH } }); }
     catch (e) { why = 'The Supabase address in config.js looks wrong. It should look like https://abcd.supabase.co'; return false; }
-    sb.auth.onAuthStateChange((ev, s) => { setTimeout(() => onSession(s), 0); });
-    try { const { data } = await sb.auth.getSession(); await onSession(data.session); } catch (e) {}
+    sb.auth.onAuthStateChange((ev, s) => { postAuth(s); setTimeout(() => onSession(s), 0); });
+    try { const { data } = await sb.auth.getSession(); postAuth(data.session); await onSession(data.session); } catch (e) {}
     return true;
   }
+  // ===== Private photos =====
+  const PUB = '/storage/v1/object/public/photos/';
+  function postAuth(s, wipe) {
+    if (!('serviceWorker' in navigator)) return;
+    const m = { type: 'gw-auth', token: (s && s.access_token) || null, key: cfg().key, wipe: !!wipe };
+    try { if (navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage(m); } catch (e) {}
+    navigator.serviceWorker.ready.then(r => { if (r.active) r.active.postMessage(m); }).catch(() => {});
+  }
+  function startPhotos() {
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      navigator.serviceWorker.register('./sw.js').catch(e => console.warn('photo helper', e));
+      navigator.serviceWorker.addEventListener('controllerchange', () => { if (sb) sb.auth.getSession().then(r => postAuth(r.data.session)).catch(() => {}); });
+    }
+    // Backup for when the helper isn't running yet: load the photo with your sign-in and swap it in.
+    const got = new Map();
+    document.addEventListener('error', e => {
+      const el = e.target; if (!el || el.tagName !== 'IMG' || !sb) return;
+      const src = el.currentSrc || el.src || ''; if (src.indexOf(cfg().url + PUB) !== 0 || el._gwTried === src) return; el._gwTried = src;
+      let p = got.get(src);
+      if (!p) { p = (async () => { const { data } = await sb.auth.getSession(), tok = data.session && data.session.access_token; if (!tok) return null;
+        const r = await fetch(src.replace('/object/public/', '/object/authenticated/'), { headers: { Authorization: 'Bearer ' + tok, apikey: cfg().key } }); return r.ok ? URL.createObjectURL(await r.blob()) : null; })().catch(() => null);
+        got.set(src, p); }
+      p.then(u => { if (u) el.src = u; else got.delete(src); });
+    }, true);
+  }
+  async function wipeLocal() {
+    [META, GW, FL, AUTH].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+    postAuth(null, true);
+    try { if (window.caches) await Promise.all(['gw-photos', 'gw-auth'].map(n => caches.delete(n))); } catch (e) {}
+  }
+
   async function init() {
     if (!S.configured) { set({ ready: true }); return; }
-    if (!started) { started = true;
+    if (!started) { started = true; startPhotos();
       window.addEventListener('online', () => { connect().then(() => schedule(0)); });
       window.addEventListener('offline', () => set({ status: 'offline' }));
       document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') schedule(0); }); }
@@ -198,7 +229,13 @@
   async function suggestions() { if (!sb || !S.user) return [];
     const r = await sb.rpc('friend_suggestions'); if (r.error) return [];
     return (r.data || []).map(x => ({ id: x.id, username: x.username, avatar: x.avatar || null, mutuals: x.mutuals || 0, via: x.via || [] })); }
-  async function shareCreate(data) { if (!sb) await connect(); if (!sb || !S.user) return null; const A = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  async function shareCreate(data) { if (!sb) await connect(); if (!sb || !S.user) return null;
+    try { // photos are private, so a share carries its own photo links that work for a year
+      const pre = cfg().url + PUB; let txt = JSON.stringify(data); const paths = [];
+      txt.split(pre).slice(1).forEach(x => { const p = x.split(/["?]/)[0]; if (p && !paths.includes(p)) paths.push(p); });
+      if (paths.length) { const r = await sb.storage.from('photos').createSignedUrls(paths, 31536000); (r.data || []).forEach(x => { if (x.signedUrl && x.path) txt = txt.split(pre + x.path).join(x.signedUrl); }); data = JSON.parse(txt); }
+    } catch (e) { console.warn('share photos', e); }
+    const A = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
     for (let t = 0; t < 3; t++) { const id = Array.from(crypto.getRandomValues(new Uint8Array(7)), b => A[b % A.length]).join(''); const r = await sb.from('shares').insert({ id, data }); if (!r.error) return id; if (!/duplicate|exist/i.test(r.error.message || '')) return null; } return null; }
   async function shareGet(id) { if (!sb) await connect(); if (!sb) return null; const r = await sb.from('shares').select('data').eq('id', id).maybeSingle(); return r.data ? r.data.data : null; }
   const decline = id => sb.from('follows').delete().eq('follower', id).eq('followee', S.user.id);
@@ -286,12 +323,35 @@
     await sync();
     if (S.status !== 'synced') throw new Error('Couldn’t back up your latest changes. Try again when you’re online.');
     await sb.auth.signOut();
-    [META, GW, FL].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+    await wipeLocal();
+    location.reload();
+  }
+  async function listAll(bucket, prefix, depth) {
+    const out = [];
+    for (let off = 0; ; off += 1000) {
+      const r = await sb.storage.from(bucket).list(prefix, { limit: 1000, offset: off }); if (r.error) throw new Error(r.error.message);
+      const d = r.data || [];
+      for (const x of d) { if (x.id) out.push(prefix + '/' + x.name); else if (depth > 0) out.push(...await listAll(bucket, prefix + '/' + x.name, depth - 1)); }
+      if (d.length < 1000) break;
+    }
+    return out;
+  }
+  async function deleteAccount() {
+    if (!navigator.onLine || !(await connect()) || !S.user) throw new Error(why || 'You’re offline. Try again when you’re connected.');
+    const me = S.user.id;
+    for (const b of ['photos', 'stories']) {
+      const paths = await listAll(b, me, 2).catch(() => []);
+      for (let i = 0; i < paths.length; i += 100) { const r = await sb.storage.from(b).remove(paths.slice(i, i + 100)); if (r.error) throw new Error('Couldn’t delete your photos: ' + r.error.message); }
+    }
+    const r = await sb.rpc('delete_my_account');
+    if (r.error) throw new Error(/delete_my_account|function/i.test(r.error.message || '') ? 'Deleting accounts needs a database update. Run supabase/setup.sql again.' : 'Couldn’t delete: ' + r.error.message);
+    try { await sb.auth.signOut({ scope: 'local' }); } catch (e) {}
+    await wipeLocal();
     location.reload();
   }
 
   window.GWSync = {
-    init, schedule, sync, social, shareCreate, shareGet, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut,
+    init, schedule, sync, social, shareCreate, shareGet, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut, deleteAccount,
     attach: h => { host = h; },
     on: f => { subs.add(f); f(Object.assign({}, S)); return () => subs.delete(f); },
     state: () => Object.assign({}, S)

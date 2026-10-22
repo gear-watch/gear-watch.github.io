@@ -57,7 +57,16 @@ drop policy if exists "owner writes" on public.public_lists;
 create policy "owner writes" on public.public_lists for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- Photos you add yourself. Files get random names; anyone with the exact link can view them.
-insert into storage.buckets (id, name, public) values ('photos', 'photos', true) on conflict (id) do nothing;
+insert into storage.buckets (id, name, public) values ('photos', 'photos', false) on conflict (id) do nothing;
+-- Photos are private: only you, your friends, and (for profile pictures) other signed-in people can open them.
+update storage.buckets set public = false where id = 'photos';
+drop policy if exists "read photos" on storage.objects;
+create policy "read photos" on storage.objects for select to authenticated using (
+  bucket_id = 'photos' and (
+    (storage.foldername(name))[1] = auth.uid()::text
+    or storage.filename(name) like 'avatar-%'
+    or exists (select 1 from public.follows f where f.follower = auth.uid() and f.followee::text = (storage.foldername(name))[1] and f.status = 'accepted')
+  ));
 drop policy if exists "upload own photos" on storage.objects;
 create policy "upload own photos" on storage.objects for insert to authenticated with check (bucket_id = 'photos' and (storage.foldername(name))[1] = auth.uid()::text);
 drop policy if exists "delete own photos" on storage.objects;
@@ -65,6 +74,18 @@ create policy "delete own photos" on storage.objects for delete to authenticated
 
 -- Profile photos friends see. Added later; safe to run again.
 alter table public.profiles add column if not exists avatar text;
+
+-- Profile titles like "Early tester". Only you (the owner, from the SQL Editor) can set these; the app can't change them.
+alter table public.profiles add column if not exists title text check (title is null or char_length(title) <= 24);
+create or replace function public.lock_title() returns trigger language plpgsql as $$
+begin
+  if auth.uid() is not null then
+    if tg_op = 'INSERT' then new.title := null; else new.title := old.title; end if;
+  end if;
+  return new;
+end $$;
+drop trigger if exists lock_title on public.profiles;
+create trigger lock_title before insert or update on public.profiles for each row execute function public.lock_title();
 
 -- Friends are two-way. Accepting a request (or adding someone who already asked you) makes both sides friends.
 create or replace function public.accept_friend(other uuid) returns void language plpgsql security definer set search_path = public as $$
@@ -231,3 +252,13 @@ drop policy if exists "anyone reads shares" on public.shares;
 create policy "anyone reads shares" on public.shares for select to anon, authenticated using (true);
 drop policy if exists "signed in creates shares" on public.shares;
 create policy "signed in creates shares" on public.shares for insert to authenticated with check (owner = auth.uid());
+
+
+-- Delete my account. The app removes your photos first, then this removes everything else (every table cascades).
+create or replace function public.delete_my_account() returns void language plpgsql security definer set search_path = '' as $$
+begin
+  if auth.uid() is null then raise exception 'Not signed in'; end if;
+  delete from auth.users where id = auth.uid();
+end $$;
+revoke all on function public.delete_my_account() from public, anon;
+grant execute on function public.delete_my_account() to authenticated;

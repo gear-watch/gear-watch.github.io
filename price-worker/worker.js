@@ -228,28 +228,28 @@ async function lookup(url) {
     try { const j = JSON.parse(await get(u.origin + u.pathname.replace(/\/+$/, '') + '.js', true)), variant = u.searchParams.get('variant'), vs = j.variants || [];
       const v = vs.find(x => String(x.id) === variant) || vs.find(x => x.available) || vs[0];
       let cur = null; try { cur = JSON.parse(await get(u.origin + '/cart.js', true)).currency || null; } catch {}
-      return { name: decode(j.title), brand: decode(j.vendor) || null, price: v && v.price ? v.price / 100 : j.price ? j.price / 100 : null, cur, images: cleanImgs([v && v.featured_image && v.featured_image.src].concat(j.images || []), u.href), how: 'Shopify feed' };
+      return { name: decode(j.title), brand: decode(j.vendor) || null, price: v && v.price ? v.price / 100 : j.price ? j.price / 100 : null, cur, images: cleanImgs([v && v.featured_image && v.featured_image.src].concat(j.images || []), u.href), desc: j.description || '', how: 'Shopify feed' };
     } catch (e) { tried.push('shopify: ' + e.message); }
   }
   const wm = u.pathname.match(/\/product\/([^/?#]+)/);
   if (wm) {
     try { const j = JSON.parse(await get(u.origin + '/wp-json/wc/store/v1/products?slug=' + encodeURIComponent(wm[1]), true)), p = Array.isArray(j) ? j[0] : null;
       if (p) { const pr = p.prices || {}, d = Math.pow(10, pr.currency_minor_unit ?? 2), raw = Number(pr.price) || (pr.price_range ? Number(pr.price_range.min_amount) : 0);
-        return { name: decode(p.name), brand: (p.brands && p.brands[0] && decode(p.brands[0].name)) || null, price: raw ? raw / d : null, cur: pr.currency_code || null, images: cleanImgs((p.images || []).map(x => x.src), u.href), how: 'WooCommerce feed' }; }
+        return { name: decode(p.name), brand: (p.brands && p.brands[0] && decode(p.brands[0].name)) || null, price: raw ? raw / d : null, cur: pr.currency_code || null, images: cleanImgs((p.images || []).map(x => x.src), u.href), desc: (p.short_description || '') + ' ' + (p.description || ''), how: 'WooCommerce feed' }; }
     } catch (e) { tried.push('woocommerce: ' + e.message); }
   }
-  try { const html = await get(url), r = fromPage(html, u); if (r.name && (r.images.length || r.price)) return Object.assign(r, { how: 'product page' }); tried.push('page: not enough found'); }
+  try { const html = await get(url), r = fromPage(html, u); if (r.name && (r.images.length || r.price)) { const md = html.match(/<meta[^>]+(?:name|property)=["'](?:og:)?description["'][^>]*content=["']([^"']*)/i); return Object.assign(r, { desc: r.desc || (md ? md[1] : ''), how: 'product page' }); } tried.push('page: not enough found'); }
   catch (e) { tried.push('page: ' + e.message); }
-  try { const md = await readerMd(url), r = fromMarkdown(md, u); if (r.name || r.images.length) return Object.assign(r, { how: 'page reader' }); tried.push('reader: nothing found'); }
+  try { const md = await readerMd(url), r = fromMarkdown(md, u); if (r.name || r.images.length) return Object.assign(r, { desc: r.desc || md.slice(0, 3000), how: 'page reader' }); tried.push('reader: nothing found'); }
   catch (e) { tried.push('reader: ' + e.message); }
   const err = new Error('Couldn’t read that page'); err.detail = tried.join(' · '); throw err;
 }
 async function lookupOne(url, ctx) {
   const key = normUrl(url); if (!key) return { ok: false, error: 'Not a valid link' };
-  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup/' + encodeURIComponent(key));
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup2/' + encodeURIComponent(key));
   const hit = await cache.match(ck); if (hit) return hit.json();
   let out;
-  try { const r = await lookup(url), code = codeOf(r.cur); out = { ok: true, name: r.name || '', brand: r.brand || '', price: r.price ?? null, currency: /libidex\.com/.test(url) ? '£' : (SYM[code] || code || null), images: r.images || [], how: r.how }; }
+  try { const r = await lookup(url), code = codeOf(r.cur); out = { ok: true, name: r.name || '', brand: r.brand || '', price: r.price ?? null, currency: /libidex\.com/.test(url) ? '£' : (SYM[code] || code || null), images: r.images || [], desc: decode(String(r.desc || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim().slice(0, 1500), how: r.how }; }
   catch (e) { out = { ok: false, error: String(e.message || e), detail: e.detail || '' }; }
   ctx.waitUntil(cache.put(ck, new Response(JSON.stringify(out), { headers: { 'cache-control': 'max-age=' + (out.ok ? 86400 : 600) } })));
   return out;
