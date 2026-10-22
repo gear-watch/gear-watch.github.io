@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=20"></script>
+<script src="./sync.js?v=21"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -2821,7 +2821,7 @@ class Component extends DCLogic {
     if (fU) { const ft = st.friendTab || 'wish', W = fL.wish || [], C = fL.coll || [], O = fL.outfits || [], all = W.concat(C), cg = new Map();
       const FI = st.fItem ? (st.fItem.kind === 'coll' ? C : W).find(x => x.id === st.fItem.id) : null;
       if (FI) { const isW = st.fItem.kind !== 'coll', have = mineKey.has(fKey(FI)), phs = (FI.ph || []), host = (() => { try { return new URL(FI.u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } })();
-        const rows = [['Brand', FI.b], ['Category', FI.g || FI.cat], ['Size', FI.m ? 'Made to measure' : FI.s], ['Colour', FI.co], ['Entry', FI.z], ['Handmade', FI.hm ? 'Yes' : ''], ['Second-hand', FI.sh ? (FI.cnd || 'Yes') : ''], ['Modified', FI.md ? (FI.md === 1 ? 'Yes' : FI.md) : ''], ['Status', isW ? '' : FI.ow ? 'On the way' : 'Owned'], [isW ? 'Added' : 'Since', isW ? (FI.a ? fmtD(FI.a) : '') : FI.pre ? 'Before GearWatch' : (FI.o ? fmtD(FI.o) : '')]].filter(r => r[1]).map(([k, v]) => ({ k, v: String(v) }));
+        const rows = [['Brand', FI.b], ['Category', FI.g || FI.cat], ['Size', FI.m ? 'Made to measure' : FI.s], ['Colour', FI.co], ['Entry', FI.z], ['Paid', !isW && FI.pp != null ? (FI.ap ? '≈ ' : '') + money(FI.pc || '€', FI.pp) : !isW && FI.pu ? 'Unknown' : ''], ['Handmade', FI.hm ? 'Yes' : ''], ['Second-hand', FI.sh ? (FI.cnd || 'Yes') : ''], ['Modified', FI.md ? (FI.md === 1 ? 'Yes' : FI.md) : ''], ['Status', isW ? '' : FI.ow ? 'On the way' : 'Owned'], [isW ? 'Added' : 'Since', isW ? (FI.a ? fmtD(FI.a) : '') : FI.pre ? 'Before GearWatch' : (FI.o ? fmtD(FI.o) : '')]].filter(r => r[1]).map(([k, v]) => ({ k, v: String(v) }));
         fi = { back: st.fFromFeed && !st.fOutfit ? 'Feed' : st.fOutfit ? 'Outfit' : '@' + fU.username, kicker: isW ? 'On their wishlist' : 'In their collection', name: FI.n, initial: ini(FI.n), photos: phs.map(src => ({ src })), hasPhotos: phs.length > 0, noPhotos: !phs.length, multi: phs.length > 1, counter: ((st.fiIdx || 0) + 1) + ' / ' + phs.length,
           onScroll: e => { const el = e.currentTarget, k = Math.round(el.scrollLeft / el.clientWidth); if (k !== (st.fiIdx || 0)) this.setState({ fiIdx: k }); },
           price: FI.pu ? 'Price unknown' : FI.p == null ? '' : (FI.ap ? '≈ ' : '') + money(FI.c || '€', FI.p), hasPrice: FI.p != null || !!FI.pu, hasStars: isW ? !!FI.r : !!FI.rc, stars: this.stars((isW ? FI.r : FI.rc) || 0), starsLbl: isW ? 'How much they want it' : 'Recommends it', rows, hasRows: rows.length > 0,
@@ -2830,7 +2830,8 @@ class Component extends DCLogic {
           onZoom: () => this.openViewer(phs, st.fiIdx || 0, i => { const el = this.fiCarRef.current; if (el) el.scrollTo({ left: i * el.clientWidth }); this.setState({ fiIdx: i }); }) }; }
       const FOo = st.fOutfit ? O.find(o => o.id === st.fOutfit) : null;
       if (FOo) { const its = (FOo.ids || []).map(id => { const c = C.find(x => x.id === id); if (c) return [c, 'coll']; const w = W.find(x => x.id === id); return w ? [w, 'wish'] : null; }).filter(Boolean), oph = FOo.ph || [], cov = oph[0];
-        fo = { back: st.fFromFeed ? 'Feed' : '@' + fU.username, name: FOo.n, sub: [plural(its.length, 'piece'), FOo.w ? 'Worn ' + FOo.w + '×' : '', FOo.lw ? 'Last worn ' + fmtD(String(FOo.lw).slice(0, 10)) : ''].filter(Boolean).join(' · '),
+        const foTot = its.reduce((a, [x]) => a + (x.pp != null ? x.pp * (FX[x.pc || '€'] || 1) : 0), 0), foRough = its.some(([x]) => x.pp == null || x.ap);
+        fo = { back: st.fFromFeed ? 'Feed' : '@' + fU.username, name: FOo.n, sub: [plural(its.length, 'piece'), foTot ? (foRough ? 'about €' : '€') + Math.round(foTot) + ' total' : '', FOo.w ? 'Worn ' + FOo.w + '×' : '', FOo.lw ? 'Last worn ' + fmtD(String(FOo.lw).slice(0, 10)) : ''].filter(Boolean).join(' · '),
           cover: cov || '', hasCover: !!cov, noCover: !cov, zoomCur: cov ? 'zoom-in' : 'default', onZoom: () => { if (cov) this.openViewer(oph, 0); },
           board: cov ? [] : this.board(its.map(([x]) => ({ id: x.id, name: x.n, category: x.cat, g: x.g, photos: x.ph || [] })), FOo.sz),
           pins: cov ? Object.entries(FOo.tg || {}).map(([id, t]) => { const hit = its.find(([x]) => x.id === id); return hit ? { name: hit[0].n, x: t.x + '%', y: t.y + '%', onTap: e => { e.stopPropagation(); this.setState({ fItem: { id, kind: hit[1] }, fiIdx: 0 }); } } : null; }).filter(Boolean) : [],
