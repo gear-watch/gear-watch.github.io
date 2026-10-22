@@ -359,6 +359,8 @@ create extension if not exists pg_net;
 create schema if not exists private;
 revoke all on schema private from public, anon, authenticated;
 create table if not exists private.push_cfg (id int primary key default 1 check (id = 1), url text not null, secret text not null);
+alter table private.push_cfg enable row level security;
+revoke all on private.push_cfg from public, anon, authenticated;
 create table if not exists public.push_subs (
   endpoint text primary key check (endpoint like 'https://%' and length(endpoint) < 1000),
   user_id uuid not null references auth.users on delete cascade,
@@ -392,6 +394,16 @@ begin
 exception when others then return;
 end $$;
 revoke all on function public.push_send(uuid, text, text, text, text) from public, anon, authenticated;
+create or replace function public.push_test() returns int language plpgsql security definer set search_path = public, private as $
+declare n int;
+begin
+  if auth.uid() is null then raise exception 'Not signed in'; end if;
+  select count(*) into n from public.push_subs where user_id = auth.uid();
+  if not exists (select 1 from private.push_cfg where id = 1) then return -1; end if;
+  perform public.push_send(auth.uid(), 'friends', 'GearWatch', 'Test notification. If you see this, it works.', '#notifs');
+  return n;
+end $;
+revoke all on function public.push_test() from public, anon; grant execute on function public.push_test() to authenticated;
 create or replace function public.push_follows_trg() returns trigger language plpgsql security definer set search_path = public as $$
 declare u text;
 begin
