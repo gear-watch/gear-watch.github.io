@@ -2024,9 +2024,10 @@ async function rawToJpeg(f) {
 }
 function readPhoto(file) { return rawToJpeg(file).then(readPhoto0).catch(() => null); }
 function readPhoto0(file) {
-  return new Promise(res => { const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => {
-    const s = Math.min(1, 900 / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
-    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', 0.82)); }; img.onerror = () => res(null); img.src = r.result; }; r.readAsDataURL(file); });
+  const draw = (src, w, hh) => { const s = Math.min(1, 900 / Math.max(w, hh)), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w * s)); c.height = Math.max(1, Math.round(hh * s)); c.getContext('2d').drawImage(src, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', 0.82); };
+  const viaImg = () => new Promise(res => { const u = URL.createObjectURL(file), img = new Image(); img.decoding = 'async'; img.onload = () => { try { res(draw(img, img.naturalWidth, img.naturalHeight)); } catch (er) { res(null); } URL.revokeObjectURL(u); }; img.onerror = () => { URL.revokeObjectURL(u); res(null); }; img.src = u; });
+  if (!window.createImageBitmap) return viaImg();
+  return createImageBitmap(file, { resizeWidth: 1800, resizeQuality: 'medium' }).catch(() => createImageBitmap(file)).then(bm => { const out = draw(bm, bm.width, bm.height); if (bm.close) bm.close(); return out; }).catch(viaImg);
 }
 
 const squareAvatar = file => new Promise((res, rej) => { const u = URL.createObjectURL(file), im = new Image();
