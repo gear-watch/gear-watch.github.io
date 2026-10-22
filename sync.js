@@ -180,15 +180,15 @@
   async function social() {
     if (!sb) await connect(); if (!sb || !S.user) return null; const me = S.user.id;
     if (!(await fresh())) return null;
-    const [a, b] = await Promise.all([sb.from('follows').select('followee,status').eq('follower', me), sb.from('follows').select('follower,status').eq('followee', me)]);
+    const [a, b] = await Promise.all([sb.from('follows').select('followee,status,created_at').eq('follower', me), sb.from('follows').select('follower,status,created_at').eq('followee', me)]);
     if (a.error || b.error) throw new Error((a.error || b.error).message || 'Couldn’t load friends');
     const out = a.data || [], inc = b.data || [], ids = [...new Set(out.map(x => x.followee).concat(inc.map(x => x.follower)))], names = {}, avs = {}, tts = {}, lists = {};
     if (ids.length) { const r = await profSel(c => sb.from('profiles').select(c).in('id', ids)); if (r.error) throw new Error(r.error.message); (r.data || []).forEach(x => { names[x.id] = x.username; avs[x.id] = x.avatar || null; tts[x.id] = x.title || null; }); }
     const acc = out.filter(x => x.status === 'accepted').map(x => x.followee);
     if (acc.length) { const r = await sb.from('public_lists').select('user_id,list,updated_at').in('user_id', acc); if (r.error) throw new Error(r.error.message); (r.data || []).forEach(x => { lists[x.user_id] = Object.assign({}, x.list, { _up: x.updated_at || null }); }); }
     return {
-      following: out.map(x => ({ id: x.followee, username: names[x.followee] || 'unknown', avatar: avs[x.followee] || null, title: tts[x.followee] || null, status: x.status })),
-      requests: inc.filter(x => x.status === 'pending').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown', avatar: avs[x.follower] || null, title: tts[x.follower] || null })),
+      following: out.map(x => { const ib = inc.find(z => z.follower === x.followee), acceptedAt = x.status === 'accepted' && ib && ib.created_at && x.created_at && ib.created_at > x.created_at ? ib.created_at : null; return { id: x.followee, username: names[x.followee] || 'unknown', avatar: avs[x.followee] || null, title: tts[x.followee] || null, status: x.status, acceptedAt }; }),
+      requests: inc.filter(x => x.status === 'pending').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown', avatar: avs[x.follower] || null, title: tts[x.follower] || null, at: x.created_at || null })),
       followers: inc.filter(x => x.status === 'accepted').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown', avatar: avs[x.follower] || null, title: tts[x.follower] || null })),
       lists
     };
