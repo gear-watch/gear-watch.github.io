@@ -1316,7 +1316,7 @@ input::placeholder{color:#6e6e73;}
       </sc-if>
       <div data-anim="up" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Category</div>
       <div style="padding:0 16px;display:flex;flex-wrap:wrap;gap:8px;">
-        <sc-for list="{{ catChips }}" as="c" hint-placeholder-count="10"><button data-anim="pop" onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for>
+        <sc-for list="{{ catChips }}" as="c" hint-placeholder-count="10"><button data-anim="pop" onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};transition:background .25s,color .25s;display:flex;align-items:center;gap:6px;" style-active="transform:scale(0.95);"><span>{{ c.label }}</span><sc-if value="{{ c.canDel }}" hint-placeholder-val="{{ false }}"><span onClick="{{ c.onDel }}" aria-label="Remove category" style="width:18px;height:18px;margin-right:-6px;border-radius:9999px;background:rgba(0,0,0,0.35);display:grid;place-items:center;"><svg width="8" height="8" viewBox="0 0 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6M8 2l-6 6"></path></svg></span></sc-if></button></sc-for>
         <button data-anim="pop" onClick="{{ toggleNewCat }}" style="border:1px dashed #48484a;border-radius:9999px;padding:5px 14px;font-size:14px;cursor:pointer;color:var(--gw-accent,#ffd60a);background:none;display:flex;align-items:center;gap:6px;" style-active="transform:scale(0.95);"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg><span>New</span></button>
       </div>
       <sc-if value="{{ newCatOpen }}" hint-placeholder-val="{{ false }}">
@@ -1401,7 +1401,7 @@ input::placeholder{color:#6e6e73;}
         <div style="flex:1;min-width:0;display:flex;flex-direction:column;"><span style="font-weight:600;line-height:1.24;">{{ cp.name }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ cp.sub }}</span></div>
       </div>
       <div style="padding:16px 16px 0;display:flex;flex-wrap:wrap;gap:8px;">
-        <sc-for list="{{ cp.chips }}" as="c" hint-placeholder-count="12"><button data-anim="pop" onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:8px 14px;font-size:14px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for>
+        <sc-for list="{{ cp.chips }}" as="c" hint-placeholder-count="12"><button data-anim="pop" onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:8px 14px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;color:{{ c.color }};background:{{ c.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);"><span>{{ c.label }}</span><sc-if value="{{ c.canDel }}" hint-placeholder-val="{{ false }}"><span onClick="{{ c.onDel }}" aria-label="Remove group" style="width:18px;height:18px;margin-right:-6px;border-radius:9999px;background:rgba(0,0,0,0.35);display:grid;place-items:center;"><svg width="8" height="8" viewBox="0 0 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6M8 2l-6 6"></path></svg></span></sc-if></button></sc-for>
         <button data-anim="pop" onClick="{{ toggleNewGrp }}" style="border:1px dashed #48484a;border-radius:9999px;padding:7px 14px;font-size:14px;cursor:pointer;color:var(--gw-accent,#ffd60a);background:none;display:flex;align-items:center;gap:6px;" style-active="transform:scale(0.95);"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg><span>New</span></button>
       </div>
       <sc-if value="{{ newGrpOpen }}" hint-placeholder-val="{{ false }}">
@@ -2283,6 +2283,7 @@ class Component extends DCLogic {
   svPaused() { const st = this.state, c = this.svCur(); if (!c || !c.g) return true; const me = (st.stories || {}).me;
     return !!(st.svHold || st.svPanel || this.svTyping || document.hidden || (c.g.s.blur && c.g.s.user_id !== me && !(st.svRevealed || {})[c.g.s.id])); }
   svStart() { cancelAnimationFrame(this.svRaf); this.svT = 0; this.svLast = performance.now(); this.svMark();
+    { const c0 = this.svCur(), el0 = this.svRef.current; if (c0 && el0) el0.querySelectorAll('[data-sv-fill]').forEach((b, j) => { b.style.width = j < c0.v.si ? '100%' : '0%'; }); }
     const tick = now => { const c = this.svCur(); if (!c || !c.g) return; const dt = Math.min(100, now - this.svLast); this.svLast = now; const el = this.svRef.current; if (!el) { this.svRaf = requestAnimationFrame(tick); return; }
       const vid = el.querySelector('[data-sv-video]'); let p = 0;
       if (c.g.m.type === 'video') { if (vid) { vid.muted = this.state.svMuted !== false; if (this.svPaused()) { if (!vid.paused) vid.pause(); } else if (vid.paused && !vid.ended && vid.readyState >= 2) vid.play().catch(() => {}); p = vid.ended ? 1 : vid.duration ? vid.currentTime / vid.duration : 0; } }
@@ -2723,7 +2724,9 @@ class Component extends DCLogic {
     const cpIt = st.cpickId ? byId[st.cpickId] : null;
     const cp = cpIt ? { name: cpIt.name, photo: (cpIt.photos || [])[0] || '', hasPhoto: !!(cpIt.photos || []).length, noPhoto: !(cpIt.photos || []).length, initial: (cpIt.name || '?').charAt(0).toUpperCase(),
       sub: st.cpickQ ? plural(unsure.length, 'item') + ' left to sort' : [cpIt.brand, cpIt.category].filter(Boolean).join(' · '),
-      chips: GALL.map(g => { const on = gOf(cpIt) === g; return { label: g, bg: on ? ACC : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.1); this.pickGroup(cpIt.id, g); } }; }) } : { chips: [] };
+      chips: GALL.map(g => { const on = gOf(cpIt) === g, mine = (st.data.collCats || []).includes(g), armed = st.grpDelArm === g; return { label: armed ? 'Remove “' + g + '”?' : g, bg: armed ? '#ff453a' : on ? ACC : '#2c2c2e', color: armed ? '#fff' : on ? '#000' : '#f5f5f7', canDel: mine && !armed,
+        onTap: e => { if (armed) { const data = JSON.parse(JSON.stringify(st.data)); data.collCats = (data.collCats || []).filter(x => x !== g); data.profiles.forEach(pp => pp.items.forEach(it => { if (it.cgroup === g) delete it.cgroup; })); this.save(data); this.setState({ grpDelArm: null }); this.toast('Removed “' + g + '”'); return; } this.bump(e.currentTarget, 1.1); this.pickGroup(cpIt.id, g); },
+        onDel: e => { e.stopPropagation(); this.setState({ grpDelArm: g }); clearTimeout(this.grpDelT); this.grpDelT = setTimeout(() => this.setState({ grpDelArm: null }), 3000); } }; }) } : { chips: [] };
     const sS = st.shared && st.shared.t === 'o' ? st.shared : null;
     let so = { board: [], pieces: [] };
     if (sS) { const its = (sS.it || []).map((x, i) => ({ id: 's' + i, name: x.n, category: x.cat, g: x.g, photos: x.ph ? [x.ph] : [] })), pos = {};
@@ -3113,7 +3116,9 @@ class Component extends DCLogic {
         const all = CATS.concat(st.data.customCats || []), hit = all.find(c => c.toLowerCase() === name.toLowerCase());
         if (!hit) this.save(Object.assign({}, st.data, { customCats: (st.data.customCats || []).concat(name) }));
         this.setF('category', hit || name); this.setState({ newCatOpen: false, newCat: '' }); },
-      catChips: CATS.concat(st.data.customCats || []).map(c => ({ label: c, bg: f.category === c ? ACC : '#2c2c2e', color: f.category === c ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.1); this.setF('category', c); } })),
+      catChips: CATS.concat(st.data.customCats || []).map(c => { const mine = (st.data.customCats || []).includes(c), armed = st.catDelArm === c; return { label: armed ? 'Remove “' + c + '”?' : c, bg: armed ? '#ff453a' : f.category === c ? ACC : '#2c2c2e', color: armed ? '#fff' : f.category === c ? '#000' : '#f5f5f7', canDel: mine && !armed,
+        onTap: e => { if (armed) { const data = JSON.parse(JSON.stringify(st.data)); data.customCats = (data.customCats || []).filter(x => x !== c); this.save(data); this.setState({ catDelArm: null }); this.toast('Removed “' + c + '”'); return; } this.bump(e.currentTarget, 1.1); this.setF('category', c); },
+        onDel: e => { e.stopPropagation(); this.setState({ catDelArm: c }); clearTimeout(this.catDelT); this.catDelT = setTimeout(() => this.setState({ catDelArm: null }), 3000); } }; }),
       fStars: [1, 2, 3, 4, 5].map(n => { const k = f.status === 'owned' ? 'rec' : 'rating'; return { fill: n <= (f[k] || 0) ? ACC : '#48484a', label: n + ' stars', onTap: e => { this.bump(e.currentTarget, 1.45); this.setF(k, f[k] === n && k === 'rec' ? 0 : n); } }; }),
       fStarsLbl: f.status === 'owned' ? 'Would you recommend it?' : 'How much you want it', fNotes: e => this.setF('notes', e.target.value), fNotesPh: f.status === 'owned' ? 'Fit, feel, care tips, what to wear it with' : 'Size to order, colour options, waiting for a sale',
       hasFound: !!(f.found || []).length,
