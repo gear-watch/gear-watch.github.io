@@ -2783,7 +2783,7 @@ class Component extends DCLogic {
 
     const X = this.storyIdx(), storyFriends = SO.following.filter(f => f.status === 'accepted' && X.has(f.id)).map(f => f.id);
     let avTipOff = false; try { avTipOff = !!localStorage.getItem('gw-av-tip'); } catch (e) {}
-    const bn = (() => { const L = (G && G.publicList && G.publicList()) || {}, bnr = p.banner || ''; if (bnr) return { hasBanner: true, banner: bnr };
+    const bn = (() => {
       const cols = A.avatar ? this.avColors(A.avatar) : null; return cols ? { hasGrad: true, gradBg: 'linear-gradient(110deg, ' + cols[0] + ' 0%, ' + cols[0] + ' 22%, ' + cols[1] + ' 42%, ' + cols[1] + ' 62%, ' + cols[2] + ' 86%)' } : {}; })();
     const fr = { bn, avTip: !!(A.configured && A.user && A.username && !A.avatar && !avTipOff && !st.avTipHid), avTipLater: () => { try { localStorage.setItem('gw-av-tip', '1'); } catch (e) {} this.setState({ avTipHid: true }); }, onAvatarTip: e => { const fl = e.target.files && e.target.files[0]; e.target.value = ''; if (fl && !st.avBusy) { try { localStorage.setItem('gw-av-tip', '1'); } catch (er) {} this.openCrop(fl); } }, openMe: () => { const id = (A.user || {}).id; if (id) this.setState({ friend: id, friendTab: 'wish', fOutfit: null, fItem: null, unfArm: false }); }, needAcct: !A.configured, signedIn: !!(A.configured && A.user), handle: A.username ? '@' + A.username : A.email || p.name,
       followerTxt: plural(SO.followers.length, 'follower'), handleTop: A.configured && A.user ? '' : (A.username ? '@' + A.username : A.email || p.name),
