@@ -71,14 +71,14 @@
   }
   function schedule(ms) { clearTimeout(timer); timer = setTimeout(sync, ms == null ? 1500 : ms); }
 
-  let upFails = 0;
+  let upFails = 0, upMsg = '';
   async function uploadPhotos(gw, uid) {
     upFails = 0;
     const up = async src => {
       if (!/^data:image\//.test(src || '')) return src;
       const blob = await (await fetch(src)).blob(), ext = (blob.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg'), path = uid + '/' + hash(src) + '.' + ext;
       const r = await sb.storage.from('photos').upload(path, blob, { contentType: blob.type, upsert: false, cacheControl: '31536000' });
-      if (r.error && !/exist|duplicate/i.test(r.error.message || '')) { console.warn('photo upload failed', r.error.message); upFails++; return src; }
+      if (r.error && !/exist|duplicate/i.test(r.error.message || '')) { console.warn('photo upload failed', r.error.message); upFails++; upMsg = r.error.message || ''; return src; }
       return sb.storage.from('photos').getPublicUrl(path).data.publicUrl;
     };
     for (const p of gw.profiles || []) {
@@ -120,7 +120,7 @@
         setMeta({ uid, base: rmod, flHash: hash(d.fitlog != null ? d.fitlog : fl) });
       } else if (action === 'push' || action === 'merge') {
         gw = action === 'merge' ? merge(row.data.gw, gw) : JSON.parse(JSON.stringify(gw));
-        if (action === 'merge') lmod = Math.max(lmod, rmod, Date.now()); await uploadPhotos(gw, uid); gw.mod = lmod || Date.now();
+        if (action === 'merge') lmod = Math.max(lmod, rmod, Date.now()); await uploadPhotos(gw, uid); set({ photoErr: upFails ? { n: upFails, msg: upMsg, at: Date.now() } : null }); gw.mod = lmod || Date.now();
         if ((host.get().mod || 0) === before) host.apply(gw); else again = true;
         const now = new Date().toISOString();
         const r = await sb.from('user_data').upsert({ user_id: uid, data: { v: 1, mod: gw.mod, gw, fitlog: fl }, updated_at: now }); if (r.error) throw r.error;

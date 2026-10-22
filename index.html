@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=23"></script>
+<script src="./sync.js?v=24"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -2078,7 +2078,7 @@ class Component extends DCLogic {
     idb.all().then(c => this.setState({ cuts: c || {}, cutsReady: true }));
     const hook = () => { const G = window.GWSync; if (!G) return false;
       G.attach({ get: () => this.state.data, apply: d => { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} this.setState({ data: d }); } });
-      this.unsubSync = G.on(s => { const prev = this.state.acct && this.state.acct.user ? this.state.acct.user.id : null; this.setState({ acct: s }); if (!s.user) { this.socialFor = null; this.cacheFor = null; this.setState({ social: null }); } else { if (this.cacheFor !== s.user.id) { this.cacheFor = s.user.id; try { const c = JSON.parse(localStorage.getItem('gw-social-cache-' + s.user.id) || 'null'); if (c) this.setState({ social: c }); } catch (e) {} }
+      this.unsubSync = G.on(s => { if (s.photoErr && s.photoErr.at !== this._pErrAt) { this._pErrAt = s.photoErr.at; const m = s.photoErr.msg || ''; this.toast((s.photoErr.n === 1 ? 'A photo couldn’t upload' : s.photoErr.n + ' photos couldn’t upload') + (/size|large|exceed/i.test(m) ? ': it’s too big.' : /network|fetch|offline/i.test(m) ? ': check your connection.' : m ? ': ' + m.slice(0, 80) : '.') + ' It’ll retry next sync.'); } const prev = this.state.acct && this.state.acct.user ? this.state.acct.user.id : null; this.setState({ acct: s }); if (!s.user) { this.socialFor = null; this.cacheFor = null; this.setState({ social: null }); } else { if (this.cacheFor !== s.user.id) { this.cacheFor = s.user.id; try { const c = JSON.parse(localStorage.getItem('gw-social-cache-' + s.user.id) || 'null'); if (c) this.setState({ social: c }); } catch (e) {} }
         if (s.firstDone && this.socialFor !== s.user.id) { this.socialFor = s.user.id; if (!this.loadSocial()) this.socialFor = null; }
         if (s.firstDone && s.username && this.pendingAdd) { const a = this.pendingAdd; this.pendingAdd = null; setTimeout(() => this.openPerson(a), 400); } } });
       G.init(); return true; };
@@ -3009,7 +3009,7 @@ class Component extends DCLogic {
       bdCancel: () => this.closeBuilder(), bdSave: () => this.saveBuilder(),
       bdName: e => { const v = e.target.value; this.setState(s => ({ builder: Object.assign({}, s.builder, { name: v }) })); },
       bdReset: () => this.setState(s => ({ builder: Object.assign({}, s.builder, (s.builder.photos || []).length ? { tags: {} } : { sizes: {} }) })),
-      bdPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await Promise.all(files.map(readPhoto))).filter(Boolean); this.setState(s => s.builder ? { builder: Object.assign({}, s.builder, { photos: (s.builder.photos || []).concat(out) }) } : null); },
+      bdPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await Promise.all(files.map(readPhoto))).filter(Boolean); if (out.length < files.length) this.toast('Couldn’t read ' + (files.length - out.length === 1 ? 'a photo' : (files.length - out.length) + ' photos') + '. Try saving it as JPG or PNG first.'); this.setState(s => s.builder ? { builder: Object.assign({}, s.builder, { photos: (s.builder.photos || []).concat(out) }) } : null); },
       isSheetCpick: st.sheet === 'cpick', cp, newGrpOpen: !!st.newGrpOpen, newGrp: st.newGrp || '',
       onNewGrp: e => this.setState({ newGrp: e.target.value }),
       toggleNewGrp: e => { this.bump(e.currentTarget, 1.1); this.setState({ newGrpOpen: !st.newGrpOpen, newGrp: '' }); },
@@ -3132,7 +3132,7 @@ class Component extends DCLogic {
       sizeRot: st.sizeOpen ? '180deg' : '0deg', toggleSize: () => this.setState({ sizeOpen: !st.sizeOpen }),
       fPhotos: (f.photos || []).map((src, i) => ({ src, cover: i === 0 && f.photos.length > 1, canCrop: /^data:image\//.test(src) || /\/storage\/v1\/object\/public\/photos\//.test(src) || (f.origs || []).some(x => x.c === src), onCrop: e => { e.stopPropagation(); this.pcOpen(i); }, onDown: e => this.phDown(e, i), onRemove: () => this.setF('photos', f.photos.filter((_, j) => j !== i)) })),
       fMultiPh: (f.photos || []).length > 1, phMove: e => this.phMove(e), phUp: e => this.phUp(e), phStop: e => e.stopPropagation(),
-      onPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await Promise.all(files.map(readPhoto))).filter(Boolean); this.setState(s => ({ form: Object.assign({}, s.form, { photos: (s.form.photos || []).concat(out) }) })); },
+      onPhotos: async e => { const files = Array.from(e.target.files || []); e.target.value = ''; const out = (await Promise.all(files.map(readPhoto))).filter(Boolean); if (out.length < files.length) this.toast((files.length - out.length === 1 ? 'Couldn’t read a photo' : 'Couldn’t read ' + (files.length - out.length) + ' photos') + '. Try saving it as JPG or PNG first.'); this.setState(s => ({ form: Object.assign({}, s.form, { photos: (s.form.photos || []).concat(out) }) })); },
       budgetIn: st.budgetIn, onBudgetIn: e => this.setState({ budgetIn: e.target.value }),
       paydayIn: st.paydayIn || '1', paydayW: (ordinal(Number(st.paydayIn) || 1).length * 0.62 + 0.2) + 'em', onPayday: e => this.setState({ paydayIn: e.target.value, spentIn: '' }), paydayOpts: Array.from({ length: 31 }, (_, i) => ({ v: String(i + 1), label: ordinal(i + 1) })),
       spentIn: st.spentIn || '', onSpentIn: e => this.setState({ spentIn: e.target.value }),
