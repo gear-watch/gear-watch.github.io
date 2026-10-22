@@ -52,6 +52,7 @@ input::placeholder{color:#6e6e73;}
       <button data-anim="pop" onClick="{{ openBudget }}" style="border:0;background:#1c1c1e;border-radius:9999px;padding:6px 12px;display:flex;gap:6px;align-items:baseline;color:#a1a1a6;font-size:14px;letter-spacing:-0.224px;cursor:pointer;flex:none;" style-active="transform:scale(0.95);"><span style="color:{{ availColor }};font-weight:600;font-variant-numeric:tabular-nums;">{{ availEl }}</span><span>to spend</span></button>
     </sc-if>
   </div>
+  <sc-if value="{{ wMatShow }}" hint-placeholder-val="{{ false }}"><div data-anim="up" style="padding:12px 16px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;"><sc-for list="{{ wMatChips }}" as="m" hint-placeholder-count="4"><button onClick="{{ m.onTap }}" style="flex:none;white-space:nowrap;border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ m.color }};background:{{ m.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ m.label }}</button></sc-for></div></sc-if>
   <sc-if value="{{ showTg }}" hint-placeholder-val="{{ false }}">
     <div data-anim="up" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:12px 8px 12px 12px;display:flex;align-items:center;gap:12px;">
       <span style="flex:none;width:40px;height:40px;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2.5L1.8 9.1l5.6 2.2L18 2.5z"></path><path d="M18 2.5l-3 14.8-7.6-6z"></path><path d="M7.4 11.3V17l3-3.2"></path></svg></span>
@@ -196,7 +197,7 @@ input::placeholder{color:#6e6e73;}
               <sc-if value="{{ it.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="width:56px;height:56px;border-radius:8px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-weight:600;flex:none;">{{ it.initial }}</span></sc-if>
               <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
                 <span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.name }}</span>
-                <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.brand }}</span>
+                <span style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">{{ it.brand }}</span><sc-if value="{{ it.hasMat }}" hint-placeholder-val="{{ false }}"><span style="flex:none;border:1px solid #48484a;border-radius:9999px;padding:0 7px;font-size:11px;line-height:16px;color:#d1d1d6;white-space:nowrap;">{{ it.matTag }}</span></sc-if></span>
                 <span style="display:flex;gap:2px;align-items:center;"><sc-for list="{{ it.stars }}" as="s" hint-placeholder-count="5"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}"></path></svg></sc-for></span>
               </div>
               <div style="display:flex;flex-direction:column;align-items:flex-end;flex:none;">
@@ -250,6 +251,7 @@ input::placeholder{color:#6e6e73;}
   </div>
   <sc-if value="{{ collItems }}" hint-placeholder-val="{{ true }}">
   <div data-anim="up" style="padding:12px 16px 0;display:flex;"><button onClick="{{ openAddOwned }}" style="border:0;background:#1c1c1e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:8px 16px;font-size:14px;letter-spacing:-0.224px;cursor:pointer;display:flex;align-items:center;gap:6px;" style-active="transform:scale(0.95);"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 2v10M2 7h10"></path></svg><span>Add something you own</span></button></div>
+  <sc-if value="{{ cMatShow }}" hint-placeholder-val="{{ false }}"><div data-anim="up" style="padding:12px 16px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;"><sc-for list="{{ cMatChips }}" as="m" hint-placeholder-count="4"><button onClick="{{ m.onTap }}" style="flex:none;white-space:nowrap;border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ m.color }};background:{{ m.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ m.label }}</button></sc-for></div></sc-if>
   <sc-if value="{{ hasUnsure }}" hint-placeholder-val="{{ false }}">
     <button data-anim="up" onClick="{{ sortUnsure }}" style="width:calc(100% - 32px);margin:16px 16px 0;border:0;background:#1c1c1e;border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;color:#f5f5f7;cursor:pointer;text-align:left;" style-active="transform:scale(0.98);">
       <span style="width:8px;height:8px;border-radius:9999px;background:#ff9f0a;flex:none;"></span>
@@ -281,7 +283,7 @@ input::placeholder{color:#6e6e73;}
           <sc-if value="{{ it.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="width:56px;height:56px;border-radius:8px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-weight:600;flex:none;">{{ it.initial }}</span></sc-if>
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
             <span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.name }}</span>
-            <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.ownSub }}</span>
+            <span style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">{{ it.ownSub }}</span><sc-if value="{{ it.hasMat }}" hint-placeholder-val="{{ false }}"><span style="flex:none;border:1px solid #48484a;border-radius:9999px;padding:0 7px;font-size:11px;line-height:16px;color:#d1d1d6;white-space:nowrap;">{{ it.matTag }}</span></sc-if></span>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:none;">
             <span style="font-size:14px;color:#d1d1d6;">{{ it.paidTxt }}</span>
@@ -843,7 +845,7 @@ input::placeholder{color:#6e6e73;}
             <sc-if value="{{ i.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="width:56px;height:56px;border-radius:8px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-weight:600;flex:none;">{{ i.initial }}</span></sc-if>
             <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
               <span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ i.name }}</span>
-              <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ i.brand }} {{ i.price }}</span>
+              <span style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">{{ i.brand }} {{ i.price }}</span><sc-if value="{{ i.hasMat }}" hint-placeholder-val="{{ false }}"><span style="flex:none;border:1px solid #48484a;border-radius:9999px;padding:0 7px;font-size:11px;line-height:16px;color:#d1d1d6;white-space:nowrap;">{{ i.matTag }}</span></sc-if></span>
               <span style="display:flex;gap:2px;"><sc-for list="{{ i.stars }}" as="s" hint-placeholder-count="5"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}"></path></svg></sc-for></span>
             </div>
             <button onClick="{{ i.onAdd }}" style="flex:none;border:0;background:#2c2c2e;color:{{ i.addColor }};border-radius:9999px;padding:6px 12px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">{{ i.addLabel }}</button>
@@ -859,7 +861,7 @@ input::placeholder{color:#6e6e73;}
             <div data-anim="up" onClick="{{ i.onOpen }}" style="background:#1c1c1e;display:flex;gap:12px;align-items:center;padding:12px 16px 12px 12px;cursor:pointer;transition:background .2s;" style-active="background:#2c2c2e;">
               <sc-if value="{{ i.hasPhoto }}" hint-placeholder-val="{{ true }}"><img src="{{ i.photo }}" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;"></sc-if>
               <sc-if value="{{ i.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="width:48px;height:48px;border-radius:8px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-weight:600;flex:none;">{{ i.initial }}</span></sc-if>
-              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ i.name }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ i.sub }}</span></div>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ i.name }}</span><span style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">{{ i.sub }}</span><sc-if value="{{ i.hasMat }}" hint-placeholder-val="{{ false }}"><span style="flex:none;border:1px solid #48484a;border-radius:9999px;padding:0 7px;font-size:11px;line-height:16px;color:#d1d1d6;white-space:nowrap;">{{ i.matTag }}</span></sc-if></span></div>
             </div>
           </sc-for>
         </div>
@@ -1358,6 +1360,30 @@ input::placeholder{color:#6e6e73;}
         </div>
       </sc-if>
 
+      <div data-anim="up" style="padding:20px 20px 8px;display:flex;flex-direction:column;gap:2px;"><span style="font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Material</span><span style="font-size:12px;color:#6e6e73;letter-spacing:-0.12px;">{{ fMatSub }}</span></div>
+      <div style="padding:0 16px;display:flex;flex-wrap:wrap;gap:8px;">
+        <sc-for list="{{ matChips }}" as="m" hint-placeholder-count="12"><button data-anim="pop" onClick="{{ m.onTap }}" style="border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ m.color }};background:{{ m.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ m.label }}</button></sc-for>
+        <button data-anim="pop" onClick="{{ toggleNewMat }}" style="border:1px dashed #48484a;border-radius:9999px;padding:5px 14px;font-size:14px;cursor:pointer;color:var(--gw-accent,#ffd60a);background:none;display:flex;align-items:center;gap:6px;" style-active="transform:scale(0.95);"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg><span>New</span></button>
+      </div>
+      <sc-if value="{{ newMatOpen }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="up" style="margin:10px 16px 0;display:flex;gap:8px;">
+          <input value="{{ newMat }}" onChange="{{ onNewMat }}" placeholder="Material name, e.g. Rubberised cotton" style="flex:1;min-width:0;background:#2c2c2e;border:0;border-radius:8px;padding:10px 12px;font-size:17px;color:#f5f5f7;">
+          <button onClick="{{ addMat }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:8px;padding:0 16px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Add</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ fMainShow }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="up" style="margin:12px 16px 0;display:flex;align-items:center;gap:12px;">
+          <span style="flex:none;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Mainly</span>
+          <div style="flex:1;min-width:0;display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;overflow-x:auto;scrollbar-width:none;"><sc-for list="{{ mainChips }}" as="t" hint-placeholder-count="2"><button onClick="{{ t.onTap }}" style="flex:1 0 auto;border:0;border-radius:7px;padding:4px 10px;font-size:13px;cursor:pointer;white-space:nowrap;color:#f5f5f7;background:{{ t.bg }};transition:background .25s;">{{ t.label }}</button></sc-for></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ fLatexShow }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="up" style="margin:12px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#38383a;">
+          <div style="background:#2c2c2e;padding:10px 16px;display:flex;flex-direction:column;gap:8px;"><span>Latex thickness</span><div style="display:flex;gap:8px;flex-wrap:wrap;"><sc-for list="{{ mmChips }}" as="m" hint-placeholder-count="7"><button onClick="{{ m.onTap }}" style="border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ m.color }};background:{{ m.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ m.label }}</button></sc-for></div></div>
+          <div onClick="{{ fChToggle }}" style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;"><span style="display:flex;flex-direction:column;"><span>Chlorinated</span><span style="font-size:12px;color:#a1a1a6;letter-spacing:-0.12px;">Treated for a smooth, slippy finish</span></span><span style="width:51px;height:31px;border-radius:9999px;background:{{ fChTrack }};position:relative;flex:none;transition:background .25s;"><span style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:9999px;background:#fff;transform:translateX({{ fChKnob }});transition:transform .3s cubic-bezier(.2,.8,.2,1);"></span></span></div>
+        </div>
+      </sc-if>
+
       <div data-anim="up" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ fStarsLbl }}</div>
       <div style="padding:0 16px;display:flex;gap:4px;">
         <sc-for list="{{ fStars }}" as="s" hint-placeholder-count="5"><button data-anim="pop" onClick="{{ s.onTap }}" aria-label="{{ s.label }}" style="border:0;background:none;padding:2px;cursor:pointer;display:grid;"><svg width="30" height="30" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}" style="transition:fill .25s;"></path></svg></button></sc-for>
@@ -1747,6 +1773,20 @@ const FX = { '€': 1, '$': 0.86, '£': 1.15 };
 const CURS = ['€', '$', '£'];
 const ZIPS = ['Back through crotch', 'Half back zip', 'Front through crotch', 'Half front zip', 'Shoulder zip', 'Neck entry'];
 const ZIP_CATS = ['Catsuit', 'Surfsuit'];
+const MATS = ['Latex', 'Heavy rubber', 'Silicone', 'Neoprene', 'PVC / vinyl', 'PU / faux leather', 'Leather / suede', 'Lycra / spandex', 'Nylon / polyester', 'Metal / hardware', 'Cotton / fabric', 'Unknown'];
+const MAT_SHORT = { 'PVC / vinyl': 'PVC', 'PU / faux leather': 'Faux leather', 'Leather / suede': 'Leather', 'Lycra / spandex': 'Lycra', 'Nylon / polyester': 'Nylon', 'Metal / hardware': 'Metal', 'Cotton / fabric': 'Fabric', 'Unknown': 'Material unknown' };
+const LATEX_MM = ['0.25', '0.3', '0.4', '0.5', '0.6', '0.8', '1.0+'];
+const CAT_MAT = { Catsuit: 'Latex', Leotard: 'Latex', Hood: 'Latex', Shorts: 'Latex', Underwear: 'Latex', Trousers: 'Latex', Tights: 'Latex', Skirt: 'Latex', Gloves: 'Latex', Socks: 'Latex', Surfsuit: 'Neoprene', Harness: 'Leather / suede', Cuffs: 'Leather / suede', Leashes: 'Leather / suede', Collars: 'Leather / suede', Gags: 'Silicone', Toys: 'Silicone' };
+const MAT_RX = [[/chlorin\w*/, 'Latex'], [/neoprene/, 'Neoprene'], [/\bpvc\b|vinyl/, 'PVC / vinyl'], [/faux[ -]leather|\bpu[ -]leather|vegan leather|leatherette|polyurethane/, 'PU / faux leather'], [/heavy[ -]rubber|moulded rubber|molded rubber|sheet rubber|rubber sheet/, 'Heavy rubber'], [/silicone/, 'Silicone'], [/leather|suede/, 'Leather / suede'], [/latex|\brubber\b/, 'Latex'], [/lycra|spandex|elastane/, 'Lycra / spandex'], [/nylon|polyester|\bmesh\b/, 'Nylon / polyester'], [/stainless|\bsteel\b|\bchains?\b|\bmetal\b|chrome/, 'Metal / hardware']];
+function guessMats(txt) {
+  let s = ' ' + String(txt || '') + ' '; const hits = [];
+  MAT_RX.forEach(([rx, m]) => { const g = new RegExp(rx.source, 'gi'), k = s.search(g); if (k < 0) return; s = s.replace(g, x => ' '.repeat(x.length)); const h = hits.find(x => x.m === m); if (h) h.k = Math.min(h.k, k); else hits.push({ m, k: m === 'Metal / hardware' ? 1e9 : k }); });
+  return hits.sort((a, b) => a.k - b.k).map(x => x.m).slice(0, 3);
+}
+function mmOf(txt) { const m = String(txt || '').match(/(\d[.,]\d{1,2})\s?mm/i); if (!m) return ''; const v = parseFloat(m[1].replace(',', '.')); if (!(v >= 0.1 && v <= 3)) return ''; if (v >= 1) return '1.0+'; return LATEX_MM.slice(0, -1).reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a); }
+function matFull(it) { const m = it.materials || []; return m.map((x, k) => { let t = x; if (x === 'Latex') { const d = [it.latexMm ? it.latexMm + ' mm' : '', it.chlor ? 'chlorinated' : ''].filter(Boolean).join(', '); if (d) t += ' (' + d + ')'; } return k === 0 && m.length > 1 ? t + ', mainly' : t; }).join(' · '); }
+const fMat = x => ({ materials: x.mt || [], latexMm: x.mm || '', chlor: !!x.ch });
+function matTag(it) { const m = it.materials || []; if (!m.length) return ''; let t = MAT_SHORT[m[0]] || m[0]; if (m[0] === 'Latex') { if (it.chlor) t = 'Chlorinated'; if (it.latexMm) t += ' ' + it.latexMm; } return t + (m.length > 1 ? ' +' + (m.length - 1) : ''); }
 const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Socks', 'Cuffs', 'Gags', 'Leashes', 'Collars', 'Toys', 'Accessory'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const BUDGET_CHIPS = [50, 100, 150, 250];
@@ -2556,7 +2596,7 @@ class Component extends DCLogic {
     return { id: it.id, rank, name: it.name, brand: it.brandUnknown ? 'Unknown brand' : it.brand || (it.handmade ? 'Handmade' : 'No brand'), meta: [it.brand, it.category].filter(Boolean).join(' · '),
       photo: ph[0] || '', hasPhoto: !!ph.length, noPhoto: !ph.length, initial: (it.name || '?').charAt(0).toUpperCase(),
       priceTxt: it.priceUnknown ? 'Price unknown' : it.price == null ? 'No price' : (it.approx ? '≈ ' : '') + money(it.currency, it.price), eurTxt: it.price != null && it.currency !== '€' ? '≈ €' + Math.round(e) : '',
-      stars: this.stars(it.rating), drop: dr > 0, dropTxt: '−' + Math.round(dr * 100) + '%', onOpen: () => this.openDetail(it.id) };
+      stars: this.stars(it.rating), hasMat: !!(it.materials || []).length, matTag: matTag(it), drop: dr > 0, dropTxt: '−' + Math.round(dr * 100) + '%', onOpen: () => this.openDetail(it.id) };
   }
   carGo(i) { const el = this.carRef.current; if (!el) return; const n = el.children.length, j = Math.max(0, Math.min(n - 1, i)); el.scrollTo({ left: j * el.clientWidth, behavior: this.reduce ? 'auto' : 'smooth' }); this.setState({ photoIdx: j }); }
   openDetail(id) { this.setState({ detail: id, photoIdx: 0, delArm: false, copied: false, notif: false }); }
@@ -2614,10 +2654,10 @@ class Component extends DCLogic {
   fval(vals, id) { const v = vals[id]; if (v == null) return null; if (id === 'shoe') return { v: String(v), u: 'EU' }; return this.state.unit === 'in' ? { v: (v / 2.54).toFixed(1), u: 'in' } : { v: String(Math.round(v * 10) / 10), u: 'cm' }; }
   setF(k, v) { this.setState(s => ({ form: Object.assign({}, s.form, { [k]: v }) })); }
   openForm(it, status) {
-    const f = it ? { id: it.id, url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, rec: it.rec || 0, notes: it.notes || '', zip: it.zip || '', handmade: !!it.handmade, modified: !!it.modified, mods: it.mods || '', secondHand: !!it.secondHand, boughtFrom: it.boughtFrom || '', condition: it.condition || '', brandUnknown: !!it.brandUnknown, priceUnknown: !!it.priceUnknown, approx: !!it.approx, gotMonth: it.gotMonth || '', preGw: !!it.preGw, status: it.status, origs: (it.origs || []).slice(), photos: (it.photos || []).slice() }
-      : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: '€', size: '', colour: '', m2m: false, rating: 3, rec: 0, notes: '', zip: '', handmade: false, modified: false, mods: '', secondHand: false, boughtFrom: '', condition: '', brandUnknown: false, priceUnknown: false, approx: false, gotMonth: '', preGw: false, origs: [], photos: [], status: status || 'wanted' };
+    const f = it ? { id: it.id, url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, rec: it.rec || 0, notes: it.notes || '', zip: it.zip || '', handmade: !!it.handmade, modified: !!it.modified, mods: it.mods || '', secondHand: !!it.secondHand, boughtFrom: it.boughtFrom || '', condition: it.condition || '', brandUnknown: !!it.brandUnknown, priceUnknown: !!it.priceUnknown, approx: !!it.approx, gotMonth: it.gotMonth || '', preGw: !!it.preGw, materials: (it.materials || []).slice(), latexMm: it.latexMm || '', chlor: !!it.chlor, matAuto: !(it.materials || []).length, status: it.status, origs: (it.origs || []).slice(), photos: (it.photos || []).slice() }
+      : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: '€', size: '', colour: '', m2m: false, rating: 3, rec: 0, notes: '', zip: '', handmade: false, modified: false, mods: '', secondHand: false, boughtFrom: '', condition: '', brandUnknown: false, priceUnknown: false, approx: false, gotMonth: '', preGw: false, materials: [CAT_MAT.Catsuit], latexMm: '', chlor: false, matAuto: true, origs: [], photos: [], status: status || 'wanted' };
     f.found = [];
-    this.setState({ sheet: 'form', form: f, moreOpen: false, fetchMsg: '', fetching: false, newCatOpen: false, sizeOpen: false });
+    this.setState({ sheet: 'form', form: f, moreOpen: false, fetchMsg: '', fetching: false, newCatOpen: false, newMatOpen: false, sizeOpen: false });
   }
   async fillFromLink() {
     const raw = (this.state.form.url || '').trim(); if (!raw) { this.setState({ fetchMsg: 'Paste a link first.' }); return; }
@@ -2636,8 +2676,9 @@ class Component extends DCLogic {
     const price = L && L.price != null ? Math.round(L.price * 100) / 100 : KNOWN[s], pics = (L && L.images && L.images.length ? L.images : KNOWN_PHOTOS[s]) || [];
     const cur = L && ['€', '$', '£'].includes(L.currency) ? L.currency : gCur, brand = (L && L.brand) || gBrand;
     const missing = [price == null ? 'price' : null, pics.length ? null : 'photos'].filter(Boolean);
+    const matUpd = this.state.form.matAuto && CAT_MAT[category] ? { materials: [CAT_MAT[category]] } : {};
     this.setState(st => ({ fetching: false, form: Object.assign({}, st.form, { url: href, name: st.form.name || name, brand: st.form.brand || brand, currency: cur, category, price: price != null ? String(price) : st.form.price, m2m: st.form.m2m || /made-to-(order|measure)/.test(s) || /kinkfox|kinkprojects/.test(host),
-        found: pics.filter(src => !(st.form.photos || []).includes(src)).map(src => ({ src, on: true })) }),
+        found: pics.filter(src => !(st.form.photos || []).includes(src)).map(src => ({ src, on: true })) }, matUpd),
       fetchMsg: (L ? 'Filled in from ' + host + '.' : 'Couldn’t read ' + host + (why ? ' (' + why.replace(/\.$/, '') + ')' : '') + ', so this is a guess from the link.') + (missing.length ? ' No ' + missing.join(' or ') + ' found, add ' + (missing.length > 1 ? 'them' : 'it') + ' below.' : '') }));
   }
   saveForm() {
@@ -2646,7 +2687,7 @@ class Component extends DCLogic {
     const price = f.priceUnknown || pr == null || isNaN(pr) ? null : pr, t = todayISO(), ownedD = f.gotMonth && !f.preGw ? f.gotMonth + '-01' : t;
     const photos = (f.found || []).filter(x => x.on).map(x => x.src).concat(f.photos || []);
     const size = f.m2m ? 'Made to measure' : (f.size === 'Made to measure' ? '' : f.size);
-    const base = { url: f.url.trim(), name: f.name.trim(), brand: f.brand.trim(), category: f.category, currency: f.currency, size, colour: f.colour, m2m: f.m2m, rating: f.rating, rec: f.rec || 0, notes: (f.notes || '').trim(), zip: ZIP_CATS.includes(f.category) ? f.zip || '' : '', handmade: !!f.handmade, modified: !!f.modified, mods: f.modified ? (f.mods || '').trim() : '', secondHand: !!f.secondHand, boughtFrom: f.secondHand ? (f.boughtFrom || '').trim() : '', condition: f.secondHand ? f.condition || '' : '', brandUnknown: !!f.brandUnknown, priceUnknown: !!f.priceUnknown, approx: !f.priceUnknown && !!f.approx, gotMonth: f.preGw ? '' : f.gotMonth || '', preGw: !!f.preGw, origs: (f.origs || []).filter(x => photos.includes(x.c)), photos };
+    const base = { url: f.url.trim(), name: f.name.trim(), brand: f.brand.trim(), category: f.category, currency: f.currency, size, colour: f.colour, m2m: f.m2m, rating: f.rating, rec: f.rec || 0, notes: (f.notes || '').trim(), zip: ZIP_CATS.includes(f.category) ? f.zip || '' : '', handmade: !!f.handmade, modified: !!f.modified, mods: f.modified ? (f.mods || '').trim() : '', secondHand: !!f.secondHand, boughtFrom: f.secondHand ? (f.boughtFrom || '').trim() : '', condition: f.secondHand ? f.condition || '' : '', brandUnknown: !!f.brandUnknown, priceUnknown: !!f.priceUnknown, approx: !f.priceUnknown && !!f.approx, gotMonth: f.preGw ? '' : f.gotMonth || '', preGw: !!f.preGw, materials: (f.materials || []).slice(), latexMm: (f.materials || []).includes('Latex') ? f.latexMm || '' : '', chlor: (f.materials || []).includes('Latex') && !!f.chlor, origs: (f.origs || []).filter(x => photos.includes(x.c)), photos };
     const isNew = !f.id;
     this.closeSheet(() => {
       this.mutate(p => {
@@ -2697,17 +2738,23 @@ class Component extends DCLogic {
     const bi = this.budgetInfo(p);
     const mode = /budget/i.test(L) ? 'B' : /gallery/i.test(L) ? 'C' : /next/i.test(L) ? 'A' : (bi ? 'A' : 'B');
     const wanted = p.items.filter(i => i.status === 'wanted').map((it, i) => ({ it, s: scoreOf(it), i })).sort((a, b) => b.s - a.s || a.i - b.i).map(x => x.it);
-    const ranked = wanted.map((it, i) => this.vm(it, i + 1));
-    const next = ranked[0] || { stars: [], name: '', photo: '' }, nextIt = wanted[0];
+    const matsIn = list => { const c = new Map(); list.forEach(i => (i.materials || []).forEach(m => c.set(m, (c.get(m) || 0) + 1))); return Array.from(c.keys()).sort((a, b) => c.get(b) - c.get(a)); };
+    const hasM = (i, m) => !m || (i.materials || []).includes(m);
+    const matChipsOf = (mats, sel, key) => [null].concat(mats).map(m => ({ label: m || 'All', bg: sel === m ? ACC : '#1c1c1e', color: sel === m ? '#000' : '#f5f5f7', onTap: () => this.setState({ [key]: m }) }));
+    const wMats = matsIn(wanted), wF = wMats.includes(st.matW) ? st.matW : null;
+    const rankedAll = wanted.map((it, i) => this.vm(it, i + 1)), wKeep = wanted.map(i => hasM(i, wF));
+    const ranked = rankedAll.filter((_, k) => wKeep[k]), wantedF = wanted.filter((_, k) => wKeep[k]);
+    const next = ranked[0] || { stars: [], name: '', photo: '' }, nextIt = wantedF[0];
     const af = nextIt ? this.afford(nextIt, bi) : { txt: '', dot: '#636366', pct: 0 };
-    const rest = ranked.slice(1), restIt = wanted.slice(1);
+    const rest = ranked.slice(1), restIt = wantedF.slice(1);
     let groups;
     if (st.group === 'rank') groups = [{ title: '', hasTitle: false, items: rest }];
     else { const key = st.group === 'brand' ? (it => it.brand || 'No brand') : (it => it.category || 'Other'); const map = new Map();
       restIt.forEach((it, i) => { const k = key(it); if (!map.has(k)) map.set(k, []); map.get(k).push(rest[i]); });
       groups = Array.from(map.entries()).map(([title, items]) => ({ title, hasTitle: true, items })); }
     const onWayIt = p.items.filter(i => i.status === 'ordered'), ownedIt = p.items.filter(i => i.status === 'owned');
-    const onWay = onWayIt.map(it => Object.assign(this.vm(it), {
+    const cMats = matsIn(ownedIt.concat(onWayIt)), cF = cMats.includes(st.matC) ? st.matC : null;
+    const onWay = onWayIt.filter(i => hasM(i, cF)).map(it => Object.assign(this.vm(it), {
       orderedTxt: 'Ordered ' + fmtD(it.orderedOn) + (it.paid != null ? ' · ' + money(it.paidCur || '€', it.paid) + ' paid' : ''),
       onReceived: e => { const row = e.currentTarget.closest('[data-row]'); this.animOut(row, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(60px)' }], 300, () => { this.setStatus(it.id, 'owned'); this.toast('Moved to Owned'); }); } }));
     const owned = ownedIt.map(it => Object.assign(this.vm(it), { ownSub: [it.brandUnknown ? 'Unknown brand' : it.brand, it.secondHand ? 'Pre-loved' : '', it.size && it.size !== 'Made to measure' ? 'Size ' + it.size : it.size].filter(Boolean).join(' · ') }));
@@ -2722,7 +2769,7 @@ class Component extends DCLogic {
     const inOut = id => outfits.filter(o => (o.itemIds || []).includes(id)).length;
     const unsure = p.items.filter(i => (i.status === 'owned' || i.status === 'ordered') && !gOf(i));
     const gm = new Map(GALL.map(g => [g, []]));
-    ownedIt.forEach(it => { const g = gOf(it) || 'Other'; if (!gm.has(g)) gm.set(g, []); gm.get(g).push(it); });
+    ownedIt.filter(i => hasM(i, cF)).forEach(it => { const g = gOf(it) || 'Other'; if (!gm.has(g)) gm.set(g, []); gm.get(g).push(it); });
     const collGroups = Array.from(gm.entries()).filter(e => e[1].length).map(([title, a]) => ({ title, count: String(a.length), items: a.map(it => { const n = inOut(it.id); return Object.assign(this.vm(it), { ownSub: [it.brandUnknown ? 'Unknown brand' : it.brand, it.secondHand ? 'Pre-loved' : '', it.size && it.size !== 'Made to measure' ? 'Size ' + it.size : it.size].filter(Boolean).join(' · ') || 'No details', paidTxt: it.paid != null ? money(it.paidCur || '€', it.paid) : it.price != null ? money(it.currency, it.price) : '', inOutfits: n > 0, outfitTxt: 'In ' + plural(n, 'outfit') }); }) }));
     const ovO = st.outfit ? outfits.find(o => o.id === st.outfit) : null;
     let ov = { photos: [], board: [], pieces: [] };
@@ -2866,7 +2913,7 @@ class Component extends DCLogic {
     if (fU) { const ft = st.friendTab || 'wish', W = fL.wish || [], C = fL.coll || [], O = fL.outfits || [], all = W.concat(C), cg = new Map();
       const FI = st.fItem ? (st.fItem.kind === 'coll' ? C : W).find(x => x.id === st.fItem.id) : null;
       if (FI) { const isW = st.fItem.kind !== 'coll', have = mineKey.has(fKey(FI)), phs = (FI.ph || []), host = (() => { try { return new URL(FI.u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } })();
-        const rows = [['Brand', FI.b], ['Category', FI.g || FI.cat], ['Size', FI.m ? 'Made to measure' : FI.s], ['Colour', FI.co], ['Entry', FI.z], ['Paid', !isW && FI.pp != null ? (FI.ap ? '≈ ' : '') + money(FI.pc || '€', FI.pp) : !isW && FI.pu ? 'Unknown' : ''], ['Handmade', FI.hm ? 'Yes' : ''], ['Second-hand', FI.sh ? (FI.cnd || 'Yes') : ''], ['Modified', FI.md ? (FI.md === 1 ? 'Yes' : FI.md) : ''], ['Status', isW ? '' : FI.ow ? 'On the way' : 'Owned'], [isW ? 'Added' : 'Since', isW ? (FI.a ? fmtD(FI.a) : '') : FI.pre ? 'Before GearWatch' : (FI.o ? fmtD(FI.o) : '')]].filter(r => r[1]).map(([k, v]) => ({ k, v: String(v) }));
+        const rows = [['Brand', FI.b], ['Category', FI.g || FI.cat], ['Size', FI.m ? 'Made to measure' : FI.s], ['Colour', FI.co], [(FI.mt || []).length > 1 ? 'Materials' : 'Material', matFull(fMat(FI))], ['Entry', FI.z], ['Paid', !isW && FI.pp != null ? (FI.ap ? '≈ ' : '') + money(FI.pc || '€', FI.pp) : !isW && FI.pu ? 'Unknown' : ''], ['Handmade', FI.hm ? 'Yes' : ''], ['Second-hand', FI.sh ? (FI.cnd || 'Yes') : ''], ['Modified', FI.md ? (FI.md === 1 ? 'Yes' : FI.md) : ''], ['Status', isW ? '' : FI.ow ? 'On the way' : 'Owned'], [isW ? 'Added' : 'Since', isW ? (FI.a ? fmtD(FI.a) : '') : FI.pre ? 'Before GearWatch' : (FI.o ? fmtD(FI.o) : '')]].filter(r => r[1]).map(([k, v]) => ({ k, v: String(v) }));
         fi = { back: st.fFromFeed && !st.fOutfit ? 'Feed' : st.fOutfit ? 'Outfit' : '@' + fU.username, kicker: isW ? 'On their wishlist' : 'In their collection', name: FI.n, initial: ini(FI.n), photos: phs.map(src => ({ src })), hasPhotos: phs.length > 0, noPhotos: !phs.length, multi: phs.length > 1, counter: ((st.fiIdx || 0) + 1) + ' / ' + phs.length,
           onScroll: e => { const el = e.currentTarget, k = Math.round(el.scrollLeft / el.clientWidth); if (k !== (st.fiIdx || 0)) this.setState({ fiIdx: k }); },
           price: FI.pu ? 'Price unknown' : FI.p == null ? '' : (FI.ap ? '≈ ' : '') + money(FI.c || '€', FI.p), hasPrice: FI.p != null || !!FI.pu, hasStars: isW ? !!FI.r : !!FI.rc, stars: this.stars((isW ? FI.r : FI.rc) || 0), starsLbl: isW ? 'How much they want it' : 'Recommends it', rows, hasRows: rows.length > 0,
@@ -2911,9 +2958,9 @@ class Component extends DCLogic {
         isWish: ft === 'wish' && W.length > 0, isColl: ft === 'coll' && C.length > 0, isOut: ft === 'outfits' && O.length > 0,
         empty: (ft === 'wish' && !W.length) || (ft === 'coll' && !C.length) || (ft === 'outfits' && !O.length),
         emptyTxt: ft === 'wish' ? 'Their wishlist is empty.' : ft === 'coll' ? 'Nothing in their collection yet.' : 'No outfits yet.',
-        wish: W.slice().sort((a, b) => (b.r || 0) - (a.r || 0)).map(i => { const have = mineKey.has(fKey(i)), ph = (i.ph || [])[0]; return { name: i.n, brand: i.b || '', price: i.p == null ? '' : '· ' + money(i.c || '€', i.p), photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(i.n), stars: this.stars(i.r || 0), addLabel: have ? 'On your list' : 'Add', addColor: have ? '#6e6e73' : ACC, onOpen: openI(i.id, 'wish'),
+        wish: W.slice().sort((a, b) => (b.r || 0) - (a.r || 0)).map(i => { const have = mineKey.has(fKey(i)), ph = (i.ph || [])[0]; return { name: i.n, brand: i.b || '', price: i.p == null ? '' : '· ' + money(i.c || '€', i.p), hasMat: !!(i.mt || []).length, matTag: matTag(fMat(i)), photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(i.n), stars: this.stars(i.r || 0), addLabel: have ? 'On your list' : 'Add', addColor: have ? '#6e6e73' : ACC, onOpen: openI(i.id, 'wish'),
           onAdd: e => { e.stopPropagation(); if (have) return; this.bump(e.currentTarget, 1.1); addF(i); } }; }),
-        collGroups: Array.from(cg.entries()).map(([title, a]) => ({ title, count: String(a.length), items: a.map(i => { const ph = (i.ph || [])[0]; return { name: i.n, sub: [i.b, i.ow ? 'On the way' : ''].filter(Boolean).join(' · ') || ' ', photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(i.n), onOpen: openI(i.id, 'coll') }; }) })),
+        collGroups: Array.from(cg.entries()).map(([title, a]) => ({ title, count: String(a.length), items: a.map(i => { const ph = (i.ph || [])[0]; return { name: i.n, sub: [i.b, i.ow ? 'On the way' : ''].filter(Boolean).join(' · ') || ' ', hasMat: !!(i.mt || []).length, matTag: matTag(fMat(i)), photo: ph || '', hasPhoto: !!ph, noPhoto: !ph, initial: ini(i.n), onOpen: openI(i.id, 'coll') }; }) })),
         outfits: O.slice().reverse().map(o => { const its = (o.ids || []).map(id => all.find(x => x.id === id)).filter(Boolean).map(x => ({ id: x.id, name: x.n, category: x.cat, g: x.g, photos: x.ph || [] })), cov = (o.ph || [])[0]; return { name: o.n, sub: plural(its.length, 'piece') + (o.w ? ' · Worn ' + o.w + '×' : ''), cover: cov || '', hasCover: !!cov, noCover: !cov, board: cov ? [] : this.board(its, o.sz), onOpen: () => this.setState({ fOutfit: o.id }) }; }),
         onBack: () => this.closeFriend(), unfLabel: st.unfArm ? 'Tap again to remove' : 'Remove friend', pillBg: st.unfArm ? '#ff453a' : '#2c2c2e', pillCheck: !st.unfArm, pillLabel: st.unfArm ? 'Remove friend?' : 'Friends',
         onUnfollow: () => { if (!st.unfArm) { this.setState({ unfArm: true }); clearTimeout(this.unfT); this.unfT = setTimeout(() => this.setState({ unfArm: false }), 3500); return; } const id = fU.id; this.closeFriend(async () => { try { await G.unfollow(id); } catch (e) {} this.loadSocial(); this.toast('Removed @' + fU.username); }); } };
@@ -2925,7 +2972,7 @@ class Component extends DCLogic {
     const agoMin = A.lastSync ? Math.round((Date.now() - A.lastSync) / 60000) : null;
     const seedP = this._seedP !== undefined ? this._seedP : (this._seedP = (() => { try { return seed().profiles[0] || null; } catch (e) { return null; } })());
     const seedMissing = seedP ? (seedP.items || []).filter(i => !p.items.some(x => x.id === i.id)) : [];
-    const dropIt = this.dropItem();
+    const dropAll = this.dropItem(), dropIt = wF ? this.prof().items.filter(i => i.status === 'wanted' && dropOf(i) > 0 && hasM(i, wF)).sort((a, b) => dropOf(b) - dropOf(a))[0] : dropAll;
 
     const sess = this.flSession() || p.session, vals = (sess && sess.values) || {}, hasSession = !!(sess && Object.keys(vals).length);
     const ft = FIG.find(f => f.id === st.figTab) || FIG[0];
@@ -2945,6 +2992,7 @@ class Component extends DCLogic {
         const pts = h.map((x, i) => [Math.round(i / (h.length - 1) * 300), Math.round(72 - (mx === mn ? 0.5 : (x.price - mn) / (mx - mn)) * 60)]);
         histPts = pts.map(q => q.join(',')).join(' '); histX = pts[pts.length - 1][0]; histY = pts[pts.length - 1][1]; }
       const rows = [{ k: 'Size', v: dIt.size || '—' }, { k: 'Colour', v: dIt.colour || '—' }, { k: 'Made to measure', v: dIt.m2m ? 'Yes' : 'No' }];
+      if ((dIt.materials || []).length) rows.push({ k: (dIt.materials.length > 1 ? 'Materials' : 'Material'), v: matFull(dIt) });
       if (dIt.zip && ZIP_CATS.includes(dIt.category)) rows.push({ k: 'Entry', v: dIt.zip });
       if (dIt.brandUnknown) rows.push({ k: 'Brand', v: 'Unknown' }); if (dIt.secondHand) rows.push({ k: 'Second-hand', v: [dIt.condition, dIt.boughtFrom ? 'from ' + dIt.boughtFrom : ''].filter(Boolean).join(' · ') || 'Yes' }); if (dIt.preGw) rows.push({ k: 'Got it', v: 'Before GearWatch' }); else if (dIt.gotMonth) { const gm = dIt.gotMonth.split('-'); rows.push({ k: 'Got it', v: MON[+gm[1] - 1] + ' ' + gm[0] }); }
       if (dIt.handmade) rows.push({ k: 'Handmade', v: 'Yes' }); if (dIt.modified) rows.push({ k: 'Modified', v: dIt.mods || 'Yes' });
@@ -3084,7 +3132,7 @@ class Component extends DCLogic {
       hasBudget: !!bi, noBudget: !bi && !p.budgetOff, showBudgetPill: !!bi && mode !== 'B',
       availEl: bi ? React.createElement(CountUp, { value: Math.round(bi.avail), prefix: '€' }) : '', availColor: bi && bi.avail < 0 ? '#ff453a' : ACC,
       budgetSub: bi ? (bi.pot ? '€' + num(bi.amount) + ' to spend · set ' + fmtD(bi.since) : '€' + num(bi.amount) + ' a month · resets on the ' + ordinal(bi.day)) + (bi.spent > 0 ? ' · €' + Math.round(bi.spent) + ' spent' : '') : '',
-      hasRest: rest.length > 0, groups, wishEmpty: !wanted.length,
+      hasRest: rest.length > 0, groups, wishEmpty: !wanted.length, wMatShow: wMats.length > 1, wMatChips: matChipsOf(wMats, wF, 'matW'), cMatShow: cMats.length > 1, cMatChips: matChipsOf(cMats, cF, 'matC'),
       groupTabs: [['rank', 'Rank'], ['brand', 'Brand'], ['cat', 'Category']].map(([k, l]) => ({ label: l, bg: st.group === k ? '#636366' : 'transparent', onTap: () => this.setState({ group: k }) })),
       hasOnWay: onWay.length > 0, onWay, onWayCount: onWay.length, hasOwned: owned.length > 0, noOwned: !owned.length, owned,
       openAdd: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.15); this.openForm(null); },
@@ -3153,6 +3201,13 @@ class Component extends DCLogic {
       fPrice: e => this.setF('price', e.target.value), fSize: e => this.setF('size', e.target.value), fColour: e => this.setF('colour', e.target.value),
       fillFromLink: e => { this.bump(e.currentTarget, 1.08); this.fillFromLink(); }, toggleM2M: () => this.setF('m2m', !f.m2m),
       m2mTrack: f.m2m ? ACC : '#39393d', m2mKnob: f.m2m ? '20px' : '0px',
+      matChips: MATS.concat((st.data.customMats || []).filter(m => !MATS.includes(m))).map(m => { const on = (f.materials || []).includes(m); return { label: m, bg: on ? ACC : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.08); this.setState(s => { const cur = s.form.materials || []; return { form: Object.assign({}, s.form, { materials: cur.includes(m) ? cur.filter(x => x !== m) : cur.concat(m), matAuto: false }) }; }); } }; }),
+      fMatSub: f.matAuto && (f.materials || []).length ? 'Guessed from the category. Tap to change.' : 'Pick everything it’s made of.',
+      fMainShow: (f.materials || []).length > 1, mainChips: (f.materials || []).map((m, i) => ({ label: MAT_SHORT[m] || m, bg: i === 0 ? '#636366' : 'transparent', onTap: () => this.setState(s => ({ form: Object.assign({}, s.form, { materials: [m].concat((s.form.materials || []).filter(x => x !== m)), matAuto: false }) })) })),
+      fLatexShow: (f.materials || []).includes('Latex'), mmChips: LATEX_MM.map(v => ({ label: v + ' mm', bg: f.latexMm === v ? ACC : '#1c1c1e', color: f.latexMm === v ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.08); this.setF('latexMm', f.latexMm === v ? '' : v); } })),
+      fChToggle: () => this.setF('chlor', !f.chlor), fChTrack: f.chlor ? ACC : '#39393d', fChKnob: f.chlor ? '20px' : '0px',
+      newMatOpen: !!st.newMatOpen, newMat: st.newMat || '', onNewMat: e => this.setState({ newMat: e.target.value }), toggleNewMat: e => { this.bump(e.currentTarget, 1.1); this.setState({ newMatOpen: !st.newMatOpen, newMat: '' }); },
+      addMat: () => { const n = (st.newMat || '').trim(); if (!n) return; const name = n.charAt(0).toUpperCase() + n.slice(1), data = JSON.parse(JSON.stringify(st.data)), hit = MATS.concat(data.customMats || []).find(x => x.toLowerCase() === name.toLowerCase()); if (!hit) { data.customMats = (data.customMats || []).concat(name); this.save(data); } const m = hit || name; this.setState(s => { const cur = s.form.materials || []; return { newMatOpen: false, newMat: '', form: Object.assign({}, s.form, { materials: cur.includes(m) ? cur : cur.concat(m), matAuto: false }) }; }); },
       fZipShow: ZIP_CATS.includes(f.category), zipChips: ZIPS.map(z => ({ label: z, bg: f.zip === z ? ACC : '#2c2c2e', color: f.zip === z ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.08); this.setF('zip', f.zip === z ? '' : z); } })),
       fBudgetShow: !f.id && f.status === 'owned' && !!bi,
       fCollShow: f.status === 'owned' || f.status === 'ordered', fMoreOpen: !!st.moreOpen, fMoreRot: st.moreOpen ? '180deg' : '0deg', fMoreToggle: () => this.setState({ moreOpen: !st.moreOpen }),
@@ -3173,7 +3228,7 @@ class Component extends DCLogic {
         if (!hit) this.save(Object.assign({}, st.data, { customCats: (st.data.customCats || []).concat(name) }));
         this.setF('category', hit || name); this.setState({ newCatOpen: false, newCat: '' }); },
       catChips: CATS.concat(st.data.customCats || []).map(c => { const mine = (st.data.customCats || []).includes(c), armed = st.catDelArm === c; return { label: armed ? 'Remove “' + c + '”?' : c, bg: armed ? '#ff453a' : f.category === c ? ACC : '#2c2c2e', color: armed ? '#fff' : f.category === c ? '#000' : '#f5f5f7', canDel: mine && !armed,
-        onTap: e => { if (armed) { const data = JSON.parse(JSON.stringify(st.data)); data.customCats = (data.customCats || []).filter(x => x !== c); this.save(data); this.setState({ catDelArm: null }); this.toast('Removed “' + c + '”'); return; } this.bump(e.currentTarget, 1.1); this.setF('category', c); },
+        onTap: e => { if (armed) { const data = JSON.parse(JSON.stringify(st.data)); data.customCats = (data.customCats || []).filter(x => x !== c); this.save(data); this.setState({ catDelArm: null }); this.toast('Removed “' + c + '”'); return; } this.bump(e.currentTarget, 1.1); this.setF('category', c); if (f.matAuto) this.setF('materials', CAT_MAT[c] ? [CAT_MAT[c]] : []); },
         onDel: e => { e.stopPropagation(); this.setState({ catDelArm: c }); clearTimeout(this.catDelT); this.catDelT = setTimeout(() => this.setState({ catDelArm: null }), 3000); } }; }),
       fStars: [1, 2, 3, 4, 5].map(n => { const k = f.status === 'owned' ? 'rec' : 'rating'; return { fill: n <= (f[k] || 0) ? ACC : '#48484a', label: n + ' stars', onTap: e => { this.bump(e.currentTarget, 1.45); this.setF(k, f[k] === n && k === 'rec' ? 0 : n); } }; }),
       fStarsLbl: f.status === 'owned' ? 'Would you recommend it?' : 'How much you want it', fNotes: e => this.setF('notes', e.target.value), fNotesPh: f.status === 'owned' ? 'Fit, feel, care tips, what to wear it with' : 'Size to order, colour options, waiting for a sale',
@@ -3226,8 +3281,8 @@ class Component extends DCLogic {
           heroUp: e => { const g = this.hDrag; if (!g) return; this.hDrag = null; const el = e.currentTarget, w = el.clientWidth, dx = e.clientX - g.x; this.hMoved = g.moved; let i = Math.round(g.s / w); if (dx < -w * 0.12) i++; else if (dx > w * 0.12) i--; i = Math.max(0, Math.min(1, i)); el.scrollTo({ left: i * w, behavior: 'smooth' }); setTimeout(() => { el.style.scrollSnapType = 'x mandatory'; }, 400); if (i !== (st.heroIdx || 0)) this.setState({ heroIdx: i }); },
           heroClickCap: e => { if (this.hMoved) { this.hMoved = false; e.stopPropagation(); e.preventDefault(); } },
           onHeroScroll: e => { if (this.hDrag) return; const el = e.currentTarget, i = Math.round(el.scrollLeft / el.clientWidth); if (i !== (st.heroIdx || 0)) this.setState({ heroIdx: i }); } }; })(),
-      notifY: st.notif ? '0%' : '-160%', notifText: dropIt ? dropIt.name + ' dropped to ' + money(dropIt.currency, dropIt.price) + ' (−' + Math.round(dropOf(dropIt) * 100) + '%).' : '',
-      openNotif: () => { if (dropIt) this.setState({ tab: 'wish', notif: false }, () => this.openDetail(dropIt.id)); },
+      notifY: st.notif ? '0%' : '-160%', notifText: dropAll ? dropAll.name + ' dropped to ' + money(dropAll.currency, dropAll.price) + ' (−' + Math.round(dropOf(dropAll) * 100) + '%).' : '',
+      openNotif: () => { if (dropAll) this.setState({ tab: 'wish', notif: false }, () => this.openDetail(dropAll.id)); },
 
       showIntro: this.introVisible() && !gate, introP0: ip === 0, introP1: ip === 1, introP2: ip === 2, introP3: ip === 3, introNotLast: ip < 3, introLast: ip === 3,
       introDots: [0, 1, 2, 3].map(i => ({ w: i === ip ? '22px' : '7px', bg: i === ip ? ACC : '#48484a' })),
