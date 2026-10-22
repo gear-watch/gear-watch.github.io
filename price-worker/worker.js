@@ -332,7 +332,7 @@ async function sharePage(id, env) {
   const d = (row && row.data) || {}, fixed = String((env && env.APP_URL) || '').trim();
   const app = /^https:\/\//i.test(fixed) ? fixed : ''; // links only ever go to your own app (APP_URL)
   const dest = app && row ? app.split('#')[0] + '#s=' + id : app;
-  const who = d.un ? '@' + d.un : (d.f || 'Someone');
+  const who = d.un ? '@' + d.un : (d.f && /^@/.test(d.f) ? d.f : 'Someone');
   let title = 'GearWatch', desc = 'Gear wishlist, collection and outfits.';
   if (d.t === 'p') { title = who + ' on GearWatch'; desc = [d.w != null ? d.w + ' wanted' : '', d.c != null ? d.c + ' in collection' : '', d.o != null ? d.o + (d.o === 1 ? ' outfit' : ' outfits') : ''].filter(Boolean).join(' · ') + '. Add ' + who + ' as a friend.'; }
   else if (d.t === 'o') { const its = d.it || []; title = (d.n || 'Outfit') + ' · by ' + who; desc = its.length + (its.length === 1 ? ' piece: ' : ' pieces: ') + its.map(i => i.n || '').filter(Boolean).slice(0, 5).join(', ') + '.'; }

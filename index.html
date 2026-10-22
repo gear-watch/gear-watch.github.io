@@ -328,7 +328,7 @@ input::placeholder{color:#6e6e73;}
     <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Size check</div>
     <div data-anim="up" style="padding:4px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Your best size at each brand, from your latest measurements.</div>
     <sc-if value="{{ szNoMeas }}" hint-placeholder-val="{{ false }}">
-      <div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;"><span style="font-weight:600;">No measurements yet.</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Measure once in Fitlog and every brand gets a size.</span><a href="./Fitlog.dc.html#measure" style="margin-top:4px;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;text-decoration:none;">Open Fitlog</a></div>
+      <div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;"><span style="font-weight:600;">No measurements yet.</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Measure once and every brand gets a size.</span><button onClick="{{ openMeas }}" style="margin-top:4px;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;border:0;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Measure now</button></div>
     </sc-if>
     <div style="margin:16px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
       <sc-for list="{{ szBrands }}" as="b" hint-placeholder-count="5">
@@ -573,7 +573,7 @@ input::placeholder{color:#6e6e73;}
         <span style="font-weight:600;line-height:1.24;">{{ measuredAgo }}</span>
         <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ measuredSub }}</span>
       </div>
-      <a href="./Fitlog.dc.html#measure" style="flex:none;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;letter-spacing:-0.224px;text-decoration:none;">Remeasure</a>
+      <button onClick="{{ openMeas }}" style="flex:none;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;letter-spacing:-0.224px;border:0;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Remeasure</button>
     </div>
     <div data-anim="scale" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:12px 8px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;">
       <div style="display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;max-width:100%;overflow-x:auto;">
@@ -596,8 +596,8 @@ input::placeholder{color:#6e6e73;}
   <sc-if value="{{ noSession }}" hint-placeholder-val="{{ false }}">
     <div data-anim="scale" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;">
       <span style="font-family:var(--font-display);font-size:24px;font-weight:600;">No measurements yet.</span>
-      <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Measure once in Fitlog. Made-to-measure items here will pick them up.</span>
-      <a href="./Fitlog.dc.html#measure" style="margin-top:8px;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;text-decoration:none;">Measure now</a>
+      <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Measure once. Made-to-measure items pick them up.</span>
+      <button onClick="{{ openMeas }}" style="margin-top:8px;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;border:0;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Measure now</button>
     </div>
   </sc-if>
 </sc-if>
@@ -1086,6 +1086,37 @@ input::placeholder{color:#6e6e73;}
           </sc-if></div>
       </div>
     </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasMeas }}" hint-placeholder-val="{{ false }}">
+  <div ref="{{ measRef }}" style="position:absolute;inset:0;z-index:63;background:#000;display:flex;flex-direction:column;color:#f5f5f7;">
+    <div style="flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:8px;padding-top:{{ fvTop }};">
+      <button onClick="{{ measCancel }}" style="justify-self:start;border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;font-family:inherit;">Cancel</button>
+      <span style="font-weight:600;">Measurements</span>
+      <button onClick="{{ measSave }}" style="justify-self:end;border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;font-weight:600;padding:8px;cursor:pointer;font-family:inherit;">Save</button>
+    </div>
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:0 16px calc(max(env(safe-area-inset-bottom), 16px) + 24px);">
+      <div style="max-width:640px;margin:0 auto;display:flex;flex-direction:column;">
+        <span style="padding:8px 4px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;text-wrap:pretty;">Use a soft tape. Snug, not tight. Tap How for where to put the tape. Clear a field to remove it.</span>
+        <sc-for list="{{ measGroups }}" as="g" hint-placeholder-count="3">
+          <span style="font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;padding:20px 4px 8px;">{{ g.title }}</span>
+          <div style="border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+            <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="4">
+              <div style="background:#1c1c1e;padding:6px 12px 6px 16px;display:flex;flex-direction:column;gap:4px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                <button onClick="{{ r.toggle }}" style="flex:1;min-width:0;border:0;background:none;padding:0;min-height:44px;display:flex;align-items:center;gap:8px;color:#f5f5f7;font-size:17px;font-family:inherit;text-align:left;cursor:pointer;"><span>{{ r.label }}</span><span style="font-size:14px;color:var(--gw-accent,#ffd60a);">{{ r.howMark }}</span></button>
+                <sc-if value="{{ r.changed }}" hint-placeholder-val="{{ false }}"><span data-anim="fade" data-delay="0" style="flex:none;font-size:14px;color:#6e6e73;letter-spacing:-0.224px;font-variant-numeric:tabular-nums;white-space:nowrap;"><span style="text-decoration:line-through;">{{ r.was }}</span> <span style="color:{{ r.diffCo }};">{{ r.diff }}</span></span></sc-if>
+                <input value="{{ r.val }}" onChange="{{ r.onIn }}" inputMode="decimal" enterKeyHint="next" autoComplete="off" placeholder="–" style="flex:none;width:72px;box-sizing:border-box;background:#2c2c2e;border:0;border-radius:8px;padding:8px 10px;font-size:17px;color:#f5f5f7;text-align:right;outline:none;font-family:inherit;font-variant-numeric:tabular-nums;">
+                <span style="flex:none;width:24px;font-size:14px;color:#a1a1a6;">{{ r.unit }}</span>
+                </div>
+                <sc-if value="{{ r.open }}" hint-placeholder-val="{{ false }}"><div data-anim="fade" data-delay="0" style="display:flex;align-items:center;gap:12px;padding:0 0 8px;"><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><div style="width:56px;flex:none;">{{ r.fig }}</div></sc-if><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;text-wrap:pretty;">{{ r.hint }}</span></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </div>
   </div>
 </sc-if>
 
@@ -2208,7 +2239,7 @@ class Component extends DCLogic {
   state = { data: load(), tab: 'wish', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null, coll: 'items', outfit: null, builder: null, cuts: {}, cutsReady: false, cpickId: null, cpickQ: false, ovDel: false, newGrpOpen: false, newGrp: '', bdragId: null, acct: null, social: null, friend: null, friendTab: 'wish', followIn: '', followMsg: '', authEmail: '', authCode: '', unameIn: '', authErr: '' };
   spentRef = React.createRef(); outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef(); fItemRef = React.createRef(); fiCarRef = React.createRef(); vwRef = React.createRef(); qrRef = React.createRef(); svRef = React.createRef(); scRef = React.createRef(); cropRef = React.createRef(); pcBoxRef = React.createRef(); fOutRef = React.createRef(); pcRectRef = React.createRef();
   heroRef = React.createRef(); carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
-  introRef = React.createRef(); bPanelRef = React.createRef(); svVolInit = (() => { try { const v = localStorage.getItem('gw-sv-vol'); if (v != null) setTimeout(() => this.setState({ svVol: Number(v) }), 0); } catch (e) {} })(); toastRef = React.createRef(); nudgeRef = React.createRef(); nudgeBarRef = React.createRef(); figRef = React.createRef();
+  introRef = React.createRef(); bPanelRef = React.createRef(); svVolInit = (() => { try { const v = localStorage.getItem('gw-sv-vol'); if (v != null) setTimeout(() => this.setState({ svVol: Number(v) }), 0); } catch (e) {} })(); measRef = React.createRef(); toastRef = React.createRef(); nudgeRef = React.createRef(); nudgeBarRef = React.createRef(); figRef = React.createRef();
 
   applyPrices(map) {
     const data = JSON.parse(JSON.stringify(this.state.data)); let changed = false;
@@ -2373,6 +2404,16 @@ class Component extends DCLogic {
   openMyProfile(extra) { const G = window.GWSync, A = G && G.state ? G.state() : {}, id = (A.user || {}).id; if (id) this.setState(Object.assign({ friend: id, friendTab: 'wish', fOutfit: null, fItem: null, unfArm: false }, extra || {})); }
   nudge(text, acts) { clearTimeout(this.nudgeT); this.setState({ nudge: { text, acts } }, () => { const b = this.nudgeBarRef.current; if (b && b.animate) b.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: 5000, easing: 'linear', fill: 'forwards' }); }); this.nudgeT = setTimeout(() => this.nudgeOff(), 5000); }
   nudgeOff(cb) { clearTimeout(this.nudgeT); if (cb) { this.setState({ nudge: null }); cb(); return; } this.animOut(this.nudgeRef.current, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(16px) scale(.96)' }], 240, () => this.setState({ nudge: null })); }
+  pickSess(a, b) { if (!a || !a.values) return b; if (!b || !b.values) return a; return String(b.date || '') >= String(a.date || '') ? b : a; }
+  openMeas() { const D = this.state.data, P0 = D.profiles.find(x => x.id === D.activeId) || D.profiles[0], s = this.pickSess(this.flSession(), P0.session), cm = Object.assign({}, (s && s.values) || {}), vals = {};
+    Object.keys(cm).forEach(id => { const f = this.fval(cm, id); if (f) vals[id] = f.v; });
+    this.setState({ meas: { vals, orig: Object.assign({}, vals), cm } }, () => { const el = this.measRef.current; if (el && el.animate && !this.reduce) el.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' }); }); }
+  closeMeas(cb) { this.animOut(this.measRef.current, [{ transform: 'none' }, { transform: 'translateY(100%)' }], 280, () => { this.setState({ meas: null }); if (cb) cb(); }); }
+  saveMeas() { const M = this.state.meas; if (!M) return; const inch = this.state.unit === 'in', values = {}; let bad = 0;
+    Object.keys(M.vals).forEach(id => { const raw = String(M.vals[id] == null ? '' : M.vals[id]).trim(); if (!raw) return; if (raw === M.orig[id] && M.cm[id] != null) { values[id] = M.cm[id]; return; } const n = Number(raw.replace(',', '.')); if (!isFinite(n) || n <= 0) { bad++; return; } values[id] = id === 'shoe' ? n : Math.round((inch ? n * 2.54 : n) * 10) / 10; });
+    if (bad) { this.toast(bad === 1 ? 'One number doesn’t look right' : bad + ' numbers don’t look right'); return; }
+    const n = Object.keys(values).length; this.closeMeas(() => { this.mutate(pp => { if (n) pp.session = { date: todayISO(), values }; else delete pp.session; }); this.toast(n ? 'Measurements saved' : 'Measurements cleared'); }); }
+  myHandle() { const G = window.GWSync, A = (G && G.state && G.state()) || {}, u = A.username || (this.state.acct || {}).username; return u ? '@' + u : ''; }
   toast(text) {
     clearTimeout(this.t4); this.setState({ toast: text });
     this.t4 = setTimeout(() => this.animOut(this.toastRef.current, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(16px) scale(.9)' }], 260, () => this.setState({ toast: null })), 2600);
@@ -3058,10 +3099,10 @@ class Component extends DCLogic {
         delLabel: st.ovDel ? 'Tap again to delete' : 'Delete outfit',
         onDelete: () => { if (!st.ovDel) { this.setState({ ovDel: true }); return; } const id = ovO.id; this.closeOutfit(() => { this.mutate(pp => { pp.outfits = (pp.outfits || []).filter(o => o.id !== id); }); this.toast('Outfit deleted'); }); },
         onShare: e => { this.bump(e.currentTarget, 1.04); const abs = x => /^\.\//.test(x) ? new URL(x, location.href).href : x;
-          const payload = { t: 'o', n: oName(ovO), f: p.name, it: its.map(it => { const src = (it.photos || []).find(x => !/^data:/.test(x)); return { n: it.name, b: it.brand || undefined, cat: it.category || undefined, g: gOf(it) || undefined, u: it.url || undefined, c: it.currency, p: it.price, s: it.size || undefined, ph: src ? abs(src) : undefined }; }), ps: ovO.pos && Object.keys(ovO.pos).length ? its.map(it => ovO.pos[it.id] ? [ovO.pos[it.id].x, ovO.pos[it.id].y] : 0) : undefined };
+          const payload = { t: 'o', n: oName(ovO), f: this.myHandle() || undefined, it: its.map(it => { const src = (it.photos || []).find(x => !/^data:/.test(x)); return { n: it.name, b: it.brand || undefined, cat: it.category || undefined, g: gOf(it) || undefined, u: it.url || undefined, c: it.currency, p: it.price, s: it.size || undefined, ph: src ? abs(src) : undefined }; }), ps: ovO.pos && Object.keys(ovO.pos).length ? its.map(it => ovO.pos[it.id] ? [ovO.pos[it.id].x, ovO.pos[it.id].y] : 0) : undefined };
           const A3 = this.state.acct || {}, wn = (ovO.worn || []).length;
-          const card = { kind: 'o', photo: (ovO.photos || []).find(Boolean) || '', photos: its.map(it => (it.photos || [])[0]).filter(Boolean), name: payload.n, avatar: A3.avatar || '', initial: (A3.username || p.name || '?')[0], line: 'An outfit by @' + (A3.username || p.name || ''), pills: Array.from(new Set(its.map(it => (it.materials || [])[0]).filter(Boolean).map(m => MAT_SHORT[m] || m))), foot: its.length + (its.length === 1 ? ' piece' : ' pieces') + (wn ? ' · worn ' + wn + (wn === 1 ? ' time' : ' times') : '') };
-          this.shareOut(payload, payload.n, (p.name || 'My') + '’s outfit: ' + payload.n, card); } };
+          const card = { kind: 'o', photo: (ovO.photos || []).find(Boolean) || '', photos: its.map(it => (it.photos || [])[0]).filter(Boolean), name: payload.n, avatar: A3.avatar || '', initial: (A3.username || '?')[0], line: this.myHandle() ? 'An outfit by ' + this.myHandle() : 'An outfit on GearWatch', pills: Array.from(new Set(its.map(it => (it.materials || [])[0]).filter(Boolean).map(m => MAT_SHORT[m] || m))), foot: its.length + (its.length === 1 ? ' piece' : ' pieces') + (wn ? ' · worn ' + wn + (wn === 1 ? ' time' : ' times') : '') };
+          this.shareOut(payload, payload.n, (this.myHandle() ? this.myHandle() + '’s outfit: ' : 'Outfit: ') + payload.n, card); } };
     }
     const B = st.builder; let bd = { items: [], groups: [], photos: [] };
     if (B) { const sel = B.itemIds.map(id => byId[id]).filter(Boolean), cands = p.items.filter(i => i.status === 'owned' || i.status === 'ordered');
@@ -3093,7 +3134,7 @@ class Component extends DCLogic {
     if (sS) { const its = (sS.it || []).map((x, i) => ({ id: 's' + i, name: x.n, category: x.cat, g: x.g, photos: x.ph ? [x.ph] : [] })), pos = {};
       (sS.ps || []).forEach((q, i) => { if (q) pos['s' + i] = { x: q[0], y: q[1] }; });
       const tot = (sS.it || []).reduce((a, x) => a + (x.p == null ? 0 : x.p * (FX[x.c || '€'] || 1)), 0);
-      so = { fromTxt: sS.f ? sS.f + '’s outfit' : 'Shared outfit', name: sS.n || 'Outfit', meta: plural(its.length, 'piece') + (tot ? ' · about €' + Math.round(tot) : ''), board: this.board(its, null),
+      so = { fromTxt: sS.f && /^@/.test(sS.f) ? sS.f + '’s outfit' : 'Shared outfit', name: sS.n || 'Outfit', meta: plural(its.length, 'piece') + (tot ? ' · about €' + Math.round(tot) : ''), board: this.board(its, null),
         pieces: (sS.it || []).map(x => ({ name: x.n, sub: [x.b, x.s && x.s !== 'Made to measure' ? 'Size ' + x.s : x.s].filter(Boolean).join(' · '), price: x.p == null ? '' : money(x.c || '€', x.p), photo: x.ph || '', hasPhoto: !!x.ph, noPhoto: !x.ph, initial: (x.n || '?').charAt(0).toUpperCase() })) };
     }
     const A = st.acct || {}, SO = st.social || { following: [], requests: [], followers: [], lists: {} }, G = window.GWSync;
@@ -3262,7 +3303,7 @@ class Component extends DCLogic {
     const seedMissing = seedP ? (seedP.items || []).filter(i => !p.items.some(x => x.id === i.id)) : [];
     const dropAll = this.dropItem(), dropIt = wF ? this.prof().items.filter(i => i.status === 'wanted' && dropOf(i) > 0 && hasM(i, wF)).sort((a, b) => dropOf(b) - dropOf(a))[0] : dropAll;
 
-    const sess = this.flSession() || p.session, vals = (sess && sess.values) || {}, hasSession = !!(sess && Object.keys(vals).length);
+    const sess = this.pickSess(this.flSession(), p.session), vals = (sess && sess.values) || {}, hasSession = !!(sess && Object.keys(vals).length);
     const ft = FIG.find(f => f.id === st.figTab) || FIG[0];
     const bodyFigEl = bodyFig({ lines: ft.ids.filter(id => vals[id] != null).map(id => { const f = this.fval(vals, id); return { id, value: f.u === 'EU' ? 'EU ' + f.v : f.v + ' ' + f.u, onTap: () => this.setState({ sheet: 'point', pointId: id }) }; }) });
     const tileGroups = FIG.map(g => ({ title: g.title, items: g.ids.filter(id => vals[id] != null).map(id => { const f = this.fval(vals, id); return { label: PT[id].label, value: f.v, unit: f.u, onOpen: () => this.setState({ sheet: 'point', pointId: id }) }; }) })).filter(g => g.items.length);
@@ -3444,15 +3485,15 @@ class Component extends DCLogic {
         const rows = [['Size', s.s], ['Colour', s.col], ['Made to measure', s.m ? 'Yes' : null], ['Status', s.st === 'ordered' ? 'Already ordered' : s.st === 'owned' ? 'Already owned' : null]].filter(r => r[1]).map(([k, v]) => ({ k, v }));
         return { fromTxt: s.f ? s.f + (s.st === 'owned' ? ' owns this' : s.st === 'ordered' ? ' ordered this' : ' wants this') : 'Shared from GearWatch', name: s.n || '', brandCat: [s.b, s.cat].filter(Boolean).join(' · '), price: s.p == null ? 'No price yet' : money(cur, s.p), eur: s.p != null && cur !== '€' ? '≈ €' + Math.round(s.p * (FX[cur] || 1)) : '',
           photos: ph.map(src => ({ src })), hasPhotos: !!ph.length, multi: ph.length > 1, photoCount: String(ph.length), rows,
-          meas: (s.ms || []).map(([k, v]) => ({ k, v })), hasMeas: !!(s.ms || []).length, measTitle: (s.f ? s.f + '’s' : 'Their') + ' measurements for this item', note: s.no || '', hasNote: !!s.no, url: webUrl(s.u), hasUrl: !!webUrl(s.u) }; })(),
+          meas: (s.ms || []).map(([k, v]) => ({ k, v })), hasMeas: !!(s.ms || []).length, measTitle: (s.f && /^@/.test(s.f) ? s.f + '’s' : 'Their') + ' measurements for this item', note: s.no || '', hasNote: !!s.no, url: webUrl(s.u), hasUrl: !!webUrl(s.u) }; })(),
       closeShared: () => { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; } this.setState({ shared: null }); },
       addShared: () => { const s = st.shared; if (!s) return; this.mutate(p => { p.items.push({ id: uid(), name: s.n, brand: s.b || '', category: s.cat || '', url: webUrl(s.u), photos: (s.ph || []).filter(Boolean), currency: s.c || '€', price: s.p == null ? null : s.p, history: s.p == null ? [] : [{ date: todayISO(), price: s.p }], rating: 3, status: 'wanted', size: s.s || '', colour: s.col || '', m2m: !!s.m, added: todayISO() }); }); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} this.setState({ shared: null }); this.toast('Added to your wishlist'); },
       shareItem: e => { if (!dIt) return; this.bump(e.currentTarget, 1.04);
         const ms = (d.needRows || []).filter(r => r.value !== 'Not measured').map(r => [r.label, r.value]);
-        const payload = { n: dIt.name, b: dIt.brand || undefined, cat: dIt.category || undefined, u: dIt.url || undefined, c: dIt.currency, p: dIt.price, s: dIt.size || undefined, col: dIt.colour || undefined, m: dIt.m2m ? 1 : undefined, st: dIt.status !== 'wanted' ? dIt.status : undefined, ph: (dIt.photos || []).filter(x => !/^data:/.test(x)).slice(0, 6).map(x => /^\.\//.test(x) ? new URL(x, location.href).href : x), ms: ms.length ? ms : undefined, f: p.name, no: (dIt.needs && dIt.needs.note) || undefined };
+        const payload = { n: dIt.name, b: dIt.brand || undefined, cat: dIt.category || undefined, u: dIt.url || undefined, c: dIt.currency, p: dIt.price, s: dIt.size || undefined, col: dIt.colour || undefined, m: dIt.m2m ? 1 : undefined, st: dIt.status !== 'wanted' ? dIt.status : undefined, ph: (dIt.photos || []).filter(x => !/^data:/.test(x)).slice(0, 6).map(x => /^\.\//.test(x) ? new URL(x, location.href).href : x), ms: ms.length ? ms : undefined, f: this.myHandle() || undefined, no: (dIt.needs && dIt.needs.note) || undefined };
         const title = dIt.name + (dIt.size ? ' · ' + dIt.size : ''), A3 = this.state.acct || {}, sx = dIt.status, dr = sx === 'wanted' && dIt.price != null ? dropOf(dIt) : 0;
-        const card = { kind: 'i', photo: (dIt.photos || [])[0] || '', name: dIt.name, brand: dIt.brand || '', line: '@' + (A3.username || p.name || '') + (sx === 'owned' ? ' owns this' : sx === 'ordered' ? ' ordered this' : ' wants this'), pills: [matTag(dIt), dIt.size ? 'Size ' + dIt.size : ''], price: sx === 'wanted' && dIt.price != null ? money(dIt.currency, dIt.price) : '', was: dr > 0 ? money(dIt.currency, Math.round(dIt.price / (1 - dr))) : '', off: dr > 0 ? '−' + Math.round(dr * 100) + '%' : '', foot: sx === 'owned' ? 'In the collection' : sx === 'ordered' ? 'On the way' : '' };
-        this.shareOut(payload, title, (p.name || 'I') + (sx === 'owned' ? ' owns this: ' : sx === 'ordered' ? ' ordered this: ' : ' wants this: ') + title, card); },
+        const card = { kind: 'i', photo: (dIt.photos || [])[0] || '', name: dIt.name, brand: dIt.brand || '', line: (this.myHandle() || 'Someone') + (sx === 'owned' ? ' owns this' : sx === 'ordered' ? ' ordered this' : ' wants this'), pills: [matTag(dIt), dIt.size ? 'Size ' + dIt.size : ''], price: sx === 'wanted' && dIt.price != null ? money(dIt.currency, dIt.price) : '', was: dr > 0 ? money(dIt.currency, Math.round(dIt.price / (1 - dr))) : '', off: dr > 0 ? '−' + Math.round(dr * 100) + '%' : '', foot: sx === 'owned' ? 'In the collection' : sx === 'ordered' ? 'On the way' : '' };
+        this.shareOut(payload, title, (this.myHandle() || 'Someone') + (sx === 'owned' ? ' owns this: ' : sx === 'ordered' ? ' ordered this: ' : ' wants this: ') + title, card); },
       hasDetail: !!dIt, d, closeDetail: () => this.closeDetail(), openEdit: () => dIt && this.openForm(dIt),
       carOpen: () => { if (this.carMoved) { this.carMoved = false; return; } if (dIt) this.openViewer(dIt.photos || [], st.photoIdx, i => this.carGo(i)); },
       carRef: this.carRef, carPrev: () => this.carGo(st.photoIdx - 1), carNext: () => this.carGo(st.photoIdx + 1),
@@ -3461,7 +3502,7 @@ class Component extends DCLogic {
       carUp: e => { const g = this.drag; if (!g) return; this.drag = null; const el = e.currentTarget, w = el.clientWidth, dx = e.clientX - g.x; el.style.cursor = 'grab'; let i = Math.round(g.s / w); if (dx < -w * 0.15) i++; else if (dx > w * 0.15) i--; i = Math.max(0, Math.min(el.children.length - 1, i)); el.scrollTo({ left: i * w, behavior: 'smooth' }); setTimeout(() => { el.style.scrollSnapType = 'x mandatory'; }, 400); this.carMoved = Math.abs(dx) > 5; this.setState({ photoIdx: i }); },
       onCarScroll: e => { if (this.drag) return; const el = e.currentTarget, i = Math.round(el.scrollLeft / el.clientWidth); if (i !== st.photoIdx) this.setState({ photoIdx: i }); },
       copyLabel: st.copied ? 'Copied' : 'Copy as list',
-      copyNeeds: e => { if (!dIt) return; this.bump(e.currentTarget, 1.08); const txt = p.name + ' · ' + (dIt.brand || '') + ' · ' + dIt.name + '\n' + d.needRows.map(r => r.label + ': ' + r.value).join('\n');
+      copyNeeds: e => { if (!dIt) return; this.bump(e.currentTarget, 1.08); const txt = [this.myHandle(), dIt.brand || '', dIt.name].filter(Boolean).join(' · ') + '\n' + d.needRows.map(r => r.label + ': ' + r.value).join('\n');
         try { navigator.clipboard.writeText(txt); } catch (err) {} this.setState({ copied: true }); clearTimeout(this.t3); this.t3 = setTimeout(() => this.setState({ copied: false }), 1600); },
       deleteLabel: st.delArm ? 'Tap again to delete' : 'Delete item',
       deleteItem: () => { if (!st.delArm) { this.setState({ delArm: true }); return; } const id = st.detail; this.closeDetail(() => { this.mutate(pp => { pp.items = pp.items.filter(x => x.id !== id); (pp.outfits || []).forEach(o => { o.itemIds = (o.itemIds || []).filter(x => x !== id); if (o.pos) delete o.pos[id]; }); }); this.toast('Deleted'); }); },
@@ -3571,6 +3612,10 @@ class Component extends DCLogic {
       pointFig: st.pointId ? bodyFig({ single: true, lines: [{ id: st.pointId }] }) : null,
       pointVal: pv ? pv.v : '—', pointUnit: pv ? pv.u : '', pointHint: st.pointId && PT[st.pointId] ? PT[st.pointId].hint : '', pointDate: hasSession ? 'Measured ' + fmtD(sess.date) : '',
       hasToast: !!st.toast, toastText: st.toast || '',
+      openMeas: () => this.openMeas(), hasMeas: !!st.meas, measRef: this.measRef, measCancel: () => this.closeMeas(), measSave: () => this.saveMeas(),
+      measGroups: st.meas ? (() => { const M = st.meas, used = new Set(), row = id => { used.add(id); const P = PT[id] || { label: id, hint: '' }; const open = !!(st.measHow || {})[id], hasFig = open && !!FL[id]; return { label: P.label, hint: P.hint || '', open, hasFig, fig: hasFig ? bodyFig({ single: true, lines: [{ id }] }) : null, howMark: open ? 'Hide' : 'How', ...(() => { const o = M.orig[id], cur = M.vals[id] == null ? '' : String(M.vals[id]).trim(), ch = o != null && o !== '' && cur !== o; const a = Number(String(o).replace(',', '.')), b = Number(cur.replace(',', '.')), dv = cur && isFinite(a) && isFinite(b) ? Math.round((b - a) * 10) / 10 : null;
+          return { changed: ch, was: o || '', diff: dv == null ? 'removed' : dv === 0 ? '' : (dv > 0 ? '+' : '−') + Math.abs(dv), diffCo: dv == null ? '#ff9f0a' : '#a1a1a6' }; })(), toggle: () => this.setState(z => ({ measHow: Object.assign({}, z.measHow, { [id]: !(z.measHow || {})[id] }) })), val: M.vals[id] == null ? '' : M.vals[id], unit: id === 'shoe' ? 'EU' : st.unit, onIn: e => { const v = e.target.value.slice(0, 8); this.setState(z => z.meas ? { meas: Object.assign({}, z.meas, { vals: Object.assign({}, z.meas.vals, { [id]: v }) }) } : null); } }; };
+        const G = FIG.map(g => ({ title: g.title || g.label, rows: g.ids.filter(id => PT[id]).map(row) })), rest = POINTS.map(p => p[0]).filter(id => !used.has(id)); if (rest.length) G.push({ title: 'Other', rows: rest.map(row) }); return G.filter(g => g.rows.length); })() : [],
       hasNudge: !!st.nudge, nudgeText: (st.nudge || {}).text || '', nudgeRef: this.nudgeRef, nudgeBarRef: this.nudgeBarRef, nudgeActs: ((st.nudge || {}).acts || []).map((a, i, L) => ({ label: a.label, bg: i === L.length - 1 ? 'var(--gw-accent,#ffd60a)' : '#48484a', fg: i === L.length - 1 ? '#000' : '#f5f5f7', onTap: () => this.nudgeOff(a.fn) })),
       heroRef: this.heroRef,
       ...(() => { const s = dropIt, showNext = !s || !nextIt || s.id !== nextIt.id, multi = !!s && showNext, hi = multi ? (st.heroIdx || 0) : 0;
