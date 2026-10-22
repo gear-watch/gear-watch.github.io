@@ -382,6 +382,81 @@ input::placeholder{color:#6e6e73;}
   </sc-if>
 </sc-if>
 
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ false }}">
+<div onTouchStart="{{ hm.ptrStart }}" onTouchMove="{{ hm.ptrMove }}" onTouchEnd="{{ hm.ptrEnd }}">
+  <div style="height:{{ hm.ptrH }};overflow:hidden;display:flex;align-items:flex-end;justify-content:center;transition:height .2s;"><span style="padding-bottom:6px;font-size:12px;color:#a1a1a6;">{{ hm.ptrTxt }}</span></div>
+  <div data-anim="fade" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;min-height:20px;">{{ fr.handleTop }}</div>
+  <div style="padding:0 16px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <span data-anim="up" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Home</span>
+    <sc-if value="{{ fr.signedIn }}" hint-placeholder-val="{{ false }}"><div data-anim="pop" style="display:flex;gap:8px;flex:none;">
+      <button onClick="{{ hm.newStory }}" aria-label="New story" style="width:40px;height:40px;border-radius:9999px;border:0;padding:0;background:#1c1c1e;color:#f5f5f7;display:grid;place-items:center;cursor:pointer;" style-active="transform:scale(0.92);"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="15" height="11.5" rx="2.5"></rect><path d="M7 5l1.2-2h3.6L13 5"></path><path d="M10 8.3v5M7.5 10.8h5"></path></svg></button>
+      <button onClick="{{ hm.openNt }}" aria-label="Notifications" style="position:relative;width:40px;height:40px;border-radius:9999px;border:0;padding:0;background:#1c1c1e;color:#f5f5f7;display:grid;place-items:center;cursor:pointer;" style-active="transform:scale(0.92);"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8.5a5 5 0 0 1 10 0c0 4 1.5 5.5 1.5 5.5h-13S5 12.5 5 8.5z"></path><path d="M8.3 16.5a1.8 1.8 0 0 0 3.4 0"></path></svg><sc-if value="{{ hm.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;font-size:11px;font-weight:600;display:grid;place-items:center;box-shadow:0 0 0 2px #000;">{{ hm.badge }}</span></sc-if></button>
+    </div></sc-if>
+  </div>
+  <sc-if value="{{ fr.needAcct }}" hint-placeholder-val="{{ false }}">
+    <div data-anim="scale" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:8px;">
+      <span style="font-family:var(--font-display);font-size:24px;font-weight:600;line-height:1.17;">Home needs an account.</span>
+      <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Stories and your friends’ feed show up here once accounts are switched on.</span>
+    </div>
+  </sc-if>
+  <sc-if value="{{ fr.signedIn }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;gap:10px;overflow-x:auto;padding:18px 12px 4px;scrollbar-width:none;">
+      <sc-for list="{{ fr.storyCards }}" as="c" hint-placeholder-count="4">
+        <button data-anim="pop" onClick="{{ c.onOpen }}" style="position:relative;flex:none;width:72px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:#f5f5f7;font-family:inherit;" style-active="transform:scale(0.95);">
+          <span style="position:relative;display:block;padding:4px;"><span style="position:relative;overflow:hidden;width:60px;height:60px;border-radius:9999px;background:#2c2c2e;box-shadow:{{ c.ring }};display:grid;place-items:center;font-family:var(--font-display);font-size:22px;font-weight:600;"><span>{{ c.initial }}</span><sc-if value="{{ c.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ c.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
+            <sc-if value="{{ c.plus }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:0;bottom:0;width:22px;height:22px;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;box-shadow:0 0 0 2px #000;"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 3v10M3 8h10"></path></svg></span></sc-if>
+            <sc-if value="{{ c.addMore }}" hint-placeholder-val="{{ false }}"><span role="button" aria-label="Add to your story" onClick="{{ c.onAdd }}" style="position:absolute;right:0;bottom:0;width:22px;height:22px;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;box-shadow:0 0 0 2px #000;"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 3v10M3 8h10"></path></svg></span></sc-if></span>
+          <span style="font-size:12px;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.name }}</span>
+          <span style="font-size:11px;font-weight:{{ c.whenW }};color:{{ c.whenCo }};">{{ c.when }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <sc-if value="{{ fr.hasFeed }}" hint-placeholder-val="{{ false }}">
+      <sc-for list="{{ fr.feedDays }}" as="day" hint-placeholder-count="1">
+        <div data-anim="right" style="padding:28px 20px 10px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ day.label }}</div>
+        <div style="padding:0 16px 8px;display:flex;flex-direction:column;gap:12px;">
+          <sc-for list="{{ day.cards }}" as="c" hint-placeholder-count="2">
+            <div data-anim="up" style="background:#1c1c1e;border-radius:18px;overflow:hidden;">
+              <div onClick="{{ c.onProfile }}" style="display:flex;align-items:center;gap:10px;padding:12px 16px 12px 12px;cursor:pointer;">
+                <span onClick="{{ c.onAv }}" style="position:relative;overflow:hidden;width:32px;height:32px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-size:13px;font-weight:600;flex:none;box-shadow:{{ c.ringSh }};"><span>{{ c.initial }}</span><sc-if value="{{ c.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ c.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
+                <span style="flex:1;min-width:0;font-size:14px;letter-spacing:-0.224px;line-height:1.36;"><span style="font-weight:600;">{{ c.who }}</span> <span style="color:#a1a1a6;">{{ c.verb }}</span></span>
+              </div>
+              <sc-if value="{{ c.single }}" hint-placeholder-val="{{ true }}">
+                <div onClick="{{ c.onOpen }}" style="cursor:pointer;">
+                  <sc-if value="{{ c.hasImg }}" hint-placeholder-val="{{ true }}"><img src="{{ c.img }}" alt="" style="display:block;width:100%;aspect-ratio:4/5;max-height:440px;object-fit:cover;object-position:top;background:#2c2c2e;"></sc-if>
+                  <sc-if value="{{ c.noImg }}" hint-placeholder-val="{{ false }}"><div style="height:96px;background:#2c2c2e;display:flex;align-items:center;justify-content:center;gap:10px;color:#6e6e73;font-size:14px;letter-spacing:-0.224px;"><span style="font-family:var(--font-display);font-size:28px;font-weight:600;color:#48484a;">{{ c.itemInitial }}</span><span>No photo yet</span></div></sc-if>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 16px 14px;">
+                  <span onClick="{{ c.onOpen }}" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;cursor:pointer;"><span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.title }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.sub }}</span></span>
+                  <sc-if value="{{ c.hasBtn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ c.onBtn }}" style="flex:none;border:0;background:#2c2c2e;color:{{ c.btnColor }};border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">{{ c.btnLabel }}</button></sc-if>
+                </div>
+              </sc-if>
+              <sc-if value="{{ c.multi }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 16px 14px;scroll-snap-type:x proximity;">
+                  <sc-for list="{{ c.tiles }}" as="t" hint-placeholder-count="3">
+                    <div onClick="{{ t.onOpen }}" style="flex:none;width:136px;display:flex;flex-direction:column;gap:2px;cursor:pointer;scroll-snap-align:start;">
+                      <div style="width:136px;aspect-ratio:4/5;border-radius:8px;overflow:hidden;background:#2c2c2e;display:grid;place-items:center;color:#48484a;font-weight:600;font-size:24px;margin-bottom:6px;"><sc-if value="{{ t.hasImg }}" hint-placeholder-val="{{ true }}"><img src="{{ t.img }}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;"></sc-if><sc-if value="{{ t.noImg }}" hint-placeholder-val="{{ false }}"><span>{{ t.initial }}</span></sc-if></div>
+                      <span style="font-size:14px;letter-spacing:-0.224px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.name }}</span>
+                      <span style="font-size:12px;color:#a1a1a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.sub }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </sc-if>
+    <sc-if value="{{ fr.noFeed }}" hint-placeholder-val="{{ true }}">
+      <div data-anim="scale" style="margin:24px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:4px;">
+        <span style="font-weight:600;">Nothing here yet.</span>
+        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Add a friend by username or send them an invite. Once they accept, you’ll see what they add, get and wear.</span>
+      </div>
+    </sc-if>
+  </sc-if>
+</div>
+</sc-if>
+
 <sc-if value="{{ isFriends }}" hint-placeholder-val="{{ false }}">
   <div data-anim="fade" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;min-height:20px;">{{ fr.handleTop }}</div>
   <div style="padding:0 16px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
@@ -428,7 +503,7 @@ input::placeholder{color:#6e6e73;}
     </div>
   </sc-if>
   <sc-if value="{{ fr.signedIn }}" hint-placeholder-val="{{ false }}">
-    <div style="display:{{ frDisp }};grid-template-columns:minmax(0,1fr) 340px;column-gap:24px;align-items:start;"><div style="grid-column:2;grid-row:1;min-width:0;position:{{ frSidePos }};top:0;">
+    <div><div>
     <div data-anim="up" style="margin:16px 16px 0;display:flex;gap:8px;">
       <div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;background:#1c1c1e;border-radius:9999px;padding:0 16px;"><span style="color:#6e6e73;">@</span><input value="{{ fr.followIn }}" onChange="{{ fr.onFollowIn }}" onKeyDown="{{ fr.onFollowKey }}" placeholder="Find a friend" type="search" name="gw-people-search" id="gw-people-search" autocomplete="off" enterkeyhint="search" data-1p-ignore="true" data-lpignore="true" data-bwignore="true" data-form-type="other" autocapitalize="none" autocorrect="off" spellcheck="false" style="-webkit-appearance:none;appearance:none;flex:1;min-width:0;background:none;border:0;padding:10px 0;font-size:17px;color:#f5f5f7;outline:none;"></div>
       <button onClick="{{ fr.follow }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:0 18px;font-size:14px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">{{ fr.followLabel }}</button>
@@ -446,7 +521,7 @@ input::placeholder{color:#6e6e73;}
       </div>
     </sc-if>
     <sc-if value="{{ fr.hasRequests }}" hint-placeholder-val="{{ false }}">
-      <div data-anim="right" style="padding:16px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Requests</div>
+      <div data-anim="right" style="padding:28px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Requests</div>
       <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
         <sc-for list="{{ fr.requests }}" as="r" hint-placeholder-count="1">
           <div data-anim="up" style="background:#1c1c1e;display:flex;align-items:center;gap:12px;padding:12px 16px;">
@@ -459,14 +534,8 @@ input::placeholder{color:#6e6e73;}
       </div>
     </sc-if>
     <sc-if value="{{ fr.signedIn }}" hint-placeholder-val="{{ false }}">
-      <div data-anim="right" style="padding:16px 20px 8px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;"><span style="font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Friends</span><sc-if value="{{ fr.hasFollowing }}" hint-placeholder-val="{{ false }}"><button onClick="{{ fr.toggleEdit }}" style="border:0;background:none;padding:0;color:var(--gw-accent,#ffd60a);font-size:14px;cursor:pointer;">{{ fr.editLabel }}</button></sc-if></div>
+      <div data-anim="right" style="padding:28px 20px 8px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;"><span style="font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ fr.frHeadTxt }}</span><sc-if value="{{ fr.hasFollowing }}" hint-placeholder-val="{{ false }}"><button onClick="{{ fr.toggleEdit }}" style="border:0;background:none;padding:0;color:var(--gw-accent,#ffd60a);font-size:14px;cursor:pointer;">{{ fr.editLabel }}</button></sc-if></div>
       <div style="display:flex;gap:16px 14px;flex-wrap:{{ frWrap }};overflow-x:{{ frOv }};padding:6px 20px 4px;scrollbar-width:none;">
-        <button data-anim="pop" onClick="{{ sx.myOpen }}" style="position:relative;flex:none;width:64px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#f5f5f7;" style-active="transform:scale(0.95);">
-            <span style="display:block;padding:4px;margin:-4px;border-radius:9999px;background:{{ sx.myRingBg }};"><span style="width:56px;height:56px;border-radius:9999px;background:#1c1c1e;box-shadow:{{ sx.myGap }};display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;color:#f5f5f7;position:relative;overflow:hidden;"><span>{{ fr.myInitial }}</span><sc-if value="{{ fr.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ fr.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span></span>
-            <span onClick="{{ sx.myAdd }}" style="position:absolute;top:36px;right:2px;width:22px;height:22px;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;box-shadow:0 0 0 2px #000;"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 3v10M3 8h10"></path></svg></span>
-            <span style="font-size:12px;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Your story</span>
-            <span style="font-size:11px;color:#a1a1a6;">{{ sx.mySub }}</span>
-          </button>
         <sc-for list="{{ fr.following }}" as="f" hint-placeholder-count="3">
           <button data-anim="pop" onClick="{{ f.onOpen }}" onPointerDown="{{ f.onDown }}" onPointerMove="{{ f.onMoveH }}" onPointerUp="{{ f.onUpH }}" onPointerCancel="{{ f.onUpH }}" onPointerLeave="{{ f.onUpH }}" onContextMenu="{{ f.noMenu }}" style="position:relative;flex:none;width:64px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#f5f5f7;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;" style-active="transform:scale(0.95);">
             <span style="display:block;padding:4px;margin:-4px;border-radius:9999px;background:{{ f.ringBg }};"><span style="width:56px;height:56px;border-radius:9999px;background:#1c1c1e;box-shadow:{{ f.gap }};display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;color:{{ f.fg }};position:relative;overflow:hidden;"><span>{{ f.initial }}</span><sc-if value="{{ f.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ f.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span></span>
@@ -475,10 +544,15 @@ input::placeholder{color:#6e6e73;}
             <sc-if value="{{ f.showX }}" hint-placeholder-val="{{ false }}"><span data-anim="pop" style="position:absolute;top:-2px;right:2px;width:22px;height:22px;border-radius:9999px;background:#ff453a;color:#f5f5f7;display:grid;place-items:center;box-shadow:0 0 0 2px #000;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 5h6"></path></svg></span></sc-if>
           </button>
         </sc-for>
+        <sc-if value="{{ fr.hasMoreFr }}" hint-placeholder-val="{{ false }}"><button data-anim="pop" onClick="{{ fr.showAllFr }}" style="flex:none;width:64px;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#a1a1a6;font-family:inherit;" style-active="transform:scale(0.95);"><span style="width:56px;height:56px;border-radius:9999px;background:#1c1c1e;box-shadow:inset 0 0 0 1px #3a3a3c;display:grid;place-items:center;font-size:14px;font-weight:600;color:#f5f5f7;">{{ fr.moreFrTxt }}</span><span style="font-size:12px;">Show all</span></button></sc-if>
       </div>
+      <sc-if value="{{ fr.hasSent }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="right" style="padding:28px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Sent · waiting</div>
+        <button data-anim="up" onClick="{{ fr.manageSent }}" style="margin:0 16px;width:calc(100% - 32px);box-sizing:border-box;border:0;background:#1c1c1e;border-radius:18px;padding:12px 16px;display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;color:#f5f5f7;font-family:inherit;font-size:14px;letter-spacing:-0.224px;" style-active="transform:scale(0.98);"><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span>{{ fr.sentTxt }}</span><span style="font-size:12px;color:#a1a1a6;">Tap to cancel a request</span></span><span style="color:#6e6e73;">›</span></button>
+      </sc-if>
     </sc-if>
     <sc-if value="{{ fr.hasMayKnow }}" hint-placeholder-val="{{ false }}">
-      <div data-anim="right" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">People you may know</div>
+      <div data-anim="right" style="padding:28px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">People you may know</div>
       <div style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;">
         <sc-for list="{{ fr.mayKnow }}" as="m" hint-placeholder-count="2">
           <div data-anim="pop" onClick="{{ m.onOpen }}" style="position:relative;flex:none;width:140px;box-sizing:border-box;background:#1c1c1e;border-radius:18px;padding:16px 12px 12px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;text-align:center;">
@@ -489,69 +563,6 @@ input::placeholder{color:#6e6e73;}
             <button onClick="{{ m.onAdd }}" style="align-self:stretch;margin-top:8px;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:6px 0;font-size:14px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">Add</button>
           </div>
         </sc-for>
-      </div>
-    </sc-if>
-    </div><div style="grid-column:1;grid-row:1;min-width:0;">
-    <div style="padding:20px 16px 8px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
-      <span data-anim="up" style="font-family:var(--font-display);font-size:21px;font-weight:600;">Feed</span>
-      <button onClick="{{ fr.refresh }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:14px;padding:4px;cursor:pointer;display:flex;align-items:center;gap:6px;"><sc-if value="{{ fr.busy }}" hint-placeholder-val="{{ false }}"><span data-anim="spin" style="width:10px;height:10px;border-radius:9999px;border:2px solid #48484a;border-top-color:var(--gw-accent,#ffd60a);"></span></sc-if><span>Refresh</span></button>
-    </div>
-    <sc-if value="{{ fr.signedIn }}" hint-placeholder-val="{{ false }}">
-      <div style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 8px;scrollbar-width:none;">
-        <sc-for list="{{ fr.storyCards }}" as="c" hint-placeholder-count="2">
-          <button data-anim="pop" onClick="{{ c.onOpen }}" style="position:relative;flex:none;width:132px;height:132px;border:{{ c.border }};box-sizing:border-box;padding:0;border-radius:18px;overflow:hidden;background:#1c1c1e;cursor:pointer;color:#f5f5f7;" style-active="transform:scale(0.97);">
-            <sc-if value="{{ c.isImg }}" hint-placeholder-val="{{ false }}"><img src="{{ c.src }}" alt="" style="position:absolute;left:-16px;top:-16px;width:calc(100% + 32px);height:calc(100% + 32px);object-fit:cover;filter:blur(14px) brightness(0.6);"></sc-if>
-            <sc-if value="{{ c.isVid }}" hint-placeholder-val="{{ false }}"><video src="{{ c.vsrc }}" muted="{{ true }}" playsInline="{{ true }}" webkit-playsinline="true" preload="metadata" style="position:absolute;left:-16px;top:-16px;width:calc(100% + 32px);height:calc(100% + 32px);object-fit:cover;filter:blur(14px) brightness(0.6);pointer-events:none;"></video></sc-if>
-            <span style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px;">
-              <span style="position:relative;display:block;margin-bottom:4px;"><span style="position:relative;overflow:hidden;width:52px;height:52px;border-radius:9999px;background:#2c2c2e;box-shadow:{{ c.ring }};display:grid;place-items:center;font-family:var(--font-display);font-size:21px;font-weight:600;"><span>{{ c.initial }}</span><sc-if value="{{ c.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ c.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span><sc-if value="{{ c.plus }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:-4px;bottom:-4px;width:22px;height:22px;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;box-shadow:0 0 0 2px #1c1c1e;"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 3v10M3 8h10"></path></svg></span></sc-if></span>
-              <span style="font-size:14px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.name }}</span>
-              <span style="font-size:12px;font-weight:{{ c.whenW }};color:{{ c.whenCo }};">{{ c.when }}</span>
-            </span>
-            <sc-if value="{{ c.addMore }}" hint-placeholder-val="{{ false }}"><span role="button" aria-label="Add to your story" onClick="{{ c.onAdd }}" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;box-shadow:0 0 0 2px #000;cursor:pointer;" style-active="transform:scale(0.9);"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 2.5v11M2.5 8h11"></path></svg></span></sc-if>
-          </button>
-        </sc-for>
-      </div>
-    </sc-if>
-    <sc-if value="{{ fr.hasFeed }}" hint-placeholder-val="{{ false }}">
-      <sc-for list="{{ fr.feedDays }}" as="day" hint-placeholder-count="1">
-        <div data-anim="right" style="padding:12px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ day.label }}</div>
-        <div style="padding:0 16px 8px;display:flex;flex-direction:column;gap:12px;">
-          <sc-for list="{{ day.cards }}" as="c" hint-placeholder-count="2">
-            <div data-anim="up" style="background:#1c1c1e;border-radius:18px;overflow:hidden;">
-              <div onClick="{{ c.onProfile }}" style="display:flex;align-items:center;gap:10px;padding:12px 16px 12px 12px;cursor:pointer;">
-                <span onClick="{{ c.onAv }}" style="position:relative;overflow:hidden;width:32px;height:32px;border-radius:9999px;background:#2c2c2e;display:grid;place-items:center;font-size:13px;font-weight:600;flex:none;box-shadow:{{ c.ringSh }};"><span>{{ c.initial }}</span><sc-if value="{{ c.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ c.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
-                <span style="flex:1;min-width:0;font-size:14px;letter-spacing:-0.224px;line-height:1.36;"><span style="font-weight:600;">{{ c.who }}</span> <span style="color:#a1a1a6;">{{ c.verb }}</span></span>
-              </div>
-              <sc-if value="{{ c.single }}" hint-placeholder-val="{{ true }}">
-                <div onClick="{{ c.onOpen }}" style="cursor:pointer;">
-                  <sc-if value="{{ c.hasImg }}" hint-placeholder-val="{{ true }}"><img src="{{ c.img }}" alt="" style="display:block;width:100%;aspect-ratio:4/5;max-height:440px;object-fit:cover;object-position:top;background:#2c2c2e;"></sc-if>
-                  <sc-if value="{{ c.noImg }}" hint-placeholder-val="{{ false }}"><div style="height:96px;background:#2c2c2e;display:flex;align-items:center;justify-content:center;gap:10px;color:#6e6e73;font-size:14px;letter-spacing:-0.224px;"><span style="font-family:var(--font-display);font-size:28px;font-weight:600;color:#48484a;">{{ c.itemInitial }}</span><span>No photo yet</span></div></sc-if>
-                </div>
-                <div style="display:flex;align-items:center;gap:12px;padding:12px 16px 14px;">
-                  <span onClick="{{ c.onOpen }}" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;cursor:pointer;"><span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.title }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.sub }}</span></span>
-                  <sc-if value="{{ c.hasBtn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ c.onBtn }}" style="flex:none;border:0;background:#2c2c2e;color:{{ c.btnColor }};border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">{{ c.btnLabel }}</button></sc-if>
-                </div>
-              </sc-if>
-              <sc-if value="{{ c.multi }}" hint-placeholder-val="{{ false }}">
-                <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 16px 14px;scroll-snap-type:x proximity;">
-                  <sc-for list="{{ c.tiles }}" as="t" hint-placeholder-count="3">
-                    <div onClick="{{ t.onOpen }}" style="flex:none;width:136px;display:flex;flex-direction:column;gap:2px;cursor:pointer;scroll-snap-align:start;">
-                      <div style="width:136px;aspect-ratio:4/5;border-radius:8px;overflow:hidden;background:#2c2c2e;display:grid;place-items:center;color:#48484a;font-weight:600;font-size:24px;margin-bottom:6px;"><sc-if value="{{ t.hasImg }}" hint-placeholder-val="{{ true }}"><img src="{{ t.img }}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;"></sc-if><sc-if value="{{ t.noImg }}" hint-placeholder-val="{{ false }}"><span>{{ t.initial }}</span></sc-if></div>
-                      <span style="font-size:14px;letter-spacing:-0.224px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.name }}</span>
-                      <span style="font-size:12px;color:#a1a1a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.sub }}</span>
-                    </div>
-                  </sc-for>
-                </div>
-              </sc-if>
-            </div>
-          </sc-for>
-        </div>
-      </sc-for>
-    </sc-if>
-    <sc-if value="{{ fr.noFeed }}" hint-placeholder-val="{{ true }}">
-      <div data-anim="scale" style="margin:0 16px;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:4px;">
-        <span style="font-weight:600;">Nothing here yet.</span>
-        <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Add a friend by username or send them an invite. Once they accept, you’ll see what they add, get and wear.</span>
       </div>
     </sc-if>
     </div></div>
@@ -624,7 +635,7 @@ input::placeholder{color:#6e6e73;}
 </sc-if>
 </div>
 
-<div style="position:{{ barPos }};left:0;right:{{ barRight }};top:{{ barTop }};bottom:0;width:{{ barW }};z-index:10;background:{{ barBg }};backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:{{ barBT }};border-right:{{ barBR }};display:{{ barDisp }};flex-direction:column;gap:{{ barGap }};grid-template-columns:repeat(4,minmax(0,1fr));padding:{{ barPad }};box-sizing:border-box;">
+<div style="position:{{ barPos }};left:0;right:{{ barRight }};top:{{ barTop }};bottom:0;width:{{ barW }};z-index:10;background:{{ barBg }};backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:{{ barBT }};border-right:{{ barBR }};display:{{ barDisp }};flex-direction:column;gap:{{ barGap }};grid-template-columns:repeat(5,minmax(0,1fr));padding:{{ barPad }};box-sizing:border-box;">
   <sc-if value="{{ wide }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:10px;padding:4px 12px 20px;"><img src="./icons/icon-192.png" alt="" style="width:32px;height:32px;border-radius:8px;"><span style="font-family:var(--font-display);font-size:21px;font-weight:600;letter-spacing:-0.3px;">GearWatch</span></div></sc-if>
   <button onClick="{{ goWish }}" style="border:0;background:{{ tabWishBg }};display:flex;flex-direction:{{ tbDir }};align-items:center;gap:{{ tbGap }};cursor:pointer;color:{{ tabWish }};font-size:{{ tbFs }};letter-spacing:0;padding:{{ tbPad }};border-radius:10px;transition:color .25s;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg>
@@ -633,6 +644,11 @@ input::placeholder{color:#6e6e73;}
   <button onClick="{{ goCollection }}" style="border:0;background:{{ tabCollBg }};display:flex;flex-direction:{{ tbDir }};align-items:center;gap:{{ tbGap }};cursor:pointer;color:{{ tabColl }};font-size:{{ tbFs }};letter-spacing:0;padding:{{ tbPad }};border-radius:10px;transition:color .25s;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8V6.5a3 3 0 016 0V8"></path></svg>
     <span>Collection</span>
+  </button>
+  <button onClick="{{ goHome }}" style="border:0;background:{{ tabHomeBg }};display:flex;flex-direction:{{ tbDir }};align-items:center;gap:{{ tbGap }};cursor:pointer;color:{{ tabHome }};font-size:{{ tbFs }};letter-spacing:0;padding:{{ tbPad }};border-radius:10px;transition:color .25s;position:relative;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 10.5L12 4l8 6.5V20h-5.5v-5.5h-5V20H4z"></path></svg>
+    <span>Home</span>
+    <sc-if value="{{ hm.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:2px;left:calc(50% + 8px);width:8px;height:8px;border-radius:9999px;background:var(--gw-accent,#ffd60a);"></span></sc-if>
   </button>
   <button onClick="{{ goMeasure }}" style="border:0;background:{{ tabMeasBg }};display:flex;flex-direction:{{ tbDir }};align-items:center;gap:{{ tbGap }};cursor:pointer;color:{{ tabMeas }};font-size:{{ tbFs }};letter-spacing:0;padding:{{ tbPad }};border-radius:10px;transition:color .25s;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="1.5"></rect><path d="M6.5 8v3M10 8v4M13.5 8v3M17 8v4"></path></svg>
@@ -1103,6 +1119,72 @@ input::placeholder{color:#6e6e73;}
           </sc-if></div>
       </div>
     </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasNt }}" hint-placeholder-val="{{ false }}">
+  <div ref="{{ ntRef }}" style="position:absolute;inset:0;z-index:58;background:#000;display:flex;flex-direction:column;color:#f5f5f7;">
+    <div style="flex:none;width:100%;max-width:680px;margin:0 auto;box-sizing:border-box;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:8px;padding-top:{{ fvTop }};">
+      <button onClick="{{ nt.close }}" style="justify-self:start;border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;font-family:inherit;">‹ Home</button>
+      <span style="font-weight:600;">Notifications</span>
+      <sc-if value="{{ nt.canMark }}" hint-placeholder-val="{{ false }}"><button onClick="{{ nt.markAll }}" style="justify-self:end;border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:15px;padding:8px;cursor:pointer;font-family:inherit;">Mark all read</button></sc-if>
+    </div>
+    <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:0 16px calc(max(env(safe-area-inset-bottom), 16px) + 24px);">
+      <div style="max-width:648px;margin:0 auto;display:flex;flex-direction:column;">
+        <div style="display:flex;gap:8px;padding:4px 0 0;overflow-x:auto;scrollbar-width:none;">
+          <sc-for list="{{ nt.chips }}" as="ch" hint-placeholder-count="4"><button onClick="{{ ch.onTap }}" style="flex:none;border:0;border-radius:9999px;padding:6px 12px;font-size:13px;font-family:inherit;cursor:pointer;color:#f5f5f7;font-weight:{{ ch.fw }};background:{{ ch.bg }};transition:background .2s;" style-active="transform:scale(0.95);">{{ ch.label }}</button></sc-for>
+        </div>
+        <sc-if value="{{ nt.hasNew }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:24px 4px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">New</div>
+            <div style="border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+              <sc-for list="{{ nt.new }}" as="n" hint-placeholder-count="2">
+              <div onClick="{{ n.onTap }}" style="background:#1c1c1e;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 12px;cursor:pointer;transition:background .2s;" style-active="background:#2c2c2e;">
+                <span style="position:relative;flex:none;width:40px;height:40px;">
+                  <span style="position:absolute;inset:0;border-radius:9999px;overflow:hidden;background:{{ n.avBg }};display:grid;place-items:center;font-weight:600;font-size:15px;color:#f5f5f7;">
+                    <sc-if value="{{ n.isPerson }}" hint-placeholder-val="{{ true }}"><span>{{ n.initial }}</span></sc-if>
+                    <sc-if value="{{ n.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ n.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if>
+                    <sc-if value="{{ n.icDrop }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#30d158" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5l3.5 3.5 2.5-2.5L13.5 11"></path><path d="M10 11h3.5V7.5"></path></svg></sc-if>
+                    <sc-if value="{{ n.icBox }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#f5f5f7" stroke-width="1.6" stroke-linejoin="round"><path d="M2.5 5.5L8 2.5l5.5 3v5L8 13.5l-5.5-3z"></path><path d="M2.5 5.5L8 8.5l5.5-3M8 8.5v5"></path></svg></sc-if>
+                    <sc-if value="{{ n.icStar }}" hint-placeholder-val="{{ false }}"><span style="color:var(--gw-accent,#ffd60a);font-size:17px;">★</span></sc-if>
+                  </span>
+                  <sc-if value="{{ n.bPaw }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:-3px;bottom:-3px;width:18px;height:18px;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;box-shadow:0 0 0 2px #1c1c1e;"><svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><circle cx="4" cy="6" r="1.8"></circle><circle cx="8" cy="4" r="1.8"></circle><circle cx="12" cy="6" r="1.8"></circle><path d="M8 8c-2.6 0-4.5 2.4-4.5 4.2 0 1.2 1 1.8 2.2 1.8.9 0 1.5-.4 2.3-.4s1.4.4 2.3.4c1.2 0 2.2-.6 2.2-1.8C12.5 10.4 10.6 8 8 8z"></path></svg></span></sc-if>
+                  <sc-if value="{{ n.bHeart }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:-3px;bottom:-3px;width:18px;height:18px;border-radius:9999px;background:#ff375f;color:#fff;display:grid;place-items:center;box-shadow:0 0 0 2px #1c1c1e;"><svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M8 14.5s-5.5-3.3-5.5-7.4C2.5 5 4 3.5 5.8 3.5c1 0 1.8.5 2.2 1.2.4-.7 1.2-1.2 2.2-1.2 1.8 0 3.3 1.5 3.3 3.6 0 4.1-5.5 7.4-5.5 7.4z"></path></svg></span></sc-if>
+                  <sc-if value="{{ n.bReply }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:-3px;bottom:-3px;width:18px;height:18px;border-radius:9999px;background:#0a84ff;color:#fff;display:grid;place-items:center;box-shadow:0 0 0 2px #1c1c1e;"><svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3.5h12v8H6l-4 3z"></path></svg></span></sc-if>
+                </span>
+                <span style="flex:1;min-width:0;font-size:14px;letter-spacing:-0.224px;line-height:1.36;text-wrap:pretty;"><span style="font-weight:600;">{{ n.who }}</span> <span style="color:#a1a1a6;">{{ n.text }}</span><sc-if value="{{ n.hasQuote }}" hint-placeholder-val="{{ false }}"> <span>“{{ n.quote }}”</span></sc-if> <span style="color:#6e6e73;white-space:nowrap;">{{ n.time }}</span></span>
+                <sc-if value="{{ n.hasAccept }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:6px;flex:none;"><button onClick="{{ n.onDecline }}" style="border:0;background:#2c2c2e;color:#f5f5f7;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Decline</button><button onClick="{{ n.onAccept }}" style="border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Accept</button></div></sc-if>
+                <sc-if value="{{ n.hasThumb }}" hint-placeholder-val="{{ false }}"><span style="flex:none;width:40px;height:52px;border-radius:6px;overflow:hidden;background:#2c2c2e;"><img src="{{ n.thumb }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></span></sc-if>
+              </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        <sc-if value="{{ nt.hasOld }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:24px 4px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Earlier</div>
+            <div style="border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+              <sc-for list="{{ nt.old }}" as="n" hint-placeholder-count="2">
+              <div onClick="{{ n.onTap }}" style="background:#1c1c1e;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 12px;cursor:pointer;transition:background .2s;" style-active="background:#2c2c2e;">
+                <span style="position:relative;flex:none;width:40px;height:40px;">
+                  <span style="position:absolute;inset:0;border-radius:9999px;overflow:hidden;background:{{ n.avBg }};display:grid;place-items:center;font-weight:600;font-size:15px;color:#f5f5f7;">
+                    <sc-if value="{{ n.isPerson }}" hint-placeholder-val="{{ true }}"><span>{{ n.initial }}</span></sc-if>
+                    <sc-if value="{{ n.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ n.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if>
+                    <sc-if value="{{ n.icDrop }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#30d158" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5l3.5 3.5 2.5-2.5L13.5 11"></path><path d="M10 11h3.5V7.5"></path></svg></sc-if>
+                    <sc-if value="{{ n.icBox }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#f5f5f7" stroke-width="1.6" stroke-linejoin="round"><path d="M2.5 5.5L8 2.5l5.5 3v5L8 13.5l-5.5-3z"></path><path d="M2.5 5.5L8 8.5l5.5-3M8 8.5v5"></path></svg></sc-if>
+                    <sc-if value="{{ n.icStar }}" hint-placeholder-val="{{ false }}"><span style="color:var(--gw-accent,#ffd60a);font-size:17px;">★</span></sc-if>
+                  </span>
+                  <sc-if value="{{ n.bPaw }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:-3px;bottom:-3px;width:18px;height:18px;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;box-shadow:0 0 0 2px #1c1c1e;"><svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><circle cx="4" cy="6" r="1.8"></circle><circle cx="8" cy="4" r="1.8"></circle><circle cx="12" cy="6" r="1.8"></circle><path d="M8 8c-2.6 0-4.5 2.4-4.5 4.2 0 1.2 1 1.8 2.2 1.8.9 0 1.5-.4 2.3-.4s1.4.4 2.3.4c1.2 0 2.2-.6 2.2-1.8C12.5 10.4 10.6 8 8 8z"></path></svg></span></sc-if>
+                  <sc-if value="{{ n.bHeart }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:-3px;bottom:-3px;width:18px;height:18px;border-radius:9999px;background:#ff375f;color:#fff;display:grid;place-items:center;box-shadow:0 0 0 2px #1c1c1e;"><svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M8 14.5s-5.5-3.3-5.5-7.4C2.5 5 4 3.5 5.8 3.5c1 0 1.8.5 2.2 1.2.4-.7 1.2-1.2 2.2-1.2 1.8 0 3.3 1.5 3.3 3.6 0 4.1-5.5 7.4-5.5 7.4z"></path></svg></span></sc-if>
+                  <sc-if value="{{ n.bReply }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:-3px;bottom:-3px;width:18px;height:18px;border-radius:9999px;background:#0a84ff;color:#fff;display:grid;place-items:center;box-shadow:0 0 0 2px #1c1c1e;"><svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3.5h12v8H6l-4 3z"></path></svg></span></sc-if>
+                </span>
+                <span style="flex:1;min-width:0;font-size:14px;letter-spacing:-0.224px;line-height:1.36;text-wrap:pretty;"><span style="font-weight:600;">{{ n.who }}</span> <span style="color:#a1a1a6;">{{ n.text }}</span><sc-if value="{{ n.hasQuote }}" hint-placeholder-val="{{ false }}"> <span>“{{ n.quote }}”</span></sc-if> <span style="color:#6e6e73;white-space:nowrap;">{{ n.time }}</span></span>
+                <sc-if value="{{ n.hasAccept }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:6px;flex:none;"><button onClick="{{ n.onDecline }}" style="border:0;background:#2c2c2e;color:#f5f5f7;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Decline</button><button onClick="{{ n.onAccept }}" style="border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Accept</button></div></sc-if>
+                <sc-if value="{{ n.hasThumb }}" hint-placeholder-val="{{ false }}"><span style="flex:none;width:40px;height:52px;border-radius:6px;overflow:hidden;background:#2c2c2e;"><img src="{{ n.thumb }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></span></sc-if>
+              </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        <sc-if value="{{ nt.empty }}" hint-placeholder-val="{{ false }}"><div data-anim="scale" style="margin-top:24px;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:4px;"><span style="font-weight:600;">You’re all caught up.</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Friend requests, reactions and replies to your stories, price drops and parcels that are taking a while show up here.</span></div></sc-if>
+      </div>
+    </div>
   </div>
 </sc-if>
 
@@ -2253,10 +2335,10 @@ const squareAvatar = file => new Promise((res, rej) => { const u = URL.createObj
 const relT = iso => { const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000); return m < 1 ? 'now' : m < 60 ? m + 'm' : m < 1440 ? Math.round(m / 60) + 'h' : Math.round(m / 1440) + 'd'; };
 const STORY_MS = 10000;
 class Component extends DCLogic {
-  state = { data: load(), tab: 'wish', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null, coll: 'items', outfit: null, builder: null, cuts: {}, cutsReady: false, cpickId: null, cpickQ: false, ovDel: false, newGrpOpen: false, newGrp: '', bdragId: null, acct: null, social: null, friend: null, friendTab: 'wish', followIn: '', followMsg: '', authEmail: '', authCode: '', unameIn: '', authErr: '' };
+  state = { data: load(), tab: 'home', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null, coll: 'items', outfit: null, builder: null, cuts: {}, cutsReady: false, cpickId: null, cpickQ: false, ovDel: false, newGrpOpen: false, newGrp: '', bdragId: null, acct: null, social: null, friend: null, friendTab: 'wish', followIn: '', followMsg: '', authEmail: '', authCode: '', unameIn: '', authErr: '' };
   spentRef = React.createRef(); outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef(); fItemRef = React.createRef(); fiCarRef = React.createRef(); vwRef = React.createRef(); qrRef = React.createRef(); svRef = React.createRef(); scRef = React.createRef(); cropRef = React.createRef(); pcBoxRef = React.createRef(); fOutRef = React.createRef(); pcRectRef = React.createRef();
   heroRef = React.createRef(); carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
-  introRef = React.createRef(); bPanelRef = React.createRef(); svVolInit = (() => { try { const v = localStorage.getItem('gw-sv-vol'); if (v != null) setTimeout(() => this.setState({ svVol: Number(v) }), 0); } catch (e) {} })(); measRef = React.createRef(); msBodyRef = React.createRef(); msSizesRef = React.createRef(); toastRef = React.createRef(); nudgeRef = React.createRef(); nudgeBarRef = React.createRef(); figRef = React.createRef();
+  introRef = React.createRef(); bPanelRef = React.createRef(); svVolInit = (() => { try { const v = localStorage.getItem('gw-sv-vol'); if (v != null) setTimeout(() => this.setState({ svVol: Number(v) }), 0); } catch (e) {} })(); measRef = React.createRef(); ntRef = React.createRef(); msBodyRef = React.createRef(); msSizesRef = React.createRef(); toastRef = React.createRef(); nudgeRef = React.createRef(); nudgeBarRef = React.createRef(); figRef = React.createRef();
 
   applyPrices(map) {
     const data = JSON.parse(JSON.stringify(this.state.data)); let changed = false;
@@ -2431,6 +2513,40 @@ class Component extends DCLogic {
     if (bad) { this.toast(bad === 1 ? 'One number doesn’t look right' : bad + ' numbers don’t look right'); return; }
     const n = Object.keys(values).length; this.closeMeas(() => { this.mutate(pp => { if (n) pp.session = { date: todayISO(), values }; else delete pp.session; }); this.toast(n ? 'Measurements saved' : 'Measurements cleared'); }); }
   msGo(k) { if ((this.state.msSec || 'body') === k) return; this.setState({ msSec: k }, () => this.replay('[data-anim="up"],[data-anim="pop"]')); }
+  ntSeenAt() { if (this._ntSeen == null) { let v = 0; try { v = Number(localStorage.getItem('gw-nt-seen')) || 0; } catch (e) {} this._ntSeen = v; } return this._ntSeen; }
+  openNt() { const prev = this.ntSeenAt(), now = Date.now(); this._ntSeen = now; try { localStorage.setItem('gw-nt-seen', String(now)); } catch (e) {}
+    this.setState({ ntOpen: true, ntPrev: prev, ntF: 'all' }, () => { const el = this.ntRef.current; if (el && el.animate && !this.reduce) el.animate([{ transform: 'translateX(100%)' }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' }); }); this.loadSocial(); }
+  closeNt(cb) { const A = (window.GWSync && window.GWSync.state && window.GWSync.state()) || {}; if (A.title) { try { localStorage.setItem('gw-nt-title', A.title); } catch (e) {} } this.animOut(this.ntRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 260, () => { this.setState({ ntOpen: false }); if (cb) cb(); }); }
+  ntVals(SO, fr, A) { const st = this.state, S = st.stories || {}, me = S.me || (A.user || {}).id, open = !!st.ntOpen, cut = open ? (st.ntPrev || 0) : this.ntSeenAt(), out = [];
+    const ini = s => String(s || '?').replace(/^@/, '').charAt(0).toUpperCase(), prof = id => (S.prof || {})[id] || SO.following.find(f => f.id === id) || SO.requests.find(f => f.id === id) || null, nm = id => { const p = prof(id); return p && p.username ? '@' + p.username : 'Someone'; };
+    const base = { avBg: '#2c2c2e', isPerson: false, hasAv: false, av: '', initial: '', icDrop: false, icBox: false, icStar: false, bPaw: false, bHeart: false, bReply: false, hasQuote: false, quote: '', hasAccept: false, hasThumb: false, thumb: '' };
+    const person = id => { const p = prof(id) || {}; return { isPerson: true, initial: ini(p.username), hasAv: !!p.avatar, av: p.avatar || '' }; };
+    const X = this.storyIdx ? this.storyIdx() : null, myOpen = () => this.closeNt(() => { if (X && X.has(me)) this.openStories([me], me); });
+    const mineS = (S.list || []).filter(s => s.user_id === me), thumbOf = s => { const m = ((s && s.media) || [])[0]; return m && m.type !== 'video' ? m.url || '' : ''; };
+    (fr.requests || []).forEach((r, i) => { const R = SO.requests[i] || {}; out.push(Object.assign({}, base, { k: 'rq' + (R.id || i), cat: 'friends', t: Infinity, isPerson: true, initial: r.initial, hasAv: !!r.hasAv, av: r.av || '', who: r.name, text: 'wants to be friends', time: '', hasAccept: true,
+      onAccept: e => { e.stopPropagation(); r.onAccept(e); }, onDecline: e => { e.stopPropagation(); r.onDecline(e); }, onTap: () => {} })); });
+    mineS.forEach(s => { const rx = (S.reactions || []).filter(r => r.story_id === s.id && r.user_id !== me); if (!rx.length) return; const by = new Map(); rx.forEach(r => { const o = by.get(r.user_id); if (!o || String(r.created_at) > String(o.created_at)) by.set(r.user_id, r); });
+      const L = Array.from(by.values()).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))), last = L[0], tt = new Date(last.created_at || 0).getTime() || 0, th = thumbOf(s);
+      out.push(Object.assign({}, base, person(last.user_id), { k: 'rx' + s.id, cat: 'stories', t: tt, bPaw: last.kind === 'paw', bHeart: last.kind !== 'paw', who: nm(last.user_id), text: (L.length > 1 ? 'and ' + (L.length - 1) + (L.length === 2 ? ' other' : ' others') + ' reacted' : 'reacted') + ' to your story', time: last.created_at ? relT(last.created_at) : '', hasThumb: !!th, thumb: th, onTap: myOpen })); });
+    (S.replies || []).filter(r => r.from_user !== me && mineS.some(s => s.id === r.story_id)).forEach(r => { const s = mineS.find(x => x.id === r.story_id), th = thumbOf(s), b = String(r.body || '');
+      out.push(Object.assign({}, base, person(r.from_user), { k: 'rp' + r.id, cat: 'stories', t: new Date(r.created_at || 0).getTime() || 0, bReply: true, who: nm(r.from_user), text: 'replied to your story:', hasQuote: !!b, quote: b.length > 90 ? b.slice(0, 88) + '…' : b, time: r.created_at ? relT(r.created_at) : '', hasThumb: !!th, thumb: th, onTap: myOpen })); });
+    const D = st.data, P0 = D.profiles.find(x => x.id === D.activeId) || D.profiles[0], now = Date.now();
+    (P0.items || []).forEach(it => { const ph = (it.photos || [])[0] || '', go = tab => () => this.closeNt(() => this.setState({ tab, detail: null }, () => this.openDetail(it.id)));
+      if (it.status === 'wanted' && dropOf(it) >= 0.03) { const h = it.history || [], d = (h[h.length - 1] || {}).date, tt = d ? new Date(d + 'T12:00').getTime() : 0;
+        out.push(Object.assign({}, base, { k: 'pd' + it.id + (d || ''), cat: 'prices', t: tt, avBg: '#1c2a20', icDrop: true, who: it.name, text: 'is now ' + money(it.currency || '€', it.price) + ' (−' + Math.round(dropOf(it) * 100) + '%)', time: d ? relT(d + 'T12:00') : '', hasThumb: !!ph, thumb: ph, onTap: go('wish') })); }
+      if (it.status === 'ordered' && it.orderedOn) { const t0 = new Date(it.orderedOn + 'T12:00').getTime(), days = Math.floor((now - t0) / 86400000); if (days >= 10) { const tt = t0 + 10 * 86400000;
+        out.push(Object.assign({}, base, { k: 'bx' + it.id, cat: 'prices', t: tt, icBox: true, who: it.name, text: 'has been on the way for ' + days + ' days. Arrived yet?', time: relT(new Date(tt).toISOString()), hasThumb: !!ph, thumb: ph, onTap: go('coll') })); } } });
+    let noted = ''; try { noted = localStorage.getItem('gw-nt-title') || ''; } catch (e) {}
+    if (A.title && noted !== A.title) out.push(Object.assign({}, base, { k: 'ti', cat: 'all', t: Infinity, avBg: '#2a2614', icStar: true, who: 'You have the ' + A.title + ' title.', text: 'It shows on your profile.', time: '', onTap: () => this.closeNt(() => this.openMyProfile()) }));
+    const isNew = n => n.t === Infinity || n.t > cut, badge = out.filter(isNew).length, F = st.ntF || 'all', shown = out.filter(n => F === 'all' || n.cat === F).sort((a, b) => b.t - a.t), nw = shown.filter(isNew), old = shown.filter(n => !isNew(n)).slice(0, 40);
+    return { hasNt: open, ntRef: this.ntRef,
+      hm: { newStory: () => this.openComposer(), openNt: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.08); this.openNt(); }, hasBadge: badge > 0, badge: badge > 9 ? '9+' : String(badge),
+        ptrStart: e => { const sc = this.scrollRef.current; this.ptr = sc && sc.scrollTop <= 0 && e.touches && e.touches[0] ? { y: e.touches[0].clientY, d: 0 } : null; },
+        ptrMove: e => { if (!this.ptr || !e.touches || !e.touches[0]) return; const d = e.touches[0].clientY - this.ptr.y; this.ptr.d = d; const on = d > 70; if (on !== !!this.state.ptrOn) this.setState({ ptrOn: on }); },
+        ptrEnd: () => { const p = this.ptr; this.ptr = null; if (this.state.ptrOn) this.setState({ ptrOn: false }); if (p && p.d > 70 && fr.refresh) fr.refresh(); },
+        ptrH: st.ptrOn || fr.busy ? '28px' : '0px', ptrTxt: fr.busy ? 'Refreshing…' : 'Release to refresh' },
+      nt: { close: () => this.closeNt(), canMark: nw.length > 0, markAll: () => this.setState({ ntPrev: Date.now() }), hasNew: nw.length > 0, new: nw, hasOld: old.length > 0, old, empty: !shown.length,
+        chips: [['all', 'All'], ['stories', 'Stories'], ['friends', 'Friends'], ['prices', 'Prices']].map(([k, l]) => ({ label: l, bg: F === k ? '#636366' : '#1c1c1e', fw: F === k ? '600' : '400', onTap: () => this.setState({ ntF: k }) })) } }; }
   myHandle() { const G = window.GWSync, A = (G && G.state && G.state()) || {}, u = A.username || (this.state.acct || {}).username; return u ? '@' + u : ''; }
   toast(text) {
     clearTimeout(this.t4); this.setState({ toast: text });
@@ -3210,10 +3326,12 @@ class Component extends DCLogic {
       canInvite: !!(A.configured && A.user && A.username), invite: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.openInvite(); }, followMsg: st.followMsg || '', msgColor: st.followErr ? '#ff453a' : '#a1a1a6',
       requests: SO.requests.map(r => ({ name: '@' + r.username, initial: ini(r.username), av: r.avatar || '', hasAv: !!r.avatar, onAccept: () => doAccept(r), onDecline: async () => { try { await G.decline(r.id); } catch (e) {} this.loadSocial(); } })), hasRequests: SO.requests.length > 0,
       editLabel: st.frEdit ? 'Done' : 'Edit', toggleEdit: () => this.setState({ frEdit: !st.frEdit, frArm: null }),
-      following: SO.following.map(f => { const ok = f.status === 'accepted', armed = st.frEdit && st.frArm === f.id; return { name: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar,
+      following: (() => { const L0 = SO.following.filter(f => st.frEdit || f.status === 'accepted'); return st.frEdit || st.frAll || L0.length <= 9 ? L0 : L0.slice(0, 8); })().map(f => { const ok = f.status === 'accepted', armed = st.frEdit && st.frArm === f.id; return { name: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar,
         showX: !!st.frEdit, subColor: armed ? '#ff453a' : '#a1a1a6', sub: armed ? (ok ? 'Tap to remove' : 'Tap to cancel') : ok ? ' ' : 'Requested', ring: ok ? this.svRing(X.ring(f.id)) : '0 0 0 1px #3a3a3c', ringBg: ok ? this.svRingBg(f.id) : 'transparent', gap: ok && X.has(f.id) ? '0 0 0 2px #000' : ok ? 'none' : '0 0 0 1px #3a3a3c', fg: ok ? '#f5f5f7' : '#6e6e73', onDown: e => { if (st.frEdit || !ok) return; clearTimeout(this.frHoldT); this.frHeld = false; const x0 = e.clientX, y0 = e.clientY; this.frHoldXY = [x0, y0]; this.frHoldT = setTimeout(() => { this.frHeld = true; try { navigator.vibrate && navigator.vibrate(10); } catch (er) {} this.setState({ frMenu: f.id }); }, 450); },
         onMoveH: e => { const p0 = this.frHoldXY; if (p0 && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) > 8) clearTimeout(this.frHoldT); }, onUpH: () => clearTimeout(this.frHoldT), noMenu: e => e.preventDefault(),
         onOpen: (real => e => { if (this.frHeld) { this.frHeld = false; return; } real(e); })(st.frEdit ? (armed ? async () => { this.setState({ frArm: null }); try { await G.unfollow(f.id); } catch (e) {} this.loadSocial(); this.toast(ok ? 'Removed @' + f.username : 'Request cancelled'); } : () => this.setState({ frArm: f.id })) : ok ? (X.has(f.id) ? () => this.openStories(storyFriends, f.id) : openF(f.id, 'wish')) : () => openPersonObj(f)) }; }), hasFollowing: SO.following.length > 0,
+      ...(() => { const acc = SO.following.filter(f => f.status === 'accepted'), pen = SO.following.filter(f => f.status !== 'accepted'); return { frHeadTxt: acc.length ? 'Your friends · ' + acc.length : 'Friends', hasMoreFr: !st.frEdit && !st.frAll && acc.length > 9, moreFrTxt: '+' + (acc.length - 8), showAllFr: () => this.setState({ frAll: true }),
+        hasSent: !st.frEdit && pen.length > 0, sentTxt: pen.slice(0, 3).map(f => '@' + f.username).join(', ') + (pen.length > 3 ? ' and ' + (pen.length - 3) + ' more' : ''), manageSent: () => this.setState({ frEdit: true, frAll: true }) }; })(),
       feed: feed.slice(0, 50).map(e => ({ who: e.who, initial: ini(e.who), av: e.av || '', hasAv: !!e.av, txt: e.txt, when: agoTxt(e.d), photo: e.ph || '', hasPhoto: !!e.ph, onOpen: e.on })), hasFeed: feed.length > 0, noFeed: !feed.length,
       busy: !!st.socialBusy, refresh: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.loadSocial(false, true); if (G) G.schedule(0); } };
     const meId = (A.user || {}).id, isMeV = !!(st.friend && st.friend === meId), fU = isMeV ? { id: meId, username: A.username || 'you', avatar: A.avatar || null, title: A.title || null } : st.friend ? SO.following.find(x => x.id === st.friend) : null, fL = isMeV ? ((G && G.publicList && G.publicList()) || {}) : fU ? SO.lists[fU.id] || {} : null;
@@ -3385,7 +3503,7 @@ class Component extends DCLogic {
 
     return {
       rootRef: this.rootRef, pcBoxRef: this.pcBoxRef, pcRectRef: this.pcRectRef, scrollRef: this.scrollRef, detailRef: this.detailRef, sheetRef: this.sheetRef, backdropRef: this.backdropRef, introRef: this.introRef, bPanelRef: this.bPanelRef, toastRef: this.toastRef, figRef: this.figRef,
-      framed, rootH: framed ? '100%' : 'auto', rootPos: framed ? 'relative' : 'fixed', maxW: framed ? 'none' : wide ? (st.tab === 'friends' ? '1040px' : '680px') : '430px', rootLeft: wide ? '240px' : '0',
+      framed, rootH: framed ? '100%' : 'auto', rootPos: framed ? 'relative' : 'fixed', maxW: framed ? 'none' : wide ? '680px' : '430px', rootLeft: wide ? '240px' : '0',
       svMaxW: wide ? '480px' : 'none', ovMaxW: wide ? '680px' : 'none', ovPadX: wide ? 'max(0px, calc((100% - 680px) / 2))' : '0', ovPhMaxW: wide ? 'calc((100vh - 120px) * 0.75)' : 'none', phMaxW: wide ? 'calc((100vh - 120px) * 0.8)' : 'none', fiMargin: wide ? '8px auto 0' : '8px 16px 0', fiMaxW: wide ? 'min(calc(100% - 32px), calc((100vh - 200px) * 0.8))' : 'none', svPos: wide ? 'fixed' : 'absolute', svBackdrop: wide && !!st.sv, svBdClose: () => this.svClose(), wide, scrollPadB: wide ? '48px' : '104px', barPos: wide ? 'fixed' : 'absolute', barRight: wide ? 'auto' : '0', barTop: wide ? '0' : 'auto', barW: wide ? '240px' : 'auto', barBg: wide ? '#000' : 'rgba(22,22,23,0.8)', barBT: wide ? '0' : '1px solid #2c2c2e', barBR: wide ? '1px solid #2c2c2e' : '0', barDisp: wide ? 'flex' : 'grid', barGap: wide ? '4px' : '0', barPad: wide ? '24px 12px' : '6px 0 ' + (framed ? '24px' : 'max(env(safe-area-inset-bottom), 12px)'),
       tbDir: wide ? 'row' : 'column', tbGap: wide ? '12px' : '2px', tbFs: wide ? '15px' : '11px', tbPad: wide ? '10px 12px' : '4px 0',
       frDisp: wide ? 'grid' : 'block', frWrap: wide ? 'wrap' : 'nowrap', frOv: wide ? 'visible' : 'auto', frSidePos: wide ? 'sticky' : 'static', topPad: framed ? '44px' : 'calc(env(safe-area-inset-top) + 8px)',
@@ -3425,6 +3543,8 @@ class Component extends DCLogic {
       showTg: !st.tgHide && !(() => { try { return localStorage.getItem('gw-tg-hide'); } catch (e) { return false; } })(),
       tgJoin: () => { try { localStorage.setItem('gw-tg-hide', 'joined'); } catch (e) {} setTimeout(() => this.setState({ tgHide: true }), 400); },
       tgClose: () => { try { localStorage.setItem('gw-tg-hide', 'dismissed'); } catch (e) {} this.setState({ tgHide: true }); },
+      isHome: st.tab === 'home', tabHome: st.tab === 'home' ? ACC : '#8e8e93', tabHomeBg: st.tab === 'home' && wide ? '#1c1c1e' : 'transparent', goHome: e => { this.goTab('home', e); this.loadSocial(); },
+      ...this.ntVals(SO, fr, A),
       isFriends: st.tab === 'friends', tabFriends: st.tab === 'friends' ? ACC : '#8e8e93',
       goFriends: e => { this.goTab('friends', e); this.loadSocial(); }, fr, ...this.storyVals({ SO, ini, addF, mineKey, fKey, framed }), hasFriend: !!fU && !st.fFromFeed, fv, isSheetPerson: st.sheet === 'person', isSheetInvite: st.sheet === 'invite', qrRef: this.qrRef,
       ps: (() => { const P = st.person; if (!P) return {}; const r = relOf(P.id), x = SO.following.concat(SO.requests).find(y => y.id === P.id) || P, close = cb => this.closeSheet(cb);
