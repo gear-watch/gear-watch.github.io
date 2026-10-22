@@ -325,7 +325,7 @@ input::placeholder{color:#6e6e73;}
 <sc-if value="{{ isSize }}" hint-placeholder-val="{{ false }}">
   <sc-if value="{{ szList }}" hint-placeholder-val="{{ true }}">
     <div data-anim="fade" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ profileName }}</div>
-    <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Size check</div>
+    <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">My size</div>
     <div data-anim="up" style="padding:4px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">Your best size at each brand, from your latest measurements.</div>
     <sc-if value="{{ szNoMeas }}" hint-placeholder-val="{{ false }}">
       <div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;"><span style="font-weight:600;">No measurements yet.</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">Measure once and every brand gets a size.</span><button onClick="{{ openMeas }}" style="margin-top:4px;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:14px;border:0;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Measure now</button></div>
@@ -345,7 +345,7 @@ input::placeholder{color:#6e6e73;}
     </div>
   </sc-if>
   <sc-if value="{{ szDetail }}" hint-placeholder-val="{{ false }}">
-    <div style="padding:4px 8px 0;"><button onClick="{{ szBack }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">‹ Size check</button></div>
+    <div style="padding:4px 8px 0;"><button onClick="{{ szBack }}" style="border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">‹ My size</button></div>
     <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">{{ sz.name }}</div>
     <div data-anim="up" style="padding:4px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">{{ sz.note }}</div>
     <sc-if value="{{ sz.hasG }}" hint-placeholder-val="{{ true }}">
@@ -561,14 +561,18 @@ input::placeholder{color:#6e6e73;}
 <sc-if value="{{ isMeasure }}" hint-placeholder-val="{{ false }}">
   <div data-anim="fade" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ profileName }}</div>
   <div style="padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-    <span data-anim="up" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Measurements</span>
+    <span data-anim="up" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">My size</span>
     <div data-anim="fade" style="display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;flex:none;">
       <button onClick="{{ setCm }}" style="border:0;border-radius:7px;padding:4px 10px;font-size:13px;cursor:pointer;color:#f5f5f7;background:{{ cmBg }};transition:background .25s;">cm</button>
       <button onClick="{{ setIn }}" style="border:0;border-radius:7px;padding:4px 10px;font-size:13px;cursor:pointer;color:#f5f5f7;background:{{ inBg }};transition:background .25s;">in</button>
     </div>
   </div>
   <sc-if value="{{ hasSession }}" hint-placeholder-val="{{ true }}">
-    <div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:14px 16px 14px 20px;display:flex;align-items:center;gap:14px;">
+    <div data-anim="fade" style="margin:12px 16px 0;display:grid;grid-template-columns:1fr 1fr;background:#1c1c1e;border-radius:10px;padding:3px;gap:3px;">
+      <sc-for list="{{ msSecs }}" as="sx" hint-placeholder-count="2"><button onClick="{{ sx.onTap }}" style="border:0;border-radius:8px;padding:7px;font-size:15px;font-family:inherit;cursor:pointer;color:{{ sx.fg }};font-weight:{{ sx.fw }};background:{{ sx.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.97);">{{ sx.label }}</button></sc-for>
+    </div>
+    <sc-if value="{{ msIsBody }}" hint-placeholder-val="{{ true }}">
+    <div ref="{{ msBodyRef }}" data-anim="up" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:14px 16px 14px 20px;display:flex;align-items:center;gap:14px;">
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
         <span style="font-weight:600;line-height:1.24;">{{ measuredAgo }}</span>
         <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ measuredSub }}</span>
@@ -592,6 +596,23 @@ input::placeholder{color:#6e6e73;}
         </sc-for>
       </div>
     </sc-for>
+    </sc-if>
+    <sc-if value="{{ msIsSizes }}" hint-placeholder-val="{{ false }}">
+    <div ref="{{ msSizesRef }}" data-anim="up" style="padding:16px 20px 8px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;">{{ msSizesSub }}</div>
+    <div style="margin:0 16px;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+      <sc-for list="{{ szBrands }}" as="b" hint-placeholder-count="5">
+        <button data-anim="up" onClick="{{ b.onOpen }}" style="border:0;background:#1c1c1e;padding:14px 16px;display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;color:#f5f5f7;font-family:inherit;font-size:17px;">
+          <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+            <span style="font-weight:600;">{{ b.name }}</span>
+            <span style="display:flex;align-items:center;gap:6px;font-size:14px;letter-spacing:-0.224px;"><span style="width:8px;height:8px;border-radius:9999px;background:{{ b.color }};flex:none;"></span>{{ b.line }}</span>
+            <span style="font-size:12px;letter-spacing:-0.12px;color:#a1a1a6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ b.sub }}</span>
+          </span>
+          <span style="font-family:var(--font-display);font-size:24px;font-weight:600;">{{ b.size }}</span>
+          <span style="color:#6e6e73;">›</span>
+        </button>
+      </sc-for>
+    </div>
+    </sc-if>
   </sc-if>
   <sc-if value="{{ noSession }}" hint-placeholder-val="{{ false }}">
     <div data-anim="scale" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;">
@@ -603,7 +624,7 @@ input::placeholder{color:#6e6e73;}
 </sc-if>
 </div>
 
-<div style="position:{{ barPos }};left:0;right:{{ barRight }};top:{{ barTop }};bottom:0;width:{{ barW }};z-index:10;background:{{ barBg }};backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:{{ barBT }};border-right:{{ barBR }};display:{{ barDisp }};flex-direction:column;gap:{{ barGap }};grid-template-columns:repeat(5,minmax(0,1fr));padding:{{ barPad }};box-sizing:border-box;">
+<div style="position:{{ barPos }};left:0;right:{{ barRight }};top:{{ barTop }};bottom:0;width:{{ barW }};z-index:10;background:{{ barBg }};backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:{{ barBT }};border-right:{{ barBR }};display:{{ barDisp }};flex-direction:column;gap:{{ barGap }};grid-template-columns:repeat(4,minmax(0,1fr));padding:{{ barPad }};box-sizing:border-box;">
   <sc-if value="{{ wide }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:10px;padding:4px 12px 20px;"><img src="./icons/icon-192.png" alt="" style="width:32px;height:32px;border-radius:8px;"><span style="font-family:var(--font-display);font-size:21px;font-weight:600;letter-spacing:-0.3px;">GearWatch</span></div></sc-if>
   <button onClick="{{ goWish }}" style="border:0;background:{{ tabWishBg }};display:flex;flex-direction:{{ tbDir }};align-items:center;gap:{{ tbGap }};cursor:pointer;color:{{ tabWish }};font-size:{{ tbFs }};letter-spacing:0;padding:{{ tbPad }};border-radius:10px;transition:color .25s;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.2l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.4-4.2 6-.9z"></path></svg>
@@ -615,11 +636,7 @@ input::placeholder{color:#6e6e73;}
   </button>
   <button onClick="{{ goMeasure }}" style="border:0;background:{{ tabMeasBg }};display:flex;flex-direction:{{ tbDir }};align-items:center;gap:{{ tbGap }};cursor:pointer;color:{{ tabMeas }};font-size:{{ tbFs }};letter-spacing:0;padding:{{ tbPad }};border-radius:10px;transition:color .25s;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="1.5"></rect><path d="M6.5 8v3M10 8v4M13.5 8v3M17 8v4"></path></svg>
-    <span>Measurements</span>
-  </button>
-  <button onClick="{{ goSize }}" style="border:0;background:{{ tabSizeBg }};display:flex;flex-direction:{{ tbDir }};align-items:center;gap:{{ tbGap }};cursor:pointer;color:{{ tabSize }};font-size:{{ tbFs }};letter-spacing:0;padding:{{ tbPad }};border-radius:10px;transition:color .25s;">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3.5 4h8l9 9-7.5 7.5-9-9z"></path><circle cx="8" cy="8.5" r="1.4"></circle></svg>
-    <span>Size check</span>
+    <span>My size</span>
   </button>
   <button onClick="{{ goFriends }}" style="border:0;background:{{ tabFriendsBg }};display:flex;flex-direction:{{ tbDir }};align-items:center;gap:{{ tbGap }};cursor:pointer;color:{{ tabFriends }};font-size:{{ tbFs }};letter-spacing:0;padding:{{ tbPad }};border-radius:10px;transition:color .25s;position:relative;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="8.5" r="3.2"></circle><path d="M3.5 19.5c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"></path><circle cx="16.5" cy="9.5" r="2.6"></circle><path d="M15.6 14.6c2.5-.2 4.4 1.3 5 4.4"></path></svg>
@@ -2239,7 +2256,7 @@ class Component extends DCLogic {
   state = { data: load(), tab: 'wish', detail: null, sheet: null, group: 'rank', unit: 'cm', figTab: 'body', photoIdx: 0, notif: false, form: null, fetchMsg: '', fetching: false, pointId: null, budgetIn: '', newProfile: '', delArm: false, copied: false, introPage: 0, introBudget: '', toast: null, coll: 'items', outfit: null, builder: null, cuts: {}, cutsReady: false, cpickId: null, cpickQ: false, ovDel: false, newGrpOpen: false, newGrp: '', bdragId: null, acct: null, social: null, friend: null, friendTab: 'wish', followIn: '', followMsg: '', authEmail: '', authCode: '', unameIn: '', authErr: '' };
   spentRef = React.createRef(); outfitRef = React.createRef(); builderRef = React.createRef(); friendRef = React.createRef(); fItemRef = React.createRef(); fiCarRef = React.createRef(); vwRef = React.createRef(); qrRef = React.createRef(); svRef = React.createRef(); scRef = React.createRef(); cropRef = React.createRef(); pcBoxRef = React.createRef(); fOutRef = React.createRef(); pcRectRef = React.createRef();
   heroRef = React.createRef(); carRef = React.createRef(); rootRef = React.createRef(); scrollRef = React.createRef(); detailRef = React.createRef(); sheetRef = React.createRef(); backdropRef = React.createRef();
-  introRef = React.createRef(); bPanelRef = React.createRef(); svVolInit = (() => { try { const v = localStorage.getItem('gw-sv-vol'); if (v != null) setTimeout(() => this.setState({ svVol: Number(v) }), 0); } catch (e) {} })(); measRef = React.createRef(); toastRef = React.createRef(); nudgeRef = React.createRef(); nudgeBarRef = React.createRef(); figRef = React.createRef();
+  introRef = React.createRef(); bPanelRef = React.createRef(); svVolInit = (() => { try { const v = localStorage.getItem('gw-sv-vol'); if (v != null) setTimeout(() => this.setState({ svVol: Number(v) }), 0); } catch (e) {} })(); measRef = React.createRef(); msBodyRef = React.createRef(); msSizesRef = React.createRef(); toastRef = React.createRef(); nudgeRef = React.createRef(); nudgeBarRef = React.createRef(); figRef = React.createRef();
 
   applyPrices(map) {
     const data = JSON.parse(JSON.stringify(this.state.data)); let changed = false;
@@ -2413,6 +2430,7 @@ class Component extends DCLogic {
     Object.keys(M.vals).forEach(id => { const raw = String(M.vals[id] == null ? '' : M.vals[id]).trim(); if (!raw) return; if (raw === M.orig[id] && M.cm[id] != null) { values[id] = M.cm[id]; return; } const n = Number(raw.replace(',', '.')); if (!isFinite(n) || n <= 0) { bad++; return; } values[id] = id === 'shoe' ? n : Math.round((inch ? n * 2.54 : n) * 10) / 10; });
     if (bad) { this.toast(bad === 1 ? 'One number doesn’t look right' : bad + ' numbers don’t look right'); return; }
     const n = Object.keys(values).length; this.closeMeas(() => { this.mutate(pp => { if (n) pp.session = { date: todayISO(), values }; else delete pp.session; }); this.toast(n ? 'Measurements saved' : 'Measurements cleared'); }); }
+  msGo(k) { if ((this.state.msSec || 'body') === k) return; this.setState({ msSec: k }, () => this.replay('[data-anim="up"],[data-anim="pop"]')); }
   myHandle() { const G = window.GWSync, A = (G && G.state && G.state()) || {}, u = A.username || (this.state.acct || {}).username; return u ? '@' + u : ''; }
   toast(text) {
     clearTimeout(this.t4); this.setState({ toast: text });
@@ -3381,14 +3399,14 @@ class Component extends DCLogic {
       toastBottom: framed ? '108px' : 'calc(max(env(safe-area-inset-bottom), 16px) + 92px)',
       accent: this.props.accent || '#ffd60a',
       isWish: st.tab === 'wish', isCollection: st.tab === 'coll', isMeasure: st.tab === 'meas',
-      tabWish: st.tab === 'wish' ? ACC : '#8e8e93', tabWishBg: st.tab === 'wish' && wide ? '#1c1c1e' : 'transparent', tabCollBg: st.tab === 'coll' && wide ? '#1c1c1e' : 'transparent', tabMeasBg: st.tab === 'meas' && wide ? '#1c1c1e' : 'transparent', tabSizeBg: st.tab === 'size' && wide ? '#1c1c1e' : 'transparent', tabFriendsBg: st.tab === 'friends' && wide ? '#1c1c1e' : 'transparent', tabColl: st.tab === 'coll' ? ACC : '#8e8e93', tabMeas: st.tab === 'meas' ? ACC : '#8e8e93',
+      tabWish: st.tab === 'wish' ? ACC : '#8e8e93', tabWishBg: st.tab === 'wish' && wide ? '#1c1c1e' : 'transparent', tabCollBg: st.tab === 'coll' && wide ? '#1c1c1e' : 'transparent', tabMeasBg: (st.tab === 'meas' || st.tab === 'size') && wide ? '#1c1c1e' : 'transparent', tabSizeBg: st.tab === 'size' && wide ? '#1c1c1e' : 'transparent', tabFriendsBg: st.tab === 'friends' && wide ? '#1c1c1e' : 'transparent', tabColl: st.tab === 'coll' ? ACC : '#8e8e93', tabMeas: st.tab === 'meas' || st.tab === 'size' ? ACC : '#8e8e93',
       goWish: e => this.goTab('wish', e), goCollection: e => this.goTab('coll', e), goMeasure: e => this.goTab('meas', e), goSize: e => { this.setState({ szBrand: null }); this.goTab('size', e); },
       isSize: st.tab === 'size', tabSize: st.tab === 'size' ? ACC : '#8e8e93',
       ...(() => { const BR = window.FITLOG_BRANDS || [], sb = st.szBrand ? BR.find(b => b.id === st.szBrand) : null, inch = st.unit === 'in';
         const fm = c => c == null ? '—' : inch ? (c / 2.54).toFixed(1) : String(Math.round(c * 10) / 10), fr = r => r[0] === r[1] ? fm(r[0]) : fm(r[0]) + '–' + fm(r[1]), un = inch ? 'in' : 'cm';
         const top = () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; };
-        const out = { szList: !sb, szDetail: !!sb, szNoMeas: !hasSession, szBack: () => { this.setState({ szBrand: null }); top(); },
-          szBrands: BR.map(b => Object.assign({ name: b.name, onOpen: () => { this.setState({ szBrand: b.id, szG: null, szS: null }); top(); } }, szSummary(b, vals))), sz: { garments: [], sizes: [], rows: [], images: [] } };
+        const out = { szList: !sb, szDetail: !!sb, szNoMeas: !hasSession, szBack: () => { this.setState({ szBrand: null, tab: 'meas', msSec: 'sizes' }); top(); },
+          szBrands: BR.map(b => Object.assign({ name: b.name, onOpen: () => { this.setState({ szBrand: b.id, szG: null, szS: null, tab: 'size' }); top(); } }, szSummary(b, vals))), sz: { garments: [], sizes: [], rows: [], images: [] } };
         if (sb) { const auto = st.szG == null ? szAuto(sb, vals) : null, gi = st.szG != null && sb.garments[st.szG] ? st.szG : auto ? auto.gi : 0, g = sb.garments[gi];
           const best = g ? szBest(g, vals, sb.tol) : -1, si = g ? (st.szS != null && g.sizes[st.szS] ? st.szS : Math.max(0, best)) : 0;
           const e = g && g.sizes[si] ? szEval(g.sizes[si], vals, sb.tol) : null, vb = g && best >= 0 ? szVerdict(szEval(g.sizes[best], vals, sb.tol), g.sizes[best].label, !!SZ_M2M[sb.id]) : szVerdict(null);
@@ -3612,7 +3630,9 @@ class Component extends DCLogic {
       pointFig: st.pointId ? bodyFig({ single: true, lines: [{ id: st.pointId }] }) : null,
       pointVal: pv ? pv.v : '—', pointUnit: pv ? pv.u : '', pointHint: st.pointId && PT[st.pointId] ? PT[st.pointId].hint : '', pointDate: hasSession ? 'Measured ' + fmtD(sess.date) : '',
       hasToast: !!st.toast, toastText: st.toast || '',
-      openMeas: () => this.openMeas(), hasMeas: !!st.meas, measRef: this.measRef, measCancel: () => this.closeMeas(), measSave: () => this.saveMeas(),
+      openMeas: () => this.openMeas(), msBodyRef: this.msBodyRef, msSizesRef: this.msSizesRef,
+      msSecs: [['body', 'Body'], ['sizes', 'Brand comparison']].map(([k, l]) => { const on = (st.msSec || 'body') === k; return { label: l, bg: on ? '#636366' : 'transparent', fg: on ? '#f5f5f7' : '#a1a1a6', fw: on ? '600' : '400', onTap: () => this.msGo(k) }; }),
+      mainScroll: null, msIsBody: (st.msSec || 'body') === 'body', msIsSizes: st.msSec === 'sizes', msSizesSub: hasSession ? 'Your best size at each brand, from your measurements of ' + fmtD(sess.date) + '.' : '', hasMeas: !!st.meas, measRef: this.measRef, measCancel: () => this.closeMeas(), measSave: () => this.saveMeas(),
       measGroups: st.meas ? (() => { const M = st.meas, used = new Set(), row = id => { used.add(id); const P = PT[id] || { label: id, hint: '' }; const open = !!(st.measHow || {})[id], hasFig = open && !!FL[id]; return { label: P.label, hint: P.hint || '', open, hasFig, fig: hasFig ? bodyFig({ single: true, lines: [{ id }] }) : null, howMark: open ? 'Hide' : 'How', ...(() => { const o = M.orig[id], cur = M.vals[id] == null ? '' : String(M.vals[id]).trim(), ch = o != null && o !== '' && cur !== o; const a = Number(String(o).replace(',', '.')), b = Number(cur.replace(',', '.')), dv = cur && isFinite(a) && isFinite(b) ? Math.round((b - a) * 10) / 10 : null;
           return { changed: ch, was: o || '', diff: dv == null ? 'removed' : dv === 0 ? '' : (dv > 0 ? '+' : '−') + Math.abs(dv), diffCo: dv == null ? '#ff9f0a' : '#a1a1a6' }; })(), toggle: () => this.setState(z => ({ measHow: Object.assign({}, z.measHow, { [id]: !(z.measHow || {})[id] }) })), val: M.vals[id] == null ? '' : M.vals[id], unit: id === 'shoe' ? 'EU' : st.unit, onIn: e => { const v = e.target.value.slice(0, 8); this.setState(z => z.meas ? { meas: Object.assign({}, z.meas, { vals: Object.assign({}, z.meas.vals, { [id]: v }) }) } : null); } }; };
         const G = FIG.map(g => ({ title: g.title || g.label, rows: g.ids.filter(id => PT[id]).map(row) })), rest = POINTS.map(p => p[0]).filter(id => !used.has(id)); if (rest.length) G.push({ title: 'Other', rows: rest.map(row) }); return G.filter(g => g.rows.length); })() : [],
