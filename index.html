@@ -405,6 +405,16 @@ input::placeholder{color:#6e6e73;}
     </div>
     
   </sc-if>
+  <sc-if value="{{ fr.avTip }}" hint-placeholder-val="{{ false }}">
+    <div data-anim="scale" style="margin:12px 16px 0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:4px;">
+      <span style="font-family:var(--font-display);font-size:21px;font-weight:600;line-height:1.19;">Add a profile picture</span>
+      <span style="font-size:14px;letter-spacing:-0.224px;line-height:1.43;color:rgba(0,0,0,0.75);text-wrap:pretty;">Friends see it next to everything you add, on your stories and when you send a request. Tap the circle above or pick one here.</span>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:8px;">
+        <label style="background:#000;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">Choose photo<input type="file" accept="image/*,.dng" onChange="{{ fr.onAvatarTip }}" style="display:none;"></label>
+        <button onClick="{{ fr.avTipLater }}" style="border:0;background:none;padding:8px 4px;color:#000;font-size:14px;cursor:pointer;">Later</button>
+      </div>
+    </div>
+  </sc-if>
   <sc-if value="{{ fr.needAcct }}" hint-placeholder-val="{{ false }}">
     <div data-anim="scale" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:8px;">
       <span style="font-family:var(--font-display);font-size:24px;font-weight:600;line-height:1.17;">Friends need an account.</span>
@@ -2747,7 +2757,8 @@ class Component extends DCLogic {
       if (x && r === 'friend') { this.setState({ followIn: '', sugg: [] }); openF(x.id, 'wish')(); } else if (x && r === 'incoming') { this.setState({ followIn: '', sugg: [] }); doAccept(x); } else if (x && r === 'pending') this.toast('Waiting for @' + x.username + ' to accept'); else doFollow(x ? x.username : n); };
 
     const X = this.storyIdx(), storyFriends = SO.following.filter(f => f.status === 'accepted' && X.has(f.id)).map(f => f.id);
-    const fr = { openMe: () => { const id = (A.user || {}).id; if (id) this.setState({ friend: id, friendTab: 'wish', fOutfit: null, fItem: null, unfArm: false }); }, needAcct: !A.configured, signedIn: !!(A.configured && A.user), handle: A.username ? '@' + A.username : A.email || p.name,
+    let avTipOff = false; try { avTipOff = !!localStorage.getItem('gw-av-tip'); } catch (e) {}
+    const fr = { avTip: !!(A.configured && A.user && A.username && !A.avatar && !avTipOff && !st.avTipHid), avTipLater: () => { try { localStorage.setItem('gw-av-tip', '1'); } catch (e) {} this.setState({ avTipHid: true }); }, onAvatarTip: e => { const fl = e.target.files && e.target.files[0]; e.target.value = ''; if (fl && !st.avBusy) { try { localStorage.setItem('gw-av-tip', '1'); } catch (er) {} this.openCrop(fl); } }, openMe: () => { const id = (A.user || {}).id; if (id) this.setState({ friend: id, friendTab: 'wish', fOutfit: null, fItem: null, unfArm: false }); }, needAcct: !A.configured, signedIn: !!(A.configured && A.user), handle: A.username ? '@' + A.username : A.email || p.name,
       followerTxt: plural(SO.followers.length, 'follower'), handleTop: A.configured && A.user ? '' : (A.username ? '@' + A.username : A.email || p.name),
       myInitial: ini(A.username || p.name), av: A.avatar || '', hasAv: !!A.avatar, avBusy: !!st.avBusy,
       avSub: plural(SO.following.filter(f => f.status === 'accepted').length, 'friend') + ' · ' + (A.avatar ? 'Tap photo to change' : 'Tap to add a photo'),
