@@ -262,3 +262,12 @@ begin
 end $$;
 revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
+
+-- Share preview cards. These are public on purpose: they're the image chats show for a share link.
+insert into storage.buckets (id, name, public) values ('cards', 'cards', true) on conflict (id) do nothing;
+drop policy if exists "upload own cards" on storage.objects;
+create policy "upload own cards" on storage.objects for insert to authenticated with check (bucket_id = 'cards' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "see own cards" on storage.objects;
+create policy "see own cards" on storage.objects for select to authenticated using (bucket_id = 'cards' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "delete own cards" on storage.objects;
+create policy "delete own cards" on storage.objects for delete to authenticated using (bucket_id = 'cards' and (storage.foldername(name))[1] = auth.uid()::text);

@@ -237,6 +237,8 @@
     } catch (e) { console.warn('share photos', e); }
     const A = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
     for (let t = 0; t < 3; t++) { const id = Array.from(crypto.getRandomValues(new Uint8Array(7)), b => A[b % A.length]).join(''); const r = await sb.from('shares').insert({ id, data }); if (!r.error) return id; if (!/duplicate|exist/i.test(r.error.message || '')) return null; } return null; }
+  async function token() { if (!S.configured) return null; if (!sb && !(await connect())) return null; try { const { data } = await sb.auth.getSession(); return (data.session && data.session.access_token) || null; } catch (e) { return null; } }
+  async function cardUpload(id, blob) { if (!sb || !S.user || !blob) return false; const r = await sb.storage.from('cards').upload(S.user.id + '/' + id + '.png', blob, { contentType: 'image/png', upsert: false, cacheControl: '31536000' }); if (r.error) console.warn('card upload', r.error.message); return !r.error; }
   async function shareGet(id) { if (!sb) await connect(); if (!sb) return null; const r = await sb.from('shares').select('data').eq('id', id).maybeSingle(); return r.data ? r.data.data : null; }
   const decline = id => sb.from('follows').delete().eq('follower', id).eq('followee', S.user.id);
   async function setUsername(name) {
@@ -339,7 +341,7 @@
   async function deleteAccount() {
     if (!navigator.onLine || !(await connect()) || !S.user) throw new Error(why || 'You’re offline. Try again when you’re connected.');
     const me = S.user.id;
-    for (const b of ['photos', 'stories']) {
+    for (const b of ['photos', 'stories', 'cards']) {
       const paths = await listAll(b, me, 2).catch(() => []);
       for (let i = 0; i < paths.length; i += 100) { const r = await sb.storage.from(b).remove(paths.slice(i, i + 100)); if (r.error) throw new Error('Couldn’t delete your photos: ' + r.error.message); }
     }
@@ -351,7 +353,7 @@
   }
 
   window.GWSync = {
-    init, schedule, sync, social, shareCreate, shareGet, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut, deleteAccount,
+    init, schedule, sync, social, shareCreate, shareGet, cardUpload, token, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut, deleteAccount,
     attach: h => { host = h; },
     on: f => { subs.add(f); f(Object.assign({}, S)); return () => subs.delete(f); },
     state: () => Object.assign({}, S)

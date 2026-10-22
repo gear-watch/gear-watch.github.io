@@ -255,7 +255,36 @@ async function lookupOne(url, ctx) {
   return out;
 }
 
-const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST, OPTIONS', 'access-control-allow-headers': 'content-type' };
+const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST, OPTIONS', 'access-control-allow-headers': 'content-type, authorization', 'vary': 'origin' };
+function corsFor(req, env) {
+  const o = req.headers.get('origin') || '', fixed = String((env && env.APP_URL) || '').trim();
+  let ok = '';
+  try { if (fixed && o === new URL(fixed).origin) ok = o; } catch (e) {}
+  if (!ok && (/^https:\/\/[a-z0-9-]+\.github\.io$/i.test(o) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o))) ok = o;
+  CORS['access-control-allow-origin'] = ok || (fixed ? (() => { try { return new URL(fixed).origin; } catch (e) { return 'null'; } })() : 'null');
+}
+// Only signed-in GearWatch users can use the price helper. Checked with Supabase, remembered for 10 minutes.
+async function signedIn(req, env, ctx) {
+  const SB = String((env && env.SUPABASE_URL) || '').trim().replace(/\/+$/, ''), K = String((env && env.SUPABASE_ANON_KEY) || '').trim();
+  if (!SB || !K) return { error: 'The price helper isn’t set up yet: add SUPABASE_URL and SUPABASE_ANON_KEY to the worker.', status: 503 };
+  const tok = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
+  if (!tok || tok === K) return { error: 'Sign in to use price checks.', status: 401 };
+  const h = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(tok))), b => b.toString(16).padStart(2, '0')).join('');
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/auth/' + h), hit = await cache.match(ck);
+  if (hit) return { uid: await hit.text() };
+  const r = await fetch(SB + '/auth/v1/user', { headers: { apikey: K, Authorization: 'Bearer ' + tok } });
+  if (!r.ok) return { error: 'Your sign-in has expired. Open GearWatch again.', status: 401 };
+  const u = await r.json(); if (!u || !u.id) return { error: 'Sign in to use price checks.', status: 401 };
+  ctx.waitUntil(cache.put(ck, new Response(u.id, { headers: { 'cache-control': 'max-age=600' } })));
+  return { uid: u.id };
+}
+// Rough per-person limit so one stuck phone can't run up the bill: 300 links per 10 minutes.
+async function underLimit(uid, n, ctx) {
+  const cache = caches.default, slot = Math.floor(Date.now() / 6e5), ck = new Request('https://gearwatch-cache/rate/' + uid + '/' + slot), hit = await cache.match(ck);
+  const used = hit ? parseInt(await hit.text(), 10) || 0 : 0; if (used + n > 300) return false;
+  ctx.waitUntil(cache.put(ck, new Response(String(used + n), { headers: { 'cache-control': 'max-age=660' } })));
+  return true;
+}
 const json = (o, status = 200) => new Response(JSON.stringify(o, null, 2), { status, headers: Object.assign({ 'content-type': 'application/json; charset=utf-8' }, CORS) });
 
 async function one(entry, ctx, force) {
@@ -285,12 +314,47 @@ async function imgProxy(u) {
   } catch (e) { return json({ error: String(e.message || e) }, 502); }
 }
 
+// ===== Share link previews =====
+const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+async function sharePage(id, env) {
+  const SB = String((env && env.SUPABASE_URL) || '').trim().replace(/\/+$/, ''), K = String((env && env.SUPABASE_ANON_KEY) || '').trim();
+  let row = null;
+  if (SB && K) { try { const r = await fetch(SB + '/rest/v1/shares?id=eq.' + id + '&select=data,owner', { headers: { apikey: K, Authorization: 'Bearer ' + K } }); if (r.ok) row = (await r.json())[0] || null; } catch (e) {} }
+  const d = (row && row.data) || {}, fixed = String((env && env.APP_URL) || '').trim();
+  const app = fixed || (/^https:\/\/[a-z0-9-]+\.github\.io\/[^\s"'<>#?]*$/i.test(d.ap || '') ? d.ap : '');
+  const dest = app && row ? app.split('#')[0] + '#s=' + id : app;
+  const who = d.un ? '@' + d.un : (d.f || 'Someone');
+  let title = 'GearWatch', desc = 'Gear wishlist, collection and outfits.';
+  if (d.t === 'p') { title = who + ' on GearWatch'; desc = [d.w != null ? d.w + ' wanted' : '', d.c != null ? d.c + ' in collection' : '', d.o != null ? d.o + (d.o === 1 ? ' outfit' : ' outfits') : ''].filter(Boolean).join(' · ') + '. Add ' + who + ' as a friend.'; }
+  else if (d.t === 'o') { const its = d.it || []; title = (d.n || 'Outfit') + ' · by ' + who; desc = its.length + (its.length === 1 ? ' piece: ' : ' pieces: ') + its.map(i => i.n || '').filter(Boolean).slice(0, 5).join(', ') + '.'; }
+  else if (d.n) { title = d.n + (d.b ? ' · ' + d.b : ''); desc = who + (d.st === 'owned' ? ' owns this.' : d.st === 'ordered' ? ' ordered this.' : ' wants this.') + (d.p != null && !d.st ? ' ' + (d.c || '€') + d.p + '.' : ''); }
+  let img = '', big = false;
+  if (row && row.owner && SB) { const cu = SB + '/storage/v1/object/public/cards/' + row.owner + '/' + id + '.png'; try { const h = await fetch(cu, { method: 'HEAD' }); if (h.ok) { img = cu; big = true; } } catch (e) {} }
+  if (!img) img = (d.ph || [])[0] || ((d.it || []).find(i => i.ph) || {}).ph || d.av || (app ? new URL('icons/icon-512.png', app).href : '');
+  const go = dest ? JSON.stringify(dest).replace(/</g, '\\u003c') : '';
+  const html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(title) + '</title>' +
+    '<meta property="og:site_name" content="GearWatch"><meta property="og:type" content="website"><meta property="og:title" content="' + esc(title) + '"><meta property="og:description" content="' + esc(desc) + '">' +
+    (img ? '<meta property="og:image" content="' + esc(img) + '">' + (big ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' : '') + '<meta name="twitter:image" content="' + esc(img) + '">' : '') +
+    '<meta name="twitter:card" content="' + (big ? 'summary_large_image' : 'summary') + '"><meta name="twitter:title" content="' + esc(title) + '"><meta name="twitter:description" content="' + esc(desc) + '"><meta name="theme-color" content="#000000">' +
+    '<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#000;color:#f5f5f7;font:17px -apple-system,system-ui,sans-serif}a{color:#ffd60a}</style></head><body>' +
+    (row ? (dest ? '<a href="' + esc(dest) + '">Open in GearWatch</a><script>location.replace(' + go + ')</script>' : '<p>' + esc(title) + '</p>') : '<p>This link has expired or doesn’t exist.' + (dest ? ' <a href="' + esc(dest) + '">Open GearWatch</a>' : '') + '</p>') + '</body></html>';
+  return new Response(html, { status: row ? 200 : 404, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=300' } });
+}
+
 export default {
   async fetch(req, env, ctx) {
     READER_KEY = (env && env.JINA_KEY) || '';
+    const sm = req.method === 'GET' && new URL(req.url).pathname.match(/^\/s\/([A-Za-z0-9]{5,12})\/?$/);
+    if (sm) return sharePage(sm[1], env);
+    corsFor(req, env);
     if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+    const sp0 = new URL(req.url).searchParams, admin = env && env.ADMIN_KEY && sp0.get('key') === env.ADMIN_KEY;
+    if (req.method === 'GET' && !sp0.get('url') && !sp0.get('lookup') && !sp0.get('img')) return json({ ok: true, about: 'GearWatch price helper. Only signed-in GearWatch users can use it.' });
+    let who = { uid: 'admin' };
+    if (!admin) { who = await signedIn(req, env, ctx); if (!who.uid) return json({ error: who.error, auth: true }, who.status || 401); }
     if (req.method === 'GET') {
-      const sp = new URL(req.url).searchParams, url = sp.get('url');
+      const sp = sp0, url = sp.get('url');
+      if (!admin && !(await underLimit(who.uid, 1, ctx))) return json({ error: 'Too many checks. Try again in a few minutes.' }, 429);
       if (sp.get('lookup')) return json(await lookupOne(sp.get('lookup'), ctx));
       if (sp.get('img')) return imgProxy(sp.get('img'));
       if (!url) return json({ ok: true, about: 'GearWatch price helper. Add ?url=<product link> to test a price, or ?lookup=<product link> to test filling in a new item.' });
@@ -299,8 +363,9 @@ export default {
     }
     if (req.method !== 'POST') return json({ error: 'Use GET or POST' }, 405);
     let body; try { body = await req.json(); } catch { return json({ error: 'Bad JSON' }, 400); }
-    if (body.lookup) return json(await lookupOne(String(body.lookup), ctx));
     const list = (body.items || []).filter(x => x && /^https?:\/\//.test(x.url || '')).slice(0, 40), force = !!body.force;
+    if (!admin && !(await underLimit(who.uid, body.lookup ? 1 : Math.max(1, list.length), ctx))) return json({ error: 'Too many checks. Try again in a few minutes.' }, 429);
+    if (body.lookup) return json(await lookupOne(String(body.lookup), ctx));
     const items = {};
     for (let i = 0; i < list.length; i += 5) {
       const res = await Promise.all(list.slice(i, i + 5).map(e => one(e, ctx, force)));
