@@ -319,6 +319,12 @@ async function imgProxy(u) {
 
 // ===== Share link previews =====
 const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+async function shareRow(id, env) {
+  const SB = String((env && env.SUPABASE_URL) || '').trim().replace(/\/+$/, ''), K = String((env && env.SUPABASE_ANON_KEY) || '').trim();
+  if (!SB || !K) return null;
+  try { const r = await fetch(SB + '/rest/v1/rpc/get_share', { method: 'POST', headers: { apikey: K, Authorization: 'Bearer ' + K, 'content-type': 'application/json' }, body: JSON.stringify({ sid: id }) }); if (r.ok) { const j = await r.json(); return (Array.isArray(j) ? j[0] : j) || null; } } catch (e) {}
+  return null;
+}
 async function sharePage(id, env) {
   const SB = String((env && env.SUPABASE_URL) || '').trim().replace(/\/+$/, ''), K = String((env && env.SUPABASE_ANON_KEY) || '').trim();
   let row = null;
@@ -349,6 +355,8 @@ export default {
     READER_KEY = (env && env.JINA_KEY) || '';
     const sm = req.method === 'GET' && new URL(req.url).pathname.match(/^\/s\/([A-Za-z0-9]{5,12})\/?$/);
     if (sm) return sharePage(sm[1], env);
+    const sj = req.method === 'GET' && new URL(req.url).pathname.match(/^\/s\/([A-Za-z0-9]{5,12})\.json$/);
+    if (sj) { const row = await shareRow(sj[1], env); return new Response(JSON.stringify({ data: row ? row.data : null }), { status: row ? 200 : 404, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=60' } }); }
     corsFor(req, env);
     if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
     const sp0 = new URL(req.url).searchParams, admin = !!(env && env.ADMIN_KEY) && sameKey(req.headers.get('x-admin-key') || sp0.get('key'), env.ADMIN_KEY);

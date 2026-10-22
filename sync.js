@@ -278,7 +278,9 @@
   }
   async function storiesLoad() {
     if (!sb) await connect(); if (!sb || !S.user) return null; if (!(await fresh())) return null; const me = S.user.id, nowISO = new Date().toISOString();
-    const r = await sb.from('stories').select('id,user_id,created_at,expires_at,audience,blur,caption,media,items,poll,highlight').or('expires_at.gt.' + nowISO + ',highlight.not.is.null').order('created_at', { ascending: true }).limit(400);
+    const sel = c => sb.from('stories').select(c).or('expires_at.gt.' + nowISO + ',highlight.not.is.null').order('created_at', { ascending: true }).limit(400);
+    let r = await sel('id,user_id,created_at,expires_at,audience,blur,caption,cap_bg,media,items,poll,highlight');
+    if (r.error && /cap_bg/.test(r.error.message || '')) r = await sel('id,user_id,created_at,expires_at,audience,blur,caption,media,items,poll,highlight');
     if (r.error) { if (/stories/i.test(r.error.message || '') && /exist|schema/i.test(r.error.message || '')) return { missing: true, list: [] }; throw new Error(r.error.message); }
     const list = r.data || [], ids = list.map(s => s.id), urls = await signed(list.flatMap(s => (s.media || []).map(m => m.path)));
     list.forEach(s => (s.media || []).forEach(m => { m.url = urls[m.path] || ''; }));
@@ -311,8 +313,12 @@
     for (let i = 0; i < o.files.length; i++) { const f = o.files[i], ext = f.type === 'video' ? ((f.blob.type.split('/')[1] || 'mp4').replace('quicktime', 'mov')) : 'jpg', path = me + '/' + sid + '/' + i + '.' + ext;
       const u = await sb.storage.from('stories').upload(path, f.blob, { contentType: f.blob.type || (f.type === 'video' ? 'video/mp4' : 'image/jpeg'), upsert: false });
       if (u.error) throw new Error(/bucket/i.test(u.error.message || '') ? 'Stories need a database update. Run supabase/setup.sql again.' : 'Couldn’t upload: ' + u.error.message);
-      media.push({ path, type: f.type, w: f.w || null, h: f.h || null, dur: f.dur || null, tags: (f.tags || []).slice(0, 12).map(g => ({ id: g.id, x: g.x, y: g.y })) }); if (o.onProgress) o.onProgress((i + 1) / o.files.length); }
-    const r = await sb.from('stories').insert({ id: sid, user_id: me, audience: o.audience === 'close' ? 'close' : 'all', blur: !!o.blur, caption: (o.caption || '').trim().slice(0, 300) || null, media, items: o.items || [], poll: o.poll || null });
+      const cl = (v, a, b) => Math.max(a, Math.min(b, +v || 0)), BGS = ['none', 'dark', '#f5f5f7', '#ffd60a', '#ff375f', '#0a84ff', '#30d158', '#bf5af2'];
+      const trim = f.type === 'video' && Array.isArray(f.trim) && f.trim.length === 2 && f.trim[1] > f.trim[0] ? [Math.round(cl(f.trim[0], 0, 3600) * 10) / 10, Math.round(cl(f.trim[1], 0, 3600) * 10) / 10] : undefined;
+      const rate = f.type === 'video' && [0.5, 1.5, 2].includes(f.rate) ? f.rate : undefined;
+      const texts = (f.texts || []).filter(x => x && String(x.t || '').trim()).slice(0, 8).map(x => ({ t: String(x.t).slice(0, 120), x: cl(x.x, 0, 1), y: cl(x.y, 0, 1), sz: cl(x.sz, 0.03, 0.15), bg: BGS.includes(x.bg) ? x.bg : 'dark' }));
+      media.push({ path, type: f.type, w: f.w || null, h: f.h || null, dur: f.dur || null, ...(trim ? { trim } : {}), ...(rate ? { rate } : {}), ...(texts.length ? { texts } : {}), tags: (f.tags || []).slice(0, 12).map(g => ({ id: g.id, x: g.x, y: g.y })) }); if (o.onProgress) o.onProgress((i + 1) / o.files.length); }
+    const r = await sb.from('stories').insert({ id: sid, user_id: me, audience: o.audience === 'close' ? 'close' : 'all', blur: !!o.blur, caption: (o.caption || '').trim().slice(0, 300) || null, ...(o.capBg && /^#[0-9a-f]{6}$/i.test(o.capBg) ? { cap_bg: o.capBg } : {}), media, items: o.items || [], poll: o.poll || null });
     if (r.error) throw new Error(/stories/i.test(r.error.message || '') ? 'Stories need a database update. Run supabase/setup.sql again.' : 'Couldn’t post: ' + r.error.message);
     return sid;
   }
