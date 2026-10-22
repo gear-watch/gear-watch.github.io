@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=18"></script>
+<script src="./sync.js?v=19"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -2787,7 +2787,7 @@ class Component extends DCLogic {
       SO.following.filter(f => f.status === 'accepted').forEach(f => { const L = SO.lists[f.id]; if (!L) return; const all = (L.wish || []).concat(L.coll || []);
         const upT = L._up ? Date.parse(L._up) : 0, upD = upT ? isoD(new Date(upT)) : '';
         const push = (kind, d, obj, ts) => { if (!d) return; d = String(d).slice(0, 10); if (!ts && d === upD) ts = upT; const k = f.id + '|' + kind + '|' + d; if (!groups.has(k)) groups.set(k, { f, kind, d, t: 0, list: [] }); const g = groups.get(k); g.t = Math.max(g.t, ts || 0); g.list.push(Object.assign({ _t: ts || 0 }, obj)); };
-        (L.wish || []).forEach(i => push('wish', i.a, i, i.at)); (L.coll || []).forEach(i => { if (!i.ow) push('coll', i.o, i, i.ot); });
+        (L.wish || []).forEach(i => push('wish', i.a, i, i.at)); (L.coll || []).forEach(i => { if (i.ow) return; if (i.ad) push('colladd', i.ad2 || i.o, i, i.ot); else push('coll', i.o, i, i.ot); });
         (L.outfits || []).forEach(o => { const hit = all.find(x => (o.ids || []).includes(x.id) && (x.ph || []).length), oo = Object.assign({}, o, { _ph: (o.ph || [])[0] || (hit ? hit.ph[0] : ''), _n: (o.ids || []).filter(id => all.some(x => x.id === id)).length });
           push('outfit', o.cr, oo, o.ct); if (o.lw && o.lw !== o.cr) push('wore', o.lw, oo, o.wt); }); });
       const t0 = new Date(); t0.setHours(12, 0, 0, 0);
@@ -2795,15 +2795,15 @@ class Component extends DCLogic {
       const itemOpen = (f, kind, i) => () => this.setState({ friend: f.id, friendTab: kind, fItem: { id: i.id, kind }, fiIdx: 0, unfArm: false, fOutfit: null, fFromFeed: true });
       const pTxt = i => (i.p == null ? '' : money(i.c || '€', i.p));
       const card = g => { const f = g.f, n = g.list.length, one = g.list[0], isO = g.kind === 'outfit' || g.kind === 'wore';
-        const verb = g.kind === 'wish' ? (n > 1 ? 'added ' + n + ' things to their wishlist' : 'added to their wishlist') : g.kind === 'coll' ? (n > 1 ? 'got ' + n + ' new pieces' : 'got something new') : g.kind === 'outfit' ? (n > 1 ? 'made ' + n + ' outfits' : 'made an outfit') : (n > 1 ? 'wore ' + n + ' outfits' : 'wore an outfit');
-        const base = { who: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar, verb, onWho: X.has(f.id) ? () => this.openStories(storyFriends, f.id) : openF(f.id, isO ? 'outfits' : g.kind), onProfile: openF(f.id, isO ? 'outfits' : g.kind), onAv: e => { if (!X.has(f.id)) return; e.stopPropagation(); this.openStories(storyFriends, f.id); }, ringSh: this.svRing(X.ring(f.id)) };
+        const kI = g.kind === 'colladd' ? 'coll' : g.kind, verb = g.kind === 'colladd' ? (n > 1 ? 'added ' + n + ' pieces to their collection' : 'added to their collection') : g.kind === 'wish' ? (n > 1 ? 'added ' + n + ' things to their wishlist' : 'added to their wishlist') : g.kind === 'coll' ? (n > 1 ? 'got ' + n + ' new pieces' : 'got something new') : g.kind === 'outfit' ? (n > 1 ? 'made ' + n + ' outfits' : 'made an outfit') : (n > 1 ? 'wore ' + n + ' outfits' : 'wore an outfit');
+        const base = { who: '@' + f.username, initial: ini(f.username), av: f.avatar || '', hasAv: !!f.avatar, verb, onWho: X.has(f.id) ? () => this.openStories(storyFriends, f.id) : openF(f.id, isO ? 'outfits' : kI), onProfile: openF(f.id, isO ? 'outfits' : kI), onAv: e => { if (!X.has(f.id)) return; e.stopPropagation(); this.openStories(storyFriends, f.id); }, ringSh: this.svRing(X.ring(f.id)) };
         if (n === 1) { const img = isO ? one._ph : (one.ph || [])[0], have = !isO && mineKey.has(fKey(one));
           return Object.assign(base, { single: true, multi: false, tiles: [], img: img || '', hasImg: !!img, noImg: !img, itemInitial: ini(one.n), title: one.n,
             sub: isO ? plural(one._n, 'piece') + (one.w ? ' · Worn ' + one.w + '×' : '') : [one.b, pTxt(one)].filter(Boolean).join(' · ') || ' ',
-            onOpen: isO ? () => this.setState({ friend: f.id, friendTab: 'outfits', fOutfit: one.id, fItem: null, unfArm: false, fFromFeed: true }) : itemOpen(f, g.kind, one), hasBtn: !isO, btnLabel: have ? 'On your list' : 'Add', btnColor: have ? '#6e6e73' : ACC,
+            onOpen: isO ? () => this.setState({ friend: f.id, friendTab: 'outfits', fOutfit: one.id, fItem: null, unfArm: false, fFromFeed: true }) : itemOpen(f, kI, one), hasBtn: !isO, btnLabel: have ? 'On your list' : 'Add', btnColor: have ? '#6e6e73' : ACC,
             onBtn: e => { e.stopPropagation(); if (have) return; this.bump(e.currentTarget, 1.1); addF(one); } }); }
         return Object.assign(base, { single: false, multi: true, tiles: g.list.map(i => { const img = isO ? i._ph : (i.ph || [])[0]; return { img: img || '', hasImg: !!img, noImg: !img, initial: ini(i.n), name: i.n,
-          sub: isO ? plural(i._n, 'piece') : [i.b, pTxt(i)].filter(Boolean).join(' · ') || ' ', onOpen: isO ? () => this.setState({ friend: f.id, friendTab: 'outfits', fOutfit: i.id, fItem: null, unfArm: false, fFromFeed: true }) : itemOpen(f, g.kind, i) }; }) }); };
+          sub: isO ? plural(i._n, 'piece') : [i.b, pTxt(i)].filter(Boolean).join(' · ') || ' ', onOpen: isO ? () => this.setState({ friend: f.id, friendTab: 'outfits', fOutfit: i.id, fItem: null, unfArm: false, fFromFeed: true }) : itemOpen(f, kI, i) }; }) }); };
       const days = []; Array.from(groups.values()).sort((a, b) => b.d.localeCompare(a.d) || b.t - a.t).slice(0, 30).forEach(g => { g.list.sort((a, b) => b._t - a._t); const l = dayLbl(g.d); let D = days[days.length - 1]; if (!D || D.label !== l) days.push(D = { label: l, cards: [] }); D.cards.push(card(g)); });
       Object.assign(fr, { feedDays: days, hasFeed: days.length > 0, noFeed: !days.length }); }
 
