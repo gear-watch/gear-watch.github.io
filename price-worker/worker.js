@@ -256,6 +256,7 @@ async function lookupOne(url, ctx) {
 }
 
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST, OPTIONS', 'access-control-allow-headers': 'content-type, authorization', 'vary': 'origin' };
+function sameKey(a, b) { a = String(a || ''); b = String(b || ''); if (!a || !b) return false; let d = a.length ^ b.length; for (let i = 0; i < Math.max(a.length, b.length); i++) d |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0); return d === 0; }
 function corsFor(req, env) {
   const o = req.headers.get('origin') || '', fixed = String((env && env.APP_URL) || '').trim();
   let ok = '';
@@ -275,14 +276,16 @@ async function signedIn(req, env, ctx) {
   const r = await fetch(SB + '/auth/v1/user', { headers: { apikey: K, Authorization: 'Bearer ' + tok } });
   if (!r.ok) return { error: 'Your sign-in has expired. Open GearWatch again.', status: 401 };
   const u = await r.json(); if (!u || !u.id) return { error: 'Sign in to use price checks.', status: 401 };
-  ctx.waitUntil(cache.put(ck, new Response(u.id, { headers: { 'cache-control': 'max-age=600' } })));
+  ctx.waitUntil(cache.put(ck, new Response(u.id, { headers: { 'cache-control': 'max-age=300' } })));
   return { uid: u.id };
 }
-// Rough per-person limit so one stuck phone can't run up the bill: 300 links per 10 minutes.
+// Rough per-person limits so one account can't burn the quota: 150 links per 10 minutes, 1500 a day.
 async function underLimit(uid, n, ctx) {
-  const cache = caches.default, slot = Math.floor(Date.now() / 6e5), ck = new Request('https://gearwatch-cache/rate/' + uid + '/' + slot), hit = await cache.match(ck);
-  const used = hit ? parseInt(await hit.text(), 10) || 0 : 0; if (used + n > 300) return false;
-  ctx.waitUntil(cache.put(ck, new Response(String(used + n), { headers: { 'cache-control': 'max-age=660' } })));
+  const cache = caches.default, now = Date.now();
+  const slots = [['m', Math.floor(now / 6e5), 150, 660], ['d', Math.floor(now / 864e5), 1500, 90000]];
+  const used = await Promise.all(slots.map(async ([k, s]) => { const h = await cache.match(new Request('https://gearwatch-cache/rate/' + uid + '/' + k + s)); return h ? parseInt(await h.text(), 10) || 0 : 0; }));
+  if (slots.some(([, , max], i) => used[i] + n > max)) return false;
+  slots.forEach(([k, s, , ttl], i) => ctx.waitUntil(cache.put(new Request('https://gearwatch-cache/rate/' + uid + '/' + k + s), new Response(String(used[i] + n), { headers: { 'cache-control': 'max-age=' + ttl } }))));
   return true;
 }
 const json = (o, status = 200) => new Response(JSON.stringify(o, null, 2), { status, headers: Object.assign({ 'content-type': 'application/json; charset=utf-8' }, CORS) });
@@ -319,9 +322,9 @@ const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&a
 async function sharePage(id, env) {
   const SB = String((env && env.SUPABASE_URL) || '').trim().replace(/\/+$/, ''), K = String((env && env.SUPABASE_ANON_KEY) || '').trim();
   let row = null;
-  if (SB && K) { try { const r = await fetch(SB + '/rest/v1/shares?id=eq.' + id + '&select=data,owner', { headers: { apikey: K, Authorization: 'Bearer ' + K } }); if (r.ok) row = (await r.json())[0] || null; } catch (e) {} }
+  if (SB && K) { try { const r = await fetch(SB + '/rest/v1/rpc/get_share', { method: 'POST', headers: { apikey: K, Authorization: 'Bearer ' + K, 'content-type': 'application/json' }, body: JSON.stringify({ sid: id }) }); if (r.ok) { const j = await r.json(); row = (Array.isArray(j) ? j[0] : j) || null; } } catch (e) {} }
   const d = (row && row.data) || {}, fixed = String((env && env.APP_URL) || '').trim();
-  const app = fixed || (/^https:\/\/[a-z0-9-]+\.github\.io\/[^\s"'<>#?]*$/i.test(d.ap || '') ? d.ap : '');
+  const app = /^https:\/\//i.test(fixed) ? fixed : ''; // links only ever go to your own app (APP_URL)
   const dest = app && row ? app.split('#')[0] + '#s=' + id : app;
   const who = d.un ? '@' + d.un : (d.f || 'Someone');
   let title = 'GearWatch', desc = 'Gear wishlist, collection and outfits.';
@@ -348,15 +351,14 @@ export default {
     if (sm) return sharePage(sm[1], env);
     corsFor(req, env);
     if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
-    const sp0 = new URL(req.url).searchParams, admin = env && env.ADMIN_KEY && sp0.get('key') === env.ADMIN_KEY;
-    if (req.method === 'GET' && !sp0.get('url') && !sp0.get('lookup') && !sp0.get('img')) return json({ ok: true, about: 'GearWatch price helper. Only signed-in GearWatch users can use it.' });
+    const sp0 = new URL(req.url).searchParams, admin = !!(env && env.ADMIN_KEY) && sameKey(req.headers.get('x-admin-key') || sp0.get('key'), env.ADMIN_KEY);
+    if (req.method === 'GET' && !sp0.get('url') && !sp0.get('lookup')) return json({ ok: true, about: 'GearWatch price helper. Only signed-in GearWatch users can use it.' });
+    if (req.method === 'GET' && !admin) return json({ error: 'Testing links from the address bar needs your ADMIN_KEY.' }, 403);
     let who = { uid: 'admin' };
     if (!admin) { who = await signedIn(req, env, ctx); if (!who.uid) return json({ error: who.error, auth: true }, who.status || 401); }
     if (req.method === 'GET') {
       const sp = sp0, url = sp.get('url');
-      if (!admin && !(await underLimit(who.uid, 1, ctx))) return json({ error: 'Too many checks. Try again in a few minutes.' }, 429);
       if (sp.get('lookup')) return json(await lookupOne(sp.get('lookup'), ctx));
-      if (sp.get('img')) return imgProxy(sp.get('img'));
       if (!url) return json({ ok: true, about: 'GearWatch price helper. Add ?url=<product link> to test a price, or ?lookup=<product link> to test filling in a new item.' });
       const r = await one({ url, currency: new URL(req.url).searchParams.get('cur') || '€' }, ctx, true);
       return json(r ? Object.assign({ key: r[0] }, r[1]) : { error: 'Not a valid link' });

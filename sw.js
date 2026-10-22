@@ -9,7 +9,8 @@ self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 self.addEventListener('message', e => {
   const d = e.data || {};
   if (d.type !== 'gw-auth') return;
-  mem = { token: d.token || null, key: d.key || '' };
+  let base = ''; try { base = d.base ? new URL(d.base).origin : ''; } catch (err) {}
+  mem = { token: d.token || null, key: d.key || '', base };
   e.waitUntil((async () => {
     const c = await caches.open(META); await c.put(KEY, new Response(JSON.stringify(mem)));
     if (!mem.token && d.wipe) await caches.delete(PHOTOS);
@@ -25,10 +26,13 @@ async function auth() {
 self.addEventListener('fetch', e => {
   const req = e.request, u = req.url, i = u.indexOf(PUB);
   if (req.method !== 'GET' || i < 0) return;
+  let origin = ''; try { origin = new URL(u).origin; } catch (err) { return; }
+  if (mem && mem.base && origin !== mem.base) return; // only ever add your sign-in to your own Supabase
   e.respondWith((async () => {
     const key = u.split('?')[0], cache = await caches.open(PHOTOS);
     const hit = await cache.match(key); if (hit) return hit;
     const a = await auth();
+    if (!a.base || origin !== a.base) return fetch(req);
     if (a.token) {
       try {
         const r = await fetch(u.slice(0, i) + AUTHD + key.slice(i + PUB.length), { mode: 'cors', credentials: 'omit', headers: { Authorization: 'Bearer ' + a.token, apikey: a.key } });

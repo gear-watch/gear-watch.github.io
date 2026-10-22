@@ -38,7 +38,6 @@ create policy "see own follows" on public.follows for select to authenticated us
 drop policy if exists "request follow" on public.follows;
 create policy "request follow" on public.follows for insert to authenticated with check (follower = auth.uid() and status = 'pending');
 drop policy if exists "answer request" on public.follows;
-create policy "answer request" on public.follows for update to authenticated using (followee = auth.uid()) with check (followee = auth.uid());
 drop policy if exists "remove follow" on public.follows;
 create policy "remove follow" on public.follows for delete to authenticated using (follower = auth.uid() or followee = auth.uid());
 
@@ -192,7 +191,7 @@ create policy "vote" on public.story_votes for insert to authenticated with chec
 drop policy if exists "change vote" on public.story_votes;
 create policy "change vote" on public.story_votes for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 drop policy if exists "see votes" on public.story_votes;
-create policy "see votes" on public.story_votes for select to authenticated using (public.can_see_story_id(story_id));
+create policy "see votes" on public.story_votes for select to authenticated using (user_id = auth.uid() or public.owns_story(story_id));
 
 -- Story files are private: only the owner and friends allowed to see the story can open them.
 insert into storage.buckets (id, name, public) values ('stories', 'stories', false) on conflict (id) do nothing;
@@ -202,7 +201,9 @@ drop policy if exists "delete own story files" on storage.objects;
 create policy "delete own story files" on storage.objects for delete to authenticated using (bucket_id = 'stories' and (storage.foldername(name))[1] = auth.uid()::text);
 drop policy if exists "read allowed story files" on storage.objects;
 create policy "read allowed story files" on storage.objects for select to authenticated using (
-  bucket_id = 'stories' and ((storage.foldername(name))[1] = auth.uid()::text or public.can_see_story_id(((storage.foldername(name))[2])::uuid)));
+  bucket_id = 'stories' and ((storage.foldername(name))[1] = auth.uid()::text or (
+    (storage.foldername(name))[2] ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+    and public.can_see_story_id(((storage.foldername(name))[2])::uuid))));
 
 
 -- Friends of friends: see a friend's friend list, and suggestions from 2+ mutual friends.
@@ -249,7 +250,6 @@ create table if not exists public.shares (
 );
 alter table public.shares enable row level security;
 drop policy if exists "anyone reads shares" on public.shares;
-create policy "anyone reads shares" on public.shares for select to anon, authenticated using (true);
 drop policy if exists "signed in creates shares" on public.shares;
 create policy "signed in creates shares" on public.shares for insert to authenticated with check (owner = auth.uid());
 
@@ -271,3 +271,55 @@ drop policy if exists "see own cards" on storage.objects;
 create policy "see own cards" on storage.objects for select to authenticated using (bucket_id = 'cards' and (storage.foldername(name))[1] = auth.uid()::text);
 drop policy if exists "delete own cards" on storage.objects;
 create policy "delete own cards" on storage.objects for delete to authenticated using (bucket_id = 'cards' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ===== Security fixes (22 Oct 2026) =====
+-- Friend requests can only be accepted through accept_friend, never edited directly.
+drop policy if exists "answer request" on public.follows;
+revoke update on public.follows from anon, authenticated;
+
+-- Profile pictures must be a photo you uploaded through GearWatch.
+create or replace function public.check_avatar() returns trigger language plpgsql as $$
+begin
+  if new.avatar is not null and (tg_op = 'INSERT' or new.avatar is distinct from old.avatar)
+     and new.avatar !~ ('^https://[a-z0-9-]+\.supabase\.co/storage/v1/object/public/photos/' || new.id::text || '/avatar-[A-Za-z0-9_-]+\.(jpg|jpeg|png|webp)$') then
+    raise exception 'Profile pictures have to be uploaded through GearWatch';
+  end if;
+  return new;
+end $$;
+drop trigger if exists check_avatar on public.profiles;
+create trigger check_avatar before insert or update on public.profiles for each row execute function public.check_avatar();
+update public.profiles set avatar = null
+  where avatar is not null and avatar !~ ('^https://[a-z0-9-]+\.supabase\.co/storage/v1/object/public/photos/' || id::text || '/avatar-');
+
+-- Shares: open one by its code, but nobody can list them all. Owners can delete their own.
+drop policy if exists "anyone reads shares" on public.shares;
+create or replace function public.get_share(sid text) returns table (data jsonb, owner uuid)
+language sql stable security definer set search_path = public as $$
+  select s.data, s.owner from public.shares s where s.id = sid
+$$;
+revoke all on function public.get_share(text) from public;
+grant execute on function public.get_share(text) to anon, authenticated;
+drop policy if exists "delete own shares" on public.shares;
+create policy "delete own shares" on public.shares for delete to authenticated using (owner = auth.uid());
+
+-- Stories always last 24 hours from when they're posted (Highlights keep them around).
+create or replace function public.story_times() returns trigger language plpgsql as $$
+begin
+  if auth.uid() is not null then
+    if tg_op = 'INSERT' then new.created_at := now(); new.expires_at := now() + interval '24 hours';
+    else new.created_at := old.created_at; new.expires_at := old.expires_at; new.user_id := old.user_id; end if;
+  end if;
+  return new;
+end $$;
+drop trigger if exists story_times on public.stories;
+create trigger story_times before insert or update on public.stories for each row execute function public.story_times();
+
+-- Poll totals for friends' stories (who voted what stays visible only to the story owner).
+create or replace function public.poll_counts(ids uuid[]) returns table (story_id uuid, choice int, n int)
+language sql stable security definer set search_path = public as $$
+  select v.story_id, v.choice::int, count(*)::int from public.story_votes v
+  where v.story_id = any(ids) and public.can_see_story_id(v.story_id)
+  group by v.story_id, v.choice
+$$;
+revoke all on function public.poll_counts(uuid[]) from public;
+grant execute on function public.poll_counts(uuid[]) to authenticated;

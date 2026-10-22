@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=32"></script>
+<script src="./sync.js?v=33"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -1831,6 +1831,7 @@ function guessMats(txt) {
   return hits.sort((a, b) => a.k - b.k).map(x => x.m).slice(0, 3);
 }
 function mmOf(txt) { const m = String(txt || '').match(/(\d[.,]\d{1,2})\s?mm/i); if (!m) return ''; const v = parseFloat(m[1].replace(',', '.')); if (!(v >= 0.1 && v <= 3)) return ''; if (v >= 1) return '1.0+'; return LATEX_MM.slice(0, -1).reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a); }
+function webUrl(u) { u = String(u || '').trim(); return /^https?:\/\//i.test(u) ? u : ''; }
 function matFull(it) { const m = it.materials || []; return m.map((x, k) => { let t = x; if (x === 'Latex') { const d = [it.latexMm ? it.latexMm + ' mm' : '', it.chlor ? 'chlorinated' : ''].filter(Boolean).join(', '); if (d) t += ' (' + d + ')'; } return k === 0 && m.length > 1 ? t + ', mainly' : t; }).join(' · '); }
 const fMat = x => ({ materials: x.mt || [], latexMm: x.mm || '', chlor: !!x.ch });
 function matTag(it) { const m = it.materials || []; if (!m.length) return ''; let t = MAT_SHORT[m[0]] || m[0]; if (m[0] === 'Latex') { if (it.chlor) t = 'Chlorinated'; if (it.latexMm) t += ' ' + it.latexMm; } return t + (m.length > 1 ? ' +' + (m.length - 1) : ''); }
@@ -3031,7 +3032,7 @@ class Component extends DCLogic {
     const meId = (A.user || {}).id, isMeV = !!(st.friend && st.friend === meId), fU = isMeV ? { id: meId, username: A.username || 'you', avatar: A.avatar || null, title: A.title || null } : st.friend ? SO.following.find(x => x.id === st.friend) : null, fL = isMeV ? ((G && G.publicList && G.publicList()) || {}) : fU ? SO.lists[fU.id] || {} : null;
     let fv = { tabs: [], wish: [], collGroups: [], outfits: [] };
     let fi = { photos: [], stars: [], rows: [] }, fo = { items: [], board: [] };
-    const addF = i => { if (mineKey.has(fKey(i))) return false; this.mutate(pp => { pp.items.push({ id: uid(), name: i.n, brand: i.b || '', category: i.cat || '', url: i.u || '', photos: (i.ph || []).slice(), currency: i.c || '€', price: i.p == null ? null : i.p, history: i.p == null ? [] : [{ date: todayISO(), price: i.p }], rating: 3, status: 'wanted', size: '', colour: '', m2m: false, added: todayISO() }); }); this.toast('Added to your wishlist'); return true; };
+    const addF = i => { if (mineKey.has(fKey(i))) return false; this.mutate(pp => { pp.items.push({ id: uid(), name: i.n, brand: i.b || '', category: i.cat || '', url: webUrl(i.u), photos: (i.ph || []).slice(), currency: i.c || '€', price: i.p == null ? null : i.p, history: i.p == null ? [] : [{ date: todayISO(), price: i.p }], rating: 3, status: 'wanted', size: '', colour: '', m2m: false, added: todayISO() }); }); this.toast('Added to your wishlist'); return true; };
     const openI = (id, kind) => () => this.setState({ fItem: { id, kind }, fiIdx: 0 });
     { const groups = new Map();
       SO.following.filter(f => f.status === 'accepted').forEach(f => { const L = SO.lists[f.id]; if (!L) return; const all = (L.wish || []).concat(L.coll || []);
@@ -3177,7 +3178,7 @@ class Component extends DCLogic {
         histRange: h.length >= 2 ? 'Highest ' + money(dIt.currency, Math.max.apply(null, h.map(x => x.price))) + ' · Now ' + money(dIt.currency, dIt.price) : '',
         rows, m2m: !!dIt.m2m, brand: dIt.brand || 'this shop', needNote: nd.note, needCount: hasSession ? rec + ' of ' + nd.ids.length + ' measured' : 'Not measured yet', needRows,
         needFig: bodyFig({ bare: true, lines: nd.ids.filter(id => vals[id] != null).map(id => ({ id })) }),
-        hasUrl: !!dIt.url, url: dIt.url,
+        hasUrl: !!webUrl(dIt.url), url: webUrl(dIt.url),
         inColl: dIt.status === 'owned' || dIt.status === 'ordered', cgroup: gOf(dIt) || 'Choose',
         onPickCat: () => this.setState({ sheet: 'cpick', cpickId: dIt.id, cpickQ: false, newGrpOpen: false, newGrp: '' }),
         onCreateOutfit: e => { this.bump(e.currentTarget, 1.04); this.openBuilder(null, dIt.id); },
@@ -3311,9 +3312,9 @@ class Component extends DCLogic {
         const rows = [['Size', s.s], ['Colour', s.col], ['Made to measure', s.m ? 'Yes' : null], ['Status', s.st === 'ordered' ? 'Already ordered' : s.st === 'owned' ? 'Already owned' : null]].filter(r => r[1]).map(([k, v]) => ({ k, v }));
         return { fromTxt: s.f ? s.f + (s.st === 'owned' ? ' owns this' : s.st === 'ordered' ? ' ordered this' : ' wants this') : 'Shared from GearWatch', name: s.n || '', brandCat: [s.b, s.cat].filter(Boolean).join(' · '), price: s.p == null ? 'No price yet' : money(cur, s.p), eur: s.p != null && cur !== '€' ? '≈ €' + Math.round(s.p * (FX[cur] || 1)) : '',
           photos: ph.map(src => ({ src })), hasPhotos: !!ph.length, multi: ph.length > 1, photoCount: String(ph.length), rows,
-          meas: (s.ms || []).map(([k, v]) => ({ k, v })), hasMeas: !!(s.ms || []).length, measTitle: (s.f ? s.f + '’s' : 'Their') + ' measurements for this item', note: s.no || '', hasNote: !!s.no, url: s.u || '', hasUrl: !!s.u }; })(),
+          meas: (s.ms || []).map(([k, v]) => ({ k, v })), hasMeas: !!(s.ms || []).length, measTitle: (s.f ? s.f + '’s' : 'Their') + ' measurements for this item', note: s.no || '', hasNote: !!s.no, url: webUrl(s.u), hasUrl: !!webUrl(s.u) }; })(),
       closeShared: () => { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; } this.setState({ shared: null }); },
-      addShared: () => { const s = st.shared; if (!s) return; this.mutate(p => { p.items.push({ id: uid(), name: s.n, brand: s.b || '', category: s.cat || '', url: s.u || '', photos: (s.ph || []).filter(Boolean), currency: s.c || '€', price: s.p == null ? null : s.p, history: s.p == null ? [] : [{ date: todayISO(), price: s.p }], rating: 3, status: 'wanted', size: s.s || '', colour: s.col || '', m2m: !!s.m, added: todayISO() }); }); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} this.setState({ shared: null }); this.toast('Added to your wishlist'); },
+      addShared: () => { const s = st.shared; if (!s) return; this.mutate(p => { p.items.push({ id: uid(), name: s.n, brand: s.b || '', category: s.cat || '', url: webUrl(s.u), photos: (s.ph || []).filter(Boolean), currency: s.c || '€', price: s.p == null ? null : s.p, history: s.p == null ? [] : [{ date: todayISO(), price: s.p }], rating: 3, status: 'wanted', size: s.s || '', colour: s.col || '', m2m: !!s.m, added: todayISO() }); }); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} this.setState({ shared: null }); this.toast('Added to your wishlist'); },
       shareItem: e => { if (!dIt) return; this.bump(e.currentTarget, 1.04);
         const ms = (d.needRows || []).filter(r => r.value !== 'Not measured').map(r => [r.label, r.value]);
         const payload = { n: dIt.name, b: dIt.brand || undefined, cat: dIt.category || undefined, u: dIt.url || undefined, c: dIt.currency, p: dIt.price, s: dIt.size || undefined, col: dIt.colour || undefined, m: dIt.m2m ? 1 : undefined, st: dIt.status !== 'wanted' ? dIt.status : undefined, ph: (dIt.photos || []).filter(x => !/^data:/.test(x)).slice(0, 6).map(x => /^\.\//.test(x) ? new URL(x, location.href).href : x), ms: ms.length ? ms : undefined, f: p.name, no: (dIt.needs && dIt.needs.note) || undefined };

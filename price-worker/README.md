@@ -14,11 +14,11 @@ Free tier: 100,000 requests a day.
 ## Who can use it
 
 Only people signed in to GearWatch. The app sends their sign-in with each check, and the helper asks Supabase if it's real.
-Each person can check up to 300 links per 10 minutes. Share link previews (`/s/…`) stay open, so chats can read them.
+Each person can check up to 150 links per 10 minutes and 1500 a day. Share link previews (`/s/…`) stay open, so chats can read them.
 
 Set these in the worker → Settings → Variables and Secrets:
 - `SUPABASE_URL` and `SUPABASE_ANON_KEY`: the same values as in config.js. Without them the helper refuses every price check.
-- `APP_URL` (optional): your app address. Only that site (or any github.io site if it's not set) can call the helper from a browser.
+- `APP_URL`: your app address, like `https://gear-watch.github.io/`. Share links only ever send people there, and only that site can call the helper from a browser.
 - `ADMIN_KEY` (optional, as a secret): any long password, so you can test links yourself.
 
 ## Testing a link
@@ -52,7 +52,7 @@ The helper needs to read shares from your database:
 1. In Cloudflare, open the worker → Settings → Variables and Secrets → Add.
 2. Add `SUPABASE_URL` with the same value as `GW_SUPABASE_URL` in config.js.
 3. Add `SUPABASE_ANON_KEY` with the same value as `GW_SUPABASE_ANON_KEY` in config.js.
-4. Optional: add `APP_URL` with your app address (like `https://yourname.github.io/gearwatch/`). Without it, links go to the app address they were made from, as long as it's on github.io.
+4. Add `APP_URL` with your app address (like `https://gear-watch.github.io/`). Share links only ever send people there.
 5. Deploy.
 
 Test: open `https://gearwatch-prices.awooplanet.workers.dev/s/<code>` with a code from a share link. It should open the app.

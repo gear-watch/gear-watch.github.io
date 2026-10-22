@@ -33,7 +33,7 @@
   const PUB = '/storage/v1/object/public/photos/';
   function postAuth(s, wipe) {
     if (!('serviceWorker' in navigator)) return;
-    const m = { type: 'gw-auth', token: (s && s.access_token) || null, key: cfg().key, wipe: !!wipe };
+    const m = { type: 'gw-auth', token: (s && s.access_token) || null, key: cfg().key, base: cfg().url, wipe: !!wipe };
     try { if (navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage(m); } catch (e) {}
     navigator.serviceWorker.ready.then(r => { if (r.active) r.active.postMessage(m); }).catch(() => {});
   }
@@ -210,9 +210,7 @@
   async function accept(id) {
     const r = await sb.rpc('accept_friend', { other: id });
     if (!r.error) return;
-    // Database not updated yet: accept one way, like before.
-    const u = await sb.from('follows').update({ status: 'accepted' }).eq('follower', id).eq('followee', S.user.id); if (u.error) throw u.error;
-    if (/accept_friend|function/i.test(r.error.message || '')) console.warn('Run supabase/setup.sql again to make friendships two-way.');
+    throw new Error(/accept_friend|function/i.test(r.error.message || '') ? 'Accepting friends needs a database update. Run supabase/setup.sql again.' : r.error.message);
   }
   async function findUser(name) {
     const u = uname(name); if (!u || !(await connect())) return null;
@@ -241,7 +239,8 @@
     for (let t = 0; t < 3; t++) { const id = Array.from(crypto.getRandomValues(new Uint8Array(7)), b => A[b % A.length]).join(''); const r = await sb.from('shares').insert({ id, data }); if (!r.error) return id; if (!/duplicate|exist/i.test(r.error.message || '')) return null; } return null; }
   async function token() { if (!S.configured) return null; if (!sb && !(await connect())) return null; try { const { data } = await sb.auth.getSession(); return (data.session && data.session.access_token) || null; } catch (e) { return null; } }
   async function cardUpload(id, blob) { if (!sb || !S.user || !blob) return false; const r = await sb.storage.from('cards').upload(S.user.id + '/' + id + '.png', blob, { contentType: 'image/png', upsert: false, cacheControl: '31536000' }); if (r.error) console.warn('card upload', r.error.message); return !r.error; }
-  async function shareGet(id) { if (!sb) await connect(); if (!sb) return null; const r = await sb.from('shares').select('data').eq('id', id).maybeSingle(); return r.data ? r.data.data : null; }
+  async function shareGet(id) { if (!sb) await connect(); if (!sb) return null; const r = await sb.rpc('get_share', { sid: id }); if (!r.error) { const row = Array.isArray(r.data) ? r.data[0] : r.data; return row ? row.data : null; }
+    const o = await sb.from('shares').select('data').eq('id', id).maybeSingle(); return o.data ? o.data.data : null; }
   const decline = id => sb.from('follows').delete().eq('follower', id).eq('followee', S.user.id);
   async function setUsername(name) {
     const u = uname(name);
@@ -289,7 +288,14 @@
     const [sv, vw, rx, rp, vt, cf] = await Promise.all([sb.from('story_views').select('story_id').eq('viewer', me).in('story_id', ids.length ? ids : NONE), q('story_views', 'story_id,viewer,seen_at', 'story_id', mine), q('story_reactions', 'story_id,user_id,kind,created_at', 'story_id', ids), q('story_replies', 'id,story_id,from_user,body,created_at', 'story_id', mine), q('story_votes', 'story_id,user_id,choice', 'story_id', polls), sb.from('close_friends').select('friend').eq('owner', me)]);
     const who = [...new Set([].concat((vw.data || []).map(x => x.viewer), (rx.data || []).map(x => x.user_id), (rp.data || []).map(x => x.from_user)))].filter(id => id !== me), prof = {};
     if (who.length) { const pr = await profSel(c => sb.from('profiles').select(c).in('id', who)); (pr.data || []).forEach(x => { prof[x.id] = { id: x.id, username: x.username, avatar: x.avatar || null, title: x.title || null }; }); }
-    return { list, me, seenIds: (sv.data || []).map(x => x.story_id), views: (vw.data || []).filter(x => x.viewer !== me), reactions: rx.data || [], replies: rp.data || [], votes: vt.data || [], close: (cf.data || []).map(x => x.friend), prof };
+    // Poll results: who voted is only visible on your own stories; on friends' stories you get the totals.
+    let votes = vt.data || []; const others = polls.filter(id => !mine.includes(id));
+    if (others.length) { const pc = await sb.rpc('poll_counts', { ids: others });
+      if (!pc.error) { const own = votes.filter(v => v.user_id === me && others.includes(v.story_id)), synth = [];
+        (pc.data || []).forEach(c => { for (let k = 0; k < c.n; k++) synth.push({ story_id: c.story_id, user_id: null, choice: c.choice }); });
+        own.forEach(v => { const h = synth.find(x => x.story_id === v.story_id && x.choice === v.choice && !x.user_id); if (h) h.user_id = me; });
+        votes = votes.filter(v => !others.includes(v.story_id)).concat(synth); } }
+    return { list, me, seenIds: (sv.data || []).map(x => x.story_id), views: (vw.data || []).filter(x => x.viewer !== me), reactions: rx.data || [], replies: rp.data || [], votes, close: (cf.data || []).map(x => x.friend), prof };
   }
   // Deletes your own stories that have ended (and aren't Highlights), files included. Runs from your own app.
   async function storiesCleanup() {
