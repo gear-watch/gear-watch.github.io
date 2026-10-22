@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=16"></script>
+<script src="./sync.js?v=18"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -1284,6 +1284,20 @@ input::placeholder{color:#6e6e73;}
         </div>
       </div>
 
+      <sc-if value="{{ fCollShow }}" hint-placeholder-val="{{ false }}">
+        <button data-anim="up" onClick="{{ fMoreToggle }}" style="width:calc(100% - 32px);margin:12px 16px 0;border:0;background:var(--gw-accent,#ffd60a);border-radius:18px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:17px;color:#000;cursor:pointer;text-align:left;"><span style="display:flex;flex-direction:column;min-width:0;"><span style="font-weight:600;">More details</span><span style="font-size:12px;color:rgba(0,0,0,0.7);letter-spacing:-0.12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ fMoreSub }}</span></span><svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="color:#000;transform:rotate({{ fMoreRot }});transition:transform .3s cubic-bezier(.2,.8,.2,1);flex:none;"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+        <sc-if value="{{ fMoreOpen }}" hint-placeholder-val="{{ false }}"><div data-anim="up" style="margin:8px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#38383a;">
+          <div onClick="{{ fHmToggle }}" style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;"><span style="display:flex;flex-direction:column;"><span>Handmade</span><span style="font-size:12px;color:#a1a1a6;letter-spacing:-0.12px;">Made by hand, by you or a maker</span></span><span style="width:51px;height:31px;border-radius:9999px;background:{{ fHmTrack }};position:relative;flex:none;transition:background .25s;"><span style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:9999px;background:#fff;transform:translateX({{ fHmKnob }});transition:transform .3s cubic-bezier(.2,.8,.2,1);"></span></span></div>
+          <div onClick="{{ fMdToggle }}" style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;"><span style="display:flex;flex-direction:column;"><span>Modified</span><span style="font-size:12px;color:#a1a1a6;letter-spacing:-0.12px;">You changed something about it</span></span><span style="width:51px;height:31px;border-radius:9999px;background:{{ fMdTrack }};position:relative;flex:none;transition:background .25s;"><span style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:9999px;background:#fff;transform:translateX({{ fMdKnob }});transition:transform .3s cubic-bezier(.2,.8,.2,1);"></span></span></div>
+          <sc-if value="{{ f.modified }}" hint-placeholder-val="{{ false }}"><div style="background:#2c2c2e;padding:10px 16px;"><textarea value="{{ f.mods }}" onChange="{{ fMods }}" placeholder="What did you change? E.g. added D-rings, shortened sleeves" rows="2" style="display:block;width:100%;box-sizing:border-box;background:none;border:0;padding:0;font-size:17px;line-height:1.47;color:#f5f5f7;resize:none;outline:none;"></textarea></div></sc-if>
+          <div onClick="{{ fShToggle }}" style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;"><span style="display:flex;flex-direction:column;"><span>Second-hand</span><span style="font-size:12px;color:#a1a1a6;letter-spacing:-0.12px;">Bought pre-loved</span></span><span style="width:51px;height:31px;border-radius:9999px;background:{{ fShTrack }};position:relative;flex:none;transition:background .25s;"><span style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:9999px;background:#fff;transform:translateX({{ fShKnob }});transition:transform .3s cubic-bezier(.2,.8,.2,1);"></span></span></div>
+          <sc-if value="{{ f.secondHand }}" hint-placeholder-val="{{ false }}"><div style="background:#2c2c2e;padding:10px 16px;display:flex;flex-direction:column;gap:10px;"><div style="display:flex;align-items:center;gap:12px;"><span style="flex:none;width:96px;color:#a1a1a6;">Bought from</span><input value="{{ f.boughtFrom }}" onChange="{{ fFrom }}" placeholder="Person or site (only you see this)" style="flex:1;min-width:0;background:none;border:0;font-size:17px;color:#f5f5f7;padding:0;outline:none;"></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><sc-for list="{{ condChips }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;background:{{ c.bg }};color:{{ c.color }};" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div></div></sc-if>
+          <div onClick="{{ fBuToggle }}" style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;"><span style="display:flex;flex-direction:column;"><span>Unknown brand</span><span style="font-size:12px;color:#a1a1a6;letter-spacing:-0.12px;">Don’t know who made it</span></span><span style="width:51px;height:31px;border-radius:9999px;background:{{ fBuTrack }};position:relative;flex:none;transition:background .25s;"><span style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:9999px;background:#fff;transform:translateX({{ fBuKnob }});transition:transform .3s cubic-bezier(.2,.8,.2,1);"></span></span></div>
+          <div onClick="{{ fPuToggle }}" style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;"><span style="display:flex;flex-direction:column;"><span>I don’t remember the price</span><span style="font-size:12px;color:#a1a1a6;letter-spacing:-0.12px;">Left out of totals and budget</span></span><span style="width:51px;height:31px;border-radius:9999px;background:{{ fPuTrack }};position:relative;flex:none;transition:background .25s;"><span style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:9999px;background:#fff;transform:translateX({{ fPuKnob }});transition:transform .3s cubic-bezier(.2,.8,.2,1);"></span></span></div>
+          <sc-if value="{{ fApShow }}" hint-placeholder-val="{{ false }}"><div onClick="{{ fApToggle }}" style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;"><span style="display:flex;flex-direction:column;"><span>Rough price</span><span style="font-size:12px;color:#a1a1a6;letter-spacing:-0.12px;">The price above is an estimate</span></span><span style="width:51px;height:31px;border-radius:9999px;background:{{ fApTrack }};position:relative;flex:none;transition:background .25s;"><span style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:9999px;background:#fff;transform:translateX({{ fApKnob }});transition:transform .3s cubic-bezier(.2,.8,.2,1);"></span></span></div></sc-if>
+          <div style="background:#2c2c2e;padding:10px 16px;display:flex;flex-direction:column;gap:8px;"><span style="display:flex;flex-direction:column;"><span>When did you get it?</span><span style="font-size:12px;color:#a1a1a6;letter-spacing:-0.12px;">{{ fGotSub }}</span></span><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><input type="month" value="{{ f.gotMonth }}" onChange="{{ fGotMonth }}" max="{{ fGotMax }}" style="background:#1c1c1e;border:0;border-radius:8px;padding:6px 10px;font-size:15px;color:#f5f5f7;color-scheme:dark;"><button onClick="{{ fGotBefore }}" style="border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;background:{{ fBeforeBg }};color:{{ fBeforeFg }};" style-active="transform:scale(0.95);">Before GearWatch</button></div></div>
+        </div></sc-if>
+      </sc-if>
       <sc-if value="{{ fBudgetShow }}" hint-placeholder-val="{{ false }}">
         <div data-anim="up" onClick="{{ fBudgetToggle }}" style="margin:12px 16px 0;background:#2c2c2e;border-radius:18px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;">
           <span style="display:flex;flex-direction:column;"><span>Count in budget</span><span style="font-size:12px;color:#a1a1a6;letter-spacing:-0.12px;">Turn on if you just bought it</span></span>
@@ -2477,9 +2491,9 @@ class Component extends DCLogic {
   stars(r) { return [1, 2, 3, 4, 5].map(n => ({ fill: n <= r ? ACC : '#48484a' })); }
   vm(it, rank) {
     const e = eurOf(it), dr = dropOf(it), ph = it.photos || [];
-    return { id: it.id, rank, name: it.name, brand: it.brand || 'No brand', meta: [it.brand, it.category].filter(Boolean).join(' · '),
+    return { id: it.id, rank, name: it.name, brand: it.brandUnknown ? 'Unknown brand' : it.brand || (it.handmade ? 'Handmade' : 'No brand'), meta: [it.brand, it.category].filter(Boolean).join(' · '),
       photo: ph[0] || '', hasPhoto: !!ph.length, noPhoto: !ph.length, initial: (it.name || '?').charAt(0).toUpperCase(),
-      priceTxt: it.price == null ? 'No price' : money(it.currency, it.price), eurTxt: it.price != null && it.currency !== '€' ? '≈ €' + Math.round(e) : '',
+      priceTxt: it.priceUnknown ? 'Price unknown' : it.price == null ? 'No price' : (it.approx ? '≈ ' : '') + money(it.currency, it.price), eurTxt: it.price != null && it.currency !== '€' ? '≈ €' + Math.round(e) : '',
       stars: this.stars(it.rating), drop: dr > 0, dropTxt: '−' + Math.round(dr * 100) + '%', onOpen: () => this.openDetail(it.id) };
   }
   carGo(i) { const el = this.carRef.current; if (!el) return; const n = el.children.length, j = Math.max(0, Math.min(n - 1, i)); el.scrollTo({ left: j * el.clientWidth, behavior: this.reduce ? 'auto' : 'smooth' }); this.setState({ photoIdx: j }); }
@@ -2538,10 +2552,10 @@ class Component extends DCLogic {
   fval(vals, id) { const v = vals[id]; if (v == null) return null; if (id === 'shoe') return { v: String(v), u: 'EU' }; return this.state.unit === 'in' ? { v: (v / 2.54).toFixed(1), u: 'in' } : { v: String(Math.round(v * 10) / 10), u: 'cm' }; }
   setF(k, v) { this.setState(s => ({ form: Object.assign({}, s.form, { [k]: v }) })); }
   openForm(it, status) {
-    const f = it ? { id: it.id, url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, rec: it.rec || 0, notes: it.notes || '', zip: it.zip || '', status: it.status, origs: (it.origs || []).slice(), photos: (it.photos || []).slice() }
-      : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: '€', size: '', colour: '', m2m: false, rating: 3, rec: 0, notes: '', zip: '', origs: [], photos: [], status: status || 'wanted' };
+    const f = it ? { id: it.id, url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, rec: it.rec || 0, notes: it.notes || '', zip: it.zip || '', handmade: !!it.handmade, modified: !!it.modified, mods: it.mods || '', secondHand: !!it.secondHand, boughtFrom: it.boughtFrom || '', condition: it.condition || '', brandUnknown: !!it.brandUnknown, priceUnknown: !!it.priceUnknown, approx: !!it.approx, gotMonth: it.gotMonth || '', preGw: !!it.preGw, status: it.status, origs: (it.origs || []).slice(), photos: (it.photos || []).slice() }
+      : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: '€', size: '', colour: '', m2m: false, rating: 3, rec: 0, notes: '', zip: '', handmade: false, modified: false, mods: '', secondHand: false, boughtFrom: '', condition: '', brandUnknown: false, priceUnknown: false, approx: false, gotMonth: '', preGw: false, origs: [], photos: [], status: status || 'wanted' };
     f.found = [];
-    this.setState({ sheet: 'form', form: f, fetchMsg: '', fetching: false, newCatOpen: false, sizeOpen: false });
+    this.setState({ sheet: 'form', form: f, moreOpen: false, fetchMsg: '', fetching: false, newCatOpen: false, sizeOpen: false });
   }
   async fillFromLink() {
     const raw = (this.state.form.url || '').trim(); if (!raw) { this.setState({ fetchMsg: 'Paste a link first.' }); return; }
@@ -2567,17 +2581,17 @@ class Component extends DCLogic {
   saveForm() {
     const f = this.state.form; if (!f.name.trim()) return;
     const pr = f.price.trim() === '' ? null : parseFloat(f.price.replace(',', '.'));
-    const price = pr == null || isNaN(pr) ? null : pr, t = todayISO();
+    const price = f.priceUnknown || pr == null || isNaN(pr) ? null : pr, t = todayISO(), ownedD = f.gotMonth && !f.preGw ? f.gotMonth + '-01' : t;
     const photos = (f.found || []).filter(x => x.on).map(x => x.src).concat(f.photos || []);
     const size = f.m2m ? 'Made to measure' : (f.size === 'Made to measure' ? '' : f.size);
-    const base = { url: f.url.trim(), name: f.name.trim(), brand: f.brand.trim(), category: f.category, currency: f.currency, size, colour: f.colour, m2m: f.m2m, rating: f.rating, rec: f.rec || 0, notes: (f.notes || '').trim(), zip: ZIP_CATS.includes(f.category) ? f.zip || '' : '', origs: (f.origs || []).filter(x => photos.includes(x.c)), photos };
+    const base = { url: f.url.trim(), name: f.name.trim(), brand: f.brand.trim(), category: f.category, currency: f.currency, size, colour: f.colour, m2m: f.m2m, rating: f.rating, rec: f.rec || 0, notes: (f.notes || '').trim(), zip: ZIP_CATS.includes(f.category) ? f.zip || '' : '', handmade: !!f.handmade, modified: !!f.modified, mods: f.modified ? (f.mods || '').trim() : '', secondHand: !!f.secondHand, boughtFrom: f.secondHand ? (f.boughtFrom || '').trim() : '', condition: f.secondHand ? f.condition || '' : '', brandUnknown: !!f.brandUnknown, priceUnknown: !!f.priceUnknown, approx: !f.priceUnknown && !!f.approx, gotMonth: f.preGw ? '' : f.gotMonth || '', preGw: !!f.preGw, origs: (f.origs || []).filter(x => photos.includes(x.c)), photos };
     const isNew = !f.id;
     this.closeSheet(() => {
       this.mutate(p => {
         if (!isNew) { const it = p.items.find(x => x.id === f.id); if (!it) return;
           if (price != null && (price !== it.price || f.currency !== it.currency)) { it.history = (it.history || []).filter(h => h.date !== t); if (f.currency !== it.currency) it.history = []; it.history.push({ date: t, price }); }
-          Object.assign(it, base, { price }); }
-        else if (f.status === 'owned') p.items.push(Object.assign({ id: uid(), status: 'owned', added: t, ownedOn: t, history: [] }, base, { price, paid: price, paidCur: f.currency }, f.countBudget ? { orderedOn: t } : { noBudget: true }));
+          Object.assign(it, base, { price }); if (it.status === 'owned' && f.gotMonth && !f.preGw) it.ownedOn = f.gotMonth + '-01'; }
+        else if (f.status === 'owned') p.items.push(Object.assign({ id: uid(), status: 'owned', added: t, ownedOn: ownedD, history: [] }, base, { price, paid: price, paidCur: f.currency }, f.countBudget ? { orderedOn: t } : { noBudget: true }));
         else p.items.push(Object.assign({ id: uid(), status: 'wanted', added: t, history: price != null ? [{ date: t, price }] : [] }, base, { price }));
       });
       this.toast(isNew ? (f.status === 'owned' ? 'Added to your collection' : 'Added to your wishlist') : 'Saved');
@@ -2634,7 +2648,7 @@ class Component extends DCLogic {
     const onWay = onWayIt.map(it => Object.assign(this.vm(it), {
       orderedTxt: 'Ordered ' + fmtD(it.orderedOn) + (it.paid != null ? ' · ' + money(it.paidCur || '€', it.paid) + ' paid' : ''),
       onReceived: e => { const row = e.currentTarget.closest('[data-row]'); this.animOut(row, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(60px)' }], 300, () => { this.setStatus(it.id, 'owned'); this.toast('Moved to Owned'); }); } }));
-    const owned = ownedIt.map(it => Object.assign(this.vm(it), { ownSub: [it.brand, it.size && it.size !== 'Made to measure' ? 'Size ' + it.size : it.size].filter(Boolean).join(' · ') }));
+    const owned = ownedIt.map(it => Object.assign(this.vm(it), { ownSub: [it.brandUnknown ? 'Unknown brand' : it.brand, it.secondHand ? 'Pre-loved' : '', it.size && it.size !== 'Made to measure' ? 'Size ' + it.size : it.size].filter(Boolean).join(' · ') }));
     const custom = st.data.collCats || [], gOf = it => cgroupOf(it, custom);
     const GALL = CGROUPS.filter(g => g !== 'Other').concat(custom.filter(c => !CGROUPS.includes(c)), ['Other']);
     const outfits = p.outfits || [], byId = {}; p.items.forEach(i => { byId[i.id] = i; });
@@ -2647,7 +2661,7 @@ class Component extends DCLogic {
     const unsure = p.items.filter(i => (i.status === 'owned' || i.status === 'ordered') && !gOf(i));
     const gm = new Map(GALL.map(g => [g, []]));
     ownedIt.forEach(it => { const g = gOf(it) || 'Other'; if (!gm.has(g)) gm.set(g, []); gm.get(g).push(it); });
-    const collGroups = Array.from(gm.entries()).filter(e => e[1].length).map(([title, a]) => ({ title, count: String(a.length), items: a.map(it => { const n = inOut(it.id); return Object.assign(this.vm(it), { ownSub: [it.brand, it.size && it.size !== 'Made to measure' ? 'Size ' + it.size : it.size].filter(Boolean).join(' · ') || 'No details', paidTxt: it.paid != null ? money(it.paidCur || '€', it.paid) : it.price != null ? money(it.currency, it.price) : '', inOutfits: n > 0, outfitTxt: 'In ' + plural(n, 'outfit') }); }) }));
+    const collGroups = Array.from(gm.entries()).filter(e => e[1].length).map(([title, a]) => ({ title, count: String(a.length), items: a.map(it => { const n = inOut(it.id); return Object.assign(this.vm(it), { ownSub: [it.brandUnknown ? 'Unknown brand' : it.brand, it.secondHand ? 'Pre-loved' : '', it.size && it.size !== 'Made to measure' ? 'Size ' + it.size : it.size].filter(Boolean).join(' · ') || 'No details', paidTxt: it.paid != null ? money(it.paidCur || '€', it.paid) : it.price != null ? money(it.currency, it.price) : '', inOutfits: n > 0, outfitTxt: 'In ' + plural(n, 'outfit') }); }) }));
     const ovO = st.outfit ? outfits.find(o => o.id === st.outfit) : null;
     let ov = { photos: [], board: [], pieces: [] };
     if (ovO) { const its = oItems(ovO), ph = ovO.photos || [], worn = ovO.worn || [], today = todayISO(), wt = worn.includes(today), val = oValue(its);
@@ -2784,10 +2798,10 @@ class Component extends DCLogic {
     if (fU) { const ft = st.friendTab || 'wish', W = fL.wish || [], C = fL.coll || [], O = fL.outfits || [], all = W.concat(C), cg = new Map();
       const FI = st.fItem ? (st.fItem.kind === 'coll' ? C : W).find(x => x.id === st.fItem.id) : null;
       if (FI) { const isW = st.fItem.kind !== 'coll', have = mineKey.has(fKey(FI)), phs = (FI.ph || []), host = (() => { try { return new URL(FI.u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } })();
-        const rows = [['Brand', FI.b], ['Category', FI.g || FI.cat], ['Size', FI.m ? 'Made to measure' : FI.s], ['Colour', FI.co], ['Entry', FI.z], ['Status', isW ? '' : FI.ow ? 'On the way' : 'Owned'], [isW ? 'Added' : 'Since', isW ? (FI.a ? fmtD(FI.a) : '') : (FI.o ? fmtD(FI.o) : '')]].filter(r => r[1]).map(([k, v]) => ({ k, v: String(v) }));
+        const rows = [['Brand', FI.b], ['Category', FI.g || FI.cat], ['Size', FI.m ? 'Made to measure' : FI.s], ['Colour', FI.co], ['Entry', FI.z], ['Handmade', FI.hm ? 'Yes' : ''], ['Second-hand', FI.sh ? (FI.cnd || 'Yes') : ''], ['Modified', FI.md ? (FI.md === 1 ? 'Yes' : FI.md) : ''], ['Status', isW ? '' : FI.ow ? 'On the way' : 'Owned'], [isW ? 'Added' : 'Since', isW ? (FI.a ? fmtD(FI.a) : '') : FI.pre ? 'Before GearWatch' : (FI.o ? fmtD(FI.o) : '')]].filter(r => r[1]).map(([k, v]) => ({ k, v: String(v) }));
         fi = { back: st.fFromFeed && !st.fOutfit ? 'Feed' : st.fOutfit ? 'Outfit' : '@' + fU.username, kicker: isW ? 'On their wishlist' : 'In their collection', name: FI.n, initial: ini(FI.n), photos: phs.map(src => ({ src })), hasPhotos: phs.length > 0, noPhotos: !phs.length, multi: phs.length > 1, counter: ((st.fiIdx || 0) + 1) + ' / ' + phs.length,
           onScroll: e => { const el = e.currentTarget, k = Math.round(el.scrollLeft / el.clientWidth); if (k !== (st.fiIdx || 0)) this.setState({ fiIdx: k }); },
-          price: FI.p == null ? '' : money(FI.c || '€', FI.p), hasPrice: FI.p != null, hasStars: isW ? !!FI.r : !!FI.rc, stars: this.stars((isW ? FI.r : FI.rc) || 0), starsLbl: isW ? 'How much they want it' : 'Recommends it', rows, hasRows: rows.length > 0,
+          price: FI.pu ? 'Price unknown' : FI.p == null ? '' : (FI.ap ? '≈ ' : '') + money(FI.c || '€', FI.p), hasPrice: FI.p != null || !!FI.pu, hasStars: isW ? !!FI.r : !!FI.rc, stars: this.stars((isW ? FI.r : FI.rc) || 0), starsLbl: isW ? 'How much they want it' : 'Recommends it', rows, hasRows: rows.length > 0,
           url: FI.u || '', hasUrl: !!host, host, addLabel: have ? 'On your list' : 'Add to my wishlist', addBg: have ? '#1c1c1e' : ACC, addFg: have ? '#6e6e73' : '#000',
           onAdd: e => { if (have) return; this.bump(e.currentTarget, 1.04); addF(FI); }, onBack: () => this.closeFItem(),
           onZoom: () => this.openViewer(phs, st.fiIdx || 0, i => { const el = this.fiCarRef.current; if (el) el.scrollTo({ left: i * el.clientWidth }); this.setState({ fiIdx: i }); }) }; }
@@ -2846,9 +2860,11 @@ class Component extends DCLogic {
         histPts = pts.map(q => q.join(',')).join(' '); histX = pts[pts.length - 1][0]; histY = pts[pts.length - 1][1]; }
       const rows = [{ k: 'Size', v: dIt.size || '—' }, { k: 'Colour', v: dIt.colour || '—' }, { k: 'Made to measure', v: dIt.m2m ? 'Yes' : 'No' }];
       if (dIt.zip && ZIP_CATS.includes(dIt.category)) rows.push({ k: 'Entry', v: dIt.zip });
+      if (dIt.brandUnknown) rows.push({ k: 'Brand', v: 'Unknown' }); if (dIt.secondHand) rows.push({ k: 'Second-hand', v: [dIt.condition, dIt.boughtFrom ? 'from ' + dIt.boughtFrom : ''].filter(Boolean).join(' · ') || 'Yes' }); if (dIt.preGw) rows.push({ k: 'Got it', v: 'Before GearWatch' }); else if (dIt.gotMonth) { const gm = dIt.gotMonth.split('-'); rows.push({ k: 'Got it', v: MON[+gm[1] - 1] + ' ' + gm[0] }); }
+      if (dIt.handmade) rows.push({ k: 'Handmade', v: 'Yes' }); if (dIt.modified) rows.push({ k: 'Modified', v: dIt.mods || 'Yes' });
       if (dIt.added) rows.push({ k: 'On your list since', v: fmtD(dIt.added) });
       d = Object.assign({}, v, {
-        priceEl: dIt.price == null ? 'No price' : React.createElement(CountUp, { value: dIt.price, prefix: dIt.currency, dec: dIt.price % 1 ? 2 : 0, from: 0, dur: 900 }),
+        priceEl: dIt.priceUnknown ? 'Price unknown' : dIt.price == null ? 'No price' : dIt.approx ? '≈ ' + money(dIt.currency, dIt.price) : React.createElement(CountUp, { value: dIt.price, prefix: dIt.currency, dec: dIt.price % 1 ? 2 : 0, from: 0, dur: 900 }),
         photos: ph.map(src => ({ src })), hasPhotos: !!ph.length, noPhotos: !ph.length, multi: ph.length > 1,
         canPrev: st.photoIdx > 0, canNext: st.photoIdx < ph.length - 1,
         dots: ph.map((_, i) => ({ onTap: () => this.carGo(i), bg: i === st.photoIdx ? '#f5f5f7' : 'rgba(245,245,247,0.4)', w: i === st.photoIdx ? '18px' : '7px' })),
@@ -3053,7 +3069,16 @@ class Component extends DCLogic {
       fillFromLink: e => { this.bump(e.currentTarget, 1.08); this.fillFromLink(); }, toggleM2M: () => this.setF('m2m', !f.m2m),
       m2mTrack: f.m2m ? ACC : '#39393d', m2mKnob: f.m2m ? '20px' : '0px',
       fZipShow: ZIP_CATS.includes(f.category), zipChips: ZIPS.map(z => ({ label: z, bg: f.zip === z ? ACC : '#2c2c2e', color: f.zip === z ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.08); this.setF('zip', f.zip === z ? '' : z); } })),
-      fBudgetShow: !f.id && f.status === 'owned' && !!bi, fBudgetToggle: () => this.setF('countBudget', !f.countBudget), fbTrack: f.countBudget ? ACC : '#39393d', fbKnob: f.countBudget ? '20px' : '0px',
+      fBudgetShow: !f.id && f.status === 'owned' && !!bi,
+      fCollShow: f.status === 'owned' || f.status === 'ordered', fMoreOpen: !!st.moreOpen, fMoreRot: st.moreOpen ? '180deg' : '0deg', fMoreToggle: () => this.setState({ moreOpen: !st.moreOpen }),
+      fMoreSub: [f.handmade ? 'Handmade' : '', f.modified ? 'Modified' : '', f.secondHand ? 'Second-hand' : '', f.brandUnknown ? 'Unknown brand' : '', f.priceUnknown ? 'Price unknown' : f.approx ? 'Rough price' : '', f.preGw ? 'Before GearWatch' : f.gotMonth ? 'Got ' + f.gotMonth : ''].filter(Boolean).join(' · ') || 'Handmade, modified, second-hand, when you got it', fHmToggle: () => this.setF('handmade', !f.handmade), fHmTrack: f.handmade ? ACC : '#39393d', fHmKnob: f.handmade ? '20px' : '0px', fMdToggle: () => this.setF('modified', !f.modified), fMdTrack: f.modified ? ACC : '#39393d', fMdKnob: f.modified ? '20px' : '0px', fMods: e => this.setF('mods', e.target.value),
+      fShToggle: () => this.setF('secondHand', !f.secondHand), fShTrack: f.secondHand ? ACC : '#39393d', fShKnob: f.secondHand ? '20px' : '0px', fFrom: e => this.setF('boughtFrom', e.target.value),
+      condChips: ['Like new', 'Good', 'Worn'].map(c => ({ label: c, bg: f.condition === c ? ACC : '#1c1c1e', color: f.condition === c ? '#000' : '#f5f5f7', onTap: () => this.setF('condition', f.condition === c ? '' : c) })),
+      fBuToggle: () => this.setF('brandUnknown', !f.brandUnknown), fBuTrack: f.brandUnknown ? ACC : '#39393d', fBuKnob: f.brandUnknown ? '20px' : '0px',
+      fPuToggle: () => this.setF('priceUnknown', !f.priceUnknown), fPuTrack: f.priceUnknown ? ACC : '#39393d', fPuKnob: f.priceUnknown ? '20px' : '0px', fApShow: !f.priceUnknown,
+      fApToggle: () => this.setF('approx', !f.approx), fApTrack: f.approx ? ACC : '#39393d', fApKnob: f.approx ? '20px' : '0px',
+      fGotMonth: e => { this.setF('gotMonth', e.target.value); this.setF('preGw', false); }, fGotMax: todayISO().slice(0, 7), fGotBefore: () => { const on = !f.preGw; this.setF('preGw', on); if (on) this.setF('gotMonth', ''); },
+      fBeforeBg: f.preGw ? ACC : '#1c1c1e', fBeforeFg: f.preGw ? '#000' : '#f5f5f7', fGotSub: f.preGw ? 'Had it before GearWatch. It won’t show up as new in the feed.' : f.gotMonth ? 'Shows as “Since” that month.' : 'Leave empty if you just got it.', fBudgetToggle: () => this.setF('countBudget', !f.countBudget), fbTrack: f.countBudget ? ACC : '#39393d', fbKnob: f.countBudget ? '20px' : '0px',
       curTabs: CURS.map(c => ({ label: c, bg: f.currency === c ? '#636366' : 'transparent', onTap: () => this.setF('currency', c) })),
       newCatOpen: !!st.newCatOpen, newCat: st.newCat || '',
       onNewCat: e => this.setState({ newCat: e.target.value }),
