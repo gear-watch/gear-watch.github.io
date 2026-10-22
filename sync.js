@@ -71,12 +71,14 @@
   }
   function schedule(ms) { clearTimeout(timer); timer = setTimeout(sync, ms == null ? 1500 : ms); }
 
+  let upFails = 0;
   async function uploadPhotos(gw, uid) {
+    upFails = 0;
     const up = async src => {
       if (!/^data:image\//.test(src || '')) return src;
       const blob = await (await fetch(src)).blob(), ext = (blob.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg'), path = uid + '/' + hash(src) + '.' + ext;
       const r = await sb.storage.from('photos').upload(path, blob, { contentType: blob.type, upsert: false, cacheControl: '31536000' });
-      if (r.error && !/exist|duplicate/i.test(r.error.message || '')) throw r.error;
+      if (r.error && !/exist|duplicate/i.test(r.error.message || '')) { console.warn('photo upload failed', r.error.message); upFails++; return src; }
       return sb.storage.from('photos').getPublicUrl(path).data.publicUrl;
     };
     for (const p of gw.profiles || []) {
@@ -125,7 +127,7 @@
         await sb.from('public_lists').upsert({ user_id: uid, list: publicList(gw), updated_at: now });
         setMeta({ uid, base: gw.mod, flHash: hash(fl) });
       }
-      if (action === 'none' || action === 'pull') { try { const pl = publicList(host.get()), ph = hash(JSON.stringify(pl)); if (localStorage.getItem('gearwatch.plhash.' + uid) !== ph && !JSON.stringify(pl).includes('data:image')) { const r2 = await sb.from('public_lists').upsert({ user_id: uid, list: pl, updated_at: new Date().toISOString() }); if (!r2.error) localStorage.setItem('gearwatch.plhash.' + uid, ph); } } catch (e) {} }
+      if (action === 'none' || action === 'pull') { try { const pl = publicList(host.get()), ph = hash(JSON.stringify(pl)); if (localStorage.getItem('gearwatch.plhash.' + uid) !== ph && !JSON.stringify(((host.get().profiles || []).find(x => x.id === host.get().activeId) || {}).items || []).includes('"data:image')) { const r2 = await sb.from('public_lists').upsert({ user_id: uid, list: pl, updated_at: new Date().toISOString() }); if (!r2.error) localStorage.setItem('gearwatch.plhash.' + uid, ph); } } catch (e) {} }
       set({ status: 'synced', lastSync: Date.now() });
     } catch (e) { set({ status: navigator.onLine ? 'error' : 'offline', error: (e && e.message) || 'Sync failed' }); }
     busy = false; if (again) { again = false; schedule(500); }

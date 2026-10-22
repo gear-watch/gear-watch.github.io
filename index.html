@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=21"></script>
+<script src="./sync.js?v=23"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -518,7 +518,7 @@ input::placeholder{color:#6e6e73;}
               <sc-if value="{{ c.single }}" hint-placeholder-val="{{ true }}">
                 <div onClick="{{ c.onOpen }}" style="cursor:pointer;">
                   <sc-if value="{{ c.hasImg }}" hint-placeholder-val="{{ true }}"><img src="{{ c.img }}" alt="" style="display:block;width:100%;aspect-ratio:4/5;max-height:440px;object-fit:cover;object-position:top;background:#2c2c2e;"></sc-if>
-                  <sc-if value="{{ c.noImg }}" hint-placeholder-val="{{ false }}"><div style="aspect-ratio:16/9;background:#2c2c2e;display:grid;place-items:center;font-family:var(--font-display);font-size:40px;font-weight:600;color:#48484a;">{{ c.itemInitial }}</div></sc-if>
+                  <sc-if value="{{ c.noImg }}" hint-placeholder-val="{{ false }}"><div style="height:96px;background:#2c2c2e;display:flex;align-items:center;justify-content:center;gap:10px;color:#6e6e73;font-size:14px;letter-spacing:-0.224px;"><span style="font-family:var(--font-display);font-size:28px;font-weight:600;color:#48484a;">{{ c.itemInitial }}</span><span>No photo yet</span></div></sc-if>
                 </div>
                 <div style="display:flex;align-items:center;gap:12px;padding:12px 16px 14px;">
                   <span onClick="{{ c.onOpen }}" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;cursor:pointer;"><span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.title }}</span><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.sub }}</span></span>
@@ -2159,7 +2159,7 @@ class Component extends DCLogic {
     this.t4 = setTimeout(() => this.animOut(this.toastRef.current, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(16px) scale(.9)' }], 260, () => this.setState({ toast: null })), 2600);
   }
 
-  save(data, quiet) { if (!quiet) data.mod = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} this.setState({ data }); if (!quiet && window.GWSync) window.GWSync.schedule(); }
+  save(data, quiet) { if (!quiet) data.mod = Date.now(); let full = false; try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { full = true; } this.setState({ data }); if (!quiet && window.GWSync) window.GWSync.schedule(full ? 0 : undefined); if (full && !quiet) { const A = this.state.acct || {}; this.toast(A.user ? 'Phone storage is full. Uploading your photos now, keep the app open for a moment.' : 'Phone storage is full. Sign in so photos can be saved online.'); } }
   loadSocial(quiet, manual) { const G = window.GWSync, A0 = G && G.state ? G.state() : null, A = A0 && A0.user ? A0 : this.state.acct; if (!G || !A || !A.user) { if (manual) this.toast('Sign in to see friends'); return false; }
     if (this.socLoading && !manual && Date.now() - (this.socStart || 0) < 15000) return false;
     const tok = (this.socTok = (this.socTok || 0) + 1), uid = A.user.id; this.socLoading = true; this.socStart = Date.now(); if (!quiet) this.setState({ socialBusy: true });
