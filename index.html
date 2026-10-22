@@ -1111,7 +1111,7 @@ input::placeholder{color:#6e6e73;}
       <span data-sv-spin="1" style="position:absolute;left:50%;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:9999px;border:2.5px solid rgba(245,245,247,0.25);border-top-color:#f5f5f7;display:none;z-index:1;"></span><sc-if value="{{ sv.isImg }}" hint-placeholder-val="{{ false }}"><img data-sv-img="1" src="{{ sv.src }}" alt="" draggable="false" style="position:absolute;inset:0;width:100%;height:100%;object-fit:{{ sv.fit }};filter:{{ sv.filter }};transition:filter .3s;pointer-events:none;"></sc-if>
       <sc-if value="{{ sv.isVid }}" hint-placeholder-val="{{ false }}"><video data-sv-video="1" src="{{ sv.src }}" playsInline="{{ true }}" webkit-playsinline="true" autoplay="{{ true }}" muted="{{ true }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:{{ sv.fit }};filter:{{ sv.filter }};pointer-events:none;"></video></sc-if>
       <sc-if value="{{ sv.showPins }}" hint-placeholder-val="{{ false }}"><sc-for list="{{ sv.pins }}" as="t" hint-placeholder-count="0"><button data-sv-ui="1" onClick="{{ t.onTap }}" style="position:absolute;left:{{ t.x }};top:{{ t.y }};transform:translate(-50%,-6px);border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;z-index:2;opacity:{{ sv.chromeOp }};transition:opacity .2s;"><span style="width:12px;height:12px;border-radius:9999px;background:#f5f5f7;box-shadow:0 0 0 3px rgba(0,0,0,0.35);"></span><span style="background:rgba(28,28,30,0.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:#f5f5f7;border-radius:9999px;padding:4px 10px;font-size:12px;font-weight:600;white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis;">{{ t.name }}</span></button></sc-for></sc-if>
-      <sc-for list="{{ sv.texts }}" as="x" hint-placeholder-count="0"><span style="position:absolute;left:{{ x.x }};top:{{ x.y }};transform:translate(-50%,-50%);max-width:{{ x.mw }};font-size:{{ x.fs }};font-weight:600;line-height:1.2;text-align:center;padding:0.25em 0.5em;border-radius:0.45em;background:{{ x.bg }};color:{{ x.fg }};text-shadow:{{ x.sh }};overflow-wrap:anywhere;white-space:pre-wrap;pointer-events:none;z-index:1;">{{ x.t }}</span></sc-for>
+      <sc-for list="{{ sv.texts }}" as="x" hint-placeholder-count="0"><span data-sv-after="1" style="opacity:0;transition:opacity .25s;position:absolute;left:{{ x.x }};top:{{ x.y }};transform:translate(-50%,-50%);max-width:{{ x.mw }};font-size:{{ x.fs }};font-weight:600;line-height:1.2;text-align:center;padding:0.25em 0.5em;border-radius:0.45em;background:{{ x.bg }};color:{{ x.fg }};text-shadow:{{ x.sh }};overflow-wrap:anywhere;white-space:pre-wrap;pointer-events:none;z-index:1;">{{ x.t }}</span></sc-for>
       <sc-if value="{{ sv.blurred }}" hint-placeholder-val="{{ false }}"><div data-sv-ui="1" style="position:absolute;inset:0;display:grid;place-items:center;"><button onClick="{{ sv.onReveal }}" style="border:0;background:rgba(28,28,30,0.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:#f5f5f7;border-radius:9999px;padding:12px 20px;font-size:17px;font-weight:600;cursor:pointer;display:flex;gap:8px;align-items:center;" style-active="transform:scale(0.95);"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1.5 10S4.5 4 10 4s8.5 6 8.5 6-3 6-8.5 6S1.5 10 1.5 10z"></path><circle cx="10" cy="10" r="2.6"></circle></svg><span>Tap to show</span></button></div></sc-if>
     </div>
     <div style="position:absolute;left:0;right:0;top:0;padding:8px 8px 0;padding-top:{{ fvTop }};display:flex;flex-direction:column;gap:10px;pointer-events:none;opacity:{{ sv.chromeOp }};transition:opacity .2s;">
@@ -1132,7 +1132,7 @@ input::placeholder{color:#6e6e73;}
           <sc-for list="{{ sv.pollOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onTap }}" style="position:relative;overflow:hidden;border:0;background:#2c2c2e;color:#f5f5f7;border-radius:8px;padding:10px 12px;font-size:14px;cursor:pointer;text-align:left;display:flex;justify-content:space-between;gap:12px;box-shadow:{{ o.ring }};" style-active="transform:scale(0.97);"><span style="position:absolute;left:0;top:0;bottom:0;width:{{ o.w }};background:rgba(255,214,10,0.28);transition:width .4s;"></span><span style="position:relative;">{{ o.label }}</span><span style="position:relative;font-weight:600;">{{ o.pct }}</span></button></sc-for>
         </div>
       </sc-if>
-      <sc-if value="{{ sv.hasCaption }}" hint-placeholder-val="{{ false }}"><div style="align-self:flex-start;max-width:100%;background:{{ sv.capBg }};color:{{ sv.capFg }};backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-radius:12px;padding:8px 12px;font-size:17px;line-height:1.35;text-wrap:pretty;overflow-wrap:anywhere;">{{ sv.caption }}</div></sc-if>
+      <sc-if value="{{ sv.hasCaption }}" hint-placeholder-val="{{ false }}"><div data-sv-after="1" style="opacity:0;transition:opacity .25s;align-self:flex-start;max-width:100%;background:{{ sv.capBg }};color:{{ sv.capFg }};backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-radius:12px;padding:8px 12px;font-size:17px;line-height:1.35;text-wrap:pretty;overflow-wrap:anywhere;">{{ sv.caption }}</div></sc-if>
       <sc-if value="{{ sv.hasItems }}" hint-placeholder-val="{{ false }}"><button onClick="{{ sv.openItems }}" style="pointer-events:auto;align-self:flex-start;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 14px 8px 12px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;" style-active="transform:scale(0.95);"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6a1.8 1.8 0 1 1 1.8-1.8c0 1-1.8 1.4-1.8 2.6v.6L17.6 13a1 1 0 0 1-.6 1.8H3a1 1 0 0 1-.6-1.8z"></path></svg><span>{{ sv.itemsLabel }}</span><span style="color:#a1a1a6;">›</span></button></sc-if>
     </div>
     <div data-sv-ui="1" style="position:absolute;left:0;right:0;bottom:0;padding:0 12px max(env(safe-area-inset-bottom), 16px);display:flex;flex-direction:column;gap:10px;">
@@ -1196,6 +1196,14 @@ input::placeholder{color:#6e6e73;}
     </div>
     <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:0 16px calc(max(env(safe-area-inset-bottom), 16px) + 24px);">
       <div style="max-width:648px;margin:0 auto;display:flex;flex-direction:column;">
+        <sc-if value="{{ push.showCard }}" hint-placeholder-val="{{ false }}">
+          <div data-anim="up" style="margin:4px 0 12px;background:#1c1c1e;border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+            <span style="width:36px;height:36px;border-radius:10px;background:#2c2c2e;color:var(--gw-accent,#ffd60a);display:grid;place-items:center;flex:none;"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8.5a5 5 0 0 1 10 0c0 4 1.5 5.5 1.5 5.5h-13S5 12.5 5 8.5z"></path><path d="M8.3 16.5a1.8 1.8 0 0 0 3.4 0"></path></svg></span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;">{{ push.cardTitle }}</span><span style="font-size:13px;color:#a1a1a6;line-height:1.38;text-wrap:pretty;">{{ push.cardSub }}</span></span>
+            <sc-if value="{{ push.canAsk }}" hint-placeholder-val="{{ false }}"><button onClick="{{ push.enable }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">{{ push.btnShort }}</button></sc-if>
+            <sc-if value="{{ push.on }}" hint-placeholder-val="{{ false }}"><button onClick="{{ push.disable }}" style="flex:none;border:0;background:#2c2c2e;color:#f5f5f7;border-radius:9999px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Turn off</button></sc-if>
+          </div>
+        </sc-if>
         <div style="display:flex;gap:8px;padding:4px 0 0;overflow-x:auto;scrollbar-width:none;">
           <sc-for list="{{ nt.chips }}" as="ch" hint-placeholder-count="4"><button onClick="{{ ch.onTap }}" style="flex:none;border:0;border-radius:9999px;padding:6px 12px;font-size:13px;font-family:inherit;cursor:pointer;color:#f5f5f7;font-weight:{{ ch.fw }};background:{{ ch.bg }};transition:background .2s;" style-active="transform:scale(0.95);">{{ ch.label }}</button></sc-for>
         </div>
@@ -2026,6 +2034,17 @@ input::placeholder{color:#6e6e73;}
         </div>
       </sc-if>
 
+      <sc-if value="{{ introPN }}" hint-placeholder-val="{{ false }}">
+        <div data-anim="right" data-delay="0" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 24px 8px;gap:8px;">
+          <span data-anim="pop" data-delay="100" style="width:56px;height:56px;border-radius:18px;background:#1c1c1e;color:var(--gw-accent,#ffd60a);display:grid;place-items:center;margin-bottom:12px;"><svg width="26" height="26" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8.5a5 5 0 0 1 10 0c0 4 1.5 5.5 1.5 5.5h-13S5 12.5 5 8.5z"></path><path d="M8.3 16.5a1.8 1.8 0 0 0 3.4 0"></path></svg></span>
+          <span data-anim="up" data-delay="200" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.12;letter-spacing:-0.374px;">Know when it happens.</span>
+          <span data-anim="up" data-delay="300" style="font-size:17px;color:#a1a1a6;line-height:1.41;text-wrap:pretty;">Get a notification when someone sends you a friend request, accepts yours, or reacts to and replies to your story.</span>
+          <sc-if value="{{ push.canAsk }}" hint-placeholder-val="{{ true }}"><button data-anim="scale" data-delay="400" onClick="{{ push.enable }}" style="align-self:flex-start;margin-top:16px;border:1px solid var(--gw-accent,#ffd60a);background:none;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:12px 20px;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">{{ push.btn }}</button></sc-if>
+          <sc-if value="{{ push.on }}" hint-placeholder-val="{{ false }}"><span data-anim="pop" data-delay="0" style="align-self:flex-start;margin-top:16px;display:flex;align-items:center;gap:8px;background:#1c1c1e;border-radius:9999px;padding:10px 16px;font-size:15px;font-weight:600;"><svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="#30d158" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg>Notifications are on</span></sc-if>
+          <sc-if value="{{ push.hasNote }}" hint-placeholder-val="{{ false }}"><span data-anim="up" data-delay="450" style="margin-top:12px;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;text-wrap:pretty;">{{ push.note }}</span></sc-if>
+        </div>
+      </sc-if>
+
       <sc-if value="{{ introP3 }}" hint-placeholder-val="{{ false }}">
         <div data-anim="right" data-delay="0" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 24px 8px;gap:8px;">
           <span data-anim="pop" data-delay="100" style="width:56px;height:56px;border-radius:18px;background:#1c1c1e;color:var(--gw-accent,#ffd60a);display:grid;place-items:center;margin-bottom:12px;font-family:var(--font-display);font-size:28px;font-weight:600;">€</span>
@@ -2385,6 +2404,7 @@ async function rawToJpeg(f) {
   if (!best) throw new Error('Couldn’t read that DNG');
   return new Blob([await f.slice(best.s, f.size).arrayBuffer()], { type: 'image/jpeg' });
 }
+const VAPID_PUB = (typeof window !== 'undefined' && window.GW_VAPID_PUBLIC) || 'BJ_SxtbTTYMLZJkxq_NRdgTcTpNG_50YYonGd3eD6TDd2uPFEaZ7tXuWfvs9GYDVxzULtw1yHc3KE3Z71BkoZmw';
 const IOSLIKE = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 async function readAll(files, max) { const out = []; for (const f of files) { let r = await readPhoto(f, max); if (!r) { await new Promise(z => setTimeout(z, 300)); r = await readPhoto(f, max); } out.push(r); await new Promise(z => setTimeout(z, 0)); } return out; }
 function readPhoto(file, max) { return rawToJpeg(file).then(f => readPhoto0(f, max)).catch(() => null); }
@@ -2476,6 +2496,8 @@ class Component extends DCLogic {
     const addFromHash = () => { const m = (location.hash || '').match(/[#&]add=([^&]+)/); if (!m) return; const name = decodeURIComponent(m[1]); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
       const A = window.GWSync && window.GWSync.state ? window.GWSync.state() : {}; if (A.user && A.firstDone && A.username) this.openPerson(name); else this.pendingAdd = name; };
     addFromHash();
+    const goNt = () => { if (/^#notifs\b/.test(location.hash || '')) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} this.setState({ tab: 'home', friend: null, detail: null }, () => setTimeout(() => this.openNt(), 120)); } }; goNt();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { const d = e.data || {}; if (d.type === 'gw-open' && d.url) { try { const h = new URL(d.url).hash; if (h) { location.hash = h; goNt(); } } catch (er) {} } });
     if (/^#meas\b/.test(location.hash || '')) { this.setState({ tab: 'meas' }); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
     this.onStor = e => { if (e.key === 'fitlog.v2') this.forceUpdate(); }; window.addEventListener('storage', this.onStor);
     this.onHash = () => { addFromHash(); const s2 = readShare(); this.setState({ shared: s2 && s2.n ? s2 : null }); this.loadShort(); }; window.addEventListener('hashchange', this.onHash);
@@ -2584,6 +2606,29 @@ class Component extends DCLogic {
     (S.list || []).filter(s => s.user_id === S.me && s.poll && (s.poll.opts || []).length).forEach(s => { const v = (S.votes || []).filter(x => x.story_id === s.id), counts = s.poll.opts.map((_, i) => v.filter(x => x.choice === i).length), o = { q: s.poll.q || '', opts: s.poll.opts, counts, exp: s.expires_at }; if (JSON.stringify(P[s.id]) !== JSON.stringify(o)) { P[s.id] = o; ch = true; } });
     const cut = Date.now() - 30 * 86400000; Object.keys(P).forEach(id => { if (new Date(P[id].exp || 0).getTime() < cut) { delete P[id]; ch = true; } });
     if (ch) { try { localStorage.setItem(k, JSON.stringify(P)); } catch (e) {} } this._polls = P; this._pollsFor = S.me; }
+  pushInfo() { const ok = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window, sa = !!(window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches));
+    const perm = ok ? Notification.permission : 'unsupported'; let on = false; try { on = localStorage.getItem('gw-push-on') === '1' && perm === 'granted'; } catch (e) {}
+    return { ok: ok && !!VAPID_PUB, needInstall: IOSLIKE && !sa, perm, on }; }
+  async enablePush(silent) { const I = this.pushInfo(), G = window.GWSync, A = (G && G.state && G.state()) || {};
+    if (I.needInstall) { if (!silent) this.toast('Add GearWatch to your Home Screen first'); return; }
+    if (!I.ok) { if (!silent) this.toast('This browser can’t show notifications'); return; }
+    if (this.state.pushBusy) return; this.setState({ pushBusy: true });
+    try { const perm = Notification.permission === 'granted' ? 'granted' : silent ? Notification.permission : await Notification.requestPermission();
+      if (perm !== 'granted') { if (!silent) this.toast(perm === 'denied' ? 'Notifications are blocked. Allow them in your settings.' : 'Notifications stay off'); this.setState({ pushBusy: false }); return; }
+      const reg = await Promise.race([navigator.serviceWorker.ready, new Promise((_, r) => setTimeout(() => r(new Error('sw')), 8000))]);
+      const key = (s => { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return Uint8Array.from(atob(s), c => c.charCodeAt(0)); })(VAPID_PUB);
+      const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }));
+      if (!A.user) { try { localStorage.setItem('gw-push-pending', '1'); localStorage.setItem('gw-push-on', '1'); } catch (e) {} if (!silent) this.toast('Notifications turn on once you sign in'); this.setState({ pushBusy: false }); return; }
+      await G.pushSave(sub.toJSON()); try { localStorage.setItem('gw-push-on', '1'); localStorage.removeItem('gw-push-pending'); } catch (e) {}
+      if (!silent) this.toast('Notifications are on'); } catch (e) { if (!silent) this.toast((e && e.message && e.message !== 'sw') ? e.message : 'Couldn’t turn on notifications'); }
+    this.setState({ pushBusy: false }); }
+  async disablePush() { try { const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription(); if (sub) { const G = window.GWSync; if (G && G.pushRemove) await G.pushRemove(sub.endpoint); await sub.unsubscribe(); } } catch (e) {} try { localStorage.removeItem('gw-push-on'); } catch (e) {} this.toast('Notifications are off'); this.forceUpdate(); }
+  pushVals(A) { const I = this.pushInfo(), busy = !!this.state.pushBusy, signed = !!(A && A.user);
+    let pend = false; try { pend = localStorage.getItem('gw-push-pending') === '1'; } catch (e) {} if (signed && pend && I.perm === 'granted' && !this._pushTry) { this._pushTry = true; setTimeout(() => this.enablePush(true), 400); }
+    const canAsk = I.ok && !I.needInstall && !I.on && I.perm !== 'denied';
+    const note = I.needInstall ? 'On iPhone, add GearWatch to your Home Screen first: tap Share, then Add to Home Screen. Then turn this on from the bell on Home.' : !I.ok ? 'This browser can’t show notifications. You’ll still see everything under the bell on Home.' : I.perm === 'denied' ? 'Notifications are blocked for GearWatch. Allow them in your phone or browser settings.' : 'You can change this later from the bell on Home.';
+    return { push: { on: I.on, canAsk, btn: busy ? 'Turning on…' : 'Turn on notifications', btnShort: busy ? '…' : 'Turn on', enable: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.05); this.enablePush(false); }, disable: () => this.disablePush(), hasNote: !I.on, note,
+      showCard: signed, cardTitle: I.on ? 'Phone notifications are on' : 'Get these on your phone', cardSub: I.on ? 'Friend requests, story reactions and replies.' : I.needInstall ? 'Add GearWatch to your Home Screen first (Share → Add to Home Screen).' : I.perm === 'denied' ? 'Blocked. Allow notifications for GearWatch in your settings.' : !I.ok ? 'This browser can’t show notifications.' : 'Friend requests, story reactions and replies, even when the app is closed.' } }; }
   ntSeenAt() { if (this._ntSeen == null) { let v = 0; try { v = Number(localStorage.getItem('gw-nt-seen')) || 0; } catch (e) {} this._ntSeen = v; } return this._ntSeen; }
   openNt() { const prev = this.ntSeenAt(), now = Date.now(); this._ntSeen = now; try { localStorage.setItem('gw-nt-seen', String(now)); } catch (e) {}
     this.setState({ ntOpen: true, ntPrev: prev, ntF: 'all' }, () => { const el = this.ntRef.current; if (el && el.animate && !this.reduce) el.animate([{ transform: 'translateX(100%)' }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' }); }); this.loadSocial(); }
@@ -2598,9 +2643,9 @@ class Component extends DCLogic {
       onAccept: e => { e.stopPropagation(); r.onAccept(e); }, onDecline: e => { e.stopPropagation(); r.onDecline(e); }, onTap: () => {} })); });
     mineS.forEach(s => { const rx = (S.reactions || []).filter(r => r.story_id === s.id && r.user_id !== me); if (!rx.length) return; const by = new Map(); rx.forEach(r => { const o = by.get(r.user_id); if (!o || String(r.created_at) > String(o.created_at)) by.set(r.user_id, r); });
       const L = Array.from(by.values()).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))), last = L[0], tt = new Date(last.created_at || 0).getTime() || 0, th = thumbOf(s);
-      out.push(Object.assign({}, base, person(last.user_id), { k: 'rx' + s.id, cat: 'stories', t: tt, bPaw: last.kind === 'paw', bHeart: last.kind !== 'paw', who: nm(last.user_id), text: (L.length > 1 ? 'and ' + (L.length - 1) + (L.length === 2 ? ' other' : ' others') + ' reacted' : 'reacted') + ' to your story', time: last.created_at ? relT(last.created_at) : '', hasThumb: !!th, thumb: th, onTap: myOpen })); });
+      out.push(Object.assign({}, base, person(last.user_id), { k: 'rx' + s.id, cat: 'stories', t: tt, bPaw: last.kind === 'paw', bHeart: last.kind !== 'paw', who: nm(last.user_id), text: (L.length > 1 ? 'and ' + (L.length - 1) + (L.length === 2 ? ' other' : ' others') + ' reacted' : 'reacted') + ' to your story', time: last.created_at ? relT(last.created_at) : '', hasThumb: !!th, thumb: th, onTap: () => this.closeNt(() => this.openStoryAt(me, s.id)) })); });
     (S.replies || []).filter(r => r.from_user !== me && mineS.some(s => s.id === r.story_id)).forEach(r => { const s = mineS.find(x => x.id === r.story_id), th = thumbOf(s), b = String(r.body || '');
-      out.push(Object.assign({}, base, person(r.from_user), { k: 'rp' + r.id, cat: 'stories', t: new Date(r.created_at || 0).getTime() || 0, bReply: true, who: nm(r.from_user), text: 'replied to your story:', hasQuote: !!b, quote: b.length > 90 ? b.slice(0, 88) + '…' : b, time: r.created_at ? relT(r.created_at) : '', hasThumb: !!th, thumb: th, onTap: myOpen })); });
+      out.push(Object.assign({}, base, person(r.from_user), { k: 'rp' + r.id, cat: 'stories', t: new Date(r.created_at || 0).getTime() || 0, bReply: true, who: nm(r.from_user), text: 'replied to your story:', hasQuote: !!b, quote: b.length > 90 ? b.slice(0, 88) + '…' : b, time: r.created_at ? relT(r.created_at) : '', hasThumb: !!th, thumb: th, onTap: () => this.closeNt(() => this.openStoryAt(me, r.story_id)) })); });
     const now = Date.now();
     SO.following.filter(f => f.acceptedAt && now - new Date(f.acceptedAt).getTime() < 14 * 86400000).forEach(f => { out.push(Object.assign({}, base, person(f.id), { k: 'ac' + f.id, cat: 'friends', t: new Date(f.acceptedAt).getTime(), who: '@' + f.username, text: 'accepted your friend request', time: relT(f.acceptedAt), onTap: () => this.closeNt(() => this.setState({ tab: 'friends', friend: f.id, friendTab: 'wish', fOutfit: null, fItem: null, unfArm: false })) })); });
     if (me && this._pollsFor !== me) { try { this._polls = JSON.parse(localStorage.getItem('gw-polls-' + me) || '{}') || {}; } catch (e) { this._polls = {}; } this._pollsFor = me; }
@@ -2617,7 +2662,7 @@ class Component extends DCLogic {
     if (A.title && noted !== A.title) out.push(Object.assign({}, base, { k: 'ti', cat: 'all', t: Infinity, avBg: '#2a2614', icStar: true, who: 'You have the ' + A.title + ' title.', text: 'It shows on your profile.', time: '', onTap: () => this.closeNt(() => this.openMyProfile()) }));
     const isNew = n => n.t === Infinity || n.t > cut, badge = out.filter(isNew).length, F = st.ntF || 'all', shown = out.filter(n => F === 'all' || n.cat === F).sort((a, b) => b.t - a.t), nw = shown.filter(isNew), old = shown.filter(n => !isNew(n)).slice(0, 40);
     return { hasNt: open, ntRef: this.ntRef,
-      hm: { newStory: () => this.openComposer(), openNt: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.08); this.openNt(); }, hasBadge: badge > 0, badge: badge > 9 ? '9+' : String(badge),
+      hm: { newStory: () => this.openComposer(), openNt: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.08); this.openNt(); }, hasBadge: !!(A.configured && A.user) && badge > 0, badge: badge > 9 ? '9+' : String(badge),
         ptrStart: e => { const sc = this.scrollRef.current; this.ptr = sc && sc.scrollTop <= 0 && e.touches && e.touches[0] ? { y: e.touches[0].clientY, d: 0 } : null; },
         ptrMove: e => { if (!this.ptr || !e.touches || !e.touches[0]) return; const d = e.touches[0].clientY - this.ptr.y; this.ptr.d = d; const on = d > 70; if (on !== !!this.state.ptrOn) this.setState({ ptrOn: on }); },
         ptrEnd: () => { const p = this.ptr; this.ptr = null; if (this.state.ptrOn) this.setState({ ptrOn: false }); if (p && p.d > 70 && fr.refresh) fr.refresh(); },
@@ -2832,7 +2877,10 @@ class Component extends DCLogic {
   segsOf(e) { const out = []; ((e && e.list) || []).forEach(s => (s.media || []).forEach((m, mi) => out.push({ s, m, mi }))); return out; }
   openStories(uids, start) { const X = this.storyIdx(), q = uids.filter(u => X.has(u)).map(u => ({ uid: u, list: X.by.get(u) })); if (!q.length) return; this.svOpen(q, Math.max(0, q.findIndex(e => e.uid === start)), true); }
   openHighlight(uid, name) { const m = this.storyIdx().hl.get(uid), list = m && m.get(name); if (list) this.svOpen([{ uid, list, hl: name }], 0, false); }
-  svOpen(q, ui, resume) { const segs = this.segsOf(q[ui]), seen = this.storyIdx().seen; let si = 0; if (resume) { const k = segs.findIndex(g => !seen.has(g.s.id)); si = k < 0 ? 0 : k; }
+  openStoryAt(uid, sid) { const X = this.storyIdx(); if (X.has(uid)) { const e = { uid, list: X.by.get(uid) }, k = this.segsOf(e).findIndex(g => g.s.id === sid); if (k >= 0) { this.svOpen([e], 0, false, k); return; } }
+    const m = X.hl && X.hl.get(uid); if (m) { for (const [name, list] of m) { const e = { uid, list, hl: name }, k = this.segsOf(e).findIndex(g => g.s.id === sid); if (k >= 0) { this.svOpen([e], 0, false, k); return; } } }
+    if (X.has(uid)) this.openStories([uid], uid); else this.toast('That story isn’t up anymore'); }
+  svOpen(q, ui, resume, at) { const segs = this.segsOf(q[ui]), seen = this.storyIdx().seen; let si = 0; if (resume) { const k = segs.findIndex(g => !seen.has(g.s.id)); si = k < 0 ? 0 : k; } if (typeof at === 'number' && at >= 0 && at < segs.length) si = at;
     this.setState({ sv: { q, ui, si }, svPanel: null, svReply: '', svHold: false, svDelArm: false }, () => { this.svMeasure(); const el = this.svRef.current; if (el && el.animate && !this.reduce) el.animate([{ opacity: 0, transform: 'scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: 220, easing: 'ease-out' }); this.svStart(); }); }
   svMeasure() { const el = this.svRef.current && this.svRef.current.querySelector('[data-sv-stage]'); if (!el) return; const b = { w: el.clientWidth, h: el.clientHeight }, o = this.state.svBox || {}; if (b.w && (b.w !== o.w || b.h !== o.h)) this.setState({ svBox: b }); }
   scMeasure() { const el = this.scRef.current && this.scRef.current.querySelector('[data-sc-box]'); if (!el) return; const b = { w: el.clientWidth, h: el.clientHeight }, o = this.state.scBox || {}; if (b.w && (b.w !== o.w || b.h !== o.h)) this.setState({ scBox: b }); }
@@ -2845,6 +2893,7 @@ class Component extends DCLogic {
     const tick = now => { const c = this.svCur(); if (!c || !c.g) return; const dt = Math.min(100, now - this.svLast); this.svLast = now; const el = this.svRef.current; if (!el) { this.svRaf = requestAnimationFrame(tick); return; }
       const vid = el.querySelector('[data-sv-video]'), img = el.querySelector('[data-sv-img]'); let p = 0;
       const ready = c.g.m.type === 'video' ? !!vid && vid.readyState >= 3 : !!img && img.complete && img.naturalWidth > 0;
+      el.querySelectorAll('[data-sv-after]').forEach(n => { const o = ready ? '1' : '0'; if (n.style.opacity !== o) n.style.opacity = o; });
       const sp = el.querySelector('[data-sv-spin]'); if (sp) { sp.style.display = ready ? 'none' : 'block'; if (!ready && !sp._spin) sp._spin = sp.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 800, iterations: Infinity }); }
       if (vid && !vid.hasAttribute('playsinline')) { vid.setAttribute('playsinline', ''); vid.setAttribute('webkit-playsinline', ''); }
       if (c.g.m.type === 'video') { if (vid) { vid.muted = this.state.svMuted !== false; { const vv = this.state.svVol == null ? 1 : this.state.svVol; if (Math.abs(vid.volume - vv) > 0.005) vid.volume = vv; } if (this.svPaused()) { if (!vid.paused) vid.pause(); } else if (vid.paused && !vid.ended && vid.readyState >= 2) vid.play().catch(() => {}); const M = c.g.m, rt = M.rate || 1, s0 = (M.trim || [])[0] || 0, e0 = (M.trim || [])[1] || vid.duration || 0; if (vid.playbackRate !== rt) vid.playbackRate = rt; if (vid.readyState >= 1 && vid.currentTime < s0 - 0.1) vid.currentTime = s0;
@@ -3269,7 +3318,7 @@ class Component extends DCLogic {
     this.animOut(this.introRef.current, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(1.08)' }], 420, () => {
       if (amt > 0) this.commitBudget(amt, (p, data) => { data.onboarded = true; });
       else this.mutate((p, data) => { data.onboarded = true; });
-      this.setState({ introPage: 0, tab: 'wish', detail: null });
+      this.setState({ introPage: 0, tab: 'home', detail: null });
       setTimeout(() => { this.replay('[data-anim]'); if (amt > 0) this.toast('Budget set. €' + num(amt) + ' a month.'); }, 30);
       this.scheduleNotif(2400);
     });
@@ -3644,6 +3693,7 @@ class Component extends DCLogic {
       tgJoin: () => { try { localStorage.setItem('gw-tg-hide', 'joined'); } catch (e) {} setTimeout(() => this.setState({ tgHide: true }), 400); },
       tgClose: () => { try { localStorage.setItem('gw-tg-hide', 'dismissed'); } catch (e) {} this.setState({ tgHide: true }); },
       isHome: st.tab === 'home', tabHome: st.tab === 'home' ? ACC : '#8e8e93', tabHomeBg: st.tab === 'home' && wide ? '#1c1c1e' : 'transparent', goHome: e => { this.goTab('home', e); this.loadSocial(); },
+      ...this.pushVals(A),
       ...(() => { const a = this.ntVals(SO, fr, A), b = this.homeVals(SO, fr, A, addF, mineKey, fKey); return Object.assign({}, a, { hm: Object.assign({}, a.hm, b.hm) }); })(),
       isFriends: st.tab === 'friends', tabFriends: st.tab === 'friends' ? ACC : '#8e8e93',
       goFriends: e => { this.goTab('friends', e); this.loadSocial(); }, fr, ...this.storyVals({ SO, ini, addF, mineKey, fKey, framed }), hasFriend: !!fU && !st.fFromFeed, fv, isSheetPerson: st.sheet === 'person', isSheetInvite: st.sheet === 'invite', qrRef: this.qrRef,
@@ -3663,7 +3713,7 @@ class Component extends DCLogic {
       hasViewer: !!st.viewer, vwRef: this.vwRef, vwDown: e => this.vwDown(e), vwMove: e => this.vwMove(e), vwUp: e => this.vwUp(e), vwWheel: e => this.vwWheel(e), vwStop: e => e.stopPropagation(),
       vw: st.viewer ? { photos: st.viewer.photos.map(src => ({ src })), multi: st.viewer.photos.length > 1, counter: (st.viewer.idx + 1) + ' of ' + st.viewer.photos.length, chrome: st.vwHide ? '0' : '1', chromePe: st.vwHide ? 'none' : 'auto', onClose: () => this.closeViewer() } : { photos: [] },
       fvTop: framed ? '48px' : 'calc(env(safe-area-inset-top) + 8px)', gateTop: framed ? '64px' : 'calc(env(safe-area-inset-top) + 24px)',
-      showGate: gate, gLoading: gStep === 'loading', gEmail: gStep === 'email', gCode: gStep === 'code', gName: gStep === 'name', gShowBtn: gate && gStep !== 'loading',
+      showGate: gate && !this.introVisible(), gLoading: gStep === 'loading', gEmail: gStep === 'email', gCode: gStep === 'code', gName: gStep === 'name', gShowBtn: gate && gStep !== 'loading',
       authEmail: st.authEmail || '', onAuthEmail: e => this.setState({ authEmail: e.target.value, authErr: '' }), authCode: st.authCode || '', onAuthCode: e => this.setState({ authCode: e.target.value.replace(/\D/g, '').slice(0, 8), authErr: '' }),
       unameIn: st.unameIn || '', onUname: e => this.setState({ unameIn: e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 20), authErr: '' }), authErr: st.authErr || '',
       gateLabel: st.authBusy ? (gStep === 'email' ? 'Sending…' : gStep === 'code' ? 'Checking…' : 'Saving…') : gStep === 'email' ? 'Email me a code' : gStep === 'code' ? 'Sign in' : 'Continue',
@@ -3875,9 +3925,9 @@ class Component extends DCLogic {
       notifY: st.notif ? '0%' : '-160%', notifText: dropAll ? dropAll.name + ' dropped to ' + money(dropAll.currency, dropAll.price) + ' (−' + Math.round(dropOf(dropAll) * 100) + '%).' : '',
       openNotif: () => { if (dropAll) this.setState({ tab: 'wish', notif: false }, () => this.openDetail(dropAll.id)); },
 
-      showIntro: this.introVisible() && !gate, introP0: ip === 0, introP1: ip === 1, introP2: ip === 2, introP3: ip === 3, introNotLast: ip < 3, introLast: ip === 3,
-      introDots: [0, 1, 2, 3].map(i => ({ w: i === ip ? '22px' : '7px', bg: i === ip ? ACC : '#48484a' })),
-      introNext: () => this.setState({ introPage: Math.min(3, ip + 1) }), introSkip: () => this.setState({ introPage: 3 }),
+      showIntro: this.introVisible(), introP0: ip === 0, introP1: ip === 1, introP2: ip === 2, introPN: ip === 3, introP3: ip === 4, introNotLast: ip < 4, introLast: ip === 4,
+      introDots: [0, 1, 2, 3, 4].map(i => ({ w: i === ip ? '22px' : '7px', bg: i === ip ? ACC : '#48484a' })),
+      introNext: () => this.setState({ introPage: Math.min(4, ip + 1) }), introSkip: () => this.setState({ introPage: 4 }),
       introBudget: st.introBudget, onIntroBudget: e => this.setState({ introBudget: e.target.value }),
       introChips: chips(st.introBudget, v => this.setState({ introBudget: v })),
       introBtnBg: introAmt > 0 ? ACC : '#2c2c2e', introBtnColor: introAmt > 0 ? '#000' : '#6e6e73',

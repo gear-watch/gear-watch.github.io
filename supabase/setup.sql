@@ -78,7 +78,7 @@ alter table public.profiles add column if not exists avatar text;
 alter table public.profiles add column if not exists title text check (title is null or char_length(title) <= 24);
 create or replace function public.lock_title() returns trigger language plpgsql as $$
 begin
-  if auth.uid() is not null then
+  if auth.uid() is not null and coalesce(current_setting('gw.grant', true), '') <> '1' then
     if tg_op = 'INSERT' then new.title := null; else new.title := old.title; end if;
   end if;
   return new;
@@ -326,3 +326,105 @@ grant execute on function public.poll_counts(uuid[]) to authenticated;
 
 -- Story caption background colour.
 alter table public.stories add column if not exists cap_bg text check (cap_bg is null or cap_bg ~ '^#[0-9a-fA-F]{6}$');
+
+-- ===== Early bird title, given automatically =====
+-- Anyone with a profile picture and at least one item gets "Early bird" (if they have no title yet).
+-- To stop handing it out later, run:  drop trigger early_bird_data on public.user_data; drop trigger early_bird_avatar on public.profiles;
+create or replace function public.grant_early_bird(uid uuid) returns void language plpgsql security definer set search_path = public as $$
+begin
+  if exists (select 1 from public.profiles p where p.id = uid and p.title is null and p.avatar is not null)
+     and exists (select 1 from public.user_data u, jsonb_array_elements(u.data->'gw'->'profiles') pr, jsonb_array_elements(pr->'items') it where u.user_id = uid) then
+    perform set_config('gw.grant', '1', true);
+    update public.profiles set title = 'Early bird' where id = uid and title is null;
+    perform set_config('gw.grant', '', true);
+  end if;
+end $$;
+revoke all on function public.grant_early_bird(uuid) from public, anon, authenticated;
+create or replace function public.early_bird_data_trg() returns trigger language plpgsql security definer set search_path = public as $$
+begin perform public.grant_early_bird(new.user_id); return null; end $$;
+create or replace function public.early_bird_avatar_trg() returns trigger language plpgsql security definer set search_path = public as $$
+begin perform public.grant_early_bird(new.id); return null; end $$;
+drop trigger if exists early_bird_data on public.user_data;
+create trigger early_bird_data after insert or update on public.user_data for each row execute function public.early_bird_data_trg();
+drop trigger if exists early_bird_avatar on public.profiles;
+create trigger early_bird_avatar after update of avatar on public.profiles for each row execute function public.early_bird_avatar_trg();
+drop function if exists public.early_bird_trg();
+-- Catch everyone who already qualifies.
+do $$ declare r record; begin for r in select id from public.profiles where title is null and avatar is not null loop perform public.grant_early_bird(r.id); end loop; end $$;
+
+
+-- ===== Push notifications =====
+-- Phones that turned on notifications. Pushes go out through the price worker (see price-worker/PUSH-SETUP.txt).
+create extension if not exists pg_net;
+create schema if not exists private;
+revoke all on schema private from public, anon, authenticated;
+create table if not exists private.push_cfg (id int primary key default 1 check (id = 1), url text not null, secret text not null);
+create table if not exists public.push_subs (
+  endpoint text primary key check (endpoint like 'https://%' and length(endpoint) < 1000),
+  user_id uuid not null references auth.users on delete cascade,
+  p256dh text not null check (length(p256dh) < 200),
+  auth text not null check (length(auth) < 100),
+  kinds text[] not null default array['friends', 'stories'],
+  created_at timestamptz default now()
+);
+alter table public.push_subs enable row level security;
+drop policy if exists "see own push subs" on public.push_subs;
+create policy "see own push subs" on public.push_subs for select to authenticated using (user_id = auth.uid());
+create or replace function public.push_save(ep text, k text, a text, wants text[] default array['friends', 'stories']) returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'Not signed in'; end if;
+  delete from public.push_subs where endpoint = ep;
+  insert into public.push_subs (endpoint, user_id, p256dh, auth, kinds) values (ep, auth.uid(), k, a, coalesce(wants, array['friends', 'stories']));
+end $$;
+create or replace function public.push_remove(ep text) returns void language sql security definer set search_path = public as $$
+  delete from public.push_subs where endpoint = ep and user_id = auth.uid();
+$$;
+revoke all on function public.push_save(text, text, text, text[]) from public, anon; grant execute on function public.push_save(text, text, text, text[]) to authenticated;
+revoke all on function public.push_remove(text) from public, anon; grant execute on function public.push_remove(text) to authenticated;
+create or replace function public.push_send(target uuid, kind text, title text, body text, link text) returns void language plpgsql security definer set search_path = public, private as $$
+declare c private.push_cfg; subs jsonb;
+begin
+  if target is null then return; end if;
+  select * into c from private.push_cfg where id = 1; if not found then return; end if;
+  select coalesce(jsonb_agg(jsonb_build_object('endpoint', endpoint, 'p256dh', p256dh, 'auth', auth)), '[]'::jsonb) into subs from public.push_subs where user_id = target and kind = any(kinds);
+  if jsonb_array_length(subs) = 0 then return; end if;
+  perform net.http_post(url := c.url || '/push', body := jsonb_build_object('subs', subs, 'title', title, 'body', left(body, 180), 'url', link, 'tag', kind), headers := jsonb_build_object('Content-Type', 'application/json', 'X-Push-Key', c.secret), timeout_milliseconds := 5000);
+exception when others then return;
+end $$;
+revoke all on function public.push_send(uuid, text, text, text, text) from public, anon, authenticated;
+create or replace function public.push_follows_trg() returns trigger language plpgsql security definer set search_path = public as $$
+declare u text;
+begin
+  if tg_op = 'INSERT' and new.status = 'pending' then
+    select username into u from public.profiles where id = new.follower;
+    perform public.push_send(new.followee, 'friends', 'Friend request', '@' || coalesce(u, 'someone') || ' wants to be friends', '#notifs');
+  elsif tg_op = 'UPDATE' and old.status = 'pending' and new.status = 'accepted' then
+    select username into u from public.profiles where id = new.followee;
+    perform public.push_send(new.follower, 'friends', 'Request accepted', '@' || coalesce(u, 'someone') || ' accepted your friend request', '#notifs');
+  end if;
+  return null;
+end $$;
+drop trigger if exists push_follows on public.follows;
+create trigger push_follows after insert or update of status on public.follows for each row execute function public.push_follows_trg();
+create or replace function public.push_react_trg() returns trigger language plpgsql security definer set search_path = public as $$
+declare owner uuid; u text;
+begin
+  select user_id into owner from public.stories where id = new.story_id;
+  if owner is null or owner = new.user_id then return null; end if;
+  select username into u from public.profiles where id = new.user_id;
+  perform public.push_send(owner, 'stories', 'New reaction', '@' || coalesce(u, 'someone') || ' reacted to your story', '#notifs');
+  return null;
+end $$;
+drop trigger if exists push_react on public.story_reactions;
+create trigger push_react after insert on public.story_reactions for each row execute function public.push_react_trg();
+create or replace function public.push_reply_trg() returns trigger language plpgsql security definer set search_path = public as $$
+declare owner uuid; u text;
+begin
+  select user_id into owner from public.stories where id = new.story_id;
+  if owner is null or owner = new.from_user then return null; end if;
+  select username into u from public.profiles where id = new.from_user;
+  perform public.push_send(owner, 'stories', '@' || coalesce(u, 'someone') || ' replied to your story', coalesce(new.body, ''), '#notifs');
+  return null;
+end $$;
+drop trigger if exists push_reply on public.story_replies;
+create trigger push_reply after insert on public.story_replies for each row execute function public.push_reply_trg();

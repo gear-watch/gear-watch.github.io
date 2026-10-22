@@ -366,8 +366,10 @@
     location.reload();
   }
 
+  async function pushSave(j, kinds) { if (!sb) await connect(); if (!sb || !S.user) throw new Error('Sign in first'); const k = (j && j.keys) || {}; const r = await sb.rpc('push_save', { ep: j.endpoint, k: k.p256dh, a: k.auth, wants: kinds || ['friends', 'stories'] }); if (r.error) throw new Error(/push_save|function/i.test(r.error.message || '') ? 'Notifications need a database update. Run supabase/setup.sql again.' : r.error.message); }
+  async function pushRemove(ep) { if (!sb || !S.user) return; try { await sb.rpc('push_remove', { ep }); } catch (e) {} }
   window.GWSync = {
-    init, schedule, sync, social, shareCreate, shareGet, cardUpload, token, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut, deleteAccount,
+    init, pushSave, pushRemove, schedule, sync, social, shareCreate, shareGet, cardUpload, token, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut, deleteAccount,
     attach: h => { host = h; },
     on: f => { subs.add(f); f(Object.assign({}, S)); return () => subs.delete(f); },
     state: () => Object.assign({}, S)

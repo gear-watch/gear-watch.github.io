@@ -42,3 +42,14 @@ self.addEventListener('fetch', e => {
     return fetch(req);
   })());
 });
+
+// Push notifications
+self.addEventListener('push', e => {
+  let d = {}; try { d = e.data ? e.data.json() : {}; } catch (er) { d = { body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'GearWatch', { body: d.body || '', icon: './icons/icon-192.png', badge: './icons/icon-192.png', tag: d.tag || undefined, renotify: !!d.tag, data: { url: d.url || '#notifs' } }));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = new URL('./' + ((e.notification.data && e.notification.data.url) || '#notifs'), self.registration.scope).href;
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(L => { const c = L.find(x => 'focus' in x); if (c) { c.postMessage({ type: 'gw-open', url }); return c.focus(); } return self.clients.openWindow(url); }));
+});
