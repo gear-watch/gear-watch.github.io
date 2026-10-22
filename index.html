@@ -3047,7 +3047,7 @@ class Component extends DCLogic {
       hasShared: !!st.shared, topPad: this.isFramed() ? 52 : 12,
       sh: (() => { const s = st.shared || {}; const ph = (s.ph || []).filter(Boolean), cur = s.c || '€';
         const rows = [['Size', s.s], ['Colour', s.col], ['Made to measure', s.m ? 'Yes' : null], ['Status', s.st === 'ordered' ? 'Already ordered' : s.st === 'owned' ? 'Already owned' : null]].filter(r => r[1]).map(([k, v]) => ({ k, v }));
-        return { fromTxt: (s.f ? s.f + ' wants this' : 'Shared from GearWatch'), name: s.n || '', brandCat: [s.b, s.cat].filter(Boolean).join(' · '), price: s.p == null ? 'No price yet' : money(cur, s.p), eur: s.p != null && cur !== '€' ? '≈ €' + Math.round(s.p * (FX[cur] || 1)) : '',
+        return { fromTxt: s.f ? s.f + (s.st === 'owned' ? ' owns this' : s.st === 'ordered' ? ' ordered this' : ' wants this') : 'Shared from GearWatch', name: s.n || '', brandCat: [s.b, s.cat].filter(Boolean).join(' · '), price: s.p == null ? 'No price yet' : money(cur, s.p), eur: s.p != null && cur !== '€' ? '≈ €' + Math.round(s.p * (FX[cur] || 1)) : '',
           photos: ph.map(src => ({ src })), hasPhotos: !!ph.length, multi: ph.length > 1, photoCount: String(ph.length), rows,
           meas: (s.ms || []).map(([k, v]) => ({ k, v })), hasMeas: !!(s.ms || []).length, measTitle: (s.f ? s.f + '’s' : 'Their') + ' measurements for this item', note: s.no || '', hasNote: !!s.no, url: s.u || '', hasUrl: !!s.u }; })(),
       closeShared: () => { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; } this.setState({ shared: null }); },
@@ -3055,7 +3055,7 @@ class Component extends DCLogic {
       shareItem: e => { if (!dIt) return; this.bump(e.currentTarget, 1.04);
         const ms = (d.needRows || []).filter(r => r.value !== 'Not measured').map(r => [r.label, r.value]);
         const payload = { n: dIt.name, b: dIt.brand || undefined, cat: dIt.category || undefined, u: dIt.url || undefined, c: dIt.currency, p: dIt.price, s: dIt.size || undefined, col: dIt.colour || undefined, m: dIt.m2m ? 1 : undefined, st: dIt.status !== 'wanted' ? dIt.status : undefined, ph: (dIt.photos || []).filter(x => !/^data:/.test(x)).slice(0, 6).map(x => /^\.\//.test(x) ? new URL(x, location.href).href : x), ms: ms.length ? ms : undefined, f: p.name, no: (dIt.needs && dIt.needs.note) || undefined };
-        const title = dIt.name + (dIt.size ? ' · ' + dIt.size : ''); this.shareOut(payload, title, (p.name || 'I') + ' wants this: ' + title); },
+        const title = dIt.name + (dIt.size ? ' · ' + dIt.size : ''); this.shareOut(payload, title, (p.name || 'I') + (dIt.status === 'owned' ? ' owns this: ' : dIt.status === 'ordered' ? ' ordered this: ' : ' wants this: ') + title); },
       hasDetail: !!dIt, d, closeDetail: () => this.closeDetail(), openEdit: () => dIt && this.openForm(dIt),
       carOpen: () => { if (this.carMoved) { this.carMoved = false; return; } if (dIt) this.openViewer(dIt.photos || [], st.photoIdx, i => this.carGo(i)); },
       carRef: this.carRef, carPrev: () => this.carGo(st.photoIdx - 1), carNext: () => this.carGo(st.photoIdx + 1),
