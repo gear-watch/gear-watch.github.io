@@ -134,6 +134,11 @@ function wasOf(html, price) {
   const wc = html.match(/class=["'][^"']*\bprice\b[^"']*["'][^>]*>([\s\S]{0,800}?)<\/(?:p|div)>/i);
   if (wc) { const d = wc[1].match(/<(del|s|strike)\b[\s\S]*?<\/\1>/i); if (d) { const b = visible(d[0]).match(/[$€£]\s?([\d.,]+)|([\d.,]+)\s?[$€£]/); if (b) c.push(num(b[1] || b[2])); } }
   const ej = html.match(/"(?:compareAtPrice|compare_at_price|regularPrice|regular_price|originalPrice|oldPrice|listPrice|wasPrice)"\s*:\s*"?(\d+(?:[.,]\d{1,2})?)/); if (ej) c.push(num(ej[1]));
+  // Markdown from the page reader (~~€310~~), struck-out prices anywhere, "Was US $310.00", and "25% off" next to a matching price.
+  const st = html.match(/~~\s*(?:US\s*)?[$€£]\s?([\d.,]+)\s*~~/); if (st) c.push(num(st[1]));
+  const dl = html.match(/<(del|s|strike)\b[^>]*>\s*(?:<[^>]+>\s*)*(?:US\s*)?[$€£]\s?([\d.,]+)/i); if (dl) c.push(num(dl[2]));
+  const wp = html.match(/\b(?:was|regular price|original price|compare at)\s*:?\s*(?:US\s*)?[$€£]\s?([\d.,]+)/i); if (wp) c.push(num(wp[1]));
+  const pc = html.match(/(\d{1,2})\s?%\s*off/i); if (pc) { const g = price / (1 - Number(pc[1]) / 100); for (const m of html.matchAll(/[$€£]\s?([\d.,]+)/g)) { const v = num(m[1]); if (v && Math.abs(v - g) / g < 0.02) { c.push(v); break; } } }
   const ok = c.filter(x => x && x > price * 1.01 && x <= price * 4);
   return ok.length ? ok[0] : null;
 }
@@ -226,7 +231,10 @@ function fromPage(html, u) {
   return { name: trimSite(raw, site, u.hostname.replace(/^www\./, '')), brand: brand || site || null, price: pr ? pr.price : null, was: pr ? pr.was : null, cur: pr ? pr.cur : null, images: cleanImgs(imgs, u.href) };
 }
 function fromMarkdown(md, u) {
-  const title = decode((md.match(/^Title:\s*(.+)$/m) || [])[1] || (md.match(/^#\s+(.+)$/m) || [])[1] || '');
+  const site = u.hostname.replace(/^www\./, '').split('.')[0].toLowerCase(), bad = t => !t || t.trim().toLowerCase() === site || /^(home|menu|search|cart|shop|log ?in|sign ?in|account)$/i.test(t.trim());
+  let title = decode((md.match(/^Title:\s*(.+)$/m) || [])[1] || '');
+  if (bad(title)) { const hs = Array.from(md.matchAll(/^#{1,3}\s+(.+)$/gm)).map(m => decode(m[1].replace(/[*_\x60]/g, ''))).filter(t => !bad(t) && t.length > 3 && !/^\W*$/.test(t)); title = hs[0] || ''; }
+  if (bad(title)) { const bs = Array.from(md.matchAll(/\*\*([^*\n]{4,120})\*\*/g)).map(m => decode(m[1])).filter(t => !bad(t) && !/[$€£]\s?\d/.test(t)); title = bs[0] || title; }
   let imgs = Array.from(md.matchAll(/!\[[^\]]*\]\((https?:[^)\s]+)/g)).map(m => m[1]);
   const prod = imgs.filter(s => /product|catalog|uploads|cdn\.shopify|wixstatic/i.test(s)); if (prod.length) imgs = prod;
   const pr = parse(md, u);
@@ -255,15 +263,19 @@ async function lookup(url) {
         return { name: decode(p.name), brand: (p.brands && p.brands[0] && decode(p.brands[0].name)) || null, price: raw ? raw / d : null, was: Number(pr.regular_price) > raw ? Number(pr.regular_price) / d : null, cur: pr.currency_code || null, images: cleanImgs((p.images || []).map(x => x.src), u.href), desc: (p.short_description || '') + ' ' + (p.description || ''), how: 'WooCommerce feed' }; }
     } catch (e) { tried.push('woocommerce: ' + e.message); }
   }
-  try { const html = await get(url), r = fromPage(html, u); if (r.name && (r.images.length || r.price)) { const md = html.match(/<meta[^>]+(?:name|property)=["'](?:og:)?description["'][^>]*content=["']([^"']*)/i); return Object.assign(r, { desc: r.desc || (md ? md[1] : ''), how: 'product page' }); } tried.push('page: not enough found'); }
+  let siteBrand = null;
+  try { const html = await get(url), r = fromPage(html, u), site = String(meta(html, 'og:site_name') || '').trim(), host = u.hostname.replace(/^www\./, '').split('.')[0].toLowerCase();
+    const gen = !r.name || r.name.trim().toLowerCase() === site.toLowerCase() || r.name.trim().toLowerCase() === host;
+    if (gen) { siteBrand = site || null; r.name = ''; r.images = r.images.filter(x => !/og|banner|share|social/i.test(x)); if (/og:image:width" content="3[0-9]{3}/.test(html)) r.images = []; }
+    if (r.name && (r.images.length || r.price)) { const md = html.match(/<meta[^>]+(?:name|property)=["'](?:og:)?description["'][^>]*content=["']([^"']*)/i); return Object.assign(r, { desc: r.desc || (md ? md[1] : ''), how: 'product page' }); } tried.push('page: not enough found'); }
   catch (e) { tried.push('page: ' + e.message); }
-  try { const md = await readerMd(url), r = fromMarkdown(md, u); if (r.name || r.images.length) return Object.assign(r, { desc: r.desc || md.slice(0, 3000), how: 'page reader' }); tried.push('reader: nothing found'); }
+  try { const md = await readerMd(url), r = fromMarkdown(md, u); if (r.name || r.images.length) return Object.assign(r, { brand: r.brand || siteBrand, desc: r.desc || md.slice(0, 3000), how: 'page reader' }); tried.push('reader: nothing found'); }
   catch (e) { tried.push('reader: ' + e.message); }
   const err = new Error('Couldn’t read that page'); err.detail = tried.join(' · '); throw err;
 }
 async function lookupOne(url, ctx) {
   const key = normUrl(url); if (!key) return { ok: false, error: 'Not a valid link' };
-  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup3/' + encodeURIComponent(key));
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup4/' + encodeURIComponent(key));
   const hit = await cache.match(ck); if (hit) return hit.json();
   let out;
   try { const r = await lookup(url), code = codeOf(r.cur); out = { ok: true, name: r.name || '', brand: r.brand || '', price: r.price ?? null, was: r.was ?? null, currency: /libidex\.com/.test(url) ? '£' : (SYM[code] || code || null), images: r.images || [], desc: decode(String(r.desc || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim().slice(0, 1500), how: r.how }; }
