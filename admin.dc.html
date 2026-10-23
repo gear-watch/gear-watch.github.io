@@ -39,9 +39,15 @@
         <span style="padding:16px 10px 0;font-size:12px;color:#6e6e73;line-height:1.5;">{{ counts }}</span>
       </div>
       <div style="flex:999 1 480px;min-width:0;border-left:1px solid #1c1c1e;min-height:70vh;">
-        <sc-if value="{{ isQueue }}" hint-placeholder-val="{{ true }}">
-          <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;display:flex;justify-content:space-between;align-items:baseline;gap:12px;"><span style="font-size:20px;font-weight:600;">{{ queueTitle }}</span><span style="font-size:13px;color:#a1a1a6;">Oldest first</span></div>
-          <sc-if value="{{ queueEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px 20px;color:#a1a1a6;font-size:15px;">Nothing waiting.</div></sc-if>
+        <sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;display:flex;justify-content:space-between;align-items:baseline;gap:12px;"><span style="font-size:20px;font-weight:600;">{{ queueTitle }}</span><span style="font-size:13px;color:#a1a1a6;">{{ listSort }}</span></div>
+          <sc-if value="{{ isBrowse }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:14px 20px;border-bottom:1px solid #1c1c1e;display:flex;flex-direction:column;gap:10px;">
+              <input value="{{ bq }}" onChange="{{ onBq }}" placeholder="Search name, brand, category or link" type="search" autocomplete="off" style="width:100%;box-sizing:border-box;background:#1c1c1e;border:0;border-radius:9999px;padding:9px 16px;font-size:15px;color:#f5f5f7;outline:none;">
+              <div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ bStats }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ queueEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px 20px;color:#a1a1a6;font-size:15px;">{{ emptyTxt }}</div></sc-if>
           <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
             <div style="display:flex;flex-direction:column;"><div style="display:grid;grid-template-columns:56px minmax(0,1fr);gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid #1c1c1e;opacity:{{ r.op }};">
               <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" style="position:relative;width:56px;height:56px;border-radius:8px;background:#1c1c1e;overflow:hidden;display:grid;place-items:center;color:#6e6e73;font-weight:600;"><span>{{ r.initial }}</span><sc-if value="{{ r.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ r.photo }}" alt="" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;filter:{{ r.blur }};transition:filter .2s;" style-hover="filter:none;"></sc-if></a>
@@ -202,7 +208,7 @@ class Component extends DCLogic {
     this.setEd({ saving: true });
     try { await G.cat('catalog_edit', { cid: ed.cid, p: { name: ed.name.trim(), brand: ed.brand.trim(), category: ed.category, materials: ed.materials, latexMm: ed.materials.includes('Latex') ? ed.latexMm : '', price: ed.price.trim().replace(',', '.'), currency: ed.currency, photos: ed.photos.filter(p => p.on).map(p => p.src) } });
       if (approve) await G.cat('catalog_decide', { what: 'item', target: ed.cid, act: 'approve' });
-      this.say(approve ? 'Saved and approved' : 'Saved'); this.setState({ openKey: null, ed: null }); await this.load(); }
+      this.say(approve ? 'Saved and approved' : 'Saved'); this.setState({ openKey: null, ed: null }); await this.load(); if (this.state.page === 'browse') this.browse(); }
     catch (e) { this.setEd({ saving: false }); this.say((e && e.message) || 'Couldn’t save'); } }
   edVals() { const ed = this.state.ed; if (!ed) return {}; if (!ed.ready) return { loading: true };
     const chip = (label, on, fn) => ({ label, bg: on ? '#ffd60a' : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: fn });
@@ -226,7 +232,9 @@ class Component extends DCLogic {
         toggle: () => move(i, (ph, k) => { ph[k] = Object.assign({}, ph[k], { on: !ph[k].on }); }), isCover: i === firstOn, canCover: p.on && i !== firstOn,
         cover: () => move(i, (ph, k) => { const [x] = ph.splice(k, 1); ph.unshift(x); }) })),
       cancel: () => this.setState({ openKey: null, ed: null }), saveLbl: ed.saving ? 'Saving…' : 'Save', saveOp: ed.saving ? 0.5 : 1, save: () => this.edSave(false), canApprove: !!ed.pendingItem, saveApprove: () => this.edSave(true) }; }
-  async run(name, args, msg) { const G = window.GWSync; try { await G.cat(name, args); if (msg) this.say(msg); await this.load(); } catch (e) { this.say((e && e.message) || 'That didn’t work'); } }
+  browse() { const G = window.GWSync; if (!G) return; const tok = (this.bTok = (this.bTok || 0) + 1); this.setState({ bBusy: true });
+    G.cat('catalog_admin_search', { q: (this.state.bq || '').trim(), st: this.state.bst || '', lim: 120 }).then(r => { if (tok === this.bTok) this.setState({ bRes: r || [], bBusy: false }); }).catch(e => { if (tok === this.bTok) { this.setState({ bBusy: false }); this.say((e && e.message) || 'Couldn’t search'); } }); }
+  async run(name, args, msg) { const G = window.GWSync; try { await G.cat(name, args); if (msg) this.say(msg); await this.load(); if (this.state.page === 'browse') this.browse(); } catch (e) { this.say((e && e.message) || 'That didn’t work'); } }
   renderVals() {
     const st = this.state, A = st.acct || {}, q = st.q, info = st.info || {}, role = q && q.role, isAdmin = role === 'admin';
     const showMsg = !q, msgTitle = A.ready && !A.configured ? 'Not set up' : !A.user ? (A.ready ? 'Sign in first' : 'Loading…') : st.err ? (/staff only/i.test(st.err) ? 'Staff only' : 'Couldn’t load the queue') : 'Loading…';
@@ -256,7 +264,13 @@ class Component extends DCLogic {
     rows.sort((a, b) => String(a.at).localeCompare(String(b.at)));
     const F = [['all', 'All'], ['reports', 'Reports'], ['new', 'New accounts'], ['shops', 'Unknown shops'], ['typed', 'Typed-in changes'], ['fixes', 'Fixes'], ['items', 'Other pending']];
     const n = k => k === 'all' ? rows.length : rows.filter(r => r.grp === k).length;
-    const shown = st.filter === 'all' ? rows : rows.filter(r => r.grp === st.filter);
+    const SL = { live: 'Live', pending: 'Waiting', hidden: 'Hidden', gone: 'No longer sold', removed: 'Removed' };
+    const brows = (st.bRes || []).map(c => { const s = c.status, t = s === 'live' ? { tagColor: '#000', tagBg: '#ffd60a' } : s === 'hidden' || s === 'removed' ? RED : GREY;
+      const acts = [btn(st.openKey === 'b' + c.id ? 'Close' : 'Details', () => this.openEd('b' + c.id, c.id, s === 'pending'))];
+      if (s === 'live') acts.push(btn('Remove', dec('item', c.id, 'remove', 'Removed'), 'no')); else if (s === 'pending') acts.push(btn('Approve', dec('item', c.id, 'approve', 'Approved'), 'yes')); else acts.push(btn('Restore', dec('item', c.id, 'restore', 'Restored')));
+      return Object.assign({ tag: SL[s] || s }, t, { key: 'b' + c.id, title: c.name, url: c.url, photo: (c.photos || [])[0] || '', blur: 'none', note: '', acts,
+        sub: [c.brand || c.domain, c.price != null ? (c.currency || '€') + c.price : '', c.category, (c.own_n || 0) + ' own · ' + (c.want_n || 0) + ' want', c.by ? 'added by @' + c.by : ''].filter(Boolean).join(' · ') }); });
+    const isBrowse = st.page === 'browse', shown = isBrowse ? brows : st.filter === 'all' ? rows : rows.filter(r => r.grp === st.filter);
     const page = st.page, cnt = info.counts || {};
     const pill = s => s === 'trusted' || s === 'admin' ? { color: '#000', bg: '#ffd60a' } : s === 'blocked' ? { color: '#fff', bg: '#ff453a' } : { color: '#f5f5f7', bg: '#2c2c2e' };
     const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -266,10 +280,13 @@ class Component extends DCLogic {
     return {
       showMsg, msgTitle, msgSub, ready: !!q, hasRole: !!role, who: A.username ? '@' + A.username : '', roleLbl: isAdmin ? 'Admin' : 'Moderator', isAdmin,
       reload: () => this.load(),
-      filters: F.map(([k, l]) => { const c = n(k); return { k, label: l, n: String(c), nColor: k === 'reports' && c ? '#ff453a' : '#a1a1a6', bg: page === 'queue' && st.filter === k ? '#1c1c1e' : 'transparent', onTap: () => this.setState({ filter: k, page: 'queue' }) }; }).filter(x => x.k === 'all' || x.n !== '0' || st.filter === x.k),
-      pages: [['shops', 'Known shops'], ['staff', 'Staff'], ['log', 'Change log']].map(([k, l]) => ({ label: l, bg: page === k ? '#1c1c1e' : 'transparent', onTap: () => this.setState({ page: k }) })),
+      filters: F.map(([k, l]) => { const c = n(k); return { k, label: l, n: String(c), nColor: k === 'reports' && c ? '#ff453a' : '#a1a1a6', bg: page === 'queue' && st.filter === k ? '#1c1c1e' : 'transparent', onTap: () => this.setState({ filter: k, page: 'queue', openKey: null, ed: null }) }; }).filter(x => x.k === 'all' || x.n !== '0' || st.filter === x.k),
+      pages: [['browse', 'All entries'], ['shops', 'Known shops'], ['staff', 'Staff'], ['log', 'Change log']].map(([k, l]) => ({ label: l, bg: page === k ? '#1c1c1e' : 'transparent', onTap: () => { this.setState({ page: k, openKey: null, ed: null }); if (k === 'browse') setTimeout(() => this.browse(), 0); } })),
+      isList: page === 'queue' || isBrowse, isBrowse, listSort: isBrowse ? (st.bBusy ? 'Searching…' : 'Recently changed first') : 'Oldest first', emptyTxt: isBrowse ? (st.bRes ? 'No entries found.' : '') : 'Nothing waiting.',
+      bq: st.bq || '', onBq: e => { this.setState({ bq: e.target.value }); clearTimeout(this.bT); this.bT = setTimeout(() => this.browse(), 300); },
+      bStats: [['', 'All'], ['live', 'Live'], ['pending', 'Waiting'], ['hidden', 'Hidden'], ['gone', 'No longer sold'], ['removed', 'Removed']].map(([k, l]) => { const on = (st.bst || '') === k; return { label: l, bg: on ? '#ffd60a' : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: () => this.setState({ bst: k }, () => this.browse()) }; }),
       counts: [cnt.live != null ? cnt.live + ' live' : '', cnt.pending ? cnt.pending + ' pending' : '', cnt.hidden ? cnt.hidden + ' hidden' : '', cnt.gone ? cnt.gone + ' no longer sold' : ''].filter(Boolean).join(' · '),
-      isQueue: page === 'queue', queueTitle: (F.find(x => x[0] === st.filter) || F[0])[1] + ' · ' + shown.length, queueEmpty: !shown.length,
+      isQueue: page === 'queue', queueTitle: isBrowse ? 'All entries · ' + shown.length + (shown.length >= 120 ? '+' : '') : (F.find(x => x[0] === st.filter) || F[0])[1] + ' · ' + shown.length, queueEmpty: !shown.length,
       rows: shown.map(r => { const open = st.openKey === r.key; return Object.assign({}, r, { initial: (r.title || '?').charAt(0).toUpperCase(), hasPhoto: !!r.photo, hasNote: !!r.note, op: st.loading && !open ? 0.6 : 1, open, ed: open ? edv : {} }); }),
       isShops: page === 'shops', shopIn: st.shopIn, onShopIn: e => this.setState({ shopIn: e.target.value }),
       trustIn: () => { const d = shopOf(st.shopIn); if (d) { this.setState({ shopIn: '' }); this.run('catalog_shop', { d, st: 'trusted' }, d + ' is trusted'); } },
