@@ -1822,6 +1822,16 @@ input::placeholder{color:#6e6e73;}
             <sc-if value="{{ r.notMine }}" hint-placeholder-val="{{ true }}"><button onClick="{{ r.quick }}" aria-label="{{ r.quickLbl }}" style="flex:none;width:36px;height:36px;border:0;border-radius:9999px;background:#2c2c2e;color:var(--gw-accent,#ffd60a);display:grid;place-items:center;cursor:pointer;padding:0;" style-active="transform:scale(0.9);"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg></button></sc-if>
           </div>
         </sc-for>
+        <sc-if value="{{ cat.cs.hasMine }}" hint-placeholder-val="{{ false }}"><div style="margin:18px 16px 4px;padding-top:14px;border-top:1px solid #2c2c2e;display:flex;flex-direction:column;gap:2px;"><span style="font-size:14px;font-weight:600;color:#a1a1a6;">Only visible to you</span><span style="font-size:12px;color:#6e6e73;">You added these. They show for everyone once they’re approved.</span></div>
+        <sc-for list="{{ cat.cs.resMine }}" as="r" hint-placeholder-count="0">
+          <div onClick="{{ r.open }}" style="display:flex;gap:12px;padding:8px 16px;align-items:center;cursor:pointer;opacity:{{ r.op }};" style-active="background:#2c2c2e;">
+            <span style="position:relative;width:64px;height:64px;border-radius:8px;background:#2c2c2e;flex:none;overflow:hidden;display:grid;place-items:center;color:#6e6e73;font-weight:600;"><span>{{ r.initial }}</span><sc-if value="{{ r.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ r.photo }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;"></sc-if></span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;font-size:15px;line-height:1.3;">{{ r.name }}</span><span style="font-size:13px;color:#a1a1a6;">{{ r.sub }}</span><span style="font-size:12px;color:{{ r.metaColor }};">{{ r.meta }}</span></span>
+            <sc-if value="{{ r.mine }}" hint-placeholder-val="{{ false }}"><span style="flex:none;font-size:12px;font-weight:600;border-radius:9999px;padding:3px 8px;color:{{ r.badgeColor }};background:{{ r.badgeBg }};box-shadow:inset 0 0 0 1px {{ r.badgeRing }};">{{ r.badge }}</span></sc-if>
+            <sc-if value="{{ r.notMine }}" hint-placeholder-val="{{ true }}"><button onClick="{{ r.quick }}" aria-label="{{ r.quickLbl }}" style="flex:none;width:36px;height:36px;border:0;border-radius:9999px;background:#2c2c2e;color:var(--gw-accent,#ffd60a);display:grid;place-items:center;cursor:pointer;padding:0;" style-active="transform:scale(0.9);"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg></button></sc-if>
+          </div>
+        </sc-for>
+        </sc-if>
         <button onClick="{{ cat.dc.addNew }}" style="margin:14px 16px 0;width:calc(100% - 32px);border:0;background:#2c2c2e;border-radius:12px;padding:12px 14px;font-size:15px;color:#f5f5f7;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;" style-active="background:#3a3a3c;"><span style="flex:1;">Not here? Paste the shop link or add it by hand</span><span style="color:#6e6e73;">›</span></button>
       </sc-if>
       <sc-if value="{{ cat.dc.browsing }}" hint-placeholder-val="{{ true }}">
@@ -3661,6 +3671,8 @@ class Component extends DCLogic {
           photo: ph, hasPhoto: !!ph, initial: (c.name || '?').charAt(0).toUpperCase(), op: gone ? 0.6 : 1, mine: !!m, notMine: !m,
           badge: owned ? 'You own' : 'Wanted', badgeBg: owned ? ACC : 'transparent', badgeColor: owned ? '#000' : ACC, badgeRing: owned ? 'transparent' : ACC, quickLbl: (st.sheet === 'cdisc' ? st.discFor === 'owned' : st.form && st.form.status === 'owned') ? 'I own this' : 'Add to wishlist',
           open: () => this.openCat(c, st.sheet === 'cdisc' ? 'disc' : 'form'), quick: e => { e.stopPropagation(); this.bump(e.currentTarget, 1.15); if (st.sheet === 'cdisc' ? st.discFor === 'owned' : st.form && st.form.status === 'owned') this.catOwn(c); else this.catWish(c); } }; }) };
+    { const isP = c => c.status === 'pending' || c.status === 'hidden'; cs.resMine = cs.res.filter((r, i) => isP(filt[i])); cs.res = cs.res.filter((r, i) => !isP(filt[i])); cs.hasMine = cs.resMine.length > 0; cs.hasPub = cs.res.length > 0;
+      if (st.catRes && !cs.res.length && cs.hasMine && !st.catErr) cs.status = 'Nothing public yet for this search.'; }
     const c = st.catP; let pr = {}, fx = {}, rp = {};
     if (c) { const m = mineOf(c), ph = (c.photos || []).filter(Boolean), fr = st.catFr, frN = (fr || []).length, cur = c.currency || '€';
       const low = c.low_price != null && c.price != null && Number(c.low_price) < Number(c.price) ? 'lowest ' + money(cur, Number(c.low_price)) + (c.low_at ? ' in ' + MON[+String(c.low_at).slice(5, 7) - 1] : '') : '';
