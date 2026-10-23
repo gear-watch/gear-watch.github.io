@@ -378,6 +378,10 @@
     if (r.error) { const m = r.error.message || ''; throw new Error(/bucket/i.test(m) ? 'Photo uploads need a database update. Run supabase/catalog.sql.' : /policy|security|unauthori/i.test(m) ? 'Only staff can upload catalog photos.' : m); }
     return sb.storage.from('catalog').getPublicUrl(path).data.publicUrl;
   }
+  async function catRemove(urls) {
+    if (!sb || !S.user) return; const paths = (urls || []).map(u => decodeURIComponent((String(u).split('/storage/v1/object/public/catalog/')[1] || '').split('?')[0])).filter(Boolean);
+    if (paths.length) await sb.storage.from('catalog').remove(paths);
+  }
   async function cat(name, args) {
     if (!sb) await connect(); if (!sb || !S.user) throw new Error('Sign in to use the catalog.');
     const r = await sb.rpc(name, args || {});
@@ -385,7 +389,7 @@
     return r.data;
   }
   window.GWSync = {
-    init, cat, catUpload, pushSave, pushRemove, pushTest, schedule, sync, social, shareCreate, shareGet, cardUpload, token, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut, deleteAccount,
+    init, cat, catUpload, catRemove, pushSave, pushRemove, pushTest, schedule, sync, social, shareCreate, shareGet, cardUpload, token, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut, deleteAccount,
     attach: h => { host = h; },
     on: f => { subs.add(f); f(Object.assign({}, S)); return () => subs.delete(f); },
     state: () => Object.assign({}, S)

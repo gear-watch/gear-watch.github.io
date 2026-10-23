@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=38"></script>
+<script src="./sync.js?v=39"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -389,6 +389,7 @@ input::placeholder{color:#6e6e73;}
   <div style="padding:0 16px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
     <span data-anim="up" style="font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Home</span>
     <sc-if value="{{ fr.signedIn }}" hint-placeholder-val="{{ false }}"><div data-anim="pop" style="display:flex;gap:8px;flex:none;">
+      <sc-if value="{{ staff.show }}" hint-placeholder-val="{{ false }}"><a href="./admin.dc.html" aria-label="{{ staff.label }}" style="position:relative;width:40px;height:40px;border-radius:9999px;background:#1c1c1e;color:#f5f5f7;display:grid;place-items:center;text-decoration:none;" style-active="transform:scale(0.92);"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5l6 2.2v4.6c0 3.9-2.6 6.7-6 8.2-3.4-1.5-6-4.3-6-8.2V4.7z"></path><path d="M7.5 10l1.8 1.8L12.8 8"></path></svg><sc-if value="{{ staff.hasN }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;font-size:11px;font-weight:600;display:grid;place-items:center;box-shadow:0 0 0 2px #000;">{{ staff.n }}</span></sc-if></a></sc-if>
       <button onClick="{{ hm.newStory }}" aria-label="New story" style="width:40px;height:40px;border-radius:9999px;border:0;padding:0;background:#1c1c1e;color:#f5f5f7;display:grid;place-items:center;cursor:pointer;" style-active="transform:scale(0.92);"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="15" height="11.5" rx="2.5"></rect><path d="M7 5l1.2-2h3.6L13 5"></path><path d="M10 8.3v5M7.5 10.8h5"></path></svg></button>
       <button onClick="{{ hm.openNt }}" aria-label="Notifications" style="position:relative;width:40px;height:40px;border-radius:9999px;border:0;padding:0;background:#1c1c1e;color:#f5f5f7;display:grid;place-items:center;cursor:pointer;" style-active="transform:scale(0.92);"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8.5a5 5 0 0 1 10 0c0 4 1.5 5.5 1.5 5.5h-13S5 12.5 5 8.5z"></path><path d="M8.3 16.5a1.8 1.8 0 0 0 3.4 0"></path></svg><sc-if value="{{ hm.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;font-size:11px;font-weight:600;display:grid;place-items:center;box-shadow:0 0 0 2px #000;">{{ hm.badge }}</span></sc-if></button>
     </div></sc-if>
@@ -2559,7 +2560,8 @@ class Component extends DCLogic {
       this.unsubSync = G.on(s => { if (s.photoErr && s.photoErr.at !== this._pErrAt) { this._pErrAt = s.photoErr.at; const m = s.photoErr.msg || ''; this.toast((s.photoErr.n === 1 ? 'A photo couldn’t upload' : s.photoErr.n + ' photos couldn’t upload') + (/size|large|exceed/i.test(m) ? ': it’s too big.' : /network|fetch|offline/i.test(m) ? ': check your connection.' : m ? ': ' + m.slice(0, 80) : '.') + ' It’ll retry next sync.'); } const prev = this.state.acct && this.state.acct.user ? this.state.acct.user.id : null; this.setState({ acct: s }); if (!s.user) { this.socialFor = null; this.cacheFor = null; this.setState({ social: null }); } else { if (this.cacheFor !== s.user.id) { this.cacheFor = s.user.id; try { const c = JSON.parse(localStorage.getItem('gw-social-cache-' + s.user.id) || 'null'); if (c) this.setState({ social: c }); } catch (e) {} }
         if (s.firstDone && this.socialFor !== s.user.id) { this.socialFor = s.user.id; if (!this.loadSocial()) this.socialFor = null; }
         if (s.firstDone && s.username && this.pendingAdd) { const a = this.pendingAdd; this.pendingAdd = null; setTimeout(() => this.openPerson(a), 400); } } });
-      this.unsubCat = G.on(s => { if (s.user && s.firstDone && !this._catKick) { this._catKick = true; this.catSoon(5000); } if (!s.user) this._catKick = false; });
+      this.unsubCat = G.on(s => { if (s.user && s.firstDone && !this._catKick) { this._catKick = true; this.catSoon(5000); this.staffCheck(true); } if (!s.user) { this._catKick = false; if (this.state.staffRole) this.setState({ staffRole: null, staffQ: 0 }); } });
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && this.state.staffRole) this.staffCheck(); });
       G.init(); return true; };
     this.onVis = () => { if (document.visibilityState === 'visible') { this.loadSocial(true); this.forceUpdate(); } }; document.addEventListener('visibilitychange', this.onVis); window.addEventListener('focus', this.onVis);
     this.onRs = () => { this.svMeasure(); this.scMeasure(); const w = window.innerWidth; if ((w >= 900) !== ((this.state.vw || 0) >= 900)) this.setState({ vw: w }); }; window.addEventListener('resize', this.onRs);
@@ -3380,6 +3382,10 @@ class Component extends DCLogic {
   catNorm(u) { return String(u || '').trim().toLowerCase().replace(/^https?:\/\/(www\.)?/, 'https://').replace(/[?#].*$/, '').replace(/\/+$/, ''); }
   catSearching() { const st = this.state; return st.sheet === 'form' && !!st.form && !st.form.id && !!((st.catQ || '').trim() || st.catCat); }
   catMine(p) { const m = {}; (p.items || []).forEach(i => { if (i.catalogId) m['id:' + i.catalogId] = i; if (i.url) m['u:' + this.catNorm(i.url)] = i; }); return m; }
+  staffCheck(force) { const G = window.GWSync, A = G && G.state ? G.state() : {}; if (!G || !G.cat || !A.user) return; if (!force && Date.now() - (this._stAt || 0) < 60000) return; this._stAt = Date.now(); const k = 'gw-staff-' + A.user.id;
+    if (this.state.staffRole === undefined) { let c = null; try { c = localStorage.getItem(k); } catch (e) {} if (c) this.setState({ staffRole: c }); }
+    G.cat('staff_role').then(r => { this.setState({ staffRole: r || null }); try { if (r) localStorage.setItem(k, r); else localStorage.removeItem(k); } catch (e) {}
+      if (r) G.cat('catalog_queue').then(q => this.setState({ staffQ: ((q && q.items) || []).length + ((q && q.flags) || []).length })).catch(() => {}); }).catch(() => {}); }
   catSoon(ms) { clearTimeout(this.catT); this.catT = setTimeout(() => this.catRun(), ms || 4000); }
   async catRun() {
     const G = window.GWSync, A = G && G.state ? G.state() : {}; if (this.catBusyRun || this.catOff || !G || !G.cat || !A.user || !A.firstDone || !navigator.onLine) return; this.catBusyRun = true;
@@ -3996,6 +4002,7 @@ class Component extends DCLogic {
           });
         }
       },
+      staff: { show: !!st.staffRole, hasN: (st.staffQ || 0) > 0, n: (st.staffQ || 0) > 99 ? '99+' : String(st.staffQ || 0), label: (st.staffQ ? st.staffQ + ' waiting in ' : '') + 'Catalog admin' },
       isSheetForm: st.sheet === 'form' && !this.catSearching(), cat: this.catVals(p, f), isSheetBudget: st.sheet === 'budget', isSheetPaid: st.sheet === 'paid',
       pd: (() => { const P = st.paid, it = P ? p.items.find(x => x.id === P.id) : null; if (!it) return { curs: [] };
         const setP = o => this.setState(s => ({ paid: Object.assign({}, s.paid, o) })), SYMS = { '€': '€', '$': '$', '£': '£' }, est = eurOf(it);

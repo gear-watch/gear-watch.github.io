@@ -12,12 +12,12 @@
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=38"></script>
+<script src="./sync.js?v=39"></script>
 <style>html,body{margin:0;background:#000;color:#f5f5f7;font-family:var(--font-text);-webkit-font-smoothing:antialiased;}a{color:#ffd60a;text-decoration:none;}a:hover{color:#ffe55c;}input,select,button{font-family:inherit;}</style>
 </helmet>
 <div style="min-height:100vh;display:flex;flex-direction:column;">
   <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #1c1c1e;flex-wrap:wrap;">
-    <a href="./" style="font-size:17px;">‹ GearWatch</a>
+    <a href="./" style="display:flex;align-items:center;gap:6px;background:#1c1c1e;color:#ffd60a;border-radius:9999px;padding:7px 14px 7px 10px;font-size:15px;font-weight:600;"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"></path></svg><span>Back to GearWatch</span></a>
     <span style="font-size:17px;font-weight:600;">Catalog admin</span>
     <span style="flex:1;"></span>
     <sc-if value="{{ hasRole }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#a1a1a6;">{{ who }} · {{ roleLbl }}</span></sc-if>
@@ -168,6 +168,8 @@ class Component extends DCLogic {
       if (!inField) { const urls = this.urlsFrom(cd.getData('text')); if (urls.length) { e.preventDefault(); this.addPhotoSrcs(urls); } } };
     document.addEventListener('paste', this.onPaste);
   }
+  componentDidUpdate(pp, ps) { const pe = ps && ps.ed, ne = this.state.ed;
+    if (pe && (pe.uploaded || []).length && (!ne || ne.cid !== pe.cid || !ne.uploaded)) { const keep = this._edKeep, gone = pe.uploaded.filter(u => !(keep && keep.has(u))); this._edKeep = null; const G = window.GWSync; if (gone.length && G && G.catRemove) G.catRemove(gone).catch(() => {}); } }
   componentWillUnmount() { document.removeEventListener('paste', this.onPaste); if (this.unsub) this.unsub(); clearTimeout(this.tt); clearInterval(this.poll); document.removeEventListener('visibilitychange', this.onVis); }
   say(t) { clearTimeout(this.tt); this.setState({ toast: t }); this.tt = setTimeout(() => this.setState({ toast: '' }), 2600); }
   async load() { const G = window.GWSync; if (!G || !G.cat) return; this.setState({ loading: true });
@@ -201,12 +203,12 @@ class Component extends DCLogic {
     G.cat('catalog_get', { cid }).then(c => { if (this.state.openKey !== key) return; if (!c) { this.say('Not found'); this.setState({ openKey: null, ed: null }); return; }
       this.setState({ ed: { cid, pendingItem, ready: true, c, name: c.name || '', brand: c.brand || '', category: c.category || '', materials: (c.materials || []).slice(), latexMm: c.latex_mm || '', price: c.price == null ? '' : String(c.price), currency: c.currency || '€', photos: (c.photos || []).map(src => ({ src, on: true })) } }); })
       .catch(e => { this.say((e && e.message) || 'Couldn’t load'); this.setState({ openKey: null, ed: null }); }); }
-  shrink(f) { return createImageBitmap(f).then(bm => { const s = Math.min(1, 1600 / Math.max(bm.width, bm.height)), c = document.createElement('canvas'); c.width = Math.round(bm.width * s); c.height = Math.round(bm.height * s); c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height); if (bm.close) bm.close(); return new Promise(res => c.toBlob(b => res(b), 'image/jpeg', 0.88)); }); }
+  shrink(f) { return createImageBitmap(f).then(bm => { const s = Math.min(1, 1200 / Math.max(bm.width, bm.height)), c = document.createElement('canvas'); c.width = Math.round(bm.width * s); c.height = Math.round(bm.height * s); c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height); if (bm.close) bm.close(); return new Promise(res => c.toBlob(b => res(b), 'image/jpeg', 0.82)); }); }
   addPhotoSrcs(list) { this.setState(s => { if (!s.ed || !s.ed.ready) return null; const have = new Set(s.ed.photos.map(p => p.src)), add = list.filter(x => x && !have.has(x)).map(src => ({ src, on: true })); return add.length ? { ed: Object.assign({}, s.ed, { photos: s.ed.photos.concat(add) }) } : null; }); }
   async edAddFiles(files) { const G = window.GWSync, imgs = Array.from(files || []).filter(f => /^image\//.test(f.type || '') || /\.(jpe?g|png|webp|gif|heic|avif)$/i.test(f.name || '')); if (!imgs.length || !this.state.ed || !this.state.ed.ready) return;
     if (!G || !G.catUpload) { this.say('Reload the page to upload photos'); return; }
     this.setEd({ uploading: (this.state.ed.uploading || 0) + imgs.length }); let bad = 0;
-    for (const f of imgs) { try { const b = await this.shrink(f); if (!b) throw new Error('x'); const url = await G.catUpload(b); this.addPhotoSrcs([url]); } catch (e) { bad++; if (e && e.message && e.message.length > 3) this.say(e.message); } this.setState(s => s.ed ? { ed: Object.assign({}, s.ed, { uploading: Math.max(0, (s.ed.uploading || 1) - 1) }) } : null); }
+    for (const f of imgs) { try { const b = await this.shrink(f); if (!b) throw new Error('x'); const cid = this.state.ed && this.state.ed.cid, url = await G.catUpload(b); if (!this.state.ed || this.state.ed.cid !== cid) { G.catRemove && G.catRemove([url]).catch(() => {}); continue; } this.setState(s => s.ed ? { ed: Object.assign({}, s.ed, { uploaded: (s.ed.uploaded || []).concat(url) }) } : null); this.addPhotoSrcs([url]); } catch (e) { bad++; if (e && e.message && e.message.length > 3) this.say(e.message); } this.setState(s => s.ed ? { ed: Object.assign({}, s.ed, { uploading: Math.max(0, (s.ed.uploading || 1) - 1) }) } : null); }
     if (bad && bad === imgs.length && imgs.length > 1) this.say('Those photos couldn’t be uploaded'); }
   urlsFrom(txt) { return String(txt || '').split(/\s+/).filter(x => /^https?:\/\/\S+\.(jpe?g|png|webp|avif|gif)(\?\S*)?$/i.test(x) || /^https?:\/\/\S*(cdn|images|media|uploads)\S*$/i.test(x)).slice(0, 8); }
   setEd(o) { this.setState(s => ({ ed: Object.assign({}, s.ed, o) })); }
@@ -221,9 +223,10 @@ class Component extends DCLogic {
     if (ed.price.trim() && isNaN(Number(ed.price.replace(',', '.')))) { this.say('The price needs to be a number'); return; }
     this.setEd({ saving: true });
     try { await G.cat('catalog_edit', { cid: ed.cid, p: { name: ed.name.trim(), brand: ed.brand.trim(), category: ed.category, materials: ed.materials, latexMm: ed.materials.includes('Latex') ? ed.latexMm : '', price: ed.price.trim().replace(',', '.'), currency: ed.currency, photos: ed.photos.filter(p => p.on).map(p => p.src) } });
+      this._edKeep = new Set(ed.photos.filter(p => p.on).map(p => p.src));
       if (approve) await G.cat('catalog_decide', { what: 'item', target: ed.cid, act: 'approve' });
       this.say(approve ? 'Saved and approved' : 'Saved'); this.setState({ openKey: null, ed: null }); await this.load(); if (this.state.page === 'browse') this.browse(); }
-    catch (e) { this.setEd({ saving: false }); this.say((e && e.message) || 'Couldn’t save'); } }
+    catch (e) { this._edKeep = null; this.setEd({ saving: false }); this.say((e && e.message) || 'Couldn’t save'); } }
   edVals() { const ed = this.state.ed; if (!ed) return {}; if (!ed.ready) return { loading: true };
     const chip = (label, on, fn) => ({ label, bg: on ? '#ffd60a' : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: fn });
     const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Socks', 'Cuffs', 'Gags', 'Leashes', 'Collars', 'Toys', 'Accessory'];
