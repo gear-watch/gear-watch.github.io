@@ -370,8 +370,15 @@
   async function pushSave(j, kinds) { if (!sb) await connect(); if (!sb || !S.user) throw new Error('Sign in first'); const k = (j && j.keys) || {}; const r = await sb.rpc('push_save', { ep: j.endpoint, k: k.p256dh, a: k.auth, wants: kinds || ['friends', 'stories'] }); if (r.error) throw new Error(/push_save|function/i.test(r.error.message || '') ? 'Notifications need a database update. Run supabase/setup.sql again.' : r.error.message); }
   async function pushTest() { if (!sb) await connect(); if (!sb || !S.user) throw new Error('Sign in first'); const r = await sb.rpc('push_test'); if (r.error) throw new Error(/push_test|function/i.test(r.error.message || '') ? 'Run supabase/setup.sql again first.' : r.error.message); return r.data; }
   async function pushRemove(ep) { if (!sb || !S.user) return; try { await sb.rpc('push_remove', { ep }); } catch (e) {} }
+  // ===== Public catalog =====
+  async function cat(name, args) {
+    if (!sb) await connect(); if (!sb || !S.user) throw new Error('Sign in to use the catalog.');
+    const r = await sb.rpc(name, args || {});
+    if (r.error) { const m = r.error.message || ''; throw new Error(/does not exist|could not find the function|schema cache/i.test(m) ? 'The catalog needs a database update. Run supabase/catalog.sql.' : m); }
+    return r.data;
+  }
   window.GWSync = {
-    init, pushSave, pushRemove, pushTest, schedule, sync, social, shareCreate, shareGet, cardUpload, token, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut, deleteAccount,
+    init, cat, pushSave, pushRemove, pushTest, schedule, sync, social, shareCreate, shareGet, cardUpload, token, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut, deleteAccount,
     attach: h => { host = h; },
     on: f => { subs.add(f); f(Object.assign({}, S)); return () => subs.delete(f); },
     state: () => Object.assign({}, S)

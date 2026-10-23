@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>GearWatch admin</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="./colors_and_type.css">
+<script src="./config.js?v=3"></script>
+<script src="./sync.js?v=37"></script>
+<style>html,body{margin:0;background:#000;color:#f5f5f7;font-family:var(--font-text);-webkit-font-smoothing:antialiased;}a{color:#ffd60a;text-decoration:none;}a:hover{color:#ffe55c;}input,select,button{font-family:inherit;}</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;">
+  <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #1c1c1e;flex-wrap:wrap;">
+    <a href="./" style="font-size:17px;">‹ GearWatch</a>
+    <span style="font-size:17px;font-weight:600;">Catalog admin</span>
+    <span style="flex:1;"></span>
+    <sc-if value="{{ hasRole }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#a1a1a6;">{{ who }} · {{ roleLbl }}</span></sc-if>
+    <button onClick="{{ reload }}" style="border:0;background:#1c1c1e;color:#f5f5f7;border-radius:8px;padding:7px 12px;font-size:14px;cursor:pointer;" style-active="transform:scale(0.95);">Refresh</button>
+  </div>
+  <sc-if value="{{ showMsg }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:80px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;">
+      <span style="font-size:24px;font-weight:600;">{{ msgTitle }}</span>
+      <span style="font-size:15px;color:#a1a1a6;max-width:420px;line-height:1.45;">{{ msgSub }}</span>
+    </div>
+  </sc-if>
+  <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;display:flex;flex-wrap:wrap;align-items:flex-start;">
+      <div style="flex:1 1 200px;max-width:240px;min-width:180px;padding:16px 10px;display:flex;flex-direction:column;gap:2px;font-size:15px;">
+        <span style="padding:0 10px 8px;font-size:13px;font-weight:600;color:#a1a1a6;">Queue</span>
+        <sc-for list="{{ filters }}" as="t" hint-placeholder-count="6"><button onClick="{{ t.onTap }}" style="border:0;text-align:left;display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:8px;font-size:15px;cursor:pointer;color:#f5f5f7;background:{{ t.bg }};"><span>{{ t.label }}</span><span style="color:{{ t.nColor }};">{{ t.n }}</span></button></sc-for>
+        <span style="height:1px;background:#1c1c1e;margin:10px 0;"></span>
+        <sc-for list="{{ pages }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.onTap }}" style="border:0;text-align:left;padding:8px 10px;border-radius:8px;font-size:15px;cursor:pointer;color:#f5f5f7;background:{{ t.bg }};">{{ t.label }}</button></sc-for>
+        <span style="padding:16px 10px 0;font-size:12px;color:#6e6e73;line-height:1.5;">{{ counts }}</span>
+      </div>
+      <div style="flex:999 1 480px;min-width:0;border-left:1px solid #1c1c1e;min-height:70vh;">
+        <sc-if value="{{ isQueue }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;display:flex;justify-content:space-between;align-items:baseline;gap:12px;"><span style="font-size:20px;font-weight:600;">{{ queueTitle }}</span><span style="font-size:13px;color:#a1a1a6;">Oldest first</span></div>
+          <sc-if value="{{ queueEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px 20px;color:#a1a1a6;font-size:15px;">Nothing waiting.</div></sc-if>
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:56px minmax(0,1fr);gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid #1c1c1e;opacity:{{ r.op }};">
+              <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" style="position:relative;width:56px;height:56px;border-radius:8px;background:#1c1c1e;overflow:hidden;display:grid;place-items:center;color:#6e6e73;font-weight:600;"><span>{{ r.initial }}</span><sc-if value="{{ r.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ r.photo }}" alt="" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;filter:{{ r.blur }};transition:filter .2s;" style-hover="filter:none;"></sc-if></a>
+              <div style="display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;min-width:0;">
+                <div style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:3px;">
+                  <span style="display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;"><span style="flex:none;white-space:nowrap;font-size:12px;border-radius:9999px;padding:2px 8px;color:{{ r.tagColor }};background:{{ r.tagBg }};">{{ r.tag }}</span><span style="font-size:15px;font-weight:600;overflow-wrap:anywhere;">{{ r.title }}</span></span>
+                  <span style="font-size:13px;color:#a1a1a6;overflow-wrap:anywhere;">{{ r.sub }}</span>
+                  <sc-if value="{{ r.hasNote }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#d1d1d6;">“{{ r.note }}”</span></sc-if>
+                </div>
+                <div style="flex:none;display:flex;gap:8px;flex-wrap:wrap;">
+                  <sc-for list="{{ r.acts }}" as="a" hint-placeholder-count="2"><button onClick="{{ a.onTap }}" style="border:0;border-radius:8px;padding:7px 12px;font-size:14px;cursor:pointer;color:{{ a.color }};background:{{ a.bg }};" style-active="transform:scale(0.95);">{{ a.label }}</button></sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ isShops }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;font-size:20px;font-weight:600;">Known shops</div>
+          <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:14px 20px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid #1c1c1e;">
+              <input value="{{ shopIn }}" onChange="{{ onShopIn }}" placeholder="shop.com" autocomplete="off" style="flex:1 1 200px;min-width:0;background:#1c1c1e;border:0;border-radius:8px;padding:9px 12px;font-size:15px;color:#f5f5f7;outline:none;">
+              <button onClick="{{ trustIn }}" style="border:0;background:#ffd60a;color:#000;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;">Trust</button>
+              <button onClick="{{ blockIn }}" style="border:0;background:#ff453a;color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;">Block</button>
+            </div>
+          </sc-if>
+          <sc-for list="{{ shops }}" as="s" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid #1c1c1e;flex-wrap:wrap;">
+              <a href="{{ s.href }}" target="_blank" rel="noopener noreferrer" style="flex:1 1 200px;min-width:0;font-size:15px;">{{ s.domain }}</a>
+              <span style="font-size:13px;color:#a1a1a6;">{{ s.n }}</span>
+              <span style="font-size:12px;border-radius:9999px;padding:2px 8px;color:{{ s.color }};background:{{ s.bg }};">{{ s.status }}</span>
+              <sc-if value="{{ s.canEdit }}" hint-placeholder-val="{{ false }}"><button onClick="{{ s.clear }}" style="border:0;background:#1c1c1e;color:#f5f5f7;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;">Remove</button></sc-if>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ isStaff }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;font-size:20px;font-weight:600;">Staff</div>
+          <div style="padding:12px 20px;font-size:13px;color:#a1a1a6;line-height:1.5;border-bottom:1px solid #1c1c1e;">Moderators approve, reject, restore and remove. Admins can also trust or block shops and manage staff.</div>
+          <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:14px 20px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid #1c1c1e;">
+              <input value="{{ staffIn }}" onChange="{{ onStaffIn }}" placeholder="@username" autocomplete="off" style="flex:1 1 180px;min-width:0;background:#1c1c1e;border:0;border-radius:8px;padding:9px 12px;font-size:15px;color:#f5f5f7;outline:none;">
+              <button onClick="{{ addMod }}" style="border:0;background:#1c1c1e;color:#f5f5f7;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;">Add moderator</button>
+              <button onClick="{{ addAdmin }}" style="border:0;background:#ffd60a;color:#000;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;">Add admin</button>
+            </div>
+          </sc-if>
+          <sc-for list="{{ staff }}" as="s" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid #1c1c1e;flex-wrap:wrap;">
+              <span style="flex:1 1 160px;font-size:15px;">@{{ s.username }}</span>
+              <span style="font-size:12px;border-radius:9999px;padding:2px 8px;color:{{ s.color }};background:{{ s.bg }};">{{ s.role }}</span>
+              <sc-if value="{{ s.canEdit }}" hint-placeholder-val="{{ false }}"><button onClick="{{ s.swap }}" style="border:0;background:#1c1c1e;color:#f5f5f7;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;">{{ s.swapLbl }}</button><button onClick="{{ s.remove }}" style="border:0;background:#1c1c1e;color:#ff453a;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;">Remove</button></sc-if>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ isLog }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;font-size:20px;font-weight:600;">Change log</div>
+          <sc-for list="{{ log }}" as="l" hint-placeholder-count="6">
+            <div style="display:flex;gap:12px;padding:10px 20px;border-bottom:1px solid #1c1c1e;font-size:14px;flex-wrap:wrap;">
+              <span style="flex:none;width:120px;color:#a1a1a6;">{{ l.at }}</span>
+              <span style="flex:1 1 240px;min-width:0;overflow-wrap:anywhere;">{{ l.text }}</span>
+              <span style="flex:none;color:#a1a1a6;">{{ l.by }}</span>
+            </div>
+          </sc-for>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}"><div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2c2c2e;color:#f5f5f7;border-radius:9999px;padding:10px 18px;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,0.5);">{{ toast }}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { acct: null, q: null, info: null, err: '', filter: 'all', page: 'queue', shopIn: '', staffIn: '', toast: '', loading: false };
+  componentDidMount() {
+    const go = () => { const G = window.GWSync; if (!G) { setTimeout(go, 100); return; }
+      this.unsub = G.on(s => { const was = this.state.acct && this.state.acct.user && this.state.acct.user.id; this.setState({ acct: s }); if (s.user && s.firstDone && was !== s.user.id) this.load(); });
+      G.init(); };
+    go();
+  }
+  componentWillUnmount() { if (this.unsub) this.unsub(); clearTimeout(this.tt); }
+  say(t) { clearTimeout(this.tt); this.setState({ toast: t }); this.tt = setTimeout(() => this.setState({ toast: '' }), 2600); }
+  async load() { const G = window.GWSync; if (!G || !G.cat) return; this.setState({ loading: true });
+    try { const [q, info] = await Promise.all([G.cat('catalog_queue'), G.cat('catalog_admin_info')]); this.setState({ q, info, err: '', loading: false }); }
+    catch (e) { this.setState({ err: (e && e.message) || 'Couldn’t load', loading: false }); } }
+  async run(name, args, msg) { const G = window.GWSync; try { await G.cat(name, args); if (msg) this.say(msg); await this.load(); } catch (e) { this.say((e && e.message) || 'That didn’t work'); } }
+  renderVals() {
+    const st = this.state, A = st.acct || {}, q = st.q, info = st.info || {}, role = q && q.role, isAdmin = role === 'admin';
+    const showMsg = !q, msgTitle = A.ready && !A.configured ? 'Not set up' : !A.user ? (A.ready ? 'Sign in first' : 'Loading…') : st.err ? (/staff only/i.test(st.err) ? 'Staff only' : 'Couldn’t load the queue') : 'Loading…';
+    const msgSub = A.ready && !A.configured ? 'config.js needs the Supabase details.' : !A.user ? (A.ready ? 'Open GearWatch, sign in, then come back to this page.' : '') : st.err ? (/staff only/i.test(st.err) ? 'This page is for GearWatch admins and moderators.' : st.err) : '';
+    const items = (q && q.items) || [], flags = (q && q.flags) || [], TYPED = ['name', 'brand', 'link', 'duplicate'];
+    const RED = { tagColor: '#ff453a', tagBg: '#3a1512' }, BLUE = { tagColor: '#64d2ff', tagBg: '#0f2a36' }, GREY = { tagColor: '#a1a1a6', tagBg: '#2c2c2e' };
+    const btn = (label, onTap, kind) => ({ label, onTap, bg: kind === 'yes' ? '#ffd60a' : kind === 'no' ? '#ff453a' : '#2c2c2e', color: kind === 'yes' ? '#000' : kind === 'no' ? '#fff' : '#f5f5f7' });
+    const dec = (what, target, act, msg) => () => this.run('catalog_decide', { what, target, act }, msg);
+    const rows = [];
+    items.forEach(c => { const hidden = c.status === 'hidden', unk = c.shop !== 'trusted';
+      const t = hidden ? Object.assign({ tag: 'Hidden' }, RED) : unk ? Object.assign({ tag: c.shop === 'blocked' ? 'Blocked shop' : 'Unknown shop' }, GREY) : c.by_new ? Object.assign({ tag: 'New account' }, BLUE) : Object.assign({ tag: 'Pending' }, GREY);
+      const acts = hidden ? [btn('Restore', dec('item', c.id, 'restore', 'Restored')), btn('Remove', dec('item', c.id, 'remove', 'Removed'), 'no')]
+        : [btn('Reject', dec('item', c.id, 'reject', 'Rejected')), btn('Approve', dec('item', c.id, 'approve', 'Approved'), unk && isAdmin ? '' : 'yes')];
+      if (!hidden && unk && isAdmin && c.shop !== 'blocked') acts.push(btn('Trust shop', () => this.run('catalog_shop', { d: c.domain, st: 'trusted' }, c.domain + ' is trusted'), 'yes'));
+      if (isAdmin && (unk || hidden) && c.shop !== 'blocked') acts.push(btn('Block shop', () => this.run('catalog_shop', { d: c.domain, st: 'blocked' }, c.domain + ' is blocked'), 'no'));
+      rows.push(Object.assign(t, { at: c.created_at, grp: hidden ? 'reports' : unk ? 'shops' : c.by_new ? 'new' : 'items', title: c.name, url: c.url, photo: (c.photos || [])[0] || '', blur: 'none',
+        sub: [c.domain, c.by ? 'added by @' + c.by : '', c.same_link ? c.same_link + (c.same_link === 1 ? ' other has it' : ' others have it') : ''].filter(Boolean).join(' · '), note: '', acts })); });
+    flags.forEach(f => { const it = f.item || {}, rep = f.kind === 'report', typed = TYPED.includes(f.field);
+      const t = rep ? Object.assign({ tag: 'Report · ' + f.agree }, RED) : f.by_new ? Object.assign({ tag: 'New account' }, BLUE) : Object.assign({ tag: typed ? 'Typed-in change' : 'Fix · ' + f.agree + ' agree' }, GREY);
+      const title = rep ? it.name : f.field === 'category' ? 'Category: ' + (it.category || '—') + ' → ' + f.value : f.field === 'material' ? 'Material → ' + f.value : f.field === 'name' ? 'Rename: “' + it.name + '” → “' + f.value + '”' : f.field === 'brand' ? 'Brand → ' + f.value : f.field === 'link' ? 'New link: ' + f.value : f.field === 'gone' ? 'Mark “' + it.name + '” as no longer sold' : f.field === 'duplicate' ? 'Duplicate of ' + f.value : f.field;
+      const acts = rep ? [btn('Dismiss', dec('flag', f.id, 'reject', 'Dismissed')), btn('Remove item', dec('flag', f.id, 'approve', 'Removed'), 'no')]
+        : [btn('Reject', dec('flag', f.id, 'reject', 'Rejected')), btn('Approve', dec('flag', f.id, 'approve', 'Applied'), 'yes')];
+      rows.push(Object.assign(t, { at: f.created_at, grp: rep ? 'reports' : f.by_new ? 'new' : typed ? 'typed' : 'fixes', title, url: it.url || '', photo: it.photo || '', blur: rep && /photo/i.test(f.reason || '') ? 'blur(8px)' : 'none',
+        sub: [rep ? '“' + f.reason + '”' : it.name, f.by ? '@' + f.by : '', it.status && it.status !== 'live' ? 'entry ' + it.status : ''].filter(Boolean).join(' · '), note: f.note || '', acts })); });
+    rows.sort((a, b) => String(a.at).localeCompare(String(b.at)));
+    const F = [['all', 'All'], ['reports', 'Reports'], ['new', 'New accounts'], ['shops', 'Unknown shops'], ['typed', 'Typed-in changes'], ['fixes', 'Fixes'], ['items', 'Other pending']];
+    const n = k => k === 'all' ? rows.length : rows.filter(r => r.grp === k).length;
+    const shown = st.filter === 'all' ? rows : rows.filter(r => r.grp === st.filter);
+    const page = st.page, cnt = info.counts || {};
+    const pill = s => s === 'trusted' || s === 'admin' ? { color: '#000', bg: '#ffd60a' } : s === 'blocked' ? { color: '#fff', bg: '#ff453a' } : { color: '#f5f5f7', bg: '#2c2c2e' };
+    const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const fmt = s => { const d = new Date(s); return isNaN(d) ? '' : d.getDate() + ' ' + MO[d.getMonth()] + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+    const shopOf = s => String(s || '').trim().replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('/')[0].toLowerCase();
+    const at = u => String(u || '').trim().replace(/^@?/, '@');
+    return {
+      showMsg, msgTitle, msgSub, ready: !!q, hasRole: !!role, who: A.username ? '@' + A.username : '', roleLbl: isAdmin ? 'Admin' : 'Moderator', isAdmin,
+      reload: () => this.load(),
+      filters: F.map(([k, l]) => { const c = n(k); return { k, label: l, n: String(c), nColor: k === 'reports' && c ? '#ff453a' : '#a1a1a6', bg: page === 'queue' && st.filter === k ? '#1c1c1e' : 'transparent', onTap: () => this.setState({ filter: k, page: 'queue' }) }; }).filter(x => x.k === 'all' || x.n !== '0' || st.filter === x.k),
+      pages: [['shops', 'Known shops'], ['staff', 'Staff'], ['log', 'Change log']].map(([k, l]) => ({ label: l, bg: page === k ? '#1c1c1e' : 'transparent', onTap: () => this.setState({ page: k }) })),
+      counts: [cnt.live != null ? cnt.live + ' live' : '', cnt.pending ? cnt.pending + ' pending' : '', cnt.hidden ? cnt.hidden + ' hidden' : '', cnt.gone ? cnt.gone + ' no longer sold' : ''].filter(Boolean).join(' · '),
+      isQueue: page === 'queue', queueTitle: (F.find(x => x[0] === st.filter) || F[0])[1] + ' · ' + shown.length, queueEmpty: !shown.length,
+      rows: shown.map(r => Object.assign({}, r, { initial: (r.title || '?').charAt(0).toUpperCase(), hasPhoto: !!r.photo, hasNote: !!r.note, op: st.loading ? 0.6 : 1 })),
+      isShops: page === 'shops', shopIn: st.shopIn, onShopIn: e => this.setState({ shopIn: e.target.value }),
+      trustIn: () => { const d = shopOf(st.shopIn); if (d) { this.setState({ shopIn: '' }); this.run('catalog_shop', { d, st: 'trusted' }, d + ' is trusted'); } },
+      blockIn: () => { const d = shopOf(st.shopIn); if (d) { this.setState({ shopIn: '' }); this.run('catalog_shop', { d, st: 'blocked' }, d + ' is blocked'); } },
+      shops: (info.shops || []).map(s => Object.assign({ domain: s.domain, href: 'https://' + s.domain, n: s.n + (s.n === 1 ? ' item' : ' items'), status: s.status === 'trusted' ? 'Trusted' : 'Blocked', canEdit: isAdmin, clear: () => this.run('catalog_shop', { d: s.domain, st: '' }, s.domain + ' removed from the list') }, pill(s.status))),
+      isStaff: page === 'staff', staffIn: st.staffIn, onStaffIn: e => this.setState({ staffIn: e.target.value }),
+      addMod: () => { const u = st.staffIn.trim(); if (u) { this.setState({ staffIn: '' }); this.run('catalog_staff_set', { uname: u, r: 'moderator' }, at(u) + ' is a moderator'); } },
+      addAdmin: () => { const u = st.staffIn.trim(); if (u) { this.setState({ staffIn: '' }); this.run('catalog_staff_set', { uname: u, r: 'admin' }, at(u) + ' is an admin'); } },
+      staff: (info.staff || []).map(s => Object.assign({ username: s.username, role: s.role === 'admin' ? 'Admin' : 'Moderator', canEdit: isAdmin && s.username !== A.username,
+        swapLbl: s.role === 'admin' ? 'Make moderator' : 'Make admin', swap: () => this.run('catalog_staff_set', { uname: s.username, r: s.role === 'admin' ? 'moderator' : 'admin' }, 'Role changed'),
+        remove: () => this.run('catalog_staff_set', { uname: s.username, r: '' }, '@' + s.username + ' removed') }, pill(s.role))),
+      isLog: page === 'log', log: (info.log || []).map(l => { const d = l.detail || {}; return { at: fmt(l.at), by: l.by ? '@' + l.by : 'auto', text: [l.action, l.item ? '“' + l.item + '”' : '', d.domain || '', d.username ? at(d.username) : '', d.field ? d.field + (d.value ? ' → ' + d.value : '') : ''].filter(Boolean).join(' · ') }; }),
+      hasToast: !!st.toast, toast: st.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

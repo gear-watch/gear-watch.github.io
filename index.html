@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=36"></script>
+<script src="./sync.js?v=37"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
@@ -821,6 +821,9 @@ input::placeholder{color:#6e6e73;}
       </sc-for>
     </div>
 
+    <sc-if value="{{ d.hasCat }}" hint-placeholder-val="{{ false }}">
+      <button data-anim="up" onClick="{{ d.openCat }}" style="width:calc(100% - 32px);margin:12px 16px 0;border:0;background:#1c1c1e;border-radius:18px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:17px;color:#f5f5f7;cursor:pointer;text-align:left;" style-active="background:#2c2c2e;"><span style="color:#a1a1a6;">In the catalog</span><span style="display:flex;align-items:center;gap:8px;"><sc-if value="{{ d.catPending }}" hint-placeholder-val="{{ false }}"><span style="width:8px;height:8px;border-radius:9999px;background:#ff9f0a;"></span></sc-if><span>{{ d.catLbl }}</span><span style="color:#6e6e73;">›</span></span></button>
+    </sc-if>
     <sc-if value="{{ d.inColl }}" hint-placeholder-val="{{ false }}">
       <button data-anim="up" onClick="{{ d.onPickCat }}" style="width:calc(100% - 32px);margin:12px 16px 0;border:0;background:#1c1c1e;border-radius:18px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:17px;color:#f5f5f7;cursor:pointer;text-align:left;" style-active="background:#2c2c2e;"><span style="color:#a1a1a6;">Category</span><span style="display:flex;align-items:center;gap:8px;"><span>{{ d.cgroup }}</span><span style="color:#6e6e73;">›</span></span></button>
       <sc-if value="{{ d.hasOutfits }}" hint-placeholder-val="{{ false }}">
@@ -1500,6 +1503,31 @@ input::placeholder{color:#6e6e73;}
       <sc-if value="{{ hasSheetAction }}" hint-placeholder-val="{{ false }}"><button onClick="{{ sheetAction }}" style="justify-self:end;border:0;background:none;color:{{ actionColor }};font-size:17px;font-weight:600;padding:8px;cursor:pointer;transition:color .25s;">{{ actionLabel }}</button></sc-if>
     </div>
 
+    <sc-if value="{{ cat.cs.show }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="margin:4px 16px 0;background:#2c2c2e;border-radius:9999px;padding:0 6px 0 14px;display:flex;align-items:center;gap:8px;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#8e8e93" stroke-width="1.6" stroke-linecap="round" style="flex:none;"><circle cx="7" cy="7" r="5"></circle><path d="M11 11l3.5 3.5"></path></svg>
+        <input value="{{ cat.cs.q }}" onChange="{{ cat.cs.onQ }}" placeholder="Search the catalog" type="search" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false" style="flex:1;min-width:0;background:none;border:0;outline:none;padding:10px 0;font-size:17px;color:#f5f5f7;">
+        <sc-if value="{{ cat.cs.hasQ }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cat.cs.clear }}" aria-label="Clear search" style="flex:none;width:32px;height:32px;border:0;background:none;display:grid;place-items:center;cursor:pointer;padding:0;"><span style="width:18px;height:18px;border-radius:9999px;background:#636366;color:#1c1c1e;display:grid;place-items:center;font-size:12px;font-weight:600;line-height:1;">×</span></button></sc-if>
+      </div>
+      <div style="padding:10px 16px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;">
+        <sc-for list="{{ cat.cs.chips }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.onTap }}" style="flex:none;border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for>
+      </div>
+      <sc-if value="{{ cat.cs.searching }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:14px 20px 6px;font-size:13px;color:#a1a1a6;display:flex;align-items:center;gap:6px;min-height:18px;">
+          <sc-if value="{{ cat.cs.busy }}" hint-placeholder-val="{{ false }}"><span data-anim="spin" style="width:10px;height:10px;border-radius:9999px;border:2px solid #48484a;border-top-color:var(--gw-accent,#ffd60a);flex:none;"></span></sc-if>
+          <span>{{ cat.cs.status }}</span>
+        </div>
+        <sc-for list="{{ cat.cs.res }}" as="r" hint-placeholder-count="3">
+          <div onClick="{{ r.open }}" style="display:flex;gap:12px;padding:8px 16px;align-items:center;cursor:pointer;opacity:{{ r.op }};" style-active="background:#2c2c2e;">
+            <span style="position:relative;width:64px;height:64px;border-radius:8px;background:#2c2c2e;flex:none;overflow:hidden;display:grid;place-items:center;color:#6e6e73;font-weight:600;"><span>{{ r.initial }}</span><sc-if value="{{ r.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ r.photo }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;"></sc-if></span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;font-size:15px;line-height:1.3;">{{ r.name }}</span><span style="font-size:13px;color:#a1a1a6;">{{ r.sub }}</span><span style="font-size:12px;color:{{ r.metaColor }};">{{ r.meta }}</span></span>
+            <sc-if value="{{ r.mine }}" hint-placeholder-val="{{ false }}"><span style="flex:none;font-size:12px;font-weight:600;border-radius:9999px;padding:3px 8px;color:{{ r.badgeColor }};background:{{ r.badgeBg }};box-shadow:inset 0 0 0 1px {{ r.badgeRing }};">{{ r.badge }}</span></sc-if>
+            <sc-if value="{{ r.notMine }}" hint-placeholder-val="{{ true }}"><button onClick="{{ r.quick }}" aria-label="{{ r.quickLbl }}" style="flex:none;width:36px;height:36px;border:0;border-radius:9999px;background:#2c2c2e;color:var(--gw-accent,#ffd60a);display:grid;place-items:center;cursor:pointer;padding:0;" style-active="transform:scale(0.9);"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg></button></sc-if>
+          </div>
+        </sc-for>
+        <button onClick="{{ cat.cs.clear }}" style="margin:14px 16px 0;width:calc(100% - 32px);border:0;background:#2c2c2e;border-radius:12px;padding:12px 14px;font-size:15px;color:#f5f5f7;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;" style-active="background:#3a3a3c;"><span style="flex:1;">Not here? Paste the shop link or add it by hand</span><span style="color:#6e6e73;">›</span></button>
+      </sc-if>
+    </sc-if>
     <sc-if value="{{ isSheetForm }}" hint-placeholder-val="{{ false }}">
       <div data-anim="up" style="margin:4px 16px 0;display:flex;gap:8px;">
         <input value="{{ f.url }}" onChange="{{ fUrl }}" placeholder="Paste a shop link" inputmode="url" style="flex:1;min-width:0;background:#2c2c2e;border:0;border-radius:8px;padding:10px 12px;font-size:17px;color:#f5f5f7;">
@@ -1711,6 +1739,57 @@ input::placeholder{color:#6e6e73;}
       <div style="padding:20px 20px 8px;text-align:center;font-size:12px;color:#6e6e73;">GearWatch build 22 Oct · 4</div>
     </sc-if>
 
+    <sc-if value="{{ cat.isProd }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ cat.pr.fromSearch }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cat.pr.back }}" style="margin:0 8px;border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:0 8px 10px;cursor:pointer;">‹ Results</button></sc-if>
+      <div style="display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 16px;">
+        <sc-for list="{{ cat.pr.photos }}" as="ph" hint-placeholder-count="1"><img src="{{ ph.src }}" alt="" referrerpolicy="no-referrer" style="flex:none;width:{{ ph.w }};height:300px;border-radius:12px;object-fit:cover;object-position:top;background:#2c2c2e;scroll-snap-align:center;"></sc-for>
+        <sc-if value="{{ cat.pr.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="flex:1;height:180px;border-radius:12px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-size:34px;font-weight:600;">{{ cat.pr.initial }}</span></sc-if>
+      </div>
+      <div data-anim="up" style="padding:16px 20px 0;display:flex;flex-direction:column;gap:2px;">
+        <span style="font-size:13px;color:#a1a1a6;">{{ cat.pr.meta }}</span>
+        <span style="font-size:24px;font-weight:600;letter-spacing:-0.3px;line-height:1.2;text-wrap:pretty;">{{ cat.pr.name }}</span>
+        <span style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px;"><span style="font-size:20px;font-weight:600;">{{ cat.pr.price }}</span><span style="font-size:13px;color:#a1a1a6;">{{ cat.pr.low }}</span></span>
+        <sc-if value="{{ cat.pr.hasPill }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;margin-top:8px;display:flex;align-items:center;gap:6px;background:#2c2c2e;border-radius:9999px;padding:3px 10px;font-size:13px;"><span style="width:8px;height:8px;border-radius:9999px;background:{{ cat.pr.pillDot }};"></span><span>{{ cat.pr.pill }}</span></span></sc-if>
+      </div>
+      <a data-anim="up" href="{{ cat.pr.url }}" target="_blank" rel="noopener noreferrer" style="margin:14px 16px 0;background:#2c2c2e;border-radius:18px;padding:12px 16px;display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--gw-accent,#ffd60a);"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="flex:none;"><path d="M6.5 9.5l3-3M7 4.5l1.3-1.3a2.6 2.6 0 0 1 3.7 3.7L10.7 8.2M9 11.5l-1.3 1.3a2.6 2.6 0 0 1-3.7-3.7L5.3 7.8"></path></svg><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;"><span style="font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;">{{ cat.pr.domain }}</span><span style="font-size:13px;color:#a1a1a6;">{{ cat.pr.linkSub }}</span></span><span>↗</span></a>
+      <div data-anim="up" style="margin:10px 16px 0;background:#2c2c2e;border-radius:18px;padding:12px 16px;display:flex;align-items:center;gap:12px;">
+        <sc-if value="{{ cat.pr.hasFr }}" hint-placeholder-val="{{ false }}"><span style="display:flex;flex:none;"><sc-for list="{{ cat.pr.frAv }}" as="a" hint-placeholder-count="0"><span style="position:relative;overflow:hidden;width:28px;height:28px;border-radius:9999px;background:#48484a;box-shadow:0 0 0 2px #2c2c2e;margin-left:{{ a.ml }};display:grid;place-items:center;font-size:12px;font-weight:600;"><span>{{ a.initial }}</span><sc-if value="{{ a.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ a.av }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span></sc-for></span></sc-if>
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;"><span style="font-weight:600;font-size:15px;">{{ cat.pr.frTitle }}</span><span style="font-size:13px;color:#a1a1a6;">{{ cat.pr.frSub }}</span></span>
+      </div>
+      <sc-if value="{{ cat.pr.notMine }}" hint-placeholder-val="{{ true }}">
+        <div style="margin:16px 16px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <button onClick="{{ cat.pr.wish }}" style="border:0;background:#2c2c2e;color:#f5f5f7;border-radius:9999px;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">+ Wishlist</button>
+          <button onClick="{{ cat.pr.own }}" style="border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">I own this</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ cat.pr.mine }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cat.pr.openMine }}" style="margin:16px 16px 0;width:calc(100% - 32px);border:0;background:#2c2c2e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">{{ cat.pr.mineLbl }}</button></sc-if>
+      <div style="padding:16px 16px 0;display:flex;justify-content:center;gap:24px;">
+        <button onClick="{{ cat.pr.fix }}" style="border:0;background:none;color:#a1a1a6;font-size:14px;cursor:pointer;padding:6px;">Suggest a fix</button>
+        <button onClick="{{ cat.pr.report }}" style="border:0;background:none;color:#a1a1a6;font-size:14px;cursor:pointer;padding:6px;">Report</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ cat.isFix }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:0 20px;font-size:13px;color:#a1a1a6;text-align:center;">{{ cat.fx.item }}</div>
+      <div style="padding:18px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">What’s wrong?</div>
+      <div style="padding:0 16px;display:flex;flex-wrap:wrap;gap:8px;"><sc-for list="{{ cat.fx.fields }}" as="c" hint-placeholder-count="7"><button data-anim="pop" onClick="{{ c.onTap }}" style="flex:none;border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div>
+      <sc-if value="{{ cat.fx.hasChips }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:18px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Should be</div>
+        <div style="padding:0 16px;display:flex;flex-wrap:wrap;gap:8px;"><sc-for list="{{ cat.fx.vals }}" as="c" hint-placeholder-count="8"><button data-anim="pop" onClick="{{ c.onTap }}" style="flex:none;border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div>
+      </sc-if>
+      <sc-if value="{{ cat.fx.hasInput }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:18px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ cat.fx.inLbl }}</div>
+        <input value="{{ cat.fx.inVal }}" onChange="{{ cat.fx.onIn }}" placeholder="{{ cat.fx.inPh }}" autocomplete="off" style="margin:0 16px;width:calc(100% - 32px);box-sizing:border-box;background:#2c2c2e;border:0;border-radius:8px;padding:10px 12px;font-size:17px;color:#f5f5f7;outline:none;">
+      </sc-if>
+      <div style="padding:16px 20px 0;font-size:13px;color:#a1a1a6;line-height:1.45;">{{ cat.fx.hint }}</div>
+    </sc-if>
+    <sc-if value="{{ cat.isRep }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:0 20px;font-size:13px;color:#a1a1a6;text-align:center;">{{ cat.rp.item }}</div>
+      <div style="margin:16px 16px 0;border-radius:12px;overflow:hidden;display:grid;gap:1px;background:#3a3a3c;">
+        <sc-for list="{{ cat.rp.reasons }}" as="r" hint-placeholder-count="6"><button onClick="{{ r.onTap }}" style="border:0;background:#2c2c2e;color:#f5f5f7;font-size:17px;padding:12px 14px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;" style-active="background:#3a3a3c;"><span>{{ r.label }}</span><sc-if value="{{ r.on }}" hint-placeholder-val="{{ false }}"><span style="color:var(--gw-accent,#ffd60a);">✓</span></sc-if></button></sc-for>
+      </div>
+      <input value="{{ cat.rp.note }}" onChange="{{ cat.rp.onNote }}" placeholder="Add a note (optional)" autocomplete="off" style="margin:10px 16px 0;width:calc(100% - 32px);box-sizing:border-box;background:#2c2c2e;border:0;border-radius:8px;padding:10px 12px;font-size:17px;color:#f5f5f7;outline:none;">
+      <div style="padding:16px 20px 0;font-size:13px;color:#a1a1a6;line-height:1.45;">Reports are anonymous. Two reports hide the entry while it’s checked.</div>
+    </sc-if>
     <sc-if value="{{ isSheetCpick }}" hint-placeholder-val="{{ false }}">
       <div data-anim="up" style="padding:4px 20px 0;display:flex;gap:12px;align-items:center;">
         <sc-if value="{{ cp.hasPhoto }}" hint-placeholder-val="{{ true }}"><img src="{{ cp.photo }}" alt="" style="width:56px;height:56px;border-radius:8px;object-fit:cover;object-position:top;background:#2c2c2e;flex:none;"></sc-if>
@@ -2308,6 +2387,7 @@ function CountUp(props) {
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10);
+const plural0 = (n, w) => n + ' ' + (n === 1 ? w : w.replace(/person$/, 'people'));
 const pad = n => String(n).padStart(2, '0');
 const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
 const dim = (y, m) => new Date(y, m + 1, 0).getDate();
@@ -2479,6 +2559,7 @@ class Component extends DCLogic {
       this.unsubSync = G.on(s => { if (s.photoErr && s.photoErr.at !== this._pErrAt) { this._pErrAt = s.photoErr.at; const m = s.photoErr.msg || ''; this.toast((s.photoErr.n === 1 ? 'A photo couldn’t upload' : s.photoErr.n + ' photos couldn’t upload') + (/size|large|exceed/i.test(m) ? ': it’s too big.' : /network|fetch|offline/i.test(m) ? ': check your connection.' : m ? ': ' + m.slice(0, 80) : '.') + ' It’ll retry next sync.'); } const prev = this.state.acct && this.state.acct.user ? this.state.acct.user.id : null; this.setState({ acct: s }); if (!s.user) { this.socialFor = null; this.cacheFor = null; this.setState({ social: null }); } else { if (this.cacheFor !== s.user.id) { this.cacheFor = s.user.id; try { const c = JSON.parse(localStorage.getItem('gw-social-cache-' + s.user.id) || 'null'); if (c) this.setState({ social: c }); } catch (e) {} }
         if (s.firstDone && this.socialFor !== s.user.id) { this.socialFor = s.user.id; if (!this.loadSocial()) this.socialFor = null; }
         if (s.firstDone && s.username && this.pendingAdd) { const a = this.pendingAdd; this.pendingAdd = null; setTimeout(() => this.openPerson(a), 400); } } });
+      this.unsubCat = G.on(s => { if (s.user && s.firstDone && !this._catKick) { this._catKick = true; this.catSoon(5000); } if (!s.user) this._catKick = false; });
       G.init(); return true; };
     this.onVis = () => { if (document.visibilityState === 'visible') { this.loadSocial(true); this.forceUpdate(); } }; document.addEventListener('visibilitychange', this.onVis); window.addEventListener('focus', this.onVis);
     this.onRs = () => { this.svMeasure(); this.scMeasure(); const w = window.innerWidth; if ((w >= 900) !== ((this.state.vw || 0) >= 900)) this.setState({ vw: w }); }; window.addEventListener('resize', this.onRs);
@@ -2777,7 +2858,7 @@ class Component extends DCLogic {
     }
     return await new Promise(res => { try { cv.toBlob(b => res(b), 'image/png'); } catch (e) { res(null); } });
   }
-  save(data, quiet) { if (!quiet) data.mod = Date.now(); let full = false; try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { full = true; } this.setState({ data }); if (!quiet && window.GWSync) window.GWSync.schedule(full ? 0 : undefined); if (full && !quiet) { const A = this.state.acct || {}; this.toast(A.user ? 'Phone storage is full. Uploading your photos now, keep the app open for a moment.' : 'Phone storage is full. Sign in so photos can be saved online.'); } }
+  save(data, quiet) { if (!quiet) { data.mod = Date.now(); this.catSoon(6000); } let full = false; try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { full = true; } this.setState({ data }); if (!quiet && window.GWSync) window.GWSync.schedule(full ? 0 : undefined); if (full && !quiet) { const A = this.state.acct || {}; this.toast(A.user ? 'Phone storage is full. Uploading your photos now, keep the app open for a moment.' : 'Phone storage is full. Sign in so photos can be saved online.'); } }
   loadSocial(quiet, manual) { const G = window.GWSync, A0 = G && G.state ? G.state() : null, A = A0 && A0.user ? A0 : this.state.acct; if (!G || !A || !A.user) { if (manual) this.toast('Sign in to see friends'); return false; }
     if (this.socLoading && !manual && Date.now() - (this.socStart || 0) < 15000) return false;
     const tok = (this.socTok = (this.socTok || 0) + 1), uid = A.user.id; this.socLoading = true; this.socStart = Date.now(); if (!quiet) this.setState({ socialBusy: true });
@@ -3215,6 +3296,7 @@ class Component extends DCLogic {
   openDetail(id) { this.setState({ detail: id, photoIdx: 0, delArm: false, copied: false, notif: false }); }
   closeDetail(cb) { this.animOut(this.detailRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ detail: null, delArm: false }); if (cb) cb(); }); }
   closeSheet(cb) {
+    if (!cb && (this.state.sheet === 'cfix' || this.state.sheet === 'crep') && this.state.catP) { this.setState({ sheet: 'cprod' }); return; }
     const done = () => { this.setState({ sheet: null, form: null }); if (cb) cb(); };
     if (this.backdropRef.current && !this.reduce) this.backdropRef.current.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' });
     this.animOut(this.sheetRef.current, [{ transform: 'none' }, { transform: 'translateY(100%)' }], 300, done);
@@ -3270,7 +3352,7 @@ class Component extends DCLogic {
     const f = it ? { id: it.id, url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, rec: it.rec || 0, notes: it.notes || '', zip: it.zip || '', handmade: !!it.handmade, modified: !!it.modified, mods: it.mods || '', secondHand: !!it.secondHand, boughtFrom: it.boughtFrom || '', condition: it.condition || '', brandUnknown: !!it.brandUnknown, priceUnknown: !!it.priceUnknown, approx: !!it.approx, gotMonth: it.gotMonth || '', preGw: !!it.preGw, materials: (it.materials || []).slice(), latexMm: it.latexMm || '', chlor: !!it.chlor, matAuto: !(it.materials || []).length, status: it.status, origs: (it.origs || []).slice(), photos: (it.photos || []).slice() }
       : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: '€', size: '', colour: '', m2m: false, rating: 3, rec: 0, notes: '', zip: '', handmade: false, modified: false, mods: '', secondHand: false, boughtFrom: '', condition: '', brandUnknown: false, priceUnknown: false, approx: false, gotMonth: '', preGw: false, materials: [CAT_MAT.Catsuit], latexMm: '', chlor: false, matAuto: true, origs: [], photos: [], status: status || 'wanted' };
     f.found = [];
-    this.setState({ sheet: 'form', form: f, moreOpen: false, fetchMsg: '', fetching: false, newCatOpen: false, newMatOpen: false, sizeOpen: false });
+    this.setState({ sheet: 'form', form: f, moreOpen: false, fetchMsg: '', fetching: false, newCatOpen: false, newMatOpen: false, sizeOpen: false, catQ: '', catCat: '', catRes: null, catBusy: false, catErr: '' });
   }
   async fillFromLink() {
     const raw = (this.state.form.url || '').trim(); if (!raw) { this.setState({ fetchMsg: 'Paste a link first.' }); return; }
@@ -3295,6 +3377,80 @@ class Component extends DCLogic {
         found: pics.filter(src => !(st.form.photos || []).includes(src)).map(src => ({ src, on: true })) }, matUpd),
       fetchMsg: (L ? 'Filled in from ' + host + '.' : 'Couldn’t read ' + host + (why ? ' (' + why.replace(/\.$/, '') + ')' : '') + ', so this is a guess from the link.') + (missing.length ? ' No ' + missing.join(' or ') + ' found, add ' + (missing.length > 1 ? 'them' : 'it') + ' below.' : '') }));
   }
+  catNorm(u) { return String(u || '').trim().toLowerCase().replace(/^https?:\/\/(www\.)?/, 'https://').replace(/[?#].*$/, '').replace(/\/+$/, ''); }
+  catSearching() { const st = this.state; return st.sheet === 'form' && !!st.form && !st.form.id && !!((st.catQ || '').trim() || st.catCat); }
+  catMine(p) { const m = {}; (p.items || []).forEach(i => { if (i.catalogId) m['id:' + i.catalogId] = i; if (i.url) m['u:' + this.catNorm(i.url)] = i; }); return m; }
+  catSoon(ms) { clearTimeout(this.catT); this.catT = setTimeout(() => this.catRun(), ms || 4000); }
+  async catRun() {
+    const G = window.GWSync, A = G && G.state ? G.state() : {}; if (this.catBusyRun || this.catOff || !G || !G.cat || !A.user || !A.firstDone || !navigator.onLine) return; this.catBusyRun = true;
+    const act = d => d.profiles.find(x => x.id === d.activeId) || d.profiles[0], shop = a => (a || []).filter(x => /^https?:/.test(x) && !/\/storage\/v1\//.test(x)).slice(0, 6);
+    try {
+      const todo = act(this.state.data).items.filter(i => /^https?:\/\//i.test(i.url || '') && !i.catalogId && !i.catNo && !i.private && !i.handmade).slice(0, 25), got = {};
+      for (const it of todo) {
+        try { const r = await G.cat('catalog_submit', { p: { url: it.url, name: it.name, brand: it.brandUnknown ? '' : it.brand || '', category: it.category || '', materials: it.materials || [], latexMm: it.latexMm || '', photos: shop(it.photos), price: it.status === 'wanted' && it.price != null ? it.price : null, currency: it.currency || '€' } }); if (r && r.id) got[it.id] = { id: r.id, st: r.status }; }
+        catch (e) { const m = (e && e.message) || ''; if (/database update/.test(m)) { this.catOff = true; break; } if (/can’t be added|link is needed/i.test(m)) got[it.id] = { no: true }; else break; } }
+      if (Object.keys(got).length) this.mutate(pp => pp.items.forEach(i => { const g = got[i.id]; if (!g) return; if (g.no) i.catNo = true; else { i.catalogId = g.id; i.catSt = g.st; } }));
+      if (this.catOff) return;
+      const seen = new Set(), links = act(this.state.data).items.filter(i => i.catalogId && !i.private && ['wanted', 'ordered', 'owned'].includes(i.status) && !seen.has(i.catalogId) && seen.add(i.catalogId)).map(i => ({ id: i.catalogId, s: i.status }));
+      const k = 'gw-cat-links-' + A.user.id, hs = JSON.stringify(links); let prev = null; try { prev = localStorage.getItem(k); } catch (e) {}
+      if (prev !== hs) { await G.cat('catalog_sync_links', { links }); try { localStorage.setItem(k, hs); } catch (e) {} }
+      if (todo.length === 25) this.catSoon(2000);
+    } catch (e) { if (/database update/.test((e && e.message) || '')) this.catOff = true; } finally { this.catBusyRun = false; }
+  }
+  catSearchSoon() { clearTimeout(this.catST); this.catST = setTimeout(() => this.catSearch(), 280); }
+  catSearch() { const st = this.state, G = window.GWSync, q = (st.catQ || '').trim(), c = st.catCat || ''; if (!q && !c) { this.setState({ catRes: null, catBusy: false }); return; } if (!G || !G.cat) return; const tok = (this.catTok = (this.catTok || 0) + 1); this.setState({ catBusy: true, catErr: '' });
+    G.cat('catalog_search', { q, cat: c, lim: 40 }).then(r => { if (tok === this.catTok) this.setState({ catRes: r || [], catBusy: false }); }).catch(e => { if (tok === this.catTok) this.setState({ catBusy: false, catRes: [], catErr: (e && e.message) || 'Couldn’t search' }); }); }
+  openCat(row, from) { const G = window.GWSync; if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0; this.setState({ sheet: 'cprod', catP: row, catFr: null, catFrom: from || '' });
+    if (G && G.cat) G.cat('catalog_get', { cid: row.id }).then(full => { const cur = this.state.catP; if (!cur || cur.id !== row.id) return; if (!full) { if (from === 'detail') { this.closeSheet(); this.toast('This isn’t in the catalog any more'); } else this.setState({ catFr: [] }); return; } this.setState({ catP: full, catFr: full.friends || [] }); this.catStatusSync(full); }).catch(e => { this.setState({ catFr: [] }); if (from === 'detail') this.toast((e && e.message) || 'Couldn’t load it'); }); }
+  openCatId(id) { if (id) this.openCat({ id, name: '', photos: [] }, 'detail'); }
+  catStatusSync(c) { const D = this.state.data, p = D.profiles.find(x => x.id === D.activeId) || D.profiles[0]; if (p.items.some(i => i.catalogId === c.id && i.catSt !== c.status)) this.mutate(pp => pp.items.forEach(i => { if (i.catalogId === c.id) i.catSt = c.status; })); }
+  catItem(c) { return { name: c.name, brand: c.brand || '', category: c.category || '', url: c.url, photos: (c.photos || []).slice(0, 4), currency: c.currency || '€', price: c.price == null ? null : Number(c.price), materials: (c.materials || []).slice(), latexMm: c.latex_mm || '', catalogId: c.id, catSt: c.status }; }
+  catWish(c) { const t = todayISO(), b = this.catItem(c); this.mutate(pp => pp.items.push(Object.assign({ id: uid(), status: 'wanted', added: t, history: b.price != null ? [{ date: t, price: b.price }] : [], rating: 3, size: '', colour: '', m2m: false }, b))); this.closeSheet(() => this.toast('Added to your wishlist')); }
+  catOwn(c) { const b = this.catItem(c); this.openForm(null, 'owned'); if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0;
+    this.setState(s => ({ form: Object.assign({}, s.form, { url: b.url, name: b.name, brand: b.brand, category: b.category || s.form.category, currency: b.currency, price: b.price == null ? '' : String(b.price), materials: b.materials.length ? b.materials : s.form.materials, latexMm: b.latexMm, matAuto: !b.materials.length, catalogId: c.id, catSt: c.status, found: b.photos.map(src => ({ src, on: true })) }), fetchMsg: 'Filled in from the catalog. Add your size, what you paid and your own photos.' })); }
+  catFixOk() { const x = this.state.cfx || {}, c = this.state.catP || {}, v = String(x.v || '').trim(); if (!x.f) return false; if (x.f === 'gone') return true; if (!v) return false; if (x.f === 'name') return v !== c.name; if (x.f === 'brand') return v !== (c.brand || ''); if (x.f === 'link' || x.f === 'duplicate') return /^https?:\/\/\S+\.\S+/i.test(v) && this.catNorm(v) !== this.catNorm(c.url); return true; }
+  async catSendFix() { const x = this.state.cfx || {}, c = this.state.catP, G = window.GWSync; if (!c || !this.catFixOk()) return;
+    try { const r = await G.cat('catalog_flag', { cid: c.id, k: 'fix', fld: x.f, val: String(x.v || '').trim() }); this.setState({ sheet: 'cprod' }); this.toast(r && r.applied ? 'Thanks, it’s updated for everyone' : r && r.review ? 'Thanks, it’ll be checked' : 'Thanks. ' + plural0(Math.max(1, 3 - ((r && r.agree) || 1)), 'more person') + ' needed to change it'); if (r && r.applied) this.openCat(c, this.state.catFrom); }
+    catch (e) { this.toast((e && e.message) || 'Couldn’t send that'); } }
+  async catSendRep() { const c = this.state.catP, G = window.GWSync, why = this.state.crepR; if (!c || !why) return;
+    try { const r = await G.cat('catalog_flag', { cid: c.id, k: 'report', reason: why, note: (this.state.crepN || '').trim() }); this.setState({ sheet: 'cprod' }); this.toast(r && r.hidden ? 'Thanks. It’s hidden while it’s checked' : 'Thanks for reporting it'); }
+    catch (e) { this.toast((e && e.message) || 'Couldn’t send that'); } }
+  catVals(p, f) {
+    const st = this.state, G = window.GWSync, A = st.acct || {}, on = !!(G && G.cat && A.user), mine = this.catMine(p), plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+    const mineOf = c => mine['id:' + c.id] || (c.url ? mine['u:' + this.catNorm(c.url)] : null) || null, priceOf = c => c.price == null ? '' : money(c.currency || '€', Number(c.price)), res = st.catRes || [];
+    const chip = (label, a, fn) => ({ label, bg: a ? ACC : '#2c2c2e', color: a ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.08); fn(); } });
+    const cs = { show: on && st.sheet === 'form' && !!st.form && !st.form.id, q: st.catQ || '', hasQ: !!((st.catQ || '').trim() || st.catCat), searching: this.catSearching(), busy: !!st.catBusy,
+      onQ: e => { this.setState({ catQ: e.target.value }); this.catSearchSoon(); },
+      clear: () => { clearTimeout(this.catST); this.catTok = (this.catTok || 0) + 1; this.setState({ catQ: '', catCat: '', catRes: null, catBusy: false, catErr: '' }); },
+      chips: CATS.map(c => chip(c, st.catCat === c, () => this.setState({ catCat: st.catCat === c ? '' : c }, () => this.catSearch()))),
+      status: st.catErr ? st.catErr : !st.catRes ? (st.catBusy ? 'Searching…' : '') : !res.length ? 'Nothing found. Paste the shop link to add it.' : plural(res.length, 'result') + (res.length >= 40 ? '+' : ''),
+      res: res.map(c => { const m = mineOf(c), ph = (c.photos || [])[0] || '', gone = c.status === 'gone', pend = c.status === 'pending', owned = !!m && (m.status === 'owned' || m.status === 'ordered');
+        return { name: c.name, sub: [c.brand || c.domain, priceOf(c)].filter(Boolean).join(' · '), meta: pend ? 'Waiting for approval' : gone ? 'No longer sold' : (c.own_n || c.want_n) ? c.own_n + ' own · ' + c.want_n + ' want' : c.domain, metaColor: pend ? '#ff9f0a' : '#a1a1a6',
+          photo: ph, hasPhoto: !!ph, initial: (c.name || '?').charAt(0).toUpperCase(), op: gone ? 0.6 : 1, mine: !!m, notMine: !m,
+          badge: owned ? 'You own' : 'Wanted', badgeBg: owned ? ACC : 'transparent', badgeColor: owned ? '#000' : ACC, badgeRing: owned ? 'transparent' : ACC, quickLbl: st.form && st.form.status === 'owned' ? 'I own this' : 'Add to wishlist',
+          open: () => this.openCat(c, 'form'), quick: e => { e.stopPropagation(); this.bump(e.currentTarget, 1.15); if (st.form && st.form.status === 'owned') this.catOwn(c); else this.catWish(c); } }; }) };
+    const c = st.catP; let pr = {}, fx = {}, rp = {};
+    if (c) { const m = mineOf(c), ph = (c.photos || []).filter(Boolean), fr = st.catFr, frN = (fr || []).length, cur = c.currency || '€';
+      const low = c.low_price != null && c.price != null && Number(c.low_price) < Number(c.price) ? 'lowest ' + money(cur, Number(c.low_price)) + (c.low_at ? ' in ' + MON[+String(c.low_at).slice(5, 7) - 1] : '') : '';
+      pr = { fromSearch: st.catFrom === 'form', back: () => this.setState({ sheet: 'form' }), photos: ph.map(src => ({ src, w: ph.length > 1 ? '78%' : '100%' })), noPhoto: !ph.length && !!c.name, initial: (c.name || '?').charAt(0).toUpperCase(),
+        meta: [c.brand, c.category, matFull({ materials: c.materials || [], latexMm: c.latex_mm || '' })].filter(Boolean).join(' · '), name: c.name || 'Loading…', price: c.name ? priceOf(c) || 'No price yet' : '', low,
+        hasPill: ['pending', 'gone', 'hidden'].includes(c.status), pill: c.status === 'pending' ? 'Waiting for approval' : c.status === 'gone' ? 'No longer sold' : 'Hidden while it’s checked', pillDot: c.status === 'gone' ? '#8e8e93' : '#ff9f0a',
+        url: c.url || '', domain: c.domain || '', linkSub: c.status === 'gone' ? 'The shop page is gone' : 'Open the shop page',
+        hasFr: frN > 0, frAv: (fr || []).slice(0, 3).map((x, i) => ({ initial: (x.username || '?').charAt(0).toUpperCase(), av: x.avatar || '', hasAv: !!x.avatar, ml: i ? '-8px' : '0' })),
+        frTitle: frN ? plural(frN, 'friend') + ' ' + (frN === 1 ? 'has' : 'have') + ' this' : (c.own_n || 0) + ' own · ' + (c.want_n || 0) + ' want', frSub: fr == null ? 'Checking friends…' : frN ? fr.slice(0, 4).map(x => '@' + x.username).join(', ') + (frN > 4 ? ' +' + (frN - 4) : '') : 'People on GearWatch',
+        mine: !!m, notMine: !m, mineLbl: m ? (m.status === 'wanted' ? 'Open in your wishlist' : 'Open in your collection') : '',
+        openMine: () => { const id = m && m.id, s2 = m && m.status; this.closeSheet(() => { if (!id) return; this.setState({ tab: s2 === 'wanted' ? 'wish' : 'coll' }); this.openDetail(id); }); },
+        wish: e => { this.bump(e.currentTarget, 1.04); this.catWish(c); }, own: e => { this.bump(e.currentTarget, 1.04); this.catOwn(c); },
+        fix: () => { if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0; this.setState({ sheet: 'cfix', cfx: { f: '', v: '' } }); }, report: () => { if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0; this.setState({ sheet: 'crep', crepR: '', crepN: '' }); } };
+      const x = st.cfx || {}, setX = o => this.setState(s => ({ cfx: Object.assign({}, s.cfx, o) }));
+      const FX = [['category', 'Category'], ['material', 'Material'], ['name', 'Name'], ['brand', 'Brand'], ['link', 'Link'], ['gone', 'No longer sold'], ['duplicate', 'Duplicate']];
+      fx = { item: [c.name, c.brand].filter(Boolean).join(' · '), fields: FX.map(([k, l]) => chip(l, x.f === k, () => setX({ f: k, v: k === 'name' ? c.name : k === 'brand' ? c.brand || '' : k === 'link' ? c.url : '' }))),
+        hasChips: x.f === 'category' || x.f === 'material', vals: (x.f === 'category' ? CATS.concat(st.data.customCats || []).filter(v => v !== c.category) : x.f === 'material' ? MATS : []).map(v => chip(v, x.v === v, () => setX({ v }))),
+        hasInput: ['name', 'brand', 'link', 'duplicate'].includes(x.f), inLbl: x.f === 'duplicate' ? 'Link to the other entry' : 'Should be', inVal: x.v || '', inPh: x.f === 'link' ? 'https://' : x.f === 'duplicate' ? 'Its shop link' : '', onIn: e => setX({ v: e.target.value }),
+        hint: !x.f ? 'Pick what needs changing.' : ['category', 'material', 'gone'].includes(x.f) ? 'When 3 people suggest the same change, it updates for everyone.' : 'Typed-in changes are checked before they go live.' };
+      rp = { item: fx.item, note: st.crepN || '', onNote: e => this.setState({ crepN: e.target.value }), reasons: ['Not a real product or spam', 'Scam or fake shop', 'Counterfeit', 'Wrong or explicit photo', 'Personal info', 'Something else'].map(r => ({ label: r, on: st.crepR === r, onTap: () => this.setState({ crepR: r }) })) }; }
+    return { cs, pr, fx, rp, isProd: st.sheet === 'cprod' && !!c, isFix: st.sheet === 'cfix' && !!c, isRep: st.sheet === 'crep' && !!c };
+  }
   saveForm() {
     const f = this.state.form; if (!f.name.trim()) return;
     const pr = f.price.trim() === '' ? null : parseFloat(f.price.replace(',', '.'));
@@ -3302,12 +3458,13 @@ class Component extends DCLogic {
     const photos = (f.found || []).filter(x => x.on).map(x => x.src).concat(f.photos || []);
     const size = f.m2m ? 'Made to measure' : (f.size === 'Made to measure' ? '' : f.size);
     const base = { url: f.url.trim(), name: f.name.trim(), brand: f.brand.trim(), category: f.category, currency: f.currency, size, colour: f.colour, m2m: f.m2m, rating: f.rating, rec: f.rec || 0, notes: (f.notes || '').trim(), zip: ZIP_CATS.includes(f.category) ? f.zip || '' : '', handmade: !!f.handmade, modified: !!f.modified, mods: f.modified ? (f.mods || '').trim() : '', secondHand: !!f.secondHand, boughtFrom: f.secondHand ? (f.boughtFrom || '').trim() : '', condition: f.secondHand ? f.condition || '' : '', brandUnknown: !!f.brandUnknown, priceUnknown: !!f.priceUnknown, approx: !f.priceUnknown && !!f.approx, gotMonth: f.preGw ? '' : f.gotMonth || '', preGw: !!f.preGw, materials: (f.materials || []).slice(), latexMm: (f.materials || []).includes('Latex') ? f.latexMm || '' : '', chlor: (f.materials || []).includes('Latex') && !!f.chlor, origs: (f.origs || []).filter(x => photos.includes(x.c)), photos };
+    if (f.catalogId) { base.catalogId = f.catalogId; base.catSt = f.catSt || 'live'; }
     const isNew = !f.id;
     this.closeSheet(() => {
       this.mutate(p => {
         if (!isNew) { const it = p.items.find(x => x.id === f.id); if (!it) return;
           if (price != null && (price !== it.price || f.currency !== it.currency)) { it.history = (it.history || []).filter(h => h.date !== t); if (f.currency !== it.currency) it.history = []; it.history.push({ date: t, price }); }
-          const newPh = (base.photos || []).filter(x => !(it.photos || []).includes(x)); if (newPh.length) { it.photosOn = t; it.photosAt = Date.now(); } delete it.cgroup; Object.assign(it, base, { price }); if (it.status === 'owned' && f.gotMonth && !f.preGw) it.ownedOn = f.gotMonth + '-01'; }
+          const newPh = (base.photos || []).filter(x => !(it.photos || []).includes(x)); if (newPh.length) { it.photosOn = t; it.photosAt = Date.now(); } delete it.cgroup; if (it.catalogId && !f.catalogId && this.catNorm(it.url) !== this.catNorm(base.url)) { delete it.catalogId; delete it.catSt; delete it.catNo; } Object.assign(it, base, { price }); if (it.status === 'owned' && f.gotMonth && !f.preGw) it.ownedOn = f.gotMonth + '-01'; }
         else if (f.status === 'owned') p.items.push(Object.assign({ id: uid(), status: 'owned', added: t, ownedOn: ownedD, history: [] }, base, { price, paid: price, paidCur: f.currency }, f.countBudget ? { orderedOn: t } : { noBudget: true }));
         else p.items.push(Object.assign({ id: uid(), status: 'wanted', added: t, history: price != null ? [{ date: t, price }] : [] }, base, { price }));
       });
@@ -3631,6 +3788,7 @@ class Component extends DCLogic {
       if (dIt.added) rows.push({ k: 'On your list since', v: fmtD(dIt.added) });
       d = Object.assign({}, v, {
         priceEl: dIt.priceUnknown ? 'Price unknown' : dIt.price == null ? 'No price' : dIt.approx ? '≈ ' + money(dIt.currency, dIt.price) : React.createElement(CountUp, { value: dIt.price, prefix: dIt.currency, dec: dIt.price % 1 ? 2 : 0, from: 0, dur: 900 }),
+        hasCat: !!dIt.catalogId, catPending: dIt.catSt === 'pending', catLbl: dIt.catSt === 'pending' ? 'Waiting for approval' : dIt.catSt === 'gone' ? 'No longer sold' : 'View', openCat: () => this.openCatId(dIt.catalogId),
         photos: ph.map(src => ({ src })), hasPhotos: !!ph.length, noPhotos: !ph.length, multi: ph.length > 1,
         canPrev: st.photoIdx > 0, canNext: st.photoIdx < ph.length - 1,
         dots: ph.map((_, i) => ({ onTap: () => this.carGo(i), bg: i === st.photoIdx ? '#f5f5f7' : 'rgba(245,245,247,0.4)', w: i === st.photoIdx ? '18px' : '7px' })),
@@ -3662,8 +3820,9 @@ class Component extends DCLogic {
     }
 
     const f = st.form || {};
-    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: [st.budgetKind === 'pot' ? 'Current budget' : 'Monthly budget', 'Save'], person: ['', null], invite: ['Invite a friend', null], paid: [st.paid && st.paid.to === 'owned' ? 'Mark as owned' : 'Mark as ordered', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null], cpick: ['Category', null] }[st.sheet] || ['', null];
-    const canSave = st.sheet === 'form' ? !!(f.name || '').trim() : st.sheet === 'budget' ? toNum(st.budgetIn) > 0 : true;
+    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: [st.budgetKind === 'pot' ? 'Current budget' : 'Monthly budget', 'Save'], person: ['', null], invite: ['Invite a friend', null], paid: [st.paid && st.paid.to === 'owned' ? 'Mark as owned' : 'Mark as ordered', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null], cpick: ['Category', null], cprod: ['', null], cfix: ['Suggest a fix', 'Send'], crep: ['Report', 'Send'] }[st.sheet] || ['', null];
+    if (st.sheet === 'form' && this.catSearching()) sheetMeta[1] = null;
+    const canSave = st.sheet === 'cfix' ? this.catFixOk() : st.sheet === 'crep' ? !!st.crepR : st.sheet === 'form' ? !!(f.name || '').trim() : st.sheet === 'budget' ? toNum(st.budgetIn) > 0 : true;
     const pv = st.pointId ? this.fval(vals, st.pointId) : null;
     const chips = (cur, set) => BUDGET_CHIPS.map(n => { const on = toNum(cur) === n; return { label: '€' + n, bg: on ? ACC : '#1c1c1e', color: on ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.12); set(String(n)); } }; });
     const ip = st.introPage, introAmt = toNum(st.introBudget);
@@ -3818,6 +3977,8 @@ class Component extends DCLogic {
       sheetAction: () => {
         if (!canSave) return;
         if (st.sheet === 'form') { this.saveForm(); return; }
+        if (st.sheet === 'cfix') { this.catSendFix(); return; }
+        if (st.sheet === 'crep') { this.catSendRep(); return; }
         if (st.sheet === 'paid') { this.savePaid(); return; }
         if (st.sheet === 'budget') {
           const amt = toNum(st.budgetIn), morph = !bi && mode === 'B' && !/budget/i.test(L);
@@ -3827,7 +3988,7 @@ class Component extends DCLogic {
           });
         }
       },
-      isSheetForm: st.sheet === 'form', isSheetBudget: st.sheet === 'budget', isSheetPaid: st.sheet === 'paid',
+      isSheetForm: st.sheet === 'form' && !this.catSearching(), cat: this.catVals(p, f), isSheetBudget: st.sheet === 'budget', isSheetPaid: st.sheet === 'paid',
       pd: (() => { const P = st.paid, it = P ? p.items.find(x => x.id === P.id) : null; if (!it) return { curs: [] };
         const setP = o => this.setState(s => ({ paid: Object.assign({}, s.paid, o) })), SYMS = { '€': '€', '$': '$', '£': '£' }, est = eurOf(it);
         const ph = P.cur === '€' ? (est != null ? num(Math.round(est * 100) / 100) : '0') : (it.price != null && it.currency === P.cur ? num(it.price) : '0');
