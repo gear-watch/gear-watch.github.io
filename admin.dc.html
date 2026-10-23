@@ -12,7 +12,7 @@
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=37"></script>
+<script src="./sync.js?v=38"></script>
 <style>html,body{margin:0;background:#000;color:#f5f5f7;font-family:var(--font-text);-webkit-font-smoothing:antialiased;}a{color:#ffd60a;text-decoration:none;}a:hover{color:#ffe55c;}input,select,button{font-family:inherit;}</style>
 </helmet>
 <div style="min-height:100vh;display:flex;flex-direction:column;">
@@ -75,7 +75,7 @@
                   <div style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;font-weight:600;color:#a1a1a6;">Category</span><div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ r.ed.cats }}" as="c" hint-placeholder-count="10"><button onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div></div>
                   <div style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;font-weight:600;color:#a1a1a6;">Material</span><div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ r.ed.mats }}" as="c" hint-placeholder-count="8"><button onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div></div>
                   <sc-if value="{{ r.ed.showMm }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;font-weight:600;color:#a1a1a6;">Latex thickness</span><div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ r.ed.mms }}" as="c" hint-placeholder-count="7"><button onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div></div></sc-if>
-                  <div style="display:flex;flex-direction:column;gap:8px;">
+                  <div onDragEnter="{{ r.ed.dragOver }}" onDragOver="{{ r.ed.dragOver }}" onDragLeave="{{ r.ed.dragLeave }}" onDrop="{{ r.ed.drop }}" style="display:flex;flex-direction:column;gap:8px;margin:-8px;padding:8px;border-radius:12px;outline:2px dashed {{ r.ed.dropRing }};outline-offset:-2px;background:{{ r.ed.dropBg }};transition:background .2s,outline-color .2s;">
                     <div style="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;"><span style="font-size:13px;font-weight:600;color:#a1a1a6;">Photos</span><span style="font-size:12px;color:#6e6e73;">{{ r.ed.phHint }}</span><button onClick="{{ r.ed.fetch }}" style="border:0;background:none;color:#ffd60a;font-size:13px;cursor:pointer;padding:0;">{{ r.ed.fetchLbl }}</button></div>
                     <div style="display:flex;flex-wrap:wrap;gap:10px;">
                       <sc-for list="{{ r.ed.photos }}" as="p" hint-placeholder-count="3">
@@ -85,7 +85,9 @@
                           <sc-if value="{{ p.isCover }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#ffd60a;text-align:center;">Cover</span></sc-if>
                         </div>
                       </sc-for>
+                      <label style="width:96px;height:96px;border-radius:8px;border:1px dashed #48484a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#ffd60a;font-size:13px;text-align:center;box-sizing:border-box;"><span style="font-size:22px;line-height:1;">{{ r.ed.upIcon }}</span><span>{{ r.ed.upLbl }}</span><input type="file" accept="image/*" multiple onChange="{{ r.ed.pick }}" style="display:none;"></label>
                     </div>
+                    <span style="font-size:12px;color:#6e6e73;">Drop photos or image links here, or paste with Ctrl+V.</span>
                   </div>
                   <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;">
                     <button onClick="{{ r.ed.cancel }}" style="border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;color:#f5f5f7;background:#2c2c2e;">Cancel</button>
@@ -161,8 +163,12 @@ class Component extends DCLogic {
     this.onVis = () => { if (document.visibilityState === 'visible' && this.loadedFor) this.load(); };
     document.addEventListener('visibilitychange', this.onVis);
     this.poll = setInterval(() => { if (this.loadedFor && document.visibilityState === 'visible') this.load(); }, 60000);
+    this.onPaste = e => { const ed = this.state.ed; if (!ed || !ed.ready) return; const t = e.target; const inField = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA'); const cd = e.clipboardData; if (!cd) return;
+      const files = Array.from(cd.files || []).filter(f => /^image\//.test(f.type)); if (files.length) { e.preventDefault(); this.edAddFiles(files); return; }
+      if (!inField) { const urls = this.urlsFrom(cd.getData('text')); if (urls.length) { e.preventDefault(); this.addPhotoSrcs(urls); } } };
+    document.addEventListener('paste', this.onPaste);
   }
-  componentWillUnmount() { if (this.unsub) this.unsub(); clearTimeout(this.tt); clearInterval(this.poll); document.removeEventListener('visibilitychange', this.onVis); }
+  componentWillUnmount() { document.removeEventListener('paste', this.onPaste); if (this.unsub) this.unsub(); clearTimeout(this.tt); clearInterval(this.poll); document.removeEventListener('visibilitychange', this.onVis); }
   say(t) { clearTimeout(this.tt); this.setState({ toast: t }); this.tt = setTimeout(() => this.setState({ toast: '' }), 2600); }
   async load() { const G = window.GWSync; if (!G || !G.cat) return; this.setState({ loading: true });
     try { const [q, info] = await Promise.all([G.cat('catalog_queue'), G.cat('catalog_admin_info')]); this.setState({ q, info, err: '', loading: false }); this.fillPhotos(); }
@@ -195,6 +201,14 @@ class Component extends DCLogic {
     G.cat('catalog_get', { cid }).then(c => { if (this.state.openKey !== key) return; if (!c) { this.say('Not found'); this.setState({ openKey: null, ed: null }); return; }
       this.setState({ ed: { cid, pendingItem, ready: true, c, name: c.name || '', brand: c.brand || '', category: c.category || '', materials: (c.materials || []).slice(), latexMm: c.latex_mm || '', price: c.price == null ? '' : String(c.price), currency: c.currency || '€', photos: (c.photos || []).map(src => ({ src, on: true })) } }); })
       .catch(e => { this.say((e && e.message) || 'Couldn’t load'); this.setState({ openKey: null, ed: null }); }); }
+  shrink(f) { return createImageBitmap(f).then(bm => { const s = Math.min(1, 1600 / Math.max(bm.width, bm.height)), c = document.createElement('canvas'); c.width = Math.round(bm.width * s); c.height = Math.round(bm.height * s); c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height); if (bm.close) bm.close(); return new Promise(res => c.toBlob(b => res(b), 'image/jpeg', 0.88)); }); }
+  addPhotoSrcs(list) { this.setState(s => { if (!s.ed || !s.ed.ready) return null; const have = new Set(s.ed.photos.map(p => p.src)), add = list.filter(x => x && !have.has(x)).map(src => ({ src, on: true })); return add.length ? { ed: Object.assign({}, s.ed, { photos: s.ed.photos.concat(add) }) } : null; }); }
+  async edAddFiles(files) { const G = window.GWSync, imgs = Array.from(files || []).filter(f => /^image\//.test(f.type || '') || /\.(jpe?g|png|webp|gif|heic|avif)$/i.test(f.name || '')); if (!imgs.length || !this.state.ed || !this.state.ed.ready) return;
+    if (!G || !G.catUpload) { this.say('Reload the page to upload photos'); return; }
+    this.setEd({ uploading: (this.state.ed.uploading || 0) + imgs.length }); let bad = 0;
+    for (const f of imgs) { try { const b = await this.shrink(f); if (!b) throw new Error('x'); const url = await G.catUpload(b); this.addPhotoSrcs([url]); } catch (e) { bad++; if (e && e.message && e.message.length > 3) this.say(e.message); } this.setState(s => s.ed ? { ed: Object.assign({}, s.ed, { uploading: Math.max(0, (s.ed.uploading || 1) - 1) }) } : null); }
+    if (bad && bad === imgs.length && imgs.length > 1) this.say('Those photos couldn’t be uploaded'); }
+  urlsFrom(txt) { return String(txt || '').split(/\s+/).filter(x => /^https?:\/\/\S+\.(jpe?g|png|webp|avif|gif)(\?\S*)?$/i.test(x) || /^https?:\/\/\S*(cdn|images|media|uploads)\S*$/i.test(x)).slice(0, 8); }
   setEd(o) { this.setState(s => ({ ed: Object.assign({}, s.ed, o) })); }
   async edFetch() { const ed = this.state.ed, G = window.GWSync, api = String(window.GW_PRICE_API || '').trim(); if (!ed || !ed.c || ed.fetching) return; if (!api) { this.say('The price helper isn’t set up'); return; }
     this.setEd({ fetching: true }); const tok = G.token ? await G.token() : null; let j = null;
@@ -231,6 +245,12 @@ class Component extends DCLogic {
       photos: ed.photos.map((p, i) => ({ src: p.src, op: p.on ? 1 : 0.35, ring: i === firstOn ? '0 0 0 2px #ffd60a' : 'none', dot: p.on ? '#ffd60a' : 'rgba(255,255,255,0.25)', mark: p.on ? '✓' : '',
         toggle: () => move(i, (ph, k) => { ph[k] = Object.assign({}, ph[k], { on: !ph[k].on }); }), isCover: i === firstOn, canCover: p.on && i !== firstOn,
         cover: () => move(i, (ph, k) => { const [x] = ph.splice(k, 1); ph.unshift(x); }) })),
+      dropRing: this.state.edDrag ? '#ffd60a' : 'transparent', dropBg: this.state.edDrag ? 'rgba(255,214,10,0.06)' : 'transparent',
+      dragOver: e => { e.preventDefault(); if (!this.state.edDrag) this.setState({ edDrag: true }); }, dragLeave: e => { if (!e.currentTarget.contains(e.relatedTarget)) this.setState({ edDrag: false }); },
+      drop: e => { e.preventDefault(); this.setState({ edDrag: false }); const dt = e.dataTransfer; if (!dt) return; if (dt.files && dt.files.length) { this.edAddFiles(dt.files); return; }
+        const html = dt.getData('text/html') || '', m = html.match(/<img[^>]+src=["']([^"']+)["']/i), urls = m && /^https?:/.test(m[1]) ? [m[1]] : this.urlsFrom(dt.getData('text/uri-list') || dt.getData('text')); if (urls.length) this.addPhotoSrcs(urls); else this.say('That didn’t look like a photo'); },
+      pick: e => { const fl = e.target.files; this.edAddFiles(fl); e.target.value = ''; },
+      upIcon: ed.uploading ? '…' : '+', upLbl: ed.uploading ? 'Uploading ' + ed.uploading : 'Add photos',
       cancel: () => this.setState({ openKey: null, ed: null }), saveLbl: ed.saving ? 'Saving…' : 'Save', saveOp: ed.saving ? 0.5 : 1, save: () => this.edSave(false), canApprove: !!ed.pendingItem, saveApprove: () => this.edSave(true) }; }
   browse() { const G = window.GWSync; if (!G) return; const tok = (this.bTok = (this.bTok || 0) + 1); this.setState({ bBusy: true });
     G.cat('catalog_admin_search', { q: (this.state.bq || '').trim(), st: this.state.bst || '', lim: 120 }).then(r => { if (tok === this.bTok) this.setState({ bRes: r || [], bBusy: false }); }).catch(e => { if (tok === this.bTok) { this.setState({ bBusy: false }); this.say((e && e.message) || 'Couldn’t search'); } }); }
