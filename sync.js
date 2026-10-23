@@ -126,6 +126,7 @@
     return {
       bn: /^https?:/.test(p.banner || '') ? p.banner : undefined,
       bm: p.bannerMode || undefined,
+      ot: ['wish', 'coll', 'outfits', 'hl'].includes(p.openTab) ? p.openTab : undefined,
       bo: (p.bannerOutfits || []).length ? p.bannerOutfits : undefined,
       bnt: p.bannerAt && /^https?:/.test(p.banner || '') ? p.bannerAt : undefined,
       avt: p.avatarAt || undefined,
