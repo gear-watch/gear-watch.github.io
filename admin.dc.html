@@ -143,10 +143,20 @@
                   <span style="position:relative;font-size:16px;font-weight:600;text-transform:uppercase;text-align:center;padding:0 8px;color:#fff;">{{ t.name }}</span>
                   <span style="position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:11px;color:#e5e5ea;">{{ t.sub }}</span>
                 </div>
-                <div style="display:flex;gap:10px;font-size:13px;align-items:center;"><label style="color:#ffd60a;cursor:pointer;">{{ t.upLbl }}<input type="file" accept="image/*" onChange="{{ t.pick }}" style="display:none;"></label><sc-if value="{{ t.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ t.clear }}" style="border:0;background:none;color:#a1a1a6;cursor:pointer;padding:0;font-size:13px;">Use automatic</button></sc-if></div>
+                <div style="display:flex;gap:10px;font-size:13px;align-items:center;"><button onClick="{{ t.choose }}" style="border:0;background:none;color:#ffd60a;cursor:pointer;padding:0;font-size:13px;">{{ t.chooseLbl }}</button><label style="color:#ffd60a;cursor:pointer;">{{ t.upLbl }}<input type="file" accept="image/*" onChange="{{ t.pick }}" style="display:none;"></label><sc-if value="{{ t.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ t.clear }}" style="border:0;background:none;color:#a1a1a6;cursor:pointer;padding:0;font-size:13px;">Use automatic</button></sc-if></div>
               </div>
             </sc-for>
           </div>
+          <sc-if value="{{ cp.open }}" hint-placeholder-val="{{ false }}">
+            <div style="margin:0 20px 20px;background:#0d0d0e;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;"><span style="font-size:15px;font-weight:600;">{{ cp.title }}</span><button onClick="{{ cp.close }}" style="border:0;background:#2c2c2e;color:#f5f5f7;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;">Close</button></div>
+              <sc-if value="{{ cp.loading }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#a1a1a6;">Loading items…</span></sc-if>
+              <sc-if value="{{ cp.empty }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#a1a1a6;">No items with photos in this category yet.</span></sc-if>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;">
+                <sc-for list="{{ cp.photos }}" as="p" hint-placeholder-count="0"><button onClick="{{ p.pick }}" title="{{ p.name }}" style="position:relative;border:0;padding:0;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#1c1c1e;cursor:pointer;box-shadow:{{ p.ring }};" style-active="transform:scale(0.96);"><img src="{{ p.src }}" alt="" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;"><span style="position:absolute;left:0;right:0;bottom:0;padding:16px 6px 5px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.75));font-size:11px;color:#f5f5f7;text-align:left;line-height:1.2;">{{ p.name }}</span></button></sc-for>
+              </div>
+            </div>
+          </sc-if>
         </sc-if>
         <sc-if value="{{ isShops }}" hint-placeholder-val="{{ false }}">
           <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;font-size:20px;font-weight:600;">Known shops</div>
@@ -347,6 +357,8 @@ class Component extends DCLogic {
   browse() { const G = window.GWSync; if (!G) return; const tok = (this.bTok = (this.bTok || 0) + 1); this.setState({ bBusy: true });
     G.cat('catalog_admin_search', { q: (this.state.bq || '').trim(), st: this.state.bst || '', lim: 120 }).then(r => { if (tok === this.bTok) this.setState({ bRes: r || [], bBusy: false }); }).catch(e => { if (tok === this.bTok) { this.setState({ bBusy: false }); this.say((e && e.message) || 'Couldn’t search'); } }); }
   loadCovers() { const G = window.GWSync; if (!G) return; G.cat('catalog_tiles').then(r => this.setState({ tilesA: r || [] })).catch(e => this.say((e && e.message) || 'Couldn’t load')); }
+  openCoverPick(t) { const G = window.GWSync; if (!G) return; if (this.state.cpick && this.state.cpick.t === t) { this.setState({ cpick: null }); return; } this.setState({ cpick: { t, loading: true, items: [] } });
+    G.cat('catalog_browse', { t, lim: 120 }).then(r => this.setState(s => s.cpick && s.cpick.t === t ? { cpick: { t, loading: false, items: r || [] } } : null)).catch(e => { this.setState({ cpick: null }); this.say((e && e.message) || 'Couldn’t load'); }); }
   async setCover(t, fileOrUrl) { const G = window.GWSync; if (!G) return; this.setState({ coverBusy: t });
     try { let url = fileOrUrl; if (typeof fileOrUrl !== 'string') { const b = await this.shrink(fileOrUrl); url = await G.catUpload(b); } await G.cat('catalog_tile_cover_set', { t, u: url || '' }); this.say(url ? 'Cover saved' : 'Back to the automatic photo'); this.loadCovers(); }
     catch (e) { this.say((e && e.message) || 'Couldn’t save'); } this.setState({ coverBusy: null }); }
@@ -418,9 +430,13 @@ class Component extends DCLogic {
           keepA: () => this.merge(p.b.id, p.a.id, p.a.name), keepB: () => this.merge(p.a.id, p.b.id, p.b.name),
           notDupe: async () => { try { await window.GWSync.cat('catalog_not_dupe', { x: p.a.id, y: p.b.id }); this.setState(s => ({ dupes: (s.dupes || []).filter(z => z !== p) })); } catch (e) { this.say((e && e.message) || 'Couldn’t save'); } } }; }),
       isCovers: page === 'covers', covers: [['suits', 'Suits'], ['headgear', 'Headgear'], ['tops', 'Tops & jackets'], ['bottoms', 'Bottoms & underwear'], ['handsfeet', 'Hands & feet'], ['footwear', 'Footwear'], ['harnesses', 'Harnesses'], ['play', 'Restraints & play'], ['accessories', 'Accessories']].map(([k, name]) => { const x = (st.tilesA || []).find(z => z.tile === k) || {}, busy = st.coverBusy === k, file = f => { const fl = Array.from(f || []).find(z => /^image\//.test(z.type || '')); if (fl) this.setCover(k, fl); };
-        return { name, photo: x.photo || '', hasPhoto: !!x.photo, custom: !!x.custom, sub: busy ? 'Saving…' : (x.n || 0) + ' items' + (x.custom ? ' · your cover' : x.photo ? ' · automatic' : ''), ring: st.coverFocus === k ? '0 0 0 2px #ffd60a' : 'none', upLbl: x.custom ? 'Change' : 'Upload cover',
+        return { name, choose: e => { e.stopPropagation(); this.openCoverPick(k); }, chooseLbl: st.cpick && st.cpick.t === k ? 'Hide items' : 'Pick from items', photo: x.photo || '', hasPhoto: !!x.photo, custom: !!x.custom, sub: busy ? 'Saving…' : (x.n || 0) + ' items' + (x.custom ? ' · your cover' : x.photo ? ' · automatic' : ''), ring: st.coverFocus === k ? '0 0 0 2px #ffd60a' : 'none', upLbl: x.custom ? 'Change' : 'Upload cover',
           pick: e => { file(e.target.files); e.target.value = ''; }, over: e => e.preventDefault(), drop: e => { e.preventDefault(); const dt = e.dataTransfer; if (dt && dt.files && dt.files.length) { file(dt.files); return; } const u = dt && (dt.getData('text/uri-list') || dt.getData('text')); if (u && /^https?:/.test(u)) this.setCover(k, u.trim()); },
           focus: () => this.setState({ coverFocus: k }), clear: e => { e.stopPropagation(); this.setCover(k, ''); } }; }),
+      cp: (() => { const P = st.cpick; if (!P || page !== 'covers') return { open: false }; const TN = { suits: 'Suits', headgear: 'Headgear', tops: 'Tops & jackets', bottoms: 'Bottoms & underwear', handsfeet: 'Hands & feet', footwear: 'Footwear', harnesses: 'Harnesses', play: 'Restraints & play', accessories: 'Accessories' }, cur = ((st.tilesA || []).find(z => z.tile === P.t) || {}).photo;
+        const ph = []; (P.items || []).forEach(c => (c.photos || []).slice(0, 4).forEach(src => { if (src && !ph.some(x => x.src === src)) ph.push({ src, name: c.name }); }));
+        return { open: true, loading: !!P.loading, empty: !P.loading && !ph.length, title: 'Pick a cover for ' + (TN[P.t] || P.t) + ' · ' + ph.length + ' photos', close: () => this.setState({ cpick: null }),
+          photos: ph.map(p => ({ src: p.src, name: p.name, ring: p.src === cur ? '0 0 0 2px #ffd60a' : 'none', pick: () => { this.setCover(P.t, p.src); this.setState({ cpick: null }); } })) }; })(),
       isShops: page === 'shops', shopIn: st.shopIn, onShopIn: e => this.setState({ shopIn: e.target.value }),
       trustIn: () => { const d = shopOf(st.shopIn); if (d) { this.setState({ shopIn: '' }); this.run('catalog_shop', { d, st: 'trusted' }, d + ' is trusted'); } },
       blockIn: () => { const d = shopOf(st.shopIn); if (d) { this.setState({ shopIn: '' }); this.run('catalog_shop', { d, st: 'blocked' }, d + ' is blocked'); } },
