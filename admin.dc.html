@@ -131,6 +131,23 @@
             </div>
           </sc-for>
         </sc-if>
+        <sc-if value="{{ isCovers }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;font-size:20px;font-weight:600;">Category covers</div>
+          <div style="padding:12px 20px;font-size:13px;color:#a1a1a6;line-height:1.5;border-bottom:1px solid #1c1c1e;">The photos behind “Browse by category”. Without a cover, the tile uses the photo of its most-owned item. Drop a photo on a tile, paste one after tapping it, or pick a file.</div>
+          <div style="padding:16px 20px;display:flex;flex-wrap:wrap;gap:14px;">
+            <sc-for list="{{ covers }}" as="t" hint-placeholder-count="9">
+              <div onDragOver="{{ t.over }}" onDrop="{{ t.drop }}" onClick="{{ t.focus }}" style="width:150px;display:flex;flex-direction:column;gap:6px;">
+                <div style="position:relative;width:150px;height:200px;border-radius:14px;overflow:hidden;background:#1c1c1e;display:grid;place-items:center;box-shadow:{{ t.ring }};cursor:pointer;">
+                  <sc-if value="{{ t.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ t.photo }}" alt="" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;"></sc-if>
+                  <span style="position:absolute;inset:0;background:rgba(0,0,0,0.45);"></span>
+                  <span style="position:relative;font-size:16px;font-weight:600;text-transform:uppercase;text-align:center;padding:0 8px;color:#fff;">{{ t.name }}</span>
+                  <span style="position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:11px;color:#e5e5ea;">{{ t.sub }}</span>
+                </div>
+                <div style="display:flex;gap:10px;font-size:13px;align-items:center;"><label style="color:#ffd60a;cursor:pointer;">{{ t.upLbl }}<input type="file" accept="image/*" onChange="{{ t.pick }}" style="display:none;"></label><sc-if value="{{ t.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ t.clear }}" style="border:0;background:none;color:#a1a1a6;cursor:pointer;padding:0;font-size:13px;">Use automatic</button></sc-if></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
         <sc-if value="{{ isShops }}" hint-placeholder-val="{{ false }}">
           <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;font-size:20px;font-weight:600;">Known shops</div>
           <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
@@ -204,7 +221,7 @@ class Component extends DCLogic {
     this.onVis = () => { if (document.visibilityState === 'visible' && this.loadedFor) this.load(); };
     document.addEventListener('visibilitychange', this.onVis);
     this.poll = setInterval(() => { if (this.loadedFor && document.visibilityState === 'visible') this.load(); }, 60000);
-    this.onPaste = e => { const ed = this.state.ed; if (!ed || !ed.ready) return; const t = e.target; const inField = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA'); const cd = e.clipboardData; if (!cd) return;
+    this.onPaste = e => { if (this.state.page === 'covers' && this.state.coverFocus && e.clipboardData) { const fl = Array.from(e.clipboardData.files || []).find(z => /^image\//.test(z.type)); if (fl) { e.preventDefault(); this.setCover(this.state.coverFocus, fl); return; } } const ed = this.state.ed; if (!ed || !ed.ready) return; const t = e.target; const inField = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA'); const cd = e.clipboardData; if (!cd) return;
       const files = Array.from(cd.files || []).filter(f => /^image\//.test(f.type)); if (files.length) { e.preventDefault(); this.edAddFiles(files); return; }
       if (!inField) { const urls = this.urlsFrom(cd.getData('text')); if (urls.length) { e.preventDefault(); this.addPhotoSrcs(urls); } } };
     document.addEventListener('paste', this.onPaste);
@@ -329,6 +346,10 @@ class Component extends DCLogic {
       cancel: () => this.setState({ openKey: null, ed: null }), saveLbl: ed.saving ? 'Saving…' : 'Save', saveOp: ed.saving ? 0.5 : 1, save: () => this.edSave(false), canApprove: !!ed.pendingItem, saveApprove: () => this.edSave(true) }; }
   browse() { const G = window.GWSync; if (!G) return; const tok = (this.bTok = (this.bTok || 0) + 1); this.setState({ bBusy: true });
     G.cat('catalog_admin_search', { q: (this.state.bq || '').trim(), st: this.state.bst || '', lim: 120 }).then(r => { if (tok === this.bTok) this.setState({ bRes: r || [], bBusy: false }); }).catch(e => { if (tok === this.bTok) { this.setState({ bBusy: false }); this.say((e && e.message) || 'Couldn’t search'); } }); }
+  loadCovers() { const G = window.GWSync; if (!G) return; G.cat('catalog_tiles').then(r => this.setState({ tilesA: r || [] })).catch(e => this.say((e && e.message) || 'Couldn’t load')); }
+  async setCover(t, fileOrUrl) { const G = window.GWSync; if (!G) return; this.setState({ coverBusy: t });
+    try { let url = fileOrUrl; if (typeof fileOrUrl !== 'string') { const b = await this.shrink(fileOrUrl); url = await G.catUpload(b); } await G.cat('catalog_tile_cover_set', { t, u: url || '' }); this.say(url ? 'Cover saved' : 'Back to the automatic photo'); this.loadCovers(); }
+    catch (e) { this.say((e && e.message) || 'Couldn’t save'); } this.setState({ coverBusy: null }); }
   loadDupes() { const G = window.GWSync; if (!G) return; this.setState({ dBusy: true }); G.cat('catalog_dupes').then(r => this.setState({ dupes: r || [], dBusy: false })).catch(e => { this.setState({ dupes: [], dBusy: false }); this.say((e && e.message) || 'Couldn’t load'); }); }
   async merge(src, dst, label) { const G = window.GWSync; if (!this._mArm || this._mArm !== src + dst) { this._mArm = src + dst; clearTimeout(this._mT); this._mT = setTimeout(() => { this._mArm = null; this.forceUpdate(); }, 4000); this.forceUpdate(); this.say('Tap again to merge into “' + label + '”'); return; }
     this._mArm = null; try { await G.cat('catalog_merge', { src, dst }); this.say('Merged'); this.setState({ openKey: null, ed: null }); await this.load(); if (this.state.page === 'dupes') this.loadDupes(); if (this.state.page === 'browse') this.browse(); } catch (e) { this.say((e && e.message) || 'Couldn’t merge'); } }
@@ -384,7 +405,7 @@ class Component extends DCLogic {
       showMsg, msgTitle, msgSub, ready: !!q, hasRole: !!role, who: A.username ? '@' + A.username : '', roleLbl: isAdmin ? 'Admin' : 'Moderator', isAdmin,
       reload: () => this.load(),
       filters: F.map(([k, l]) => { const c = n(k); return { k, label: l, n: String(c), nColor: k === 'reports' && c ? '#ff453a' : '#a1a1a6', bg: page === 'queue' && st.filter === k ? '#1c1c1e' : 'transparent', onTap: () => this.setState({ filter: k, page: 'queue', openKey: null, ed: null }) }; }).filter(x => x.k === 'all' || x.n !== '0' || st.filter === x.k),
-      pages: [['browse', 'All entries'], ['dupes', 'Possible duplicates'], ['shops', 'Known shops'], ['staff', 'Staff'], ['log', 'Change log']].map(([k, l]) => ({ label: l, bg: page === k ? '#1c1c1e' : 'transparent', onTap: () => { this.setState({ page: k, openKey: null, ed: null }); if (k === 'browse') setTimeout(() => this.browse(), 0); if (k === 'dupes') setTimeout(() => this.loadDupes(), 0); } })),
+      pages: [['browse', 'All entries'], ['dupes', 'Possible duplicates'], ['covers', 'Category covers'], ['shops', 'Known shops'], ['staff', 'Staff'], ['log', 'Change log']].map(([k, l]) => ({ label: l, bg: page === k ? '#1c1c1e' : 'transparent', onTap: () => { this.setState({ page: k, openKey: null, ed: null }); if (k === 'browse') setTimeout(() => this.browse(), 0); if (k === 'dupes') setTimeout(() => this.loadDupes(), 0); if (k === 'covers') setTimeout(() => this.loadCovers(), 0); } })),
       isList: page === 'queue' || isBrowse, isBrowse, listSort: isBrowse ? (st.bBusy ? 'Searching…' : 'Recently changed first') : 'Oldest first', emptyTxt: isBrowse ? (st.bRes ? 'No entries found.' : '') : 'Nothing waiting.',
       bq: st.bq || '', onBq: e => { this.setState({ bq: e.target.value }); clearTimeout(this.bT); this.bT = setTimeout(() => this.browse(), 300); },
       bStats: [['', 'All'], ['live', 'Live'], ['pending', 'Waiting'], ['hidden', 'Hidden'], ['gone', 'No longer sold'], ['removed', 'Removed']].map(([k, l]) => { const on = (st.bst || '') === k; return { label: l, bg: on ? '#ffd60a' : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: () => this.setState({ bst: k }, () => this.browse()) }; }),
@@ -396,6 +417,10 @@ class Component extends DCLogic {
         return { a: one(p.a), b: one(p.b), op: st.dBusy ? 0.6 : 1, simTxt: Math.round(p.sim * 100) + '% similar name',
           keepA: () => this.merge(p.b.id, p.a.id, p.a.name), keepB: () => this.merge(p.a.id, p.b.id, p.b.name),
           notDupe: async () => { try { await window.GWSync.cat('catalog_not_dupe', { x: p.a.id, y: p.b.id }); this.setState(s => ({ dupes: (s.dupes || []).filter(z => z !== p) })); } catch (e) { this.say((e && e.message) || 'Couldn’t save'); } } }; }),
+      isCovers: page === 'covers', covers: [['suits', 'Suits'], ['headgear', 'Headgear'], ['tops', 'Tops & jackets'], ['bottoms', 'Bottoms & underwear'], ['handsfeet', 'Hands & feet'], ['footwear', 'Footwear'], ['harnesses', 'Harnesses'], ['play', 'Restraints & play'], ['accessories', 'Accessories']].map(([k, name]) => { const x = (st.tilesA || []).find(z => z.tile === k) || {}, busy = st.coverBusy === k, file = f => { const fl = Array.from(f || []).find(z => /^image\//.test(z.type || '')); if (fl) this.setCover(k, fl); };
+        return { name, photo: x.photo || '', hasPhoto: !!x.photo, custom: !!x.custom, sub: busy ? 'Saving…' : (x.n || 0) + ' items' + (x.custom ? ' · your cover' : x.photo ? ' · automatic' : ''), ring: st.coverFocus === k ? '0 0 0 2px #ffd60a' : 'none', upLbl: x.custom ? 'Change' : 'Upload cover',
+          pick: e => { file(e.target.files); e.target.value = ''; }, over: e => e.preventDefault(), drop: e => { e.preventDefault(); const dt = e.dataTransfer; if (dt && dt.files && dt.files.length) { file(dt.files); return; } const u = dt && (dt.getData('text/uri-list') || dt.getData('text')); if (u && /^https?:/.test(u)) this.setCover(k, u.trim()); },
+          focus: () => this.setState({ coverFocus: k }), clear: e => { e.stopPropagation(); this.setCover(k, ''); } }; }),
       isShops: page === 'shops', shopIn: st.shopIn, onShopIn: e => this.setState({ shopIn: e.target.value }),
       trustIn: () => { const d = shopOf(st.shopIn); if (d) { this.setState({ shopIn: '' }); this.run('catalog_shop', { d, st: 'trusted' }, d + ' is trusted'); } },
       blockIn: () => { const d = shopOf(st.shopIn); if (d) { this.setState({ shopIn: '' }); this.run('catalog_shop', { d, st: 'blocked' }, d + ' is blocked'); } },
