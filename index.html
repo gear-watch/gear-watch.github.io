@@ -828,7 +828,10 @@ input::placeholder{color:#6e6e73;}
     <sc-if value="{{ d.cf.show }}" hint-placeholder-val="{{ false }}">
       <div data-anim="up" style="margin:12px 16px 0;background:#1c1c1e;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
         <span style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;"><span style="font-weight:600;">How does it fit?</span><span style="font-size:12px;color:#a1a1a6;">{{ d.cf.sub }}</span></span>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;"><sc-for list="{{ d.cf.tags }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:14px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;"><sc-for list="{{ d.cf.tags }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:14px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div>
+        <sc-if value="{{ d.cf.hasMyNote }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:15px;color:#f5f5f7;">“{{ d.cf.myNote }}”</span><button onClick="{{ d.cf.delNote }}" style="border:0;background:none;color:#a1a1a6;font-size:13px;cursor:pointer;padding:0;">Remove</button></div></sc-if>
+        <sc-if value="{{ d.cf.canAddNote }}" hint-placeholder-val="{{ false }}"><button onClick="{{ d.cf.openNote }}" style="align-self:flex-start;border:1px dashed #48484a;border-radius:9999px;padding:5px 12px;font-size:14px;color:var(--gw-accent,#ffd60a);background:none;cursor:pointer;" style-active="transform:scale(0.95);">+ Add your own note</button></sc-if>
+        <sc-if value="{{ d.cf.noteOpen }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:8px;"><input value="{{ d.cf.noteIn }}" onChange="{{ d.cf.onNoteIn }}" maxlength="30" placeholder="e.g. Long zip, easy to get in" autocomplete="off" style="flex:1;min-width:0;background:#2c2c2e;border:0;border-radius:8px;padding:9px 12px;font-size:16px;color:#f5f5f7;outline:none;"><button onClick="{{ d.cf.saveNote }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:8px;padding:0 14px;font-size:14px;cursor:pointer;">Save</button></div><span style="font-size:12px;color:#6e6e73;">{{ d.cf.noteLeft }}</span></sc-if>
       </div>
       <button data-anim="up" onClick="{{ d.cf.toggleShare }}" style="width:calc(100% - 32px);margin:12px 16px 0;border:0;background:#1c1c1e;border-radius:18px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:17px;color:#f5f5f7;cursor:pointer;text-align:left;"><span style="display:flex;flex-direction:column;gap:2px;min-width:0;"><span>Share my photos with the catalog</span><span style="font-size:12px;color:{{ d.cf.shareSubColor }};line-height:1.4;">{{ d.cf.shareSub }}</span></span><span style="width:51px;height:31px;border-radius:9999px;background:{{ d.cf.track }};position:relative;flex:none;transition:background .25s;opacity:{{ d.cf.op }};"><span style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:9999px;background:#fff;transform:translateX({{ d.cf.knob }});transition:transform .25s;"></span></span></button>
     </sc-if>
@@ -1774,7 +1777,7 @@ input::placeholder{color:#6e6e73;}
       </div>
       <sc-if value="{{ cat.pr.hasNotes }}" hint-placeholder-val="{{ false }}">
         <div style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Fit notes from owners</div>
-        <div style="padding:0 16px;display:flex;flex-wrap:wrap;gap:8px;"><sc-for list="{{ cat.pr.notes }}" as="c" hint-placeholder-count="3"><span style="border-radius:9999px;padding:6px 12px;font-size:13px;background:#2c2c2e;color:#f5f5f7;">{{ c.label }} <span style="color:#a1a1a6;">· {{ c.n }}</span></span></sc-for></div>
+        <div style="padding:0 16px;display:flex;flex-wrap:wrap;gap:8px;"><sc-for list="{{ cat.pr.notes }}" as="c" hint-placeholder-count="3"><span style="border-radius:9999px;padding:6px 12px;font-size:13px;background:#2c2c2e;color:#f5f5f7;">{{ c.label }}<span style="color:#a1a1a6;">{{ c.n }}</span></span></sc-for></div>
       </sc-if>
       <sc-if value="{{ cat.pr.hasWorn }}" hint-placeholder-val="{{ false }}">
         <div style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ cat.pr.wornTitle }}</div>
@@ -3330,7 +3333,7 @@ class Component extends DCLogic {
       stars: this.stars(it.rating), hasMat: !!(it.materials || []).length, matTag: matTag(it), drop: dr > 0, dropTxt: '−' + Math.round(dr * 100) + '%', onOpen: () => this.openDetail(it.id) };
   }
   carGo(i) { const el = this.carRef.current; if (!el) return; const n = el.children.length, j = Math.max(0, Math.min(n - 1, i)); el.scrollTo({ left: j * el.clientWidth, behavior: this.reduce ? 'auto' : 'smooth' }); this.setState({ photoIdx: j }); }
-  openDetail(id) { this.setState({ detail: id, photoIdx: 0, delArm: false, copied: false, notif: false, shareArm: false }); this.catDetLoad(id); }
+  openDetail(id) { this.setState({ detail: id, photoIdx: 0, delArm: false, copied: false, notif: false, shareArm: false, noteOpen: false, noteIn: '' }); this.catDetLoad(id); }
   closeDetail(cb) { this.animOut(this.detailRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ detail: null, delArm: false }); if (cb) cb(); }); }
   closeSheet(cb) {
     if (!cb && (this.state.sheet === 'cfix' || this.state.sheet === 'crep') && this.state.catP) { this.setState({ sheet: 'cprod' }); return; }
@@ -3451,11 +3454,13 @@ class Component extends DCLogic {
     Promise.all([G.cat('catalog_get', { cid }), G.cat('catalog_photos_mine', { cid })]).then(([c, mine]) => { if (!this.state.catDet || this.state.catDet.cid !== cid) return; this.setState({ catDet: { cid, notes: (c && c.notes) || [], mine: mine || [] } }); })
       .catch(() => { if (this.state.catDet && this.state.catDet.cid === cid) this.setState({ catDet: { cid, notes: [], mine: [], off: true } }); }); }
   setDet(fn) { this.setState(s => s.catDet ? { catDet: Object.assign({}, s.catDet, fn(s.catDet)) } : null); }
-  async catNote(cid, tag, on) { const G = window.GWSync;
-    const flip = dir => this.setDet(d => { const n = (d.notes || []).map(x => Object.assign({}, x)); const f = n.find(x => x.tag === tag); if (f) { f.n += dir ? 1 : -1; f.mine = dir; } else if (dir) n.push({ tag, n: 1, mine: true }); return { notes: n.filter(x => x.n > 0) }; });
-    flip(on);
-    try { await G.cat('catalog_note_set', { cid, t: tag, turn_on: on }); }
-    catch (e) { const m = (e && e.message) || ''; if (on && /own it/.test(m)) { try { await this.catLinksNow(true); await G.cat('catalog_note_set', { cid, t: tag, turn_on: on }); return; } catch (e2) {} } flip(!on); this.toast(m || 'Couldn’t save that'); } }
+  async catNote(cid, tag, on) { const G = window.GWSync, PRE = ['True to size', 'Runs small', 'Runs large'];
+    this.setDet(d => { const n = (d.notes || []).map(x => Object.assign({}, x)), drop = t => { const f = n.find(x => x.tag === t && x.mine); if (f) { f.n--; f.mine = false; } };
+      if (on) { (PRE.includes(tag) ? PRE : n.filter(x => /^note:/.test(x.tag)).map(x => x.tag)).forEach(drop); const f = n.find(x => x.tag === tag); if (f) { f.n++; f.mine = true; } else n.push({ tag, n: 1, mine: true }); } else drop(tag);
+      return { notes: n.filter(x => x.n > 0) }; });
+    const call = () => G.cat('catalog_note_set', { cid, t: tag, turn_on: on });
+    try { await call(); } catch (e) { const m = (e && e.message) || ''; let ok = false; if (on && /own it/.test(m)) { try { await this.catLinksNow(true); await call(); ok = true; } catch (e2) {} } if (!ok) this.toast(m || 'Couldn’t save that'); }
+    try { const c = await G.cat('catalog_get', { cid }); if (c && this.state.catDet && this.state.catDet.cid === cid) this.setDet(() => ({ notes: c.notes || [] })); } catch (e) {} }
   async catPhotoBlob(src) { let b = null;
     if (/^data:/.test(src)) b = await (await fetch(src)).blob();
     else { let r = null; try { r = await fetch(src, { credentials: 'omit' }); } catch (e) {}
@@ -3474,11 +3479,14 @@ class Component extends DCLogic {
     this.setDet(dd => ({ busy: false, mine: (dd.mine || []).concat(added) }));
     this.toast(added.length ? (added.length === 1 ? 'Shared 1 photo' : 'Shared ' + added.length + ' photos') + (pend ? '. They’ll show once checked.' : '') : err || 'Couldn’t share these photos'); }
   catFitVals(it) { const d = this.state.catDet; if (!it || !d || d.cid !== it.catalogId || d.off) return { show: false };
-    const TAGS = ['True to size', 'Runs small', 'Runs large', 'Tight in the chest', 'Loose in the chest', 'Long in the legs', 'Short in the legs', 'Long in the arms', 'Short in the arms', 'Tight neck', 'Thin latex', 'Thick latex', 'Easy to get into', 'Hard to get into'];
+    const TAGS = ['True to size', 'Runs small', 'Runs large'];
     const by = {}; (d.notes || []).forEach(x => { by[x.tag] = x; });
-    const mineN = (d.notes || []).filter(x => x.mine).length, on = (d.mine || []).length > 0, pend = (d.mine || []).some(x => x.status === 'pending');
-    return { show: true, sub: d.loading ? 'Loading…' : mineN ? 'Thanks. Others see this on the catalog page.' : 'Pick up to 5. Shown to others without your name.',
-      tags: TAGS.map(t => { const x = by[t], a = !!(x && x.mine); return { label: t + (x && x.n ? ' · ' + x.n : ''), bg: a ? ACC : '#2c2c2e', color: a ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.08); if (!a && mineN >= 5) { this.toast('Up to 5 fit notes per item'); return; } this.catNote(d.cid, t, !a); } }; }),
+    const mineN = (d.notes || []).filter(x => x.mine).length, myNote = ((d.notes || []).find(x => x.mine && /^note:/.test(x.tag)) || {}).tag, on = (d.mine || []).length > 0, pend = (d.mine || []).some(x => x.status === 'pending');
+    return { show: true, sub: d.loading ? 'Loading…' : mineN ? 'Thanks. Others see this without your name.' : 'Shown to others without your name.',
+      hasMyNote: !!myNote && !this.state.noteOpen, myNote: myNote ? myNote.slice(5) : '', delNote: () => this.catNote(d.cid, myNote, false), canAddNote: !myNote && !this.state.noteOpen && !d.loading,
+      openNote: () => this.setState({ noteOpen: true, noteIn: '' }), noteOpen: !!this.state.noteOpen, noteIn: this.state.noteIn || '', onNoteIn: e => this.setState({ noteIn: e.target.value.slice(0, 30) }), noteLeft: (30 - (this.state.noteIn || '').length) + ' characters left',
+      saveNote: () => { const v = (this.state.noteIn || '').trim(); if (v.length < 2) { this.setState({ noteOpen: false }); return; } if (/https?:|www\.|@/i.test(v)) { this.toast('Notes can’t contain links or usernames'); return; } this.setState({ noteOpen: false, noteIn: '' }); this.catNote(d.cid, 'note:' + v, true); },
+      tags: TAGS.map(t => { const x = by[t], a = !!(x && x.mine); return { label: t + (x && x.n ? ' · ' + x.n : ''), bg: a ? ACC : '#2c2c2e', color: a ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.08); this.catNote(d.cid, t, !a); } }; }),
       track: on ? ACC : '#39393d', knob: on ? '20px' : '0px', op: d.busy ? 0.5 : 1, toggleShare: () => this.catShare(it),
       shareSub: d.busy ? (on ? 'Removing…' : 'Sharing your photos…') : this.state.shareArm ? 'Anyone on GearWatch can see these. Crop out faces or anything that shows who you are. Tap again to share.' : on ? (pend ? 'Waiting for a check before others see them.' : 'Shown under “Worn by others”. Your name isn’t shown.') : 'Off. Your photos stay private.',
       shareSubColor: this.state.shareArm ? '#ff9f0a' : '#a1a1a6' }; }
@@ -3551,7 +3559,7 @@ class Component extends DCLogic {
     const ac = { loading: !ca, empty: !!ca && !groups.length, groups };
     if (c) { const v = st.catView, notes = c.notes || [], worn = c.worn || [];
       Object.assign(pr, { fromSearch: st.catFrom === 'form' || st.catFrom === 'act', backLbl: st.catFrom === 'act' ? '‹ Activity' : '‹ Results', back: () => this.setState({ sheet: st.catFrom === 'act' ? 'cact' : 'form', catView: null }),
-        hasNotes: notes.length > 0, notes: notes.slice(0, 8).map(x => ({ label: x.tag, n: x.n })),
+        hasNotes: notes.length > 0, notes: notes.filter(x => !/^note:/.test(x.tag)).concat(notes.filter(x => /^note:/.test(x.tag)).slice(0, 8)).map(x => /^note:/.test(x.tag) ? { label: '“' + x.tag.slice(5) + '”', n: x.n > 1 ? ' · ' + x.n : '' } : { label: x.tag, n: ' · ' + x.n }),
         hasWorn: worn.length > 0, wornTitle: 'Worn by others · ' + worn.length, worn: worn.map(w => ({ url: w.url, open: () => { if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0; this.setState({ catView: { id: w.id, url: w.url, mine: !!w.mine } }); } })),
         hasView: !!v, view: v ? { url: v.url, canReport: !v.mine, reporting: !!v.rep, reportLbl: v.rep ? 'Cancel' : 'Report photo', report: () => this.setState({ catView: Object.assign({}, v, { rep: !v.rep }) }), close: () => this.setState({ catView: null }),
           reasons: ['Wrong or explicit photo', 'Shows who someone is', 'Not this item'].map(r => ({ label: r, onTap: async () => { try { const res = await window.GWSync.cat('catalog_photo_report', { pid: v.id, reason: r }); this.setState({ catView: null }); this.toast(res && res.hidden ? 'Thanks. It’s hidden while it’s checked' : 'Thanks for reporting it'); } catch (e) { this.toast((e && e.message) || 'Couldn’t send that'); } } })) } : {} }); }
