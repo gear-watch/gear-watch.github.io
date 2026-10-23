@@ -226,8 +226,10 @@ grant execute on function public.friends_of(uuid) to authenticated;
 
 create or replace function public.friend_suggestions()
 returns table (id uuid, username text, avatar text, mutuals int, via text[])
-language sql stable security definer set search_path = public as $$
-  with mine as (select public.my_friend_ids(auth.uid()) as uid),
+language plpgsql stable security definer set search_path = public as $$
+#variable_conflict use_column
+begin
+  return query with mine as (select public.my_friend_ids(auth.uid()) as uid),
   fof as (select f.uid as via, public.my_friend_ids(f.uid) as cand from mine f)
   select p.id, p.username, p.avatar, count(distinct fof.via)::int, (array_agg(distinct vp.username))[1:3]
   from fof join public.profiles p on p.id = fof.cand join public.profiles vp on vp.id = fof.via
@@ -236,8 +238,16 @@ language sql stable security definer set search_path = public as $$
   group by p.id, p.username, p.avatar
   having count(distinct fof.via) >= 2
   order by 4 desc, p.username
-  limit 12
-$$;
+  limit 12;
+  if not found then
+    -- Nobody shares friends with you yet: suggest other people on GearWatch.
+    return query select p.id, p.username, p.avatar, 0, array[]::text[] from public.profiles p
+      where p.id <> auth.uid() and p.username is not null
+        and not exists (select 1 from public.follows x where (x.follower = auth.uid() and x.followee = p.id) or (x.followee = auth.uid() and x.follower = p.id))
+      order by (p.avatar is not null) desc, random()
+      limit 12;
+  end if;
+end $$;
 grant execute on function public.friend_suggestions() to authenticated;
 
 

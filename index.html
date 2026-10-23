@@ -493,7 +493,7 @@ input::placeholder{color:#6e6e73;}
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"><button onClick="{{ fr.invite }}" style="border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Invite a friend</button><button onClick="{{ hm.findName }}" style="border:0;background:#2c2c2e;color:#f5f5f7;border-radius:9999px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">Find by name</button></div>
       </div>
       <sc-if value="{{ fr.hasMayKnow }}" hint-placeholder-val="{{ false }}">
-        <div data-anim="right" style="padding:28px 20px 10px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">People you may know</div>
+        <div data-anim="right" style="padding:28px 20px 10px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ fr.mayKnowTitle }}</div>
         <div style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;">
           <sc-for list="{{ fr.mayKnow }}" as="m" hint-placeholder-count="2">
             <div data-anim="pop" onClick="{{ m.onOpen }}" style="position:relative;flex:none;width:140px;box-sizing:border-box;background:#1c1c1e;border-radius:18px;padding:16px 12px 12px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;text-align:center;">
@@ -617,7 +617,7 @@ input::placeholder{color:#6e6e73;}
       </sc-if>
     </sc-if>
     <sc-if value="{{ fr.hasMayKnow }}" hint-placeholder-val="{{ false }}">
-      <div data-anim="right" style="padding:28px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">People you may know</div>
+      <div data-anim="right" style="padding:28px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">{{ fr.mayKnowTitle }}</div>
       <div style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;">
         <sc-for list="{{ fr.mayKnow }}" as="m" hint-placeholder-count="2">
           <div data-anim="pop" onClick="{{ m.onOpen }}" style="position:relative;flex:none;width:140px;box-sizing:border-box;background:#1c1c1e;border-radius:18px;padding:16px 12px 12px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;text-align:center;">
@@ -3465,8 +3465,8 @@ class Component extends DCLogic {
       removeAv: async () => { if (!st.avDelArm) { this.setState({ avDelArm: true }); clearTimeout(this.avT); this.avT = setTimeout(() => this.setState({ avDelArm: false }), 3000); return; } this.setState({ avBusy: true, avDelArm: false }); try { await G.setAvatar(null); this.mutate(pp => { delete pp.avatarAt; }); this.toast('Profile photo removed'); } catch (er) { this.toast((er && er.message) || 'Couldn’t remove your photo'); } this.setState({ avBusy: false }); }, followIn: st.followIn || '', onFollowIn: e => { const v = e.target.value; this.setState({ followIn: v, followMsg: '' }); clearTimeout(this.sugT); this.sugT = setTimeout(() => this.searchUsers(v), 220); }, onFollowKey: e => { if (e.key === 'Enter') { e.preventDefault(); goName(st.followIn); } },
       follow: e => { this.bump(e.currentTarget, 1.06); goName(st.followIn); }, followLabel: st.followBusy ? '…' : 'Add',
       ...(() => { let hid = []; try { hid = JSON.parse(localStorage.getItem('gw-mayknow-hide') || '[]'); } catch (e) {} const L = (st.mayKnow || []).filter(x => relOf(x.id) === 'none' && !hid.includes(x.id) && !(st.mkHid || []).includes(x.id)).slice(0, 10);
-        return { hasMayKnow: L.length > 0, mayKnow: L.map(x => { const via = (x.via || []).filter(Boolean); return { name: '@' + x.username, initial: ini(x.username), av: x.avatar || '', hasAv: !!x.avatar,
-          sub: via.length ? 'Friends with @' + via[0] + (x.mutuals > 1 ? ' and ' + (x.mutuals - 1) + ' more' : '') : plural(x.mutuals || 2, 'mutual friend'),
+        return { mayKnowTitle: L.length && L.every(x => !x.mutuals) ? 'People on GearWatch' : 'People you may know', hasMayKnow: L.length > 0, mayKnow: L.map(x => { const via = (x.via || []).filter(Boolean); return { name: '@' + x.username, initial: ini(x.username), av: x.avatar || '', hasAv: !!x.avatar,
+          sub: via.length ? 'Friends with @' + via[0] + (x.mutuals > 1 ? ' and ' + (x.mutuals - 1) + ' more' : '') : x.mutuals ? plural(x.mutuals, 'mutual friend') : 'Also on GearWatch',
           onOpen: () => openPersonObj(x), onAdd: e => { e.stopPropagation(); this.bump(e.currentTarget, 1.06); doFollow(x.username); },
           onHide: e => { e.stopPropagation(); try { localStorage.setItem('gw-mayknow-hide', JSON.stringify(hid.concat(x.id).slice(-200))); } catch (er) {} this.setState({ mkHid: (st.mkHid || []).concat(x.id) }); } }; }) }; })(),
       ...(() => { const cards = storyFriends.map(id => { const f = SO.following.find(x => x.id === id); if (!f) return null; const l = X.by.get(id) || [], s = l.find(q => !X.seen.has(q.id)) || l[l.length - 1], m = ((s && s.media) || [])[0] || {}, isNew = l.some(q => !X.seen.has(q.id));
