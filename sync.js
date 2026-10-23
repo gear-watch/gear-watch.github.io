@@ -371,11 +371,11 @@
   async function pushTest() { if (!sb) await connect(); if (!sb || !S.user) throw new Error('Sign in first'); const r = await sb.rpc('push_test'); if (r.error) throw new Error(/push_test|function/i.test(r.error.message || '') ? 'Run supabase/setup.sql again first.' : r.error.message); return r.data; }
   async function pushRemove(ep) { if (!sb || !S.user) return; try { await sb.rpc('push_remove', { ep }); } catch (e) {} }
   // ===== Public catalog =====
-  async function catUpload(blob) {
+  async function catUpload(blob, worn) {
     if (!sb) await connect(); if (!sb || !S.user) throw new Error('Sign in first.');
-    const path = S.user.id + '/' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) + '.jpg';
+    const path = (worn ? 'worn/' : '') + S.user.id + '/' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) + '.jpg';
     const r = await sb.storage.from('catalog').upload(path, blob, { contentType: blob.type || 'image/jpeg', upsert: false, cacheControl: '31536000' });
-    if (r.error) { const m = r.error.message || ''; throw new Error(/bucket/i.test(m) ? 'Photo uploads need a database update. Run supabase/catalog.sql.' : /policy|security|unauthori/i.test(m) ? 'Only staff can upload catalog photos.' : m); }
+    if (r.error) { const m = r.error.message || ''; throw new Error(/bucket/i.test(m) ? 'Photo uploads need a database update. Run supabase/catalog.sql.' : /policy|security|unauthori/i.test(m) ? (worn ? 'Sharing photos needs a database update. Run supabase/catalog.sql.' : 'Only staff can upload catalog photos.') : m); }
     return sb.storage.from('catalog').getPublicUrl(path).data.publicUrl;
   }
   async function catRemove(urls) {

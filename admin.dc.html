@@ -12,7 +12,7 @@
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./config.js?v=3"></script>
-<script src="./sync.js?v=39"></script>
+<script src="./sync.js?v=40"></script>
 <style>html,body{margin:0;background:#000;color:#f5f5f7;font-family:var(--font-text);-webkit-font-smoothing:antialiased;}a{color:#ffd60a;text-decoration:none;}a:hover{color:#ffe55c;}input,select,button{font-family:inherit;}</style>
 </helmet>
 <div style="min-height:100vh;display:flex;flex-direction:column;">
@@ -295,16 +295,20 @@ class Component extends DCLogic {
       acts.unshift(btn(st.openKey === 'i' + c.id ? 'Close' : 'Details', () => this.openEd('i' + c.id, c.id, c.status === 'pending')));
       rows.push(Object.assign(t, { key: 'i' + c.id, at: c.created_at, grp: hidden ? 'reports' : unk ? 'shops' : c.by_new ? 'new' : 'items', title: c.name, url: c.url, photo: (c.photos || [])[0] || '', blur: 'none',
         sub: [c.domain, c.by ? 'added by @' + c.by : '', c.same_link ? c.same_link + (c.same_link === 1 ? ' other has it' : ' others have it') : ''].filter(Boolean).join(' · '), note: '', acts })); });
-    flags.forEach(f => { const it = f.item || {}, rep = f.kind === 'report', typed = TYPED.includes(f.field);
+    flags.forEach(f => { const it = f.item || {}, rep = f.kind === 'report', typed = TYPED.includes(f.field), isPh = /^photo:/.test(f.field || '');
       const t = rep ? Object.assign({ tag: 'Report · ' + f.agree }, RED) : f.by_new ? Object.assign({ tag: 'New account' }, BLUE) : Object.assign({ tag: typed ? 'Typed-in change' : 'Fix · ' + f.agree + ' agree' }, GREY);
-      const title = rep ? it.name : f.field === 'category' ? 'Category: ' + (it.category || '—') + ' → ' + f.value : f.field === 'material' ? 'Material → ' + f.value : f.field === 'name' ? 'Rename: “' + it.name + '” → “' + f.value + '”' : f.field === 'brand' ? 'Brand → ' + f.value : f.field === 'link' ? 'New link: ' + f.value : f.field === 'gone' ? 'Mark “' + it.name + '” as no longer sold' : f.field === 'duplicate' ? 'Duplicate of ' + f.value : f.field;
-      const acts = rep ? [btn('Dismiss', dec('flag', f.id, 'reject', 'Dismissed')), btn('Remove item', dec('flag', f.id, 'approve', 'Removed'), 'no')]
+      const title = isPh ? 'Photo on “' + it.name + '”' : rep ? it.name : f.field === 'category' ? 'Category: ' + (it.category || '—') + ' → ' + f.value : f.field === 'material' ? 'Material → ' + f.value : f.field === 'name' ? 'Rename: “' + it.name + '” → “' + f.value + '”' : f.field === 'brand' ? 'Brand → ' + f.value : f.field === 'link' ? 'New link: ' + f.value : f.field === 'gone' ? 'Mark “' + it.name + '” as no longer sold' : f.field === 'duplicate' ? 'Duplicate of ' + f.value : f.field;
+      const acts = rep ? [btn('Dismiss', dec('flag', f.id, 'reject', 'Dismissed')), btn(isPh ? 'Remove photo' : 'Remove item', dec('flag', f.id, 'approve', 'Removed'), 'no')]
         : [btn('Reject', dec('flag', f.id, 'reject', 'Rejected')), btn('Approve', dec('flag', f.id, 'approve', 'Applied'), 'yes')];
-      acts.unshift(btn(st.openKey === 'f' + f.id ? 'Close' : 'Details', () => this.openEd('f' + f.id, f.catalog_id, false)));
-      rows.push(Object.assign(t, { key: 'f' + f.id, at: f.created_at, grp: rep ? 'reports' : f.by_new ? 'new' : typed ? 'typed' : 'fixes', title, url: it.url || '', photo: it.photo || '', blur: rep && /photo/i.test(f.reason || '') ? 'blur(8px)' : 'none',
+      if (!isPh) acts.unshift(btn(st.openKey === 'f' + f.id ? 'Close' : 'Details', () => this.openEd('f' + f.id, f.catalog_id, false)));
+      rows.push(Object.assign(t, { key: 'f' + f.id, at: f.created_at, grp: rep ? 'reports' : f.by_new ? 'new' : typed ? 'typed' : 'fixes', title, url: isPh ? f.value : it.url || '', photo: isPh ? f.value : it.photo || '', blur: isPh || (rep && /photo/i.test(f.reason || '')) ? 'blur(8px)' : 'none',
         sub: [rep ? '“' + f.reason + '”' : it.name, f.by ? '@' + f.by : '', it.status && it.status !== 'live' ? 'entry ' + it.status : ''].filter(Boolean).join(' · '), note: f.note || '', acts })); });
+    ((q && q.photos) || []).forEach(ph => { const it = ph.item || {}, hidden = ph.status === 'hidden';
+      const t = hidden ? Object.assign({ tag: 'Hidden photo' }, RED) : ph.by_new ? Object.assign({ tag: 'Shared photo · new account' }, BLUE) : Object.assign({ tag: 'Shared photo' }, GREY);
+      const acts = hidden ? [btn('Restore', dec('photo', ph.id, 'restore', 'Restored')), btn('Remove', dec('photo', ph.id, 'remove', 'Removed'), 'no')] : [btn('Remove', dec('photo', ph.id, 'remove', 'Removed'), 'no'), btn('Approve', dec('photo', ph.id, 'approve', 'Approved'), 'yes')];
+      rows.push(Object.assign(t, { key: 'p' + ph.id, at: ph.created_at, grp: hidden ? 'reports' : 'photos', title: 'Photo on “' + (it.name || '') + '”', url: ph.url, photo: ph.url, blur: hidden ? 'blur(8px)' : 'none', sub: [ph.by ? 'shared by @' + ph.by : '', 'hover to unblur'].filter((x, i) => i === 0 ? x : hidden).join(' · '), note: '', acts })); });
     rows.sort((a, b) => String(a.at).localeCompare(String(b.at)));
-    const F = [['all', 'All'], ['reports', 'Reports'], ['new', 'New accounts'], ['shops', 'Unknown shops'], ['typed', 'Typed-in changes'], ['fixes', 'Fixes'], ['items', 'Other pending']];
+    const F = [['all', 'All'], ['reports', 'Reports'], ['new', 'New accounts'], ['shops', 'Unknown shops'], ['typed', 'Typed-in changes'], ['fixes', 'Fixes'], ['photos', 'Shared photos'], ['items', 'Other pending']];
     const n = k => k === 'all' ? rows.length : rows.filter(r => r.grp === k).length;
     const SL = { live: 'Live', pending: 'Waiting', hidden: 'Hidden', gone: 'No longer sold', removed: 'Removed' };
     const brows = (st.bRes || []).map(c => { const s = c.status, t = s === 'live' ? { tagColor: '#000', tagBg: '#ffd60a' } : s === 'hidden' || s === 'removed' ? RED : GREY;
