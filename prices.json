@@ -1,4 +1,133 @@
 {
-  "updated": null,
-  "items": {}
+  "updated": "2026-10-23T06:58:55.628Z",
+  "items": {
+    "mybluewolf.com/products/blue-service-animal-harness-made-to-order-copy?variant=53061676761451": {
+      "ok": true,
+      "price": 295,
+      "currency": "$",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "Shopify feed",
+      "via": "feed"
+    },
+    "kinkfox.com/product/latex-alpha-husky-suit": {
+      "ok": true,
+      "price": 136,
+      "currency": "$",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "WooCommerce feed",
+      "via": "feed"
+    },
+    "libidex.com/cock-crusher-inflatable-shorts.html": {
+      "ok": true,
+      "price": 107.96,
+      "currency": "£",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "Libidex price",
+      "via": "reader"
+    },
+    "kinkfox.com/product/alpha-pup-latex-suit": {
+      "ok": true,
+      "price": 85,
+      "currency": "$",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "WooCommerce feed",
+      "via": "feed"
+    },
+    "kinkfox.com/product/black-red-stripe-latex-catsuit": {
+      "ok": true,
+      "price": 110,
+      "currency": "$",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "WooCommerce feed",
+      "via": "feed"
+    },
+    "andrewfoxcrafts.com/product-page/handle-harness-premium": {
+      "ok": true,
+      "price": 450,
+      "currency": "€",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "product data on the page",
+      "via": "page"
+    },
+    "kinkfox.com/product/neon-paw-latex-catsuit": {
+      "ok": true,
+      "price": 116,
+      "currency": "$",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "WooCommerce feed",
+      "via": "feed"
+    },
+    "libidex.com/stirrup-tights.html": {
+      "ok": true,
+      "price": 119.95,
+      "currency": "£",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "Libidex price",
+      "via": "reader"
+    },
+    "libidex.com/avril-skater-skirt.html": {
+      "ok": true,
+      "price": 109.95,
+      "currency": "£",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "Libidex price",
+      "via": "reader"
+    },
+    "latexcatfish.com/woman/woman-accessories?product_id=4072": {
+      "ok": true,
+      "price": 29,
+      "currency": "$",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "Latex Catfish price",
+      "via": "page"
+    },
+    "kinkfox.com/product/black-voltage": {
+      "ok": true,
+      "price": 65,
+      "currency": "$",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "WooCommerce feed",
+      "via": "feed"
+    },
+    "kinkfox.com/product/midnight-sprint": {
+      "ok": true,
+      "price": 68,
+      "currency": "$",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "WooCommerce feed",
+      "via": "feed"
+    },
+    "kinkfox.com/product/black-latex-mask": {
+      "ok": true,
+      "price": 36,
+      "currency": "$",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "WooCommerce feed",
+      "via": "feed"
+    },
+    "etsy.com/listing/1263268610/customizable-bdsm-leather-wrist-ankle": {
+      "ok": false,
+      "price": null,
+      "currency": "$",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "error": "Shop blocked the check",
+      "detail": "page: HTTP 403 · reader text (price area): reader HTTP 403 · reader html (price area): reader HTTP 401 · reader text (whole page): reader HTTP 403"
+    },
+    "breedwell.eu/products/gagged-body-harness?variant=48893641490667": {
+      "ok": true,
+      "price": 70.8,
+      "currency": "€",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "Shopify feed",
+      "via": "feed"
+    },
+    "breedwell.eu/products/circuit-breaker-boxer-brief": {
+      "ok": true,
+      "price": 40.8,
+      "currency": "€",
+      "checked": "2026-10-23T06:58:55.628Z",
+      "how": "Shopify feed",
+      "via": "feed"
+    }
+  }
 }
