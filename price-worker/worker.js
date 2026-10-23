@@ -62,7 +62,8 @@ async function shopify(u) {
   const v = vs.find(x => String(x.id) === variant) || vs.find(x => x.available) || vs[0];
   if (!v || !v.price) return null;
   let cur = null; try { cur = JSON.parse(await get(u.origin + '/cart.js', true)).currency || null; } catch {}
-  return { price: v.price / 100, cur, how: 'Shopify feed' };
+  const was = v.compare_at_price && v.compare_at_price > v.price ? v.compare_at_price / 100 : null;
+  return { price: v.price / 100, was, cur, how: 'Shopify feed' };
 }
 async function woo(u) {
   const m = u.pathname.match(/\/product\/([^/?#]+)/); if (!m) return null;
@@ -71,16 +72,18 @@ async function woo(u) {
   const pr = p.prices, d = Math.pow(10, pr.currency_minor_unit ?? 2);
   const raw = Number(pr.price) || (pr.price_range ? Number(pr.price_range.min_amount) : 0);
   if (!raw) return null;
-  return { price: raw / d, cur: pr.currency_code || null, how: 'WooCommerce feed' };
+  const reg = Number(pr.regular_price) || 0;
+  return { price: raw / d, was: reg > raw ? reg / d : null, cur: pr.currency_code || null, how: 'WooCommerce feed' };
 }
 
 async function magento(u) {
   const m = u.pathname.match(/\/([^/]+)\.html$/); if (!m) return null;
-  const q = '{products(filter:{url_key:{eq:"' + m[1].replace(/"/g, '') + '"}}){items{name price_range{minimum_price{final_price{value currency}}}}}}';
+  const q = '{products(filter:{url_key:{eq:"' + m[1].replace(/"/g, '') + '"}}){items{name price_range{minimum_price{final_price{value currency} regular_price{value}}}}}}';
   const j = JSON.parse(await get(u.origin + '/graphql?query=' + encodeURIComponent(q), true));
   const it = j && j.data && j.data.products && (j.data.products.items || [])[0], fp = it && it.price_range && it.price_range.minimum_price && it.price_range.minimum_price.final_price;
   if (!fp || !num(fp.value)) return null;
-  return { price: num(fp.value), cur: fp.currency || null, how: 'Magento feed' };
+  const rp = it.price_range.minimum_price.regular_price, reg = rp && num(rp.value);
+  return { price: num(fp.value), was: reg && reg > num(fp.value) ? reg : null, cur: fp.currency || null, how: 'Magento feed' };
 }
 
 // ---- reading a product page ----
@@ -121,7 +124,21 @@ const visible = html => html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\
 const LIBI = /(?:Regular Price\s*£\s?[\d,]+\.\d{2}\s*Special Price\s*)?£\s?([\d,]+\.\d{2})\s*\([^)]*approx/i;
 const PRICE = /([$€£])\s?(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?|\d+(?:[.,]\d{2})?)\s*(USD|EUR|GBP)?|(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?|\d+(?:[.,]\d{2})?)\s?(€|EUR|USD|GBP|£)/g;
 
-function parse(html, u) {
+// The original (before-sale) price, when the page shows one. Only trusted when it's above the price and not wildly off.
+function wasOf(html, price) {
+  if (!price) return null; const c = [];
+  const mg = html.match(/data-price-amount=["']([\d.]+)["'][^>]*data-price-type=["']oldPrice/i) || html.match(/data-price-type=["']oldPrice["'][^>]*data-price-amount=["']([\d.]+)/i); if (mg) c.push(num(mg[1]));
+  const lb = visible(html).match(/Regular Price\s*£\s?([\d,]+\.\d{2})\s*Special Price/i); if (lb) c.push(num(lb[1]));
+  for (const m of html.matchAll(/"priceType"\s*:\s*"[^"]*(?:Strikethrough|ListPrice|SRP)[^"]*"[^{}]{0,200}?"price"\s*:\s*"?([\d.]+)/gi)) c.push(num(m[1]));
+  for (const m of html.matchAll(/"price"\s*:\s*"?([\d.]+)"?[^{}]{0,200}?"priceType"\s*:\s*"[^"]*(?:Strikethrough|ListPrice|SRP)/gi)) c.push(num(m[1]));
+  const wc = html.match(/class=["'][^"']*\bprice\b[^"']*["'][^>]*>([\s\S]{0,800}?)<\/(?:p|div)>/i);
+  if (wc) { const d = wc[1].match(/<(del|s|strike)\b[\s\S]*?<\/\1>/i); if (d) { const b = visible(d[0]).match(/[$€£]\s?([\d.,]+)|([\d.,]+)\s?[$€£]/); if (b) c.push(num(b[1] || b[2])); } }
+  const ej = html.match(/"(?:compareAtPrice|compare_at_price|regularPrice|regular_price|originalPrice|oldPrice|listPrice|wasPrice)"\s*:\s*"?(\d+(?:[.,]\d{1,2})?)/); if (ej) c.push(num(ej[1]));
+  const ok = c.filter(x => x && x > price * 1.01 && x <= price * 4);
+  return ok.length ? ok[0] : null;
+}
+function parse(html, u) { const r = parse0(html, u); if (r && r.was == null) r.was = wasOf(html, r.price); return r; }
+function parse0(html, u) {
   // Magento (Libidex): the final (sale) price. Amount is in the store currency.
   const mg = html.match(/data-price-amount=["']([\d.]+)["'][^>]*data-price-type=["']finalPrice/i) || html.match(/data-price-type=["']finalPrice["'][^>]*data-price-amount=["']([\d.]+)/i);
   if (mg && num(mg[1])) return { price: num(mg[1]), cur: null, how: 'Magento price' };
@@ -206,14 +223,14 @@ function fromPage(html, u) {
   for (const m of html.matchAll(/<meta[^>]+(?:property|name)=["'](?:og:image(?::secure_url)?|twitter:image)["'][^>]*content=["']([^"']+)/gi)) imgs.push(m[1]);
   const site = meta(html, 'og:site_name'), brand = p.brand ? decode(typeof p.brand === 'string' ? p.brand : p.brand.name) : null;
   const raw = decode(p.name || meta(html, 'og:title') || (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '');
-  return { name: trimSite(raw, site, u.hostname.replace(/^www\./, '')), brand: brand || site || null, price: pr ? pr.price : null, cur: pr ? pr.cur : null, images: cleanImgs(imgs, u.href) };
+  return { name: trimSite(raw, site, u.hostname.replace(/^www\./, '')), brand: brand || site || null, price: pr ? pr.price : null, was: pr ? pr.was : null, cur: pr ? pr.cur : null, images: cleanImgs(imgs, u.href) };
 }
 function fromMarkdown(md, u) {
   const title = decode((md.match(/^Title:\s*(.+)$/m) || [])[1] || (md.match(/^#\s+(.+)$/m) || [])[1] || '');
   let imgs = Array.from(md.matchAll(/!\[[^\]]*\]\((https?:[^)\s]+)/g)).map(m => m[1]);
   const prod = imgs.filter(s => /product|catalog|uploads|cdn\.shopify|wixstatic/i.test(s)); if (prod.length) imgs = prod;
   const pr = parse(md, u);
-  return { name: trimSite(title, '', u.hostname.replace(/^www\./, '')), brand: null, price: pr ? pr.price : null, cur: pr ? pr.cur : null, images: cleanImgs(imgs, u.href) };
+  return { name: trimSite(title, '', u.hostname.replace(/^www\./, '')), brand: null, price: pr ? pr.price : null, was: pr ? pr.was : null, cur: pr ? pr.cur : null, images: cleanImgs(imgs, u.href) };
 }
 async function readerMd(url) {
   const h = { 'x-return-format': 'markdown', accept: 'text/plain', 'x-timeout': '25', 'x-no-cache': 'true', 'x-engine': 'browser' };
@@ -228,14 +245,14 @@ async function lookup(url) {
     try { const j = JSON.parse(await get(u.origin + u.pathname.replace(/\/+$/, '') + '.js', true)), variant = u.searchParams.get('variant'), vs = j.variants || [];
       const v = vs.find(x => String(x.id) === variant) || vs.find(x => x.available) || vs[0];
       let cur = null; try { cur = JSON.parse(await get(u.origin + '/cart.js', true)).currency || null; } catch {}
-      return { name: decode(j.title), brand: decode(j.vendor) || null, price: v && v.price ? v.price / 100 : j.price ? j.price / 100 : null, cur, images: cleanImgs([v && v.featured_image && v.featured_image.src].concat(j.images || []), u.href), desc: j.description || '', how: 'Shopify feed' };
+      return { name: decode(j.title), brand: decode(j.vendor) || null, price: v && v.price ? v.price / 100 : j.price ? j.price / 100 : null, was: v && v.compare_at_price && v.compare_at_price > v.price ? v.compare_at_price / 100 : null, cur, images: cleanImgs([v && v.featured_image && v.featured_image.src].concat(j.images || []), u.href), desc: j.description || '', how: 'Shopify feed' };
     } catch (e) { tried.push('shopify: ' + e.message); }
   }
   const wm = u.pathname.match(/\/product\/([^/?#]+)/);
   if (wm) {
     try { const j = JSON.parse(await get(u.origin + '/wp-json/wc/store/v1/products?slug=' + encodeURIComponent(wm[1]), true)), p = Array.isArray(j) ? j[0] : null;
       if (p) { const pr = p.prices || {}, d = Math.pow(10, pr.currency_minor_unit ?? 2), raw = Number(pr.price) || (pr.price_range ? Number(pr.price_range.min_amount) : 0);
-        return { name: decode(p.name), brand: (p.brands && p.brands[0] && decode(p.brands[0].name)) || null, price: raw ? raw / d : null, cur: pr.currency_code || null, images: cleanImgs((p.images || []).map(x => x.src), u.href), desc: (p.short_description || '') + ' ' + (p.description || ''), how: 'WooCommerce feed' }; }
+        return { name: decode(p.name), brand: (p.brands && p.brands[0] && decode(p.brands[0].name)) || null, price: raw ? raw / d : null, was: Number(pr.regular_price) > raw ? Number(pr.regular_price) / d : null, cur: pr.currency_code || null, images: cleanImgs((p.images || []).map(x => x.src), u.href), desc: (p.short_description || '') + ' ' + (p.description || ''), how: 'WooCommerce feed' }; }
     } catch (e) { tried.push('woocommerce: ' + e.message); }
   }
   try { const html = await get(url), r = fromPage(html, u); if (r.name && (r.images.length || r.price)) { const md = html.match(/<meta[^>]+(?:name|property)=["'](?:og:)?description["'][^>]*content=["']([^"']*)/i); return Object.assign(r, { desc: r.desc || (md ? md[1] : ''), how: 'product page' }); } tried.push('page: not enough found'); }
@@ -246,10 +263,10 @@ async function lookup(url) {
 }
 async function lookupOne(url, ctx) {
   const key = normUrl(url); if (!key) return { ok: false, error: 'Not a valid link' };
-  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup2/' + encodeURIComponent(key));
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup3/' + encodeURIComponent(key));
   const hit = await cache.match(ck); if (hit) return hit.json();
   let out;
-  try { const r = await lookup(url), code = codeOf(r.cur); out = { ok: true, name: r.name || '', brand: r.brand || '', price: r.price ?? null, currency: /libidex\.com/.test(url) ? '£' : (SYM[code] || code || null), images: r.images || [], desc: decode(String(r.desc || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim().slice(0, 1500), how: r.how }; }
+  try { const r = await lookup(url), code = codeOf(r.cur); out = { ok: true, name: r.name || '', brand: r.brand || '', price: r.price ?? null, was: r.was ?? null, currency: /libidex\.com/.test(url) ? '£' : (SYM[code] || code || null), images: r.images || [], desc: decode(String(r.desc || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim().slice(0, 1500), how: r.how }; }
   catch (e) { out = { ok: false, error: String(e.message || e), detail: e.detail || '' }; }
   ctx.waitUntil(cache.put(ck, new Response(JSON.stringify(out), { headers: { 'cache-control': 'max-age=' + (out.ok ? 86400 : 600) } })));
   return out;
@@ -295,7 +312,7 @@ async function one(entry, ctx, force) {
   const cache = caches.default, ck = new Request('https://gearwatch-cache/v2/' + encodeURIComponent(key));
   if (!force) { const hit = await cache.match(ck); if (hit) return [key, await hit.json()]; }
   let out; const now = new Date().toISOString(), lk = new Request('https://gearwatch-cache/last-ok/' + encodeURIComponent(key));
-  try { const r = await check(entry); out = { ok: true, price: r.price, currency: curFor(entry, r), checked: now, okAt: now, how: r.how, via: r.via };
+  try { const r = await check(entry); out = { ok: true, price: r.price, was: r.was ?? null, currency: curFor(entry, r), checked: now, okAt: now, how: r.how, via: r.via };
     ctx.waitUntil(cache.put(lk, new Response(JSON.stringify(out), { headers: { 'cache-control': 'max-age=' + 7 * 86400 } }))); }
   catch (e) {
     // Shops like Libidex let the check through only some of the time. Keep the last price that was read (up to a week old).

@@ -2523,9 +2523,11 @@ class Component extends DCLogic {
       it.checked = e.checked; it.checkErr = null;
       it.checkHow = e.how || null; it.checkNote = e.stale && e.okAt ? 'shop blocked a new check, price read ' + agoTxt(e.okAt) : null;
       if (!e.ok || e.price == null) { it.checkErr = /blocked/i.test(e.error || '') ? 'The shop blocked the price check' : /no price/i.test(e.error || '') ? 'No price found on the page' : 'Couldn’t read the price'; return; }
+      const p0 = e.price, w0 = e.was;
       let ep = e.price; if (e.currency && it.currency && e.currency !== it.currency && FX[e.currency] && FX[it.currency]) { it.checkNote = 'Shop showed ' + e.currency + num(e.price) + ', converted'; ep = Math.round(e.price * FX[e.currency] / FX[it.currency] * 100) / 100; e = Object.assign({}, e, { price: ep, currency: it.currency }); }
       if (e.currency && it.currency && e.currency !== it.currency) { it.checkErr = 'Shop shows ' + e.currency + e.price; return; }
       const np = Math.round(e.price * (1 + (it.surcharge || 0)) * 100) / 100;
+      it.shopWas = w0 != null && p0 > 0 && w0 > p0 ? Math.round(w0 * np / p0 * 100) / 100 : null;
       if (it.price !== np) { if (!(it.history || []).length && it.price != null) it.history = [{ date: it.added || e.checked.slice(0, 10), price: it.price }]; it.history = (it.history || []).concat({ date: e.checked.slice(0, 10), price: np }); it.price = np; }
     }));
     if (changed) this.save(data, true);
@@ -3396,7 +3398,7 @@ class Component extends DCLogic {
       const look = async u => { if (!hd) return []; try { const r = await fetch(api, { method: 'POST', headers: hd, body: JSON.stringify({ lookup: u }) }), j = await r.json(); return j && j.ok ? (j.images || []).filter(ok).slice(0, 6) : []; } catch (e) { return []; } };
       for (const it of todo) {
         let ph = shop(it); if (!ph.length) ph = await look(it.url);
-        try { const r = await G.cat('catalog_submit', { p: { url: it.url, name: it.name, brand: it.brandUnknown ? '' : it.brand || '', category: it.category || '', materials: it.materials || [], latexMm: it.latexMm || '', photos: ph, price: it.status === 'wanted' && it.price != null ? it.price : null, currency: it.currency || '€' } }); if (r && r.id) got[it.id] = { id: r.id, st: r.status }; }
+        try { const r = await G.cat('catalog_submit', { p: { url: it.url, name: it.name, brand: it.brandUnknown ? '' : it.brand || '', category: it.category || '', materials: it.materials || [], latexMm: it.latexMm || '', photos: ph, price: it.status === 'wanted' && it.price != null ? it.price : null, was: it.status === 'wanted' && it.shopWas != null ? it.shopWas : null, currency: it.currency || '€' } }); if (r && r.id) got[it.id] = { id: r.id, st: r.status }; }
         catch (e) { const m = (e && e.message) || ''; if (/database update/.test(m)) { this.catOff = true; break; } if (/can’t be added|link is needed/i.test(m)) got[it.id] = { no: true }; else break; } }
       if (Object.keys(got).length) this.mutate(pp => pp.items.forEach(i => { const g = got[i.id]; if (!g) return; if (g.no) i.catNo = true; else { i.catalogId = g.id; i.catSt = g.st; i.catV2 = true; } }));
       if (this.catOff) return;
@@ -3431,7 +3433,7 @@ class Component extends DCLogic {
     catch (e) { this.toast((e && e.message) || 'Couldn’t send that'); } }
   catVals(p, f) {
     const st = this.state, G = window.GWSync, A = st.acct || {}, on = !!(G && G.cat && A.user), mine = this.catMine(p), plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
-    const mineOf = c => mine['id:' + c.id] || (c.url ? mine['u:' + this.catNorm(c.url)] : null) || null, priceOf = c => c.price == null ? '' : money(c.currency || '€', Number(c.price)), res = st.catRes || [];
+    const mineOf = c => mine['id:' + c.id] || (c.url ? mine['u:' + this.catNorm(c.url)] : null) || null, priceOf = c => c.price == null ? '' : money(c.currency || '€', Number(c.price)) + (c.was_price != null && Number(c.was_price) > Number(c.price) ? ' (was ' + money(c.currency || '€', Number(c.was_price)) + ')' : ''), res = st.catRes || [];
     const chip = (label, a, fn) => ({ label, bg: a ? ACC : '#2c2c2e', color: a ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.08); fn(); } });
     const cs = { show: on && st.sheet === 'form' && !!st.form && !st.form.id, q: st.catQ || '', hasQ: !!((st.catQ || '').trim() || st.catCat), searching: this.catSearching(), busy: !!st.catBusy,
       onQ: e => { this.setState({ catQ: e.target.value }); this.catSearchSoon(); },
@@ -3447,7 +3449,7 @@ class Component extends DCLogic {
     if (c) { const m = mineOf(c), ph = (c.photos || []).filter(Boolean), fr = st.catFr, frN = (fr || []).length, cur = c.currency || '€';
       const low = c.low_price != null && c.price != null && Number(c.low_price) < Number(c.price) ? 'lowest ' + money(cur, Number(c.low_price)) + (c.low_at ? ' in ' + MON[+String(c.low_at).slice(5, 7) - 1] : '') : '';
       pr = { fromSearch: st.catFrom === 'form', back: () => this.setState({ sheet: 'form' }), photos: ph.map(src => ({ src, w: ph.length > 1 ? '78%' : '100%' })), noPhoto: !ph.length && !!c.name, initial: (c.name || '?').charAt(0).toUpperCase(),
-        meta: [c.brand, c.category, matFull({ materials: c.materials || [], latexMm: c.latex_mm || '' })].filter(Boolean).join(' · '), name: c.name || 'Loading…', price: c.name ? priceOf(c) || 'No price yet' : '', low,
+        meta: [c.brand, c.category, matFull({ materials: c.materials || [], latexMm: c.latex_mm || '' })].filter(Boolean).join(' · '), name: c.name || 'Loading…', price: c.name ? (c.price == null ? 'No price yet' : money(cur, Number(c.price))) : '', low: c.was_price != null && c.price != null && Number(c.was_price) > Number(c.price) ? 'was ' + money(cur, Number(c.was_price)) + ' · −' + Math.round((1 - Number(c.price) / Number(c.was_price)) * 100) + '% on sale' : low,
         hasPill: ['pending', 'gone', 'hidden'].includes(c.status), pill: c.status === 'pending' ? 'Waiting for approval' : c.status === 'gone' ? 'No longer sold' : 'Hidden while it’s checked', pillDot: c.status === 'gone' ? '#8e8e93' : '#ff9f0a',
         url: c.url || '', domain: c.domain || '', linkSub: c.status === 'gone' ? 'The shop page is gone' : 'Open the shop page',
         hasFr: frN > 0, frAv: (fr || []).slice(0, 3).map((x, i) => ({ initial: (x.username || '?').charAt(0).toUpperCase(), av: x.avatar || '', hasAv: !!x.avatar, ml: i ? '-8px' : '0' })),
