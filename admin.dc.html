@@ -115,11 +115,14 @@ class Component extends DCLogic {
   state = { acct: null, q: null, info: null, err: '', filter: 'all', page: 'queue', shopIn: '', staffIn: '', toast: '', loading: false };
   componentDidMount() {
     const go = () => { const G = window.GWSync; if (!G) { setTimeout(go, 100); return; }
-      this.unsub = G.on(s => { const was = this.state.acct && this.state.acct.user && this.state.acct.user.id; this.setState({ acct: s }); if (s.user && s.firstDone && was !== s.user.id) this.load(); });
+      this.unsub = G.on(s => { this.setState({ acct: s }); if (s.user && (s.firstDone || s.status === 'synced') && this.loadedFor !== s.user.id) { this.loadedFor = s.user.id; this.load(); } if (!s.user) this.loadedFor = null; });
       G.init(); };
     go();
+    this.onVis = () => { if (document.visibilityState === 'visible' && this.loadedFor) this.load(); };
+    document.addEventListener('visibilitychange', this.onVis);
+    this.poll = setInterval(() => { if (this.loadedFor && document.visibilityState === 'visible') this.load(); }, 60000);
   }
-  componentWillUnmount() { if (this.unsub) this.unsub(); clearTimeout(this.tt); }
+  componentWillUnmount() { if (this.unsub) this.unsub(); clearTimeout(this.tt); clearInterval(this.poll); document.removeEventListener('visibilitychange', this.onVis); }
   say(t) { clearTimeout(this.tt); this.setState({ toast: t }); this.tt = setTimeout(() => this.setState({ toast: '' }), 2600); }
   async load() { const G = window.GWSync; if (!G || !G.cat) return; this.setState({ loading: true });
     try { const [q, info] = await Promise.all([G.cat('catalog_queue'), G.cat('catalog_admin_info')]); this.setState({ q, info, err: '', loading: false }); }
