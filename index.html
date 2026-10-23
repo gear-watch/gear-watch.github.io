@@ -17,7 +17,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="stylesheet" href="./colors_and_type.css">
 <script src="./fitlog-data.js"></script>
-<script src="./config.js?v=3"></script>
+<script src="./config.js?v=4"></script>
 <script src="./sync.js?v=40"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
@@ -1826,6 +1826,7 @@ input::placeholder{color:#6e6e73;}
         <input value="{{ cat.cs.q }}" onChange="{{ cat.cs.onQ }}" placeholder="Search the catalog" type="search" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false" style="flex:1;min-width:0;background:none;border:0;outline:none;padding:10px 0;font-size:17px;color:#f5f5f7;">
         <sc-if value="{{ cat.cs.hasQ }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cat.cs.clear }}" aria-label="Clear search" style="flex:none;width:32px;height:32px;border:0;background:none;display:grid;place-items:center;cursor:pointer;padding:0;"><span style="width:18px;height:18px;border-radius:9999px;background:#636366;color:#1c1c1e;display:grid;place-items:center;font-size:12px;font-weight:600;line-height:1;">×</span></button></sc-if>
       </div>
+      <sc-if value="{{ cat.dc.forAdd }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cat.dc.addNew }}" style="margin:10px 16px 0;width:calc(100% - 32px);border:0;background:#2c2c2e;border-radius:12px;padding:12px 14px;font-size:15px;color:#f5f5f7;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;" style-active="background:#3a3a3c;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#a1a1a6" stroke-width="1.6" stroke-linecap="round" style="flex:none;"><path d="M6.5 9.5l3-3M7 4.5l1.3-1.3a2.6 2.6 0 0 1 3.7 3.7L10.7 8.2M9 11.5l-1.3 1.3a2.6 2.6 0 0 1-3.7-3.7L5.3 7.8"></path></svg><span style="flex:1;">Paste a shop link or add it by hand</span><span style="color:#6e6e73;">›</span></button></sc-if>
       <sc-if value="{{ cat.cs.searching }}" hint-placeholder-val="{{ false }}">
         <div style="padding:14px 20px 6px;font-size:13px;color:#a1a1a6;display:flex;align-items:center;gap:6px;min-height:18px;">
           <sc-if value="{{ cat.cs.busy }}" hint-placeholder-val="{{ false }}"><span data-anim="spin" style="width:10px;height:10px;border-radius:9999px;border:2px solid #48484a;border-top-color:var(--gw-accent,#ffd60a);flex:none;"></span></sc-if>
@@ -3578,7 +3579,7 @@ class Component extends DCLogic {
     G.cat('catalog_discover').then(r => this.setState({ disc: r || { sale: [], trending: [], pairs: [] } })).catch(() => { if (force) this.setState({ disc: { sale: [], trending: [], pairs: [] } }); }); }
   openTile(t) { const G = window.GWSync; if (!G) return; if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0; const tok = (this.catTok = (this.catTok || 0) + 1); this.setState({ catTile: t, catQ: '', catCat: '', catRes: null, catBusy: true, catErr: '' });
     G.cat('catalog_browse', { t, lim: 80 }).then(r => { if (tok === this.catTok) this.setState({ catRes: r || [], catBusy: false }); }).catch(e => { if (tok === this.catTok) this.setState({ catRes: [], catBusy: false, catErr: (e && e.message) || 'Couldn’t load' }); }); }
-  openDisc() { if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0; clearTimeout(this.catST); this.catTok = (this.catTok || 0) + 1; this.setState({ sheet: 'cdisc', catQ: '', catCat: '', catTile: null, catRes: null, catBusy: false, catErr: '' }); this.loadDisc(true); }
+  openDisc(forSt) { const G = window.GWSync; if (forSt && !(G && G.cat && (this.state.acct || {}).user)) { this.openForm(null, forSt); return; } if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0; this.setState({ discFor: forSt || null }); clearTimeout(this.catST); this.catTok = (this.catTok || 0) + 1; this.setState({ sheet: 'cdisc', catQ: '', catCat: '', catTile: null, catRes: null, catBusy: false, catErr: '' }); this.loadDisc(true); }
   async catFresh(c) { if (!c || !c.url || c.status === 'removed' || this._freshTry && this._freshTry.has(c.id)) return; const age = Date.now() - new Date(c.updated_at || 0).getTime(); if (age < 24 * 36e5) return;
     this._freshTry = this._freshTry || new Set(); this._freshTry.add(c.id); const api = (window.GW_PRICE_API || '').trim(), hd = api ? await this.apiHead() : null, G = window.GWSync; if (!hd) return;
     let j = null; try { const r = await fetch(api, { method: 'POST', headers: hd, body: JSON.stringify({ lookup: c.url }) }); j = await r.json(); } catch (e) {} if (!j || !j.ok || j.price == null) return;
@@ -3649,8 +3650,8 @@ class Component extends DCLogic {
       res: res.map(c => { const m = mineOf(c), ph = (c.photos || [])[0] || '', gone = c.status === 'gone', pend = c.status === 'pending', owned = !!m && (m.status === 'owned' || m.status === 'ordered');
         return { name: c.name, sub: [c.brand || c.domain, priceOf(c)].filter(Boolean).join(' · '), meta: pend ? 'Waiting for approval' : gone ? 'No longer sold' : (c.own_n || c.want_n) ? c.own_n + ' own · ' + c.want_n + ' want' : c.domain, metaColor: pend ? '#ff9f0a' : '#a1a1a6',
           photo: ph, hasPhoto: !!ph, initial: (c.name || '?').charAt(0).toUpperCase(), op: gone ? 0.6 : 1, mine: !!m, notMine: !m,
-          badge: owned ? 'You own' : 'Wanted', badgeBg: owned ? ACC : 'transparent', badgeColor: owned ? '#000' : ACC, badgeRing: owned ? 'transparent' : ACC, quickLbl: st.form && st.form.status === 'owned' ? 'I own this' : 'Add to wishlist',
-          open: () => this.openCat(c, st.sheet === 'cdisc' ? 'disc' : 'form'), quick: e => { e.stopPropagation(); this.bump(e.currentTarget, 1.15); if (st.form && st.form.status === 'owned') this.catOwn(c); else this.catWish(c); } }; }) };
+          badge: owned ? 'You own' : 'Wanted', badgeBg: owned ? ACC : 'transparent', badgeColor: owned ? '#000' : ACC, badgeRing: owned ? 'transparent' : ACC, quickLbl: (st.sheet === 'cdisc' ? st.discFor === 'owned' : st.form && st.form.status === 'owned') ? 'I own this' : 'Add to wishlist',
+          open: () => this.openCat(c, st.sheet === 'cdisc' ? 'disc' : 'form'), quick: e => { e.stopPropagation(); this.bump(e.currentTarget, 1.15); if (st.sheet === 'cdisc' ? st.discFor === 'owned' : st.form && st.form.status === 'owned') this.catOwn(c); else this.catWish(c); } }; }) };
     const c = st.catP; let pr = {}, fx = {}, rp = {};
     if (c) { const m = mineOf(c), ph = (c.photos || []).filter(Boolean), fr = st.catFr, frN = (fr || []).length, cur = c.currency || '€';
       const low = c.low_price != null && c.price != null && Number(c.low_price) < Number(c.price) ? 'lowest ' + money(cur, Number(c.low_price)) + (c.low_at ? ' in ' + MON[+String(c.low_at).slice(5, 7) - 1] : '') : '';
@@ -3707,8 +3708,8 @@ class Component extends DCLogic {
         foot: V.own ? 'Next you add what you paid, the condition and your own photos.' : 'Not sure yet? Leave it empty and change it later.' }; }
     const D0 = st.disc, offOf = x => x.was_price != null && Number(x.was_price) > Number(x.price) ? Math.round((1 - Number(x.price) / Number(x.was_price)) * 100) : 0;
     const cardOf = x => { const o = offOf(x), ph = (x.photos || [])[0] || ''; return { name: x.name, photo: ph, hasPhoto: !!ph, hasOff: o > 0, off: '−' + o + '%', price: x.price != null ? money(x.currency || '€', Number(x.price)) : '', priceColor: o > 0 ? '#30d158' : '#f5f5f7', brand: (x.price != null ? ' · ' : '') + (x.brand || x.domain || ''), open: () => this.openCat(x, 'disc') }; };
-    const home = { show: !!(D0 && on), hasItems: !!(D0 && (D0.sale || []).length), title: D0 && (D0.sale || []).length ? 'On sale in the catalog' : 'The catalog', items: D0 ? (D0.sale || []).slice(0, 10).map(x => Object.assign(cardOf(x), { open: () => { this.openDisc(); setTimeout(() => this.openCat(x, 'disc'), 0); } })) : [], open: () => this.openDisc() };
-    const dc = { loading: !D0, empty: !!D0 && !(D0.sale || []).length && !(D0.trending || []).length && !(D0.pairs || []).length, browsing: !this.catSearching(), addNew: () => this.openForm(null),
+    const home = { show: !!(D0 && on), hasItems: !!(D0 && (D0.sale || []).length), title: D0 && (D0.sale || []).length ? 'On sale in the catalog' : 'The catalog', items: D0 ? (D0.sale || []).slice(0, 10).map(x => Object.assign(cardOf(x), { open: () => { this.openDisc(); setTimeout(() => this.openCat(x, 'disc'), 0); } })) : [], open: () => this.openDisc(null) };
+    const dc = { loading: !D0, empty: !!D0 && !(D0.sale || []).length && !(D0.trending || []).length && !(D0.pairs || []).length, browsing: !this.catSearching(), addNew: () => this.openForm(null, st.discFor || 'wanted'), forAdd: !!st.discFor,
       hasTiles: (st.tiles || []).some(x => x.n >= 2), tiles: Object.keys(TILE_NAMES).map(k => (st.tiles || []).find(x => x.tile === k)).filter(x => x && x.n >= 2).map(x => ({ name: TILE_NAMES[x.tile], count: plural(x.n, 'item'), photo: x.photo || '', hasPhoto: !!x.photo, open: () => this.openTile(x.tile) })),
       hasSale: !!D0 && (D0.sale || []).length > 0, sale: D0 ? (D0.sale || []).map(cardOf) : [], hasPairs: !!D0 && (D0.pairs || []).length > 0, pairs: D0 ? (D0.pairs || []).map(cardOf) : [],
       hasTrend: !!D0 && (D0.trending || []).length > 0, trend: D0 ? (D0.trending || []).map((x, i) => { const ph = (x.photos || [])[0] || ''; return { rank: String(i + 1), name: x.name, photo: ph, hasPhoto: !!ph, line: [x.brand || x.domain, '+' + x.adds + ' wishlists this week'].filter(Boolean).join(' · '), open: () => this.openCat(x, 'disc') }; }) : [] };
@@ -4086,7 +4087,7 @@ class Component extends DCLogic {
     }
 
     const f = st.form || {};
-    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: [st.budgetKind === 'pot' ? 'Current budget' : 'Monthly budget', 'Save'], person: ['', null], invite: ['Invite a friend', null], paid: [st.paid && st.paid.to === 'owned' ? 'Mark as owned' : 'Mark as ordered', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null], cpick: ['Category', null], cprod: ['', null], cact: ['Your catalog activity', null], cdisc: ['Catalog', null], cvar: [st.cvar && st.cvar.own ? 'I own this' : 'Add to wishlist', st.cvar && st.cvar.own ? 'Next' : 'Add'], cshare: ['Share photos', st.cshare && st.cshare.busy ? 'Sending…' : 'Send'], cfix: ['Suggest a fix', 'Send'], crep: ['Report', 'Send'] }[st.sheet] || ['', null];
+    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: [st.budgetKind === 'pot' ? 'Current budget' : 'Monthly budget', 'Save'], person: ['', null], invite: ['Invite a friend', null], paid: [st.paid && st.paid.to === 'owned' ? 'Mark as owned' : 'Mark as ordered', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null], cpick: ['Category', null], cprod: ['', null], cact: ['Your catalog activity', null], cdisc: [st.discFor === 'owned' ? 'Add something you own' : st.discFor === 'wanted' ? 'Add gear' : 'Catalog', null], cvar: [st.cvar && st.cvar.own ? 'I own this' : 'Add to wishlist', st.cvar && st.cvar.own ? 'Next' : 'Add'], cshare: ['Share photos', st.cshare && st.cshare.busy ? 'Sending…' : 'Send'], cfix: ['Suggest a fix', 'Send'], crep: ['Report', 'Send'] }[st.sheet] || ['', null];
     if (st.sheet === 'form' && this.catSearching()) sheetMeta[1] = null;
     const canSave = st.sheet === 'cshare' ? !!st.cshare && !st.cshare.busy && (st.cshare.list || []).some(x => x.on) : st.sheet === 'cfix' ? this.catFixOk() : st.sheet === 'crep' ? !!st.crepR : st.sheet === 'form' ? !!(f.name || '').trim() : st.sheet === 'budget' ? toNum(st.budgetIn) > 0 : true;
     const pv = st.pointId ? this.fval(vals, st.pointId) : null;
@@ -4190,7 +4191,7 @@ class Component extends DCLogic {
       addSharedOutfit: () => { if (!sS) return; let n = 0; this.mutate(pp => { const key = i => i.u ? normUrl(i.u) : 'n:' + (i.n || '').toLowerCase(), have = new Set(pp.items.map(i => key({ u: i.url, n: i.name })));
         (sS.it || []).forEach(x => { const k = key(x); if (have.has(k)) return; have.add(k); n++; pp.items.push({ id: uid(), name: x.n, brand: x.b || '', category: x.cat || '', url: x.u || '', photos: x.ph ? [x.ph] : [], currency: x.c || '€', price: x.p == null ? null : x.p, history: x.p == null ? [] : [{ date: todayISO(), price: x.p }], rating: 3, status: 'wanted', size: x.s || '', colour: '', m2m: x.s === 'Made to measure', added: todayISO() }); }); });
         try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} this.setState({ shared: null }); this.toast(n ? 'Added ' + plural(n, 'piece') + ' to your wishlist' : 'You already have all of these'); },
-      openAddOwned: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.openForm(null, 'owned'); },
+      openAddOwned: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); this.openDisc('owned'); },
       profileName: p.name,
       showA: mode === 'A' || (mode === 'B' && !!p.budgetOff), showB: mode === 'B' && !p.budgetOff, nextMT: p.budgetOff ? '0' : '20px', nextPT: p.budgetOff ? '0' : '16px', nextBT: p.budgetOff ? '0' : '1px solid #2c2c2e', showNextAfford: !p.budgetOff, showC: mode === 'C', showList: mode !== 'C', showGrid: mode === 'C',
       hasNext: !!nextIt, next, nextAfford: af.txt, affordDot: af.dot, progressPct: Math.round(af.pct * 100) + '%',
@@ -4200,7 +4201,7 @@ class Component extends DCLogic {
       hasRest: rest.length > 0, groups, wishEmpty: !wanted.length, wMatShow: wMats.length > 1, wMatChips: matChipsOf(wMats, wF, 'matW'), cMatShow: cMats.length > 1, cMatChips: matChipsOf(cMats, cF, 'matC'),
       groupTabs: [['rank', 'Rank'], ['brand', 'Brand'], ['cat', 'Category']].map(([k, l]) => ({ label: l, bg: st.group === k ? '#636366' : 'transparent', onTap: () => this.setState({ group: k }) })),
       hasOnWay: onWay.length > 0, onWay, onWayCount: onWay.length, hasOwned: owned.length > 0, noOwned: !owned.length, owned,
-      openAdd: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.15); this.openForm(null); },
+      openAdd: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.15); this.openDisc('wanted'); },
       openProfiles: () => this.setState({ sheet: 'profiles', newProfile: '', soArm: false }),
       openBudget: () => { const b = p.budget || {}, day = b.payday || 1, k = isoD(payPeriod(day).start), sp = (b.extra || {})[k]; this.setState({ sheet: 'budget', budgetKind: b.kind || 'monthly', budgetIn: b.amount ? String(b.amount) : '', paydayIn: String(day), spentIn: sp ? String(sp) : '' }); },
 
