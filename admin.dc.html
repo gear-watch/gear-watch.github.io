@@ -43,7 +43,7 @@
           <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;display:flex;justify-content:space-between;align-items:baseline;gap:12px;"><span style="font-size:20px;font-weight:600;">{{ queueTitle }}</span><span style="font-size:13px;color:#a1a1a6;">Oldest first</span></div>
           <sc-if value="{{ queueEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px 20px;color:#a1a1a6;font-size:15px;">Nothing waiting.</div></sc-if>
           <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
-            <div style="display:grid;grid-template-columns:56px minmax(0,1fr);gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid #1c1c1e;opacity:{{ r.op }};">
+            <div style="display:flex;flex-direction:column;"><div style="display:grid;grid-template-columns:56px minmax(0,1fr);gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid #1c1c1e;opacity:{{ r.op }};">
               <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" style="position:relative;width:56px;height:56px;border-radius:8px;background:#1c1c1e;overflow:hidden;display:grid;place-items:center;color:#6e6e73;font-weight:600;"><span>{{ r.initial }}</span><sc-if value="{{ r.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ r.photo }}" alt="" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;filter:{{ r.blur }};transition:filter .2s;" style-hover="filter:none;"></sc-if></a>
               <div style="display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;min-width:0;">
                 <div style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:3px;">
@@ -55,6 +55,40 @@
                   <sc-for list="{{ r.acts }}" as="a" hint-placeholder-count="2"><button onClick="{{ a.onTap }}" style="border:0;border-radius:8px;padding:7px 12px;font-size:14px;cursor:pointer;color:{{ a.color }};background:{{ a.bg }};" style-active="transform:scale(0.95);">{{ a.label }}</button></sc-for>
                 </div>
               </div>
+            </div>
+            <sc-if value="{{ r.open }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:16px 20px 20px;border-bottom:1px solid #1c1c1e;background:#0d0d0e;display:flex;flex-direction:column;gap:16px;">
+                <sc-if value="{{ r.ed.loading }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;color:#a1a1a6;">Loading details…</span></sc-if>
+                <sc-if value="{{ r.ed.ready }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;align-items:baseline;"><a href="{{ r.ed.url }}" target="_blank" rel="noopener noreferrer" style="overflow-wrap:anywhere;">{{ r.ed.url }} ↗</a><span style="color:#a1a1a6;">{{ r.ed.info }}</span></div>
+                  <div style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;font-weight:600;color:#a1a1a6;">Name</span><input value="{{ r.ed.name }}" onChange="{{ r.ed.onName }}" style="background:#1c1c1e;border:0;border-radius:8px;padding:9px 12px;font-size:15px;color:#f5f5f7;outline:none;box-sizing:border-box;width:100%;"><sc-if value="{{ r.ed.hasTidy }}" hint-placeholder-val="{{ false }}"><button onClick="{{ r.ed.tidy }}" style="align-self:flex-start;border:0;background:none;color:#ffd60a;font-size:13px;cursor:pointer;padding:2px 0;text-align:left;">Use “{{ r.ed.tidyTo }}”</button></sc-if></div>
+                  <div style="display:flex;flex-wrap:wrap;gap:12px;">
+                    <div style="flex:1 1 200px;display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;font-weight:600;color:#a1a1a6;">Brand</span><input value="{{ r.ed.brand }}" onChange="{{ r.ed.onBrand }}" style="background:#1c1c1e;border:0;border-radius:8px;padding:9px 12px;font-size:15px;color:#f5f5f7;outline:none;box-sizing:border-box;width:100%;"></div>
+                    <div style="flex:0 1 240px;display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;font-weight:600;color:#a1a1a6;">Price</span><div style="display:flex;gap:6px;align-items:center;"><input value="{{ r.ed.price }}" onChange="{{ r.ed.onPrice }}" inputmode="decimal" placeholder="No price" style="background:#1c1c1e;border:0;border-radius:8px;padding:9px 12px;font-size:15px;color:#f5f5f7;outline:none;box-sizing:border-box;width:110px;"><sc-for list="{{ r.ed.curs }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div></div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;font-weight:600;color:#a1a1a6;">Category</span><div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ r.ed.cats }}" as="c" hint-placeholder-count="10"><button onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div></div>
+                  <div style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;font-weight:600;color:#a1a1a6;">Material</span><div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ r.ed.mats }}" as="c" hint-placeholder-count="8"><button onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div></div>
+                  <sc-if value="{{ r.ed.showMm }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;font-weight:600;color:#a1a1a6;">Latex thickness</span><div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ r.ed.mms }}" as="c" hint-placeholder-count="7"><button onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div></div></sc-if>
+                  <div style="display:flex;flex-direction:column;gap:8px;">
+                    <div style="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;"><span style="font-size:13px;font-weight:600;color:#a1a1a6;">Photos</span><span style="font-size:12px;color:#6e6e73;">{{ r.ed.phHint }}</span><button onClick="{{ r.ed.fetch }}" style="border:0;background:none;color:#ffd60a;font-size:13px;cursor:pointer;padding:0;">{{ r.ed.fetchLbl }}</button></div>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                      <sc-for list="{{ r.ed.photos }}" as="p" hint-placeholder-count="3">
+                        <div style="position:relative;width:96px;display:flex;flex-direction:column;gap:4px;">
+                          <button onClick="{{ p.toggle }}" style="position:relative;width:96px;height:96px;border:0;padding:0;border-radius:8px;overflow:hidden;background:#1c1c1e;cursor:pointer;box-shadow:{{ p.ring }};"><img src="{{ p.src }}" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;opacity:{{ p.op }};"><span style="position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:9999px;background:{{ p.dot }};color:#000;display:grid;place-items:center;font-size:12px;font-weight:600;">{{ p.mark }}</span></button>
+                          <sc-if value="{{ p.canCover }}" hint-placeholder-val="{{ false }}"><button onClick="{{ p.cover }}" style="border:0;background:none;color:#a1a1a6;font-size:12px;cursor:pointer;padding:0;">Make cover</button></sc-if>
+                          <sc-if value="{{ p.isCover }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#ffd60a;text-align:center;">Cover</span></sc-if>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;">
+                    <button onClick="{{ r.ed.cancel }}" style="border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;color:#f5f5f7;background:#2c2c2e;">Cancel</button>
+                    <button onClick="{{ r.ed.save }}" style="border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;color:#f5f5f7;background:#2c2c2e;opacity:{{ r.ed.saveOp }};">{{ r.ed.saveLbl }}</button>
+                    <sc-if value="{{ r.ed.canApprove }}" hint-placeholder-val="{{ false }}"><button onClick="{{ r.ed.saveApprove }}" style="border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;color:#000;background:#ffd60a;opacity:{{ r.ed.saveOp }};">Save &amp; approve</button></sc-if>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
             </div>
           </sc-for>
         </sc-if>
@@ -149,6 +183,49 @@ class Component extends DCLogic {
       }
     } finally { this.filling = false; }
   }
+  openEd(key, cid, pendingItem) {
+    if (this.state.openKey === key) { this.setState({ openKey: null, ed: null }); return; }
+    const G = window.GWSync; this.setState({ openKey: key, ed: { cid, loading: true, pendingItem } });
+    G.cat('catalog_get', { cid }).then(c => { if (this.state.openKey !== key) return; if (!c) { this.say('Not found'); this.setState({ openKey: null, ed: null }); return; }
+      this.setState({ ed: { cid, pendingItem, ready: true, c, name: c.name || '', brand: c.brand || '', category: c.category || '', materials: (c.materials || []).slice(), latexMm: c.latex_mm || '', price: c.price == null ? '' : String(c.price), currency: c.currency || '€', photos: (c.photos || []).map(src => ({ src, on: true })) } }); })
+      .catch(e => { this.say((e && e.message) || 'Couldn’t load'); this.setState({ openKey: null, ed: null }); }); }
+  setEd(o) { this.setState(s => ({ ed: Object.assign({}, s.ed, o) })); }
+  async edFetch() { const ed = this.state.ed, G = window.GWSync, api = String(window.GW_PRICE_API || '').trim(); if (!ed || !ed.c || ed.fetching) return; if (!api) { this.say('The price helper isn’t set up'); return; }
+    this.setEd({ fetching: true }); const tok = G.token ? await G.token() : null; let j = null;
+    try { const r = await fetch(api, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ lookup: ed.c.url }) }); j = await r.json(); } catch (e) {}
+    const imgs = j && j.ok ? (j.images || []).filter(x => /^https?:/.test(x) && !/\/storage\/v1\//.test(x)) : [];
+    this.setState(s => { if (!s.ed) return null; const have = new Set(s.ed.photos.map(p => p.src)), add = imgs.filter(x => !have.has(x)).map(src => ({ src, on: !s.ed.photos.some(p => p.on) }));
+      return { ed: Object.assign({}, s.ed, { fetching: false, photos: s.ed.photos.concat(add), fetched: true, price: s.ed.price || (j && j.price != null ? String(j.price) : '') }) }; });
+    if (!imgs.length) this.say(j && j.ok ? 'No photos found on the shop page' : 'Couldn’t read the shop page'); }
+  async edSave(approve) { const ed = this.state.ed, G = window.GWSync; if (!ed || !ed.ready || ed.saving) return;
+    if (ed.price.trim() && isNaN(Number(ed.price.replace(',', '.')))) { this.say('The price needs to be a number'); return; }
+    this.setEd({ saving: true });
+    try { await G.cat('catalog_edit', { cid: ed.cid, p: { name: ed.name.trim(), brand: ed.brand.trim(), category: ed.category, materials: ed.materials, latexMm: ed.materials.includes('Latex') ? ed.latexMm : '', price: ed.price.trim().replace(',', '.'), currency: ed.currency, photos: ed.photos.filter(p => p.on).map(p => p.src) } });
+      if (approve) await G.cat('catalog_decide', { what: 'item', target: ed.cid, act: 'approve' });
+      this.say(approve ? 'Saved and approved' : 'Saved'); this.setState({ openKey: null, ed: null }); await this.load(); }
+    catch (e) { this.setEd({ saving: false }); this.say((e && e.message) || 'Couldn’t save'); } }
+  edVals() { const ed = this.state.ed; if (!ed) return {}; if (!ed.ready) return { loading: true };
+    const chip = (label, on, fn) => ({ label, bg: on ? '#ffd60a' : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: fn });
+    const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Socks', 'Cuffs', 'Gags', 'Leashes', 'Collars', 'Toys', 'Accessory'];
+    const MATS = ['Latex', 'Heavy rubber', 'Silicone', 'Neoprene', 'PVC / vinyl', 'PU / faux leather', 'Leather / suede', 'Lycra / spandex', 'Nylon / polyester', 'Metal / hardware', 'Cotton / fabric'];
+    const cats = CATS.concat(ed.category && !CATS.includes(ed.category) ? [ed.category] : []), c = ed.c, onN = ed.photos.filter(p => p.on).length, firstOn = ed.photos.findIndex(p => p.on);
+    const esc = s => s.replace(/[.*+?^$|()[\]\\{}]/g, '\\$&');
+    let tidy = ed.name.replace(/\s*[|–—-]\s*(buy|shop|online|official|store|free shipping|sale)\b.*$/i, '');
+    [ed.brand, c.domain && c.domain.split('.')[0]].filter(Boolean).forEach(b => { tidy = tidy.replace(new RegExp('\\s*[|–—:-]\\s*' + esc(b) + '.*$', 'i'), '').replace(new RegExp('^' + esc(b) + '\\s*[|–—:-]\\s*', 'i'), ''); });
+    tidy = tidy.replace(/\s*\((new|sale|in stock)\)\s*$/i, '').replace(/\s{2,}/g, ' ').trim();
+    const move = (i, fn) => this.setState(s => { const ph = s.ed.photos.slice(); fn(ph, i); return { ed: Object.assign({}, s.ed, { photos: ph }) }; });
+    return { loading: false, ready: true, url: c.url, info: [c.status === 'live' ? 'Live' : c.status === 'pending' ? 'Waiting for approval' : c.status, (c.own_n || 0) + ' own · ' + (c.want_n || 0) + ' want', c.updated_at ? 'updated ' + String(c.updated_at).slice(0, 10) : ''].filter(Boolean).join(' · '),
+      name: ed.name, onName: e => this.setEd({ name: e.target.value }), hasTidy: !!tidy && tidy !== ed.name.trim(), tidyTo: tidy, tidy: () => this.setEd({ name: tidy }),
+      brand: ed.brand, onBrand: e => this.setEd({ brand: e.target.value }), price: ed.price, onPrice: e => this.setEd({ price: e.target.value }),
+      curs: ['€', '$', '£'].map(x => chip(x, ed.currency === x, () => this.setEd({ currency: x }))),
+      cats: cats.map(x => chip(x, ed.category === x, () => this.setEd({ category: ed.category === x ? '' : x }))),
+      mats: MATS.map(x => chip(x, ed.materials.includes(x), () => this.setEd({ materials: ed.materials.includes(x) ? ed.materials.filter(y => y !== x) : ed.materials.concat(x) }))),
+      showMm: ed.materials.includes('Latex'), mms: ['Not given', '0.25', '0.3', '0.35', '0.4', '0.5', '0.6', '0.8', '1.0+'].map(x => { const v = x === 'Not given' ? '' : x; return chip(v ? x + ' mm' : x, ed.latexMm === v, () => this.setEd({ latexMm: v })); }),
+      phHint: onN ? onN + ' selected. Tap a photo to leave it out.' : 'None selected', fetchLbl: ed.fetching ? 'Reading the shop page…' : ed.fetched ? 'Look again on the shop page' : 'Get more from the shop page', fetch: () => this.edFetch(),
+      photos: ed.photos.map((p, i) => ({ src: p.src, op: p.on ? 1 : 0.35, ring: i === firstOn ? '0 0 0 2px #ffd60a' : 'none', dot: p.on ? '#ffd60a' : 'rgba(255,255,255,0.25)', mark: p.on ? '✓' : '',
+        toggle: () => move(i, (ph, k) => { ph[k] = Object.assign({}, ph[k], { on: !ph[k].on }); }), isCover: i === firstOn, canCover: p.on && i !== firstOn,
+        cover: () => move(i, (ph, k) => { const [x] = ph.splice(k, 1); ph.unshift(x); }) })),
+      cancel: () => this.setState({ openKey: null, ed: null }), saveLbl: ed.saving ? 'Saving…' : 'Save', saveOp: ed.saving ? 0.5 : 1, save: () => this.edSave(false), canApprove: !!ed.pendingItem, saveApprove: () => this.edSave(true) }; }
   async run(name, args, msg) { const G = window.GWSync; try { await G.cat(name, args); if (msg) this.say(msg); await this.load(); } catch (e) { this.say((e && e.message) || 'That didn’t work'); } }
   renderVals() {
     const st = this.state, A = st.acct || {}, q = st.q, info = st.info || {}, role = q && q.role, isAdmin = role === 'admin';
@@ -165,14 +242,16 @@ class Component extends DCLogic {
         : [btn('Reject', dec('item', c.id, 'reject', 'Rejected')), btn('Approve', dec('item', c.id, 'approve', 'Approved'), unk && isAdmin ? '' : 'yes')];
       if (!hidden && unk && isAdmin && c.shop !== 'blocked') acts.push(btn('Trust shop', () => this.run('catalog_shop', { d: c.domain, st: 'trusted' }, c.domain + ' is trusted'), 'yes'));
       if (isAdmin && (unk || hidden) && c.shop !== 'blocked') acts.push(btn('Block shop', () => this.run('catalog_shop', { d: c.domain, st: 'blocked' }, c.domain + ' is blocked'), 'no'));
-      rows.push(Object.assign(t, { at: c.created_at, grp: hidden ? 'reports' : unk ? 'shops' : c.by_new ? 'new' : 'items', title: c.name, url: c.url, photo: (c.photos || [])[0] || '', blur: 'none',
+      acts.unshift(btn(st.openKey === 'i' + c.id ? 'Close' : 'Details', () => this.openEd('i' + c.id, c.id, c.status === 'pending')));
+      rows.push(Object.assign(t, { key: 'i' + c.id, at: c.created_at, grp: hidden ? 'reports' : unk ? 'shops' : c.by_new ? 'new' : 'items', title: c.name, url: c.url, photo: (c.photos || [])[0] || '', blur: 'none',
         sub: [c.domain, c.by ? 'added by @' + c.by : '', c.same_link ? c.same_link + (c.same_link === 1 ? ' other has it' : ' others have it') : ''].filter(Boolean).join(' · '), note: '', acts })); });
     flags.forEach(f => { const it = f.item || {}, rep = f.kind === 'report', typed = TYPED.includes(f.field);
       const t = rep ? Object.assign({ tag: 'Report · ' + f.agree }, RED) : f.by_new ? Object.assign({ tag: 'New account' }, BLUE) : Object.assign({ tag: typed ? 'Typed-in change' : 'Fix · ' + f.agree + ' agree' }, GREY);
       const title = rep ? it.name : f.field === 'category' ? 'Category: ' + (it.category || '—') + ' → ' + f.value : f.field === 'material' ? 'Material → ' + f.value : f.field === 'name' ? 'Rename: “' + it.name + '” → “' + f.value + '”' : f.field === 'brand' ? 'Brand → ' + f.value : f.field === 'link' ? 'New link: ' + f.value : f.field === 'gone' ? 'Mark “' + it.name + '” as no longer sold' : f.field === 'duplicate' ? 'Duplicate of ' + f.value : f.field;
       const acts = rep ? [btn('Dismiss', dec('flag', f.id, 'reject', 'Dismissed')), btn('Remove item', dec('flag', f.id, 'approve', 'Removed'), 'no')]
         : [btn('Reject', dec('flag', f.id, 'reject', 'Rejected')), btn('Approve', dec('flag', f.id, 'approve', 'Applied'), 'yes')];
-      rows.push(Object.assign(t, { at: f.created_at, grp: rep ? 'reports' : f.by_new ? 'new' : typed ? 'typed' : 'fixes', title, url: it.url || '', photo: it.photo || '', blur: rep && /photo/i.test(f.reason || '') ? 'blur(8px)' : 'none',
+      acts.unshift(btn(st.openKey === 'f' + f.id ? 'Close' : 'Details', () => this.openEd('f' + f.id, f.catalog_id, false)));
+      rows.push(Object.assign(t, { key: 'f' + f.id, at: f.created_at, grp: rep ? 'reports' : f.by_new ? 'new' : typed ? 'typed' : 'fixes', title, url: it.url || '', photo: it.photo || '', blur: rep && /photo/i.test(f.reason || '') ? 'blur(8px)' : 'none',
         sub: [rep ? '“' + f.reason + '”' : it.name, f.by ? '@' + f.by : '', it.status && it.status !== 'live' ? 'entry ' + it.status : ''].filter(Boolean).join(' · '), note: f.note || '', acts })); });
     rows.sort((a, b) => String(a.at).localeCompare(String(b.at)));
     const F = [['all', 'All'], ['reports', 'Reports'], ['new', 'New accounts'], ['shops', 'Unknown shops'], ['typed', 'Typed-in changes'], ['fixes', 'Fixes'], ['items', 'Other pending']];
@@ -183,7 +262,7 @@ class Component extends DCLogic {
     const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const fmt = s => { const d = new Date(s); return isNaN(d) ? '' : d.getDate() + ' ' + MO[d.getMonth()] + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
     const shopOf = s => String(s || '').trim().replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('/')[0].toLowerCase();
-    const at = u => String(u || '').trim().replace(/^@?/, '@');
+    const at = u => String(u || '').trim().replace(/^@?/, '@'), edv = this.edVals();
     return {
       showMsg, msgTitle, msgSub, ready: !!q, hasRole: !!role, who: A.username ? '@' + A.username : '', roleLbl: isAdmin ? 'Admin' : 'Moderator', isAdmin,
       reload: () => this.load(),
@@ -191,7 +270,7 @@ class Component extends DCLogic {
       pages: [['shops', 'Known shops'], ['staff', 'Staff'], ['log', 'Change log']].map(([k, l]) => ({ label: l, bg: page === k ? '#1c1c1e' : 'transparent', onTap: () => this.setState({ page: k }) })),
       counts: [cnt.live != null ? cnt.live + ' live' : '', cnt.pending ? cnt.pending + ' pending' : '', cnt.hidden ? cnt.hidden + ' hidden' : '', cnt.gone ? cnt.gone + ' no longer sold' : ''].filter(Boolean).join(' · '),
       isQueue: page === 'queue', queueTitle: (F.find(x => x[0] === st.filter) || F[0])[1] + ' · ' + shown.length, queueEmpty: !shown.length,
-      rows: shown.map(r => Object.assign({}, r, { initial: (r.title || '?').charAt(0).toUpperCase(), hasPhoto: !!r.photo, hasNote: !!r.note, op: st.loading ? 0.6 : 1 })),
+      rows: shown.map(r => { const open = st.openKey === r.key; return Object.assign({}, r, { initial: (r.title || '?').charAt(0).toUpperCase(), hasPhoto: !!r.photo, hasNote: !!r.note, op: st.loading && !open ? 0.6 : 1, open, ed: open ? edv : {} }); }),
       isShops: page === 'shops', shopIn: st.shopIn, onShopIn: e => this.setState({ shopIn: e.target.value }),
       trustIn: () => { const d = shopOf(st.shopIn); if (d) { this.setState({ shopIn: '' }); this.run('catalog_shop', { d, st: 'trusted' }, d + ' is trusted'); } },
       blockIn: () => { const d = shopOf(st.shopIn); if (d) { this.setState({ shopIn: '' }); this.run('catalog_shop', { d, st: 'blocked' }, d + ' is blocked'); } },
