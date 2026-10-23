@@ -2656,8 +2656,8 @@ class Component extends DCLogic {
       out.push(Object.assign({}, base, { k: 'pl' + id, cat: 'stories', t: te, icPoll: true, who: 'Poll closed.', text: (P.q ? '“' + P.q + '” · ' : '') + res, time: relT(new Date(te).toISOString()), onTap: () => {} })); });
     const D = st.data, P0 = D.profiles.find(x => x.id === D.activeId) || D.profiles[0];
     (P0.items || []).forEach(it => { const ph = (it.photos || [])[0] || '', go = tab => () => this.closeNt(() => this.setState({ tab, detail: null }, () => this.openDetail(it.id)));
-      if (it.status === 'wanted' && dropOf(it) >= 0.03) { const h = it.history || [], d = (h[h.length - 1] || {}).date, tt = d ? new Date(d + 'T12:00').getTime() : 0;
-        out.push(Object.assign({}, base, { k: 'pd' + it.id + (d || ''), cat: 'prices', t: tt, avBg: '#1c2a20', icDrop: true, who: it.name, text: 'is now ' + money(it.currency || '€', it.price) + ' (−' + Math.round(dropOf(it) * 100) + '%)', time: d ? relT(d + 'T12:00') : '', hasThumb: !!ph, thumb: ph, onTap: go('wish') })); }
+      if (it.status === 'wanted' && dropOf(it) >= 0.03) { const h = it.history || [], d = (h[h.length - 1] || {}).date, tt = d ? Math.min(new Date(d + 'T12:00').getTime(), now - 1) : 0;
+        out.push(Object.assign({}, base, { k: 'pd' + it.id + (d || ''), cat: 'prices', t: tt, avBg: '#1c2a20', icDrop: true, who: it.name, text: 'is now ' + money(it.currency || '€', it.price) + ' (−' + Math.round(dropOf(it) * 100) + '%)', time: d ? relT(new Date(tt).toISOString()) : '', hasThumb: !!ph, thumb: ph, onTap: go('wish') })); }
       if (it.status === 'ordered' && it.orderedOn) { const t0 = new Date(it.orderedOn + 'T12:00').getTime(), days = Math.floor((now - t0) / 86400000); if (days >= 10) { const tt = t0 + 10 * 86400000;
         out.push(Object.assign({}, base, { k: 'bx' + it.id, cat: 'prices', t: tt, icBox: true, who: it.name, text: 'has been on the way for ' + days + ' days. Arrived yet?', time: relT(new Date(tt).toISOString()), hasThumb: !!ph, thumb: ph, onTap: go('coll') })); } } });
     let noted = ''; try { noted = localStorage.getItem('gw-nt-title') || ''; } catch (e) {}
@@ -2669,7 +2669,7 @@ class Component extends DCLogic {
         ptrMove: e => { if (!this.ptr || !e.touches || !e.touches[0]) return; const d = e.touches[0].clientY - this.ptr.y; this.ptr.d = d; const on = d > 70; if (on !== !!this.state.ptrOn) this.setState({ ptrOn: on }); },
         ptrEnd: () => { const p = this.ptr; this.ptr = null; if (this.state.ptrOn) this.setState({ ptrOn: false }); if (p && p.d > 70 && fr.refresh) fr.refresh(); },
         ptrH: st.ptrOn || fr.busy ? '28px' : '0px', ptrTxt: fr.busy ? 'Refreshing…' : 'Release to refresh' },
-      nt: { close: () => this.closeNt(), canMark: nw.length > 0, markAll: () => this.setState({ ntPrev: Date.now() }), hasNew: nw.length > 0, new: nw, hasOld: old.length > 0, old, empty: !shown.length,
+      nt: { close: () => this.closeNt(), canMark: nw.length > 0, markAll: () => { if (A.title) { try { localStorage.setItem('gw-nt-title', A.title); } catch (x) {} } this.setState({ ntPrev: Date.now() }); }, hasNew: nw.length > 0, new: nw, hasOld: old.length > 0, old, empty: !shown.length,
         chips: [['all', 'All'], ['stories', 'Stories'], ['friends', 'Friends'], ['prices', 'Prices']].map(([k, l]) => ({ label: l, bg: F === k ? '#636366' : '#1c1c1e', fw: F === k ? '600' : '400', onTap: () => this.setState({ ntF: k }) })) } }; }
   feedWhen(g) { if (!g || !g.t) return ''; const d = new Date(g.t); if (isNaN(d)) return ''; if (String(g.d).slice(0, 10) === todayISO()) return relT(d.toISOString()); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
   hidHome(k) { try { return Date.now() - (Number(localStorage.getItem('gw-hide-' + k)) || 0) < 7 * 86400000; } catch (e) { return false; } }
