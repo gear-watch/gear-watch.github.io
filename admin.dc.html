@@ -125,8 +125,30 @@ class Component extends DCLogic {
   componentWillUnmount() { if (this.unsub) this.unsub(); clearTimeout(this.tt); clearInterval(this.poll); document.removeEventListener('visibilitychange', this.onVis); }
   say(t) { clearTimeout(this.tt); this.setState({ toast: t }); this.tt = setTimeout(() => this.setState({ toast: '' }), 2600); }
   async load() { const G = window.GWSync; if (!G || !G.cat) return; this.setState({ loading: true });
-    try { const [q, info] = await Promise.all([G.cat('catalog_queue'), G.cat('catalog_admin_info')]); this.setState({ q, info, err: '', loading: false }); }
+    try { const [q, info] = await Promise.all([G.cat('catalog_queue'), G.cat('catalog_admin_info')]); this.setState({ q, info, err: '', loading: false }); this.fillPhotos(); }
     catch (e) { this.setState({ err: (e && e.message) || 'Couldn’t load', loading: false }); } }
+  // Entries without photos: read the shop page and save its photos to the entry.
+  async fillPhotos() {
+    const G = window.GWSync, api = String(window.GW_PRICE_API || '').trim(), q = this.state.q; if (!G || !api || !q || this.filling) return;
+    this.tried = this.tried || new Set();
+    const need = [];
+    (q.items || []).forEach(c => { if (!(c.photos || []).length && c.url) need.push({ id: c.id, url: c.url }); });
+    (q.flags || []).forEach(f => { const it = f.item || {}; if (!it.photo && it.url) need.push({ id: f.catalog_id, url: it.url }); });
+    const todo = need.filter((x, i) => !this.tried.has(x.id) && need.findIndex(y => y.id === x.id) === i).slice(0, 12); if (!todo.length) return;
+    const tok = G.token ? await G.token() : null; if (!tok) return; this.filling = true;
+    const ok = x => /^https?:/.test(x || '') && !/\/storage\/v1\//.test(x);
+    try {
+      for (const x of todo) { this.tried.add(x.id);
+        let ph = [];
+        try { const r = await fetch(api, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ lookup: x.url }) }), j = await r.json(); if (j && j.ok) ph = (j.images || []).filter(ok).slice(0, 6); } catch (e) {}
+        if (!ph.length) continue;
+        try { await G.cat('catalog_fill_photos', { cid: x.id, ph }); } catch (e) {}
+        this.setState(s => { if (!s.q) return null; return { q: Object.assign({}, s.q, {
+          items: (s.q.items || []).map(c => c.id === x.id && !(c.photos || []).length ? Object.assign({}, c, { photos: ph }) : c),
+          flags: (s.q.flags || []).map(f => f.catalog_id === x.id && !(f.item || {}).photo ? Object.assign({}, f, { item: Object.assign({}, f.item, { photo: ph[0] }) }) : f) }) }; });
+      }
+    } finally { this.filling = false; }
+  }
   async run(name, args, msg) { const G = window.GWSync; try { await G.cat(name, args); if (msg) this.say(msg); await this.load(); } catch (e) { this.say((e && e.message) || 'That didn’t work'); } }
   renderVals() {
     const st = this.state, A = st.acct || {}, q = st.q, info = st.info || {}, role = q && q.role, isAdmin = role === 'admin';
