@@ -1,0 +1,27 @@
+GearWatch update — catalog batch (do these in order)
+
+1. Database (Supabase)
+   Supabase → SQL Editor → New query → paste ALL of supabase/catalog.sql → Run.
+   Safe to run again. Adds: sale prices, colours/sizes/custom colours/made to measure,
+   fit notes, shared photos (all checked by staff), activity, discover rows,
+   duplicates + merging, category tiles, staff roles.
+
+2. Price worker (Cloudflare)
+   Open the worker in the Cloudflare dashboard → Edit code → replace everything with
+   price-worker/worker.js → Deploy.
+   Adds: original/sale price, colours and sizes from shop feeds, better names for app-style
+   shops like Furrjoi.
+
+3. Upload to the site (same place as before)
+   - index.html
+   - sync.js
+   - admin.dc.html   (new: open <your site>/admin.dc.html)
+
+4. Check
+   - Open GearWatch, sign in, wait ~10 seconds.
+   - Home → Browse the catalog → category tiles and search work.
+   - Open a product → colours, sizes, "Fits you in", + Wishlist opens the colour/size picker.
+   - Shield button on Home (admins/moderators) → admin page loads the queue.
+
+If step 1 shows an error, copy the red message and send it.
+On iPhone Home Screen app: close it fully and reopen so the new files load.

@@ -247,20 +247,25 @@ async function readerMd(url) {
   if (!r.ok) throw new Error('reader HTTP ' + r.status);
   const t = await r.text(); if (t.length < 20000 && BOT.test(t)) throw new Error('reader got the bot check too'); return t;
 }
+// Colour and size choices from a shop feed: [{ name: 'Color', values: [...] }, ...]
+function optsFrom(list) { const o = { colors: [], sizes: [] };
+  for (const x of list || []) { const n = String(x && x.name || ''), vals = (x.values || []).map(v => decode(typeof v === 'string' ? v : v && v.name)).filter(Boolean).slice(0, 30);
+    if (/colou?r|kleur|farbe|couleur/i.test(n)) o.colors = vals.map(name => ({ name })); else if (/size|maat|größe|taille/i.test(n)) o.sizes = vals; }
+  return o.colors.length || o.sizes.length ? o : null; }
 async function lookup(url) {
   const u = new URL(url), tried = [];
   if (/\/products\/[^/?#]+/.test(u.pathname)) {
     try { const j = JSON.parse(await get(u.origin + u.pathname.replace(/\/+$/, '') + '.js', true)), variant = u.searchParams.get('variant'), vs = j.variants || [];
       const v = vs.find(x => String(x.id) === variant) || vs.find(x => x.available) || vs[0];
       let cur = null; try { cur = JSON.parse(await get(u.origin + '/cart.js', true)).currency || null; } catch {}
-      return { name: decode(j.title), brand: decode(j.vendor) || null, price: v && v.price ? v.price / 100 : j.price ? j.price / 100 : null, was: v && v.compare_at_price && v.compare_at_price > v.price ? v.compare_at_price / 100 : null, cur, images: cleanImgs([v && v.featured_image && v.featured_image.src].concat(j.images || []), u.href), desc: j.description || '', how: 'Shopify feed' };
+      return { name: decode(j.title), brand: decode(j.vendor) || null, price: v && v.price ? v.price / 100 : j.price ? j.price / 100 : null, was: v && v.compare_at_price && v.compare_at_price > v.price ? v.compare_at_price / 100 : null, cur, images: cleanImgs([v && v.featured_image && v.featured_image.src].concat(j.images || []), u.href), desc: j.description || '', options: optsFrom((j.options || []).map(x => typeof x === 'string' ? null : x).filter(Boolean)), how: 'Shopify feed' };
     } catch (e) { tried.push('shopify: ' + e.message); }
   }
   const wm = u.pathname.match(/\/product\/([^/?#]+)/);
   if (wm) {
     try { const j = JSON.parse(await get(u.origin + '/wp-json/wc/store/v1/products?slug=' + encodeURIComponent(wm[1]), true)), p = Array.isArray(j) ? j[0] : null;
       if (p) { const pr = p.prices || {}, d = Math.pow(10, pr.currency_minor_unit ?? 2), raw = Number(pr.price) || (pr.price_range ? Number(pr.price_range.min_amount) : 0);
-        return { name: decode(p.name), brand: (p.brands && p.brands[0] && decode(p.brands[0].name)) || null, price: raw ? raw / d : null, was: Number(pr.regular_price) > raw ? Number(pr.regular_price) / d : null, cur: pr.currency_code || null, images: cleanImgs((p.images || []).map(x => x.src), u.href), desc: (p.short_description || '') + ' ' + (p.description || ''), how: 'WooCommerce feed' }; }
+        return { name: decode(p.name), brand: (p.brands && p.brands[0] && decode(p.brands[0].name)) || null, price: raw ? raw / d : null, was: Number(pr.regular_price) > raw ? Number(pr.regular_price) / d : null, cur: pr.currency_code || null, images: cleanImgs((p.images || []).map(x => x.src), u.href), desc: (p.short_description || '') + ' ' + (p.description || ''), options: optsFrom((p.attributes || []).map(a => ({ name: a.name, values: (a.terms || []).map(t => t.name) }))), how: 'WooCommerce feed' }; }
     } catch (e) { tried.push('woocommerce: ' + e.message); }
   }
   let siteBrand = null;
@@ -275,10 +280,10 @@ async function lookup(url) {
 }
 async function lookupOne(url, ctx) {
   const key = normUrl(url); if (!key) return { ok: false, error: 'Not a valid link' };
-  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup4/' + encodeURIComponent(key));
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup5/' + encodeURIComponent(key));
   const hit = await cache.match(ck); if (hit) return hit.json();
   let out;
-  try { const r = await lookup(url), code = codeOf(r.cur); out = { ok: true, name: r.name || '', brand: r.brand || '', price: r.price ?? null, was: r.was ?? null, currency: /libidex\.com/.test(url) ? '£' : (SYM[code] || code || null), images: r.images || [], desc: decode(String(r.desc || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim().slice(0, 1500), how: r.how }; }
+  try { const r = await lookup(url), code = codeOf(r.cur); out = { ok: true, name: r.name || '', brand: r.brand || '', price: r.price ?? null, was: r.was ?? null, options: r.options || null, currency: /libidex\.com/.test(url) ? '£' : (SYM[code] || code || null), images: r.images || [], desc: decode(String(r.desc || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim().slice(0, 1500), how: r.how }; }
   catch (e) { out = { ok: false, error: String(e.message || e), detail: e.detail || '' }; }
   ctx.waitUntil(cache.put(ck, new Response(JSON.stringify(out), { headers: { 'cache-control': 'max-age=' + (out.ok ? 86400 : 600) } })));
   return out;
