@@ -3426,6 +3426,7 @@ class Component extends DCLogic {
   closeDetail(cb) { this.animOut(this.detailRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ detail: null, delArm: false }); if (cb) cb(); }); }
   closeSheet(cb) {
     if (!cb && (this.state.sheet === 'cfix' || this.state.sheet === 'crep') && this.state.catP) { this.setState({ sheet: 'cprod' }); return; }
+    if (!cb && this.state.sheet === 'cdisc' && this.catSearching()) { clearTimeout(this.catST); this.catTok = (this.catTok || 0) + 1; this.setState({ catQ: '', catCat: '', catTile: null, catRes: null, catBusy: false, catErr: '', catF: {} }); if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0; return; }
     if (!cb && this.state.sheet === 'cprod' && ['form', 'act', 'disc'].includes(this.state.catFrom)) { this.setState({ sheet: { act: 'cact', disc: 'cdisc' }[this.state.catFrom] || 'form', catView: null }); return; }
     if (!cb && this.state.sheet === 'cvar' && this.state.catP) { this.setState({ sheet: (this.state.cvar && this.state.cvar.back) || 'cprod' }); return; }
     if (!cb && this.state.sheet === 'cact' && this.state.cactBack) { this.setState({ sheet: this.state.cactBack, cactBack: null }); return; }
@@ -4109,7 +4110,7 @@ class Component extends DCLogic {
     }
 
     const f = st.form || {};
-    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: [st.budgetKind === 'pot' ? 'Current budget' : 'Monthly budget', 'Save'], person: ['', null], invite: ['Invite a friend', null], paid: [st.paid && st.paid.to === 'owned' ? 'Mark as owned' : 'Mark as ordered', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null], cpick: ['Category', null], cprod: ['', null], cact: ['Your catalog activity', null], cdisc: [st.discFor === 'owned' ? 'Add something you own' : st.discFor === 'wanted' ? 'Add gear' : 'Catalog', null], cvar: [st.cvar && st.cvar.own ? 'I own this' : 'Add to wishlist', st.cvar && st.cvar.own ? 'Next' : 'Add'], cshare: ['Share photos', st.cshare && st.cshare.busy ? 'Sending…' : 'Send'], cfix: ['Suggest a fix', 'Send'], crep: ['Report', 'Send'] }[st.sheet] || ['', null];
+    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: [st.budgetKind === 'pot' ? 'Current budget' : 'Monthly budget', 'Save'], person: ['', null], invite: ['Invite a friend', null], paid: [st.paid && st.paid.to === 'owned' ? 'Mark as owned' : 'Mark as ordered', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null], cpick: ['Category', null], cprod: ['', null], cact: ['Your catalog activity', null], cdisc: [st.catTile && TILE_NAMES[st.catTile] ? TILE_NAMES[st.catTile] : st.discFor === 'owned' ? 'Add something you own' : st.discFor === 'wanted' ? 'Add gear' : 'Catalog', null], cvar: [st.cvar && st.cvar.own ? 'I own this' : 'Add to wishlist', st.cvar && st.cvar.own ? 'Next' : 'Add'], cshare: ['Share photos', st.cshare && st.cshare.busy ? 'Sending…' : 'Send'], cfix: ['Suggest a fix', 'Send'], crep: ['Report', 'Send'] }[st.sheet] || ['', null];
     if (st.sheet === 'form' && this.catSearching()) sheetMeta[1] = null;
     const canSave = st.sheet === 'cshare' ? !!st.cshare && !st.cshare.busy && (st.cshare.list || []).some(x => x.on) : st.sheet === 'cfix' ? this.catFixOk() : st.sheet === 'crep' ? !!st.crepR : st.sheet === 'form' ? !!(f.name || '').trim() : st.sheet === 'budget' ? toNum(st.budgetIn) > 0 : true;
     const pv = st.pointId ? this.fval(vals, st.pointId) : null;
@@ -4263,7 +4264,7 @@ class Component extends DCLogic {
 
       sheetKb: (st.kbH || 0) + 'px', sheetMax: st.kbH ? 'calc(100% - ' + (st.kbH + 48) + 'px)' : '92%', sheetH: this.catSearching() || st.sheet === 'cdisc' ? (st.kbH ? 'calc(100% - ' + (st.kbH + 48) + 'px)' : '92%') : 'auto',
       hasSheet: !!st.sheet, closeSheet: () => this.closeSheet(), sheetTitle: sheetMeta[0], hasSheetAction: !!sheetMeta[1], actionLabel: sheetMeta[1] || '',
-      cancelLabel: st.sheet === 'cprod' && ['form', 'act', 'disc'].includes(st.catFrom) ? ({ act: '‹ Activity', disc: '‹ Catalog' }[st.catFrom] || '‹ Results') : sheetMeta[1] ? 'Cancel' : 'Done', actionColor: canSave ? ACC : '#636366',
+      cancelLabel: st.sheet === 'cdisc' && this.catSearching() ? '‹ Catalog' : st.sheet === 'cprod' && ['form', 'act', 'disc'].includes(st.catFrom) ? ({ act: '‹ Activity', disc: '‹ Catalog' }[st.catFrom] || '‹ Results') : sheetMeta[1] ? 'Cancel' : 'Done', actionColor: canSave ? ACC : '#636366',
       sheetAction: () => {
         if (!canSave) return;
         if (st.sheet === 'form') { this.saveForm(); return; }
