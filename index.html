@@ -2310,7 +2310,7 @@ const KNOWN_PHOTOS = {
 const KNOWN = { 'alpha-pup-latex-suit': 85, 'latex-alpha-husky-suit': 136, 'pup-play-latex-catsuit': 108 };
 const CGROUPS = ['Catsuits', 'Tops', 'Bottoms / leggings', 'Shorts / briefs', 'Hoods / masks', 'Gloves', 'Socks / feet', 'Boots / shoes', 'Harnesses', 'Restraints', 'Leashes / collars', 'Toys', 'Accessories', 'Other'];
 const CAT2G = { Top: 'Tops', Jacket: 'Tops', Bottoms: 'Bottoms / leggings', Leashes: 'Leashes / collars', Collars: 'Leashes / collars', Toys: 'Toys', Catsuit: 'Catsuits', Surfsuit: 'Catsuits', Leotard: 'Catsuits', Hood: 'Hoods / masks', Harness: 'Harnesses', Shorts: 'Shorts / briefs', Underwear: 'Shorts / briefs', Trousers: 'Bottoms / leggings', Tights: 'Bottoms / leggings', Skirt: 'Bottoms / leggings', Gloves: 'Gloves', Socks: 'Socks / feet', Cuffs: 'Restraints', Gags: 'Restraints' };
-const NAME_G = [[/cat ?suit|surf ?suit|body ?suit|leotard|zentai|onesie/i, 'Catsuits'], [/hood|mask/i, 'Hoods / masks'], [/harness/i, 'Harnesses'], [/glove|gauntlet|mitt/i, 'Gloves'], [/boot|shoe|sneaker|heel/i, 'Boots / shoes'], [/sock|stocking/i, 'Socks / feet'], [/legging|trouser|pants|jeans|tights|skirt/i, 'Bottoms / leggings'], [/shorts|brief|jock|thong|underwear|boxer/i, 'Shorts / briefs'], [/\btop\b|shirt|\btee\b|vest|\bbra\b|crop|jacket|coat|hoodie|blazer|bomber/i, 'Tops'], [/cuff|restraint|\bgag\b|shackle/i, 'Restraints']];
+const NAME_G = [[/cat ?suit|surf ?suit|body ?suit|leotard|zentai|onesie/i, 'Catsuits'], [/hood|mask|drone/i, 'Hoods / masks'], [/harness/i, 'Harnesses'], [/glove|gauntlet|mitt/i, 'Gloves'], [/boot|shoe|sneaker|heel/i, 'Boots / shoes'], [/sock|stocking/i, 'Socks / feet'], [/legging|trouser|pants|jeans|tights|skirt/i, 'Bottoms / leggings'], [/shorts|brief|jock|thong|underwear|boxer/i, 'Shorts / briefs'], [/\btop\b|shirt|\btee\b|vest|\bbra\b|crop|jacket|coat|hoodie|blazer|bomber/i, 'Tops'], [/cuff|restraint|\bgag\b|shackle/i, 'Restraints']];
 function cgroupOf(it, custom) {
   if (CAT2G[it.category]) return CAT2G[it.category];
   if (it.category === 'Accessory') return 'Accessories';
@@ -3495,7 +3495,7 @@ class Component extends DCLogic {
     const gCur = /libidex|regulation/.test(host) ? '£' : /kinkfox|kinkprojects/.test(host) ? '$' : '€';
     const gName = s.replace(/-copy$/, '').split('-').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     const name = (L && L.name) || gName, n = name.toLowerCase() + ' ' + s;
-    const category = /hood|mask/.test(n) ? 'Hood' : /harness/.test(n) ? 'Harness' : /gag/.test(n) ? 'Gags' : /cuff|restraint/.test(n) ? 'Cuffs' : /short|brief/.test(n) ? 'Shorts' : /glove/.test(n) ? 'Gloves' : /sock|stocking/.test(n) ? 'Socks' : /surf/.test(n) ? 'Surfsuit' : /suit/.test(n) ? 'Catsuit' : 'Accessory';
+    const category = /hood|mask|drone/.test(n) ? 'Hood' : /harness/.test(n) ? 'Harness' : /gag/.test(n) ? 'Gags' : /cuff|restraint/.test(n) ? 'Cuffs' : /short|brief/.test(n) ? 'Shorts' : /glove/.test(n) ? 'Gloves' : /sock|stocking/.test(n) ? 'Socks' : /surf/.test(n) ? 'Surfsuit' : /suit/.test(n) ? 'Catsuit' : 'Accessory';
     const price = L && L.price != null ? Math.round(L.price * 100) / 100 : KNOWN[s], pics = (L && L.images && L.images.length ? L.images : KNOWN_PHOTOS[s]) || [];
     const cur = L && ['€', '$', '£'].includes(L.currency) ? L.currency : gCur, brand = (L && L.brand) || gBrand;
     const missing = [price == null ? 'price' : null, pics.length ? null : 'photos'].filter(Boolean);

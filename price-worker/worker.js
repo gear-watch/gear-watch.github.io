@@ -138,6 +138,7 @@ function wasOf(html, price) {
   const st = html.match(/~~\s*(?:US\s*)?[$€£]\s?([\d.,]+)\s*~~/); if (st) c.push(num(st[1]));
   const dl = html.match(/<(del|s|strike)\b[^>]*>\s*(?:<[^>]+>\s*)*(?:US\s*)?[$€£]\s?([\d.,]+)/i); if (dl) c.push(num(dl[2]));
   const wp = html.match(/\b(?:was|regular price|original price|compare at)\s*:?\s*(?:US\s*)?[$€£]\s?([\d.,]+)/i); if (wp) c.push(num(wp[1]));
+  for (const m of html.matchAll(/[$€£]\s?([\d.,]+)\s*(?:~~|<\/?(?:del|s|span|ins)[^>]*>|\s)*\s*[$€£]\s?([\d.,]+)/gi)) { const a = num(m[1]), b = num(m[2]); if (a && b && Math.abs(a - price) < 0.01 && b > a) { c.push(b); break; } }
   const pc = html.match(/(\d{1,2})\s?%\s*off/i); if (pc) { const g = price / (1 - Number(pc[1]) / 100); for (const m of html.matchAll(/[$€£]\s?([\d.,]+)/g)) { const v = num(m[1]); if (v && Math.abs(v - g) / g < 0.02) { c.push(v); break; } } }
   const ok = c.filter(x => x && x > price * 1.01 && x <= price * 4);
   return ok.length ? ok[0] : null;
@@ -230,6 +231,17 @@ function fromPage(html, u) {
   const raw = decode(p.name || meta(html, 'og:title') || (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '');
   return { name: trimSite(raw, site, u.hostname.replace(/^www\./, '')), brand: brand || site || null, price: pr ? pr.price : null, was: pr ? pr.was : null, cur: pr ? pr.cur : null, images: cleanImgs(imgs, u.href) };
 }
+function optsFromText(md) { const lines = md.split('\n').map(l => l.replace(/[*_#>\[\]]/g, '').replace(/\(https?:[^)]*\)/g, '').trim()), groups = [];
+  lines.forEach((l, i) => { const m = l.match(/^((?:[A-Za-z][A-Za-z ]{0,28}?)?(?:colou?r|pattern|trim|size|maat|kleur))\s*:\s*(.{0,30})$/i); if (!m) return; const vals = [];
+    if (m[2]) vals.push(m[2].trim());
+    for (let k = i + 1; k < Math.min(lines.length, i + 16); k++) { const v = lines[k]; if (!v) continue; if (/:\s*/.test(v) || /[$€£]\s?\d/.test(v) || v.length > 22 || /^(add to cart|buy now|quantity|qty)/i.test(v)) break; if (!vals.includes(v)) vals.push(v); }
+    groups.push({ name: m[1], values: vals.filter(Boolean).slice(0, 30) }); });
+  const sizes = (groups.find(g => /size|maat/i.test(g.name)) || {}).values || [], cols = groups.filter(g => /colou?r|kleur/i.test(g.name)), pats = groups.filter(g => /pattern|trim/i.test(g.name));
+  let colors = [];
+  if (cols.length === 1 && cols[0].values.length === 1 && pats.length && pats[0].values.length > 1) colors = pats[0].values.map(v => cols[0].values[0] + ' with ' + v + ' lines');
+  else colors = cols.concat(pats).flatMap(g => g.values);
+  colors = colors.filter((v, i, a) => a.indexOf(v) === i).slice(0, 30).map(name => ({ name }));
+  return colors.length || sizes.length ? { colors, sizes } : null; }
 function fromMarkdown(md, u) {
   const site = u.hostname.replace(/^www\./, '').split('.')[0].toLowerCase(), bad = t => !t || t.trim().toLowerCase() === site || /^(home|menu|search|cart|shop|log ?in|sign ?in|account)$/i.test(t.trim());
   let title = decode((md.match(/^Title:\s*(.+)$/m) || [])[1] || '');
@@ -238,7 +250,7 @@ function fromMarkdown(md, u) {
   let imgs = Array.from(md.matchAll(/!\[[^\]]*\]\((https?:[^)\s]+)/g)).map(m => m[1]);
   const prod = imgs.filter(s => /product|catalog|uploads|cdn\.shopify|wixstatic/i.test(s)); if (prod.length) imgs = prod;
   const pr = parse(md, u);
-  return { name: trimSite(title, '', u.hostname.replace(/^www\./, '')), brand: null, price: pr ? pr.price : null, was: pr ? pr.was : null, cur: pr ? pr.cur : null, images: cleanImgs(imgs, u.href) };
+  return { name: trimSite(title, '', u.hostname.replace(/^www\./, '')), brand: null, price: pr ? pr.price : null, was: pr ? pr.was : null, cur: pr ? pr.cur : null, images: cleanImgs(imgs, u.href), options: optsFromText(md) };
 }
 async function readerMd(url) {
   const h = { 'x-return-format': 'markdown', accept: 'text/plain', 'x-timeout': '25', 'x-no-cache': 'true', 'x-engine': 'browser' };
@@ -252,6 +264,20 @@ function optsFrom(list) { const o = { colors: [], sizes: [] };
   for (const x of list || []) { const n = String(x && x.name || ''), vals = (x.values || []).map(v => decode(typeof v === 'string' ? v : v && v.name)).filter(Boolean).slice(0, 30);
     if (/colou?r|kleur|farbe|couleur/i.test(n)) o.colors = vals.map(name => ({ name })); else if (/size|maat|größe|taille/i.test(n)) o.sizes = vals; }
   return o.colors.length || o.sizes.length ? o : null; }
+// App-style shops (like Furrjoi) load the product with JavaScript from a JSON endpoint. Try the usual ones.
+function pickProd(j, depth) { if (!j || typeof j !== 'object' || (depth || 0) > 4) return null; if (Array.isArray(j)) return j.length === 1 ? pickProd(j[0], (depth || 0) + 1) : null;
+  const name = j.name || j.title || j.goods_name || j.goodsName || j.productName || j.product_name, price = j.price ?? j.sale_price ?? j.salePrice ?? j.sellPrice ?? j.final_price ?? j.min_price;
+  if (name && price != null && !isNaN(parseFloat(price))) return j;
+  for (const k of ['data', 'product', 'goods', 'item', 'result', 'detail', 'info']) { const r = pickProd(j[k], (depth || 0) + 1); if (r) return r; } return null; }
+async function spaApi(u) { const id = (u.pathname.match(/\/(\d+)\/?$/) || [])[1]; if (!id) return null; const base = u.origin, seg = u.pathname.split('/').filter(Boolean)[0] || '';
+  const cands = ['/api/product/' + id, '/api/products/' + id, '/api/goods/' + id, '/api/goods/detail/' + id, '/api/product/detail/' + id, '/api/v1/product/' + id, '/api/v1/products/' + id, '/api/' + seg + '/' + id, '/api/product/info?id=' + id, '/api/goods/info?id=' + id, '/api/product?id=' + id];
+  for (const p of cands) { let j = null; try { const r = await fetch(base + p, { headers: Object.assign({}, HEAD, { accept: 'application/json' }) }); if (!r.ok) continue; const t = await r.text(); if (!/^\s*[{[]/.test(t)) continue; j = JSON.parse(t); } catch { continue; }
+    const p0 = pickProd(j); if (!p0) continue; const num0 = v => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
+    const price = num0(p0.price ?? p0.sale_price ?? p0.salePrice ?? p0.sellPrice ?? p0.final_price ?? p0.min_price), was = num0(p0.original_price ?? p0.originalPrice ?? p0.market_price ?? p0.marketPrice ?? p0.compare_price ?? p0.comparePrice ?? p0.old_price ?? p0.regular_price);
+    let imgs = [].concat(p0.images || p0.imgs || p0.pics || p0.pictures || p0.gallery || p0.photos || [], p0.image || p0.cover || p0.img || p0.main_image || []).map(x => typeof x === 'string' ? x : x && (x.url || x.src || x.path || x.image)).filter(Boolean).map(x => abs(x, base)).filter(Boolean);
+    const opts = optsFrom([].concat(p0.options || p0.attrs || p0.attributes || p0.specs || p0.sku_attrs || []).map(a => ({ name: a.name || a.title || a.attr_name, values: [].concat(a.values || a.options || a.items || a.list || []).map(v => typeof v === 'string' ? v : v && (v.name || v.value || v.title)) })));
+    return { name: decode(p0.name || p0.title || p0.goods_name || p0.goodsName || p0.productName || p0.product_name), brand: null, price, was: was && price && was > price ? was : null, cur: p0.currency || p0.currency_code || null, images: cleanImgs(imgs, base), desc: decode(String(p0.description || p0.desc || p0.content || '').replace(/<[^>]+>/g, ' ')).slice(0, 1500), options: opts, how: 'shop data (' + p + ')' }; }
+  return null; }
 async function lookup(url) {
   const u = new URL(url), tried = [];
   if (/\/products\/[^/?#]+/.test(u.pathname)) {
@@ -274,13 +300,14 @@ async function lookup(url) {
     if (gen) { siteBrand = site || null; r.name = ''; r.images = r.images.filter(x => !/og|banner|share|social/i.test(x)); if (/og:image:width" content="3[0-9]{3}/.test(html)) r.images = []; }
     if (r.name && (r.images.length || r.price)) { const md = html.match(/<meta[^>]+(?:name|property)=["'](?:og:)?description["'][^>]*content=["']([^"']*)/i); return Object.assign(r, { desc: r.desc || (md ? md[1] : ''), how: 'product page' }); } tried.push('page: not enough found'); }
   catch (e) { tried.push('page: ' + e.message); }
+  try { const r = await spaApi(u); if (r && r.name) return Object.assign(r, { brand: r.brand || siteBrand }); } catch (e) { tried.push('shop data: ' + e.message); }
   try { const md = await readerMd(url), r = fromMarkdown(md, u); if (r.name || r.images.length) return Object.assign(r, { brand: r.brand || siteBrand, desc: r.desc || md.slice(0, 3000), how: 'page reader' }); tried.push('reader: nothing found'); }
   catch (e) { tried.push('reader: ' + e.message); }
   const err = new Error('Couldn’t read that page'); err.detail = tried.join(' · '); throw err;
 }
 async function lookupOne(url, ctx) {
   const key = normUrl(url); if (!key) return { ok: false, error: 'Not a valid link' };
-  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup5/' + encodeURIComponent(key));
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup7/' + encodeURIComponent(key));
   const hit = await cache.match(ck); if (hit) return hit.json();
   let out;
   try { const r = await lookup(url), code = codeOf(r.cur); out = { ok: true, name: r.name || '', brand: r.brand || '', price: r.price ?? null, was: r.was ?? null, options: r.options || null, currency: /libidex\.com/.test(url) ? '£' : (SYM[code] || code || null), images: r.images || [], desc: decode(String(r.desc || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim().slice(0, 1500), how: r.how }; }
