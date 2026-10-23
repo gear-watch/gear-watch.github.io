@@ -1511,7 +1511,7 @@ input::placeholder{color:#6e6e73;}
 </sc-if>
 <sc-if value="{{ hasSheet }}" hint-placeholder-val="{{ false }}">
   <div ref="{{ backdropRef }}" data-anim="fade" data-delay="0" onClick="{{ closeSheet }}" style="position:absolute;inset:0;z-index:40;background:rgba(0,0,0,0.6);"></div>
-  <div ref="{{ sheetRef }}" data-anim="sheet" data-delay="0" style="position:absolute;left:0;right:0;bottom:0;z-index:41;max-height:92%;overflow-y:auto;scrollbar-width:none;background:#1c1c1e;border-radius:18px 18px 0 0;padding:0 0 32px;">
+  <div ref="{{ sheetRef }}" data-anim="sheet" data-delay="0" style="position:absolute;left:0;right:0;bottom:{{ sheetKb }};z-index:41;max-height:{{ sheetMax }};height:{{ sheetH }};box-sizing:border-box;overflow-y:auto;transition:bottom .2s,max-height .2s;scrollbar-width:none;background:#1c1c1e;border-radius:18px 18px 0 0;padding:0 0 32px;">
     <div style="position:sticky;top:0;z-index:1;background:#1c1c1e;padding:8px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;">
       <button onClick="{{ closeSheet }}" style="justify-self:start;border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">{{ cancelLabel }}</button>
       <span style="font-weight:600;">{{ sheetTitle }}</span>
@@ -2626,6 +2626,7 @@ class Component extends DCLogic {
       this.unsubSync = G.on(s => { if (s.photoErr && s.photoErr.at !== this._pErrAt) { this._pErrAt = s.photoErr.at; const m = s.photoErr.msg || ''; this.toast((s.photoErr.n === 1 ? 'A photo couldn’t upload' : s.photoErr.n + ' photos couldn’t upload') + (/size|large|exceed/i.test(m) ? ': it’s too big.' : /network|fetch|offline/i.test(m) ? ': check your connection.' : m ? ': ' + m.slice(0, 80) : '.') + ' It’ll retry next sync.'); } const prev = this.state.acct && this.state.acct.user ? this.state.acct.user.id : null; this.setState({ acct: s }); if (!s.user) { this.socialFor = null; this.cacheFor = null; this.setState({ social: null }); } else { if (this.cacheFor !== s.user.id) { this.cacheFor = s.user.id; try { const c = JSON.parse(localStorage.getItem('gw-social-cache-' + s.user.id) || 'null'); if (c) this.setState({ social: c }); } catch (e) {} }
         if (s.firstDone && this.socialFor !== s.user.id) { this.socialFor = s.user.id; if (!this.loadSocial()) this.socialFor = null; }
         if (s.firstDone && s.username && this.pendingAdd) { const a = this.pendingAdd; this.pendingAdd = null; setTimeout(() => this.openPerson(a), 400); } } });
+      if (window.visualViewport && !this.onVV) { const vv = window.visualViewport; this.onVV = () => { const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)), v = kb > 80 ? kb : 0; if (Math.abs(v - (this.state.kbH || 0)) > 10) this.setState({ kbH: v }); }; vv.addEventListener('resize', this.onVV); vv.addEventListener('scroll', this.onVV); }
       this.unsubCat = G.on(s => { if (s.user && s.firstDone && !this._catKick) { this._catKick = true; this.catSoon(5000); this.staffCheck(true); setTimeout(() => this.loadDisc(), 3000); } if (!s.user) { this._catKick = false; if (this.state.staffRole) this.setState({ staffRole: null, staffQ: 0 }); } });
       document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && this.state.staffRole) this.staffCheck(); });
       G.init(); return true; };
@@ -4151,6 +4152,7 @@ class Component extends DCLogic {
       deleteLabel: st.delArm ? 'Tap again to delete' : 'Delete item',
       deleteItem: () => { if (!st.delArm) { this.setState({ delArm: true }); return; } const id = st.detail; this.closeDetail(() => { this.mutate(pp => { pp.items = pp.items.filter(x => x.id !== id); (pp.outfits || []).forEach(o => { o.itemIds = (o.itemIds || []).filter(x => x !== id); if (o.pos) delete o.pos[id]; }); }); this.toast('Deleted'); }); },
 
+      sheetKb: (st.kbH || 0) + 'px', sheetMax: st.kbH ? 'calc(100% - ' + (st.kbH + 48) + 'px)' : '92%', sheetH: this.catSearching() || st.sheet === 'cdisc' ? (st.kbH ? 'calc(100% - ' + (st.kbH + 48) + 'px)' : '92%') : 'auto',
       hasSheet: !!st.sheet, closeSheet: () => this.closeSheet(), sheetTitle: sheetMeta[0], hasSheetAction: !!sheetMeta[1], actionLabel: sheetMeta[1] || '',
       cancelLabel: sheetMeta[1] ? 'Cancel' : 'Done', actionColor: canSave ? ACC : '#636366',
       sheetAction: () => {
