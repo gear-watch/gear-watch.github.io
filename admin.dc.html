@@ -421,7 +421,8 @@ class Component extends DCLogic {
       return { ed: Object.assign({}, s.ed, { fetching: false, photos: replace ? add.concat(keep.filter(p => p.on)).concat(keep.filter(p => !p.on)) : keep.concat(add), fetched: true, price: s.ed.price || (j && j.price != null ? String(j.price) : '') }) }; });
     if (!imgs.length) this.say(j && j.ok ? 'No photos found on the shop page' : 'Couldn’t read the shop page'); else this.edFitShop(imgs); }
   // Same as the app: tall or wide product shots on white (or see-through) are trimmed and centred on a white square, then uploaded to the catalog.
-  async shopFit(src) { const im = await new Promise(res => { const x = new Image(); x.crossOrigin = 'anonymous'; x.onload = () => res(x); x.onerror = () => res(null); x.src = src + (src.includes('?') ? '&' : '?') + 'gwcors=1'; }); if (!im) return null;
+  async shopFit(src) { const ld = u => new Promise(res => { const x = new Image(); x.crossOrigin = 'anonymous'; x.onload = () => res(x); x.onerror = () => res(null); x.src = u; }), api = String(window.GW_PRICE_API || '').trim();
+    let im = await ld(src + (src.includes('?') ? '&' : '?') + 'gwcors=1'); if (!im && api) im = await ld(api + (api.includes('?') ? '&' : '?') + 'img=' + encodeURIComponent(src)); if (!im) return null;
     const W = im.naturalWidth, H = im.naturalHeight; if (!W || !H || Math.abs(W / H - 1) < 0.1) return null;
     const k = Math.min(1, 360 / Math.max(W, H)), w = Math.max(1, Math.round(W * k)), hh = Math.max(1, Math.round(H * k)), sc = document.createElement('canvas'); sc.width = w; sc.height = hh;
     const g = sc.getContext('2d'); g.drawImage(im, 0, 0, w, hh); let d; try { d = g.getImageData(0, 0, w, hh).data; } catch (e) { return null; }

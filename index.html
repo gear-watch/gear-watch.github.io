@@ -3338,7 +3338,7 @@ class Component extends DCLogic {
     window.addEventListener('pointermove', mv, { passive: false }); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up); }
   pcLoad(src) { const one = u => new Promise((res, rej) => { const im = new Image(); if (/^https?:/.test(u)) im.crossOrigin = 'anonymous'; im.onload = () => { try { const c = document.createElement('canvas'); c.width = c.height = 2; c.getContext('2d').drawImage(im, 0, 0, 2, 2); c.toDataURL(); res(im); } catch (e) { rej(e); } }; im.onerror = rej; im.src = u; });
     if (!/^https?:/.test(src)) return one(src); const api = window.GW_PRICE_API || '';
-    return one(src + (src.includes('?') ? '&' : '?') + 'gwcors=1'); }
+    return one(src + (src.includes('?') ? '&' : '?') + 'gwcors=1').catch(() => api ? one(api + (api.includes('?') ? '&' : '?') + 'img=' + encodeURIComponent(src)) : Promise.reject(new Error('blocked'))); }
   // Shop photos are usually a product on white, often tall (boots) or wide. Thumbnails crop to a square from the top,
   // so those get trimmed and centred on a white square. The shop original is kept (origs), like a manual crop.
   async shopFit(src) { let im; try { im = await this.pcLoad(src); } catch (e) { return null; }
@@ -3354,9 +3354,9 @@ class Component extends DCLogic {
   shopFitSoon(ms) { clearTimeout(this._sfT); this._sfT = setTimeout(() => this.shopFitRun(), ms || 4000); }
   async shopFitRun() { if (this._sfBusy) return; this._sfBusy = true;
     try { const shopPh = x => /^https?:/.test(x || '') && !/\/storage\/v1\//.test(x);
-      for (let n = 0; n < 12; n++) { const p = this.prof(), chk = i => i.fitV === 2 ? i.fitChk || [] : [], it = (p.items || []).find(i => (i.photos || []).some(x => shopPh(x) && !chk(i).includes(x))); if (!it) break;
+      for (let n = 0; n < 12; n++) { const p = this.prof(), chk = i => i.fitV === 3 ? i.fitChk || [] : [], it = (p.items || []).find(i => (i.photos || []).some(x => shopPh(x) && !chk(i).includes(x))); if (!it) break;
         const src = it.photos.find(x => shopPh(x) && !chk(it).includes(x)), out = await this.shopFit(src);
-        this.mutate(pp => { const i = pp.items.find(x => x.id === it.id); if (!i) return; i.fitChk = (i.fitV === 2 ? i.fitChk || [] : []).concat(src).slice(-30); i.fitV = 2; if (!out) return; const at = (i.photos || []).indexOf(src); if (at < 0) return; i.photos[at] = out; i.origs = (i.origs || []).filter(o => o.c !== src).concat({ c: out, o: src, auto: true }); }, !out); }
+        this.mutate(pp => { const i = pp.items.find(x => x.id === it.id); if (!i) return; i.fitChk = (i.fitV === 3 ? i.fitChk || [] : []).concat(src).slice(-30); i.fitV = 3; if (!out) return; const at = (i.photos || []).indexOf(src); if (at < 0) return; i.photos[at] = out; i.origs = (i.origs || []).filter(o => o.c !== src).concat({ c: out, o: src, auto: true }); }, !out); }
     } catch (e) {} finally { this._sfBusy = false; } }
   async pcDone() { const P = this.state.pc; if (!P || P.busy) return; const r = P.rect;
     if (P.mode === 'share') { const im = await this.pcLoad(P.src).catch(() => null); if (!im) { this.toast('Couldn’t crop that photo'); return; }
@@ -4630,7 +4630,7 @@ class Component extends DCLogic {
       sizeLocked: !!f.m2m && !this.formLock(f), sizeFree: !f.m2m || !!this.formLock(f), sizeOpen: (!f.m2m || !!this.formLock(f)) && !!st.sizeOpen,
       sizeLabel: f.m2m && this.formLock(f) ? 'Made to measure' : this.formLock(f) && ![].concat((f.sizesOk || []).length ? f.sizesOk : f.size ? [f.size] : []).some(z => !cleanSizes(this.formLock(f).o.sizes).length || cleanSizes(this.formLock(f).o.sizes).includes(z)) ? 'Choose a size' : this.formLock(f) && (f.sizesOk || []).length > 1 ? f.sizesOk.filter(z => cleanSizes(this.formLock(f).o.sizes).includes(z)).join(' or ') : f.status === 'wanted' && (f.sizesOk || []).length > 1 ? f.sizesOk.join(' or ') : f.size && f.size !== 'Made to measure' ? f.size : f.status === 'wanted' ? 'Sizes you’d take' : 'Choose a size', sizeColor: (f.size && f.size !== 'Made to measure') || (f.m2m && this.formLock(f)) ? '#f5f5f7' : '#6e6e73',
       sizeRot: st.sizeOpen ? '180deg' : '0deg', toggleSize: () => this.setState({ sizeOpen: !st.sizeOpen }),
-      fPhotos: (f.photos || []).map((src, i) => ({ src, cover: i === 0 && f.photos.length > 1, canCrop: /^data:image\//.test(src) || /\/storage\/v1\/object\/public\/photos\//.test(src) || (f.origs || []).some(x => x.c === src), onCrop: e => { e.stopPropagation(); this.pcOpen(i); }, onDown: e => this.phDown(e, i), onRemove: () => this.setF('photos', f.photos.filter((_, j) => j !== i)) })),
+      fPhotos: (f.photos || []).map((src, i) => ({ src, cover: i === 0 && f.photos.length > 1, canCrop: /^data:image\//.test(src) || /^https?:/.test(src) || (f.origs || []).some(x => x.c === src), onCrop: e => { e.stopPropagation(); this.pcOpen(i); }, onDown: e => this.phDown(e, i), onRemove: () => this.setF('photos', f.photos.filter((_, j) => j !== i)) })),
       fMultiPh: (f.photos || []).length > 1, phMove: e => this.phMove(e), phUp: e => this.phUp(e), phStop: e => e.stopPropagation(),
       canPastePh: !!(navigator.clipboard && navigator.clipboard.read), pastePh: e => { this.bump(e.currentTarget, 1.06); this.pasteFromClipboard(); },
       phHint: (typeof matchMedia !== 'undefined' && matchMedia('(pointer: fine)').matches) ? 'Drop photos here, or paste one with ' + (/Mac|iPhone|iPad/.test(navigator.platform || '') ? '⌘' : 'Ctrl') + '+V.' : 'Copied a photo somewhere else? Tap Paste.',
