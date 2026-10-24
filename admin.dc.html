@@ -351,7 +351,7 @@ class Component extends DCLogic {
     catch (e) { this._edKeep = null; this.setEd({ saving: false }); this.say((e && e.message) || 'Couldn’t save'); } }
   edVals() { const ed = this.state.ed; if (!ed) return {}; if (!ed.ready) return { loading: true };
     const chip = (label, on, fn) => ({ label, bg: on ? '#ffd60a' : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: fn });
-    const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Socks', 'Cuffs', 'Gags', 'Leashes', 'Collars', 'Toys', 'Accessory'];
+    const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Socks', 'Boots', 'Shoes', 'Cuffs', 'Gags', 'Leashes', 'Collars', 'Toys', 'Accessory'];
     const MATS = ['Latex', 'Heavy rubber', 'Silicone', 'Neoprene', 'PVC / vinyl', 'PU / faux leather', 'Leather / suede', 'Lycra / spandex', 'Nylon / polyester', 'Metal / hardware', 'Cotton / fabric'];
     const cats = CATS.concat(ed.category && !CATS.includes(ed.category) ? [ed.category] : []), c = ed.c, onN = ed.photos.filter(p => p.on).length, firstOn = ed.photos.findIndex(p => p.on);
     const esc = s => s.replace(/[.*+?^$|()[\]\\{}]/g, '\\$&');
