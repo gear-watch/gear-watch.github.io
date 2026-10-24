@@ -278,10 +278,10 @@ const isShoeCat = cat => /boot|shoe|sneaker|heel|loafer|sandal|schoen|laars|foot
 // Any shoe size label (43, EU 43, US 10, US W 10, UK 7) → { eu, uk, us, usw, sys, label: in its own system, sub: approx. in the others }, or null.
 // Brands size in their own system (Demonia: US women's), so we keep their label and only show conversions as approximate.
 const SHOE_SYS = { eu: 'EU', uk: 'UK', us: 'US M', usw: 'US W' };
-// Brands with their own chart. Demonia (and Pleaser): EU = UK + 33, US men = UK + 1, US women = UK + 3.
-const SHOE_CHARTS = { demonia: { uk: 0, eu: 33, us: 1, usw: 3 } };
-const shoeChartOf = brand => /demonia|pleaser/i.test(String(brand || '')) ? 'demonia' : '';
-function shoeSize(s, cur, pref, chart) { const t = String(s || '').trim().replace(/\s+/g, ' '), m = t.match(/^(?:(eu|uk|us ?w(?:omen'?s?)?|w ?us|us ?m(?:en'?s?)?|us)\s*)?(\d{1,2}(?:[.,]5)?)\s*(eu|uk|us ?w|us ?m|us)?$/i); if (!m) return null; const n = parseFloat(m[2].replace(',', '.'));
+// Brands whose sizes come from a premade size set (Demonia, Pleaser): shown exactly as listed, never converted.
+const SHOE_CHARTS = {};
+const shoeChartOf = brand => /demonia|pleaser/i.test(String(brand || '')) ? 'own' : '';
+function shoeSize(s, cur, pref, chart) { if (chart === 'own') return null; const t = String(s || '').trim().replace(/\s+/g, ' '), m = t.match(/^(?:(eu|uk|us ?w(?:omen'?s?)?|w ?us|us ?m(?:en'?s?)?|us)\s*)?(\d{1,2}(?:[.,]5)?)\s*(eu|uk|us ?w|us ?m|us)?$/i); if (!m) return null; const n = parseFloat(m[2].replace(',', '.'));
   let sys = String(m[1] || m[3] || '').toLowerCase().replace(/\s/g, ''); sys = /^(usw|wus|uswomen|uswomens|uswomen's)/.test(sys) ? 'usw' : /^us/.test(sys) ? 'us' : sys;
   if (!sys) sys = n >= 30 ? 'eu' : cur === '$' ? 'us' : 'uk';
   const CH = SHOE_CHARTS[chart]; if (CH) { const uk = n - CH[sys], val = { eu: uk + CH.eu, uk, us: uk + CH.us, usw: uk + CH.usw }, f = q => String(q).replace('.5', '½'), p = pref && SHOE_SYS[pref] && pref !== sys ? [pref] : [], rest = ['eu', 'uk', 'us', 'usw'].filter(k => k !== sys && !p.includes(k));
