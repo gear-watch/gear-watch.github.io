@@ -2931,12 +2931,15 @@ class Component extends DCLogic {
         out.push(Object.assign({}, base, { k: 'bx' + it.id, cat: 'prices', t: tt, icBox: true, who: it.name, text: 'has been on the way for ' + days + ' days. Arrived yet?', time: relT(new Date(tt).toISOString()), hasThumb: !!ph, thumb: ph, onTap: go('coll') })); } } });
     // Catalog decisions on things you sent in.
     { const CA = st.catAct || {}, mineOf = cid => (P0.items || []).find(i => i.catalogId === cid), setMine = cid => () => { const it = mineOf(cid); this.closeNt(() => { if (it) { this.setState({ tab: it.status === 'wanted' ? 'wish' : 'coll' }); this.openForm(it); } else this.openCatId(cid); }); };
-      const row = (k, x, t, ok, text, onTap) => out.push(Object.assign({}, base, { k, cat: 'catalog', t, avBg: ok ? '#2a2614' : '#2c2c2e', icStar: !x.photo, hasThumb: !!x.photo, thumb: x.photo || '', who: x.name || 'Your item', text, time: relT(new Date(t).toISOString()), onTap }));
+      const row = (k, x, t, ok, text, onTap) => out.push(Object.assign({}, base, { k, cat: 'catalog', t, avBg: ok ? '#2a2614' : '#2c2c2e', icStar: true, hasThumb: !!x.photo, thumb: x.photo || '', who: x.name || 'Your item', text, time: relT(new Date(t).toISOString()), onTap }));
       (CA.added || []).forEach(x => { const t = x.decided_at ? new Date(x.decided_at).getTime() : 0; if (!t || now - t > 30 * 86400000 || !['live', 'removed'].includes(x.status)) return; const ok = x.status === 'live';
-        row('ca' + x.id + x.status, x, t, ok, ok ? 'is now in the catalog. Tap to pick your size and colour.' : 'wasn’t added to the catalog' + (x.note ? ': ' + x.note : '.'), ok ? setMine(x.id) : () => this.closeNt(() => this.openAct())); });
+        const back = ok && mineOf(x.id) && mineOf(x.id).catRe && Math.abs(new Date(mineOf(x.id).catRe).getTime() - t) < 600000;
+        row('ca' + x.id + x.status, x, t, ok, back ? 'is back in the catalog with its sizes and options. Tap to set yours.' : ok ? 'is now in the catalog. Tap to pick your size and colour.' : 'wasn’t added to the catalog' + (x.note ? ': ' + x.note : '.'), ok ? setMine(x.id) : () => this.closeNt(() => this.openAct())); });
       (CA.flags || []).forEach(x => { const t = x.resolved_at ? new Date(x.resolved_at).getTime() : 0; if (x.kind !== 'fix' || !t || now - t > 30 * 86400000 || !['applied', 'rejected'].includes(x.status)) return; const ok = x.status === 'applied', pick = x.field === 'size' || x.field === 'entry';
         row('cf' + x.id + x.field + x.status + t, x, t, ok, ok ? (x.field === 'size' ? 'now has size ' + x.value + '. Tap to set yours.' : x.field === 'entry' ? 'now lists ' + x.value + '. Tap to set yours.' : 'was updated with your suggestion.') : 'Your suggestion wasn’t applied' + (x.note ? ': ' + x.note : '.'), ok && pick ? setMine(x.id) : () => this.closeNt(() => this.openCatId(x.id))); });
-      (P0.items || []).forEach(it => { if (!it.catRe || it.catSt !== 'live') return; const t = new Date(it.catRe).getTime(); if (!t || now - t > 30 * 86400000) return;
+      // One notification per item: skip this if the approval above (you added it) already covers it.
+      const doneIds = new Set((CA.added || []).filter(x => x.status === 'live' && x.decided_at).map(x => x.id)), seenRe = new Set();
+      (P0.items || []).forEach(it => { if (!it.catRe || it.catSt !== 'live' || doneIds.has(it.catalogId) || seenRe.has(it.catalogId)) return; seenRe.add(it.catalogId); const t = new Date(it.catRe).getTime(); if (!t || now - t > 30 * 86400000) return;
         row('re' + it.id + it.catRe, { name: it.name, photo: (it.photos || [])[0] || '' }, t, true, 'is back in the catalog with its sizes and options. Tap to set yours.', () => this.closeNt(() => { this.setState({ tab: it.status === 'wanted' ? 'wish' : 'coll' }); this.openForm(it); })); }); }
     // Older accounts that never picked a currency: stays at the top until they choose.
     if (!CURS.includes(D.cur) && (D.onboarded || (P0.items || []).length)) out.push(Object.assign({}, base, { k: 'cur', cat: 'all', t: Infinity, avBg: '#2a2614', icStar: true, who: 'Which currency should prices show in?', text: 'Pick one. Shop prices are converted to it. You can change it later in the menu.', time: '', hasCur: true,
@@ -3554,7 +3557,7 @@ class Component extends DCLogic {
     const S = n(size), C = n(colour), hasS = vars.some(v => v.s), hasC = vars.some(v => v.c); if ((hasS && !S) || (hasC && !C && !(hasS && S))) return null;
     const ok = vars.filter(v => (!hasS || !S || n(v.s) === S) && (!hasC || !C || n(v.c) === C)); if (!ok.length || (hasC && !C && new Set(ok.map(v => v.p)).size > 1)) return null; return ok.find(v => v.in) || ok[0]; }
   // Approved catalog entries: only staff change the shared details; everyone picks their own size and colour.
-  formLock(f) { const st = this.state; if (!f || !f.catalogId || !(f.catSt === 'live' || f.catSt === 'gone') || st.staffRole) return null;
+  formLock(f) { const st = this.state; if (!f || !f.catalogId || !(f.catSt === 'live' || f.catSt === 'gone')) return null;
     const C = st.catP && st.catP.id === f.catalogId && st.catP.options ? st.catP : st.fCat && st.fCat.cid === f.catalogId ? st.fCat.c : null;
     if (!C && this._fcFor !== f.catalogId) { this._fcFor = f.catalogId; const G = window.GWSync, cid = f.catalogId; if (G && G.cat) G.cat('catalog_get', { cid }).then(c => { if (c) this.setState({ fCat: { cid, c } }); }).catch(() => {}); }
     return { C, o: (C && C.options) || {} }; }
