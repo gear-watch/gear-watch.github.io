@@ -229,7 +229,9 @@
     return (r.data || []).map(x => ({ id: x.id, username: x.username, avatar: x.avatar || null })); }
   async function suggestions() { if (!sb || !S.user) return [];
     const r = await sb.rpc('friend_suggestions'); if (r.error) return [];
-    return (r.data || []).map(x => ({ id: x.id, username: x.username, avatar: x.avatar || null, mutuals: x.mutuals || 0, via: x.via || [] })); }
+    // The official @GearWatch account is never suggested as a friend.
+    let off = new Set(); try { const o = await sb.from('profiles').select('id').eq('official', true).limit(5); if (!o.error) off = new Set((o.data || []).map(x => x.id)); } catch (e) {}
+    return (r.data || []).filter(x => !off.has(x.id)).map(x => ({ id: x.id, username: x.username, avatar: x.avatar || null, mutuals: x.mutuals || 0, via: x.via || [] })); }
   async function shareCreate(data) { if (!sb) await connect(); if (!sb || !S.user) return null;
     try { // photos are private, so a share carries its own photo links that work for a year
       const pre = cfg().url + PUB; let txt = JSON.stringify(data); const paths = [];
