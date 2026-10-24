@@ -67,7 +67,7 @@
           </sc-if>
           <sc-if value="{{ queueEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px 20px;color:#a1a1a6;font-size:15px;">{{ emptyTxt }}</div></sc-if>
           <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
-            <div style="display:flex;flex-direction:column;"><div style="display:grid;grid-template-columns:{{ r.cols }};gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid #1c1c1e;opacity:{{ r.op }};background:{{ r.selBg }};">
+            <div style="display:flex;flex-direction:column;"><div style="display:grid;grid-template-columns:{{ r.cols }};gap:14px;align-items:center;padding:14px 20px;border-bottom:{{ r.rowLine }};opacity:{{ r.op }};background:{{ r.selBg }};">
               <sc-if value="{{ r.canSel }}" hint-placeholder-val="{{ false }}"><button onClick="{{ r.toggleSel }}" aria-label="Select" style="width:24px;height:24px;border-radius:6px;border:2px solid {{ r.boxRing }};background:{{ r.boxBg }};padding:0;cursor:pointer;display:grid;place-items:center;color:#000;font-size:14px;font-weight:700;line-height:1;">{{ r.boxMark }}</button></sc-if>
               <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" style="position:relative;width:56px;height:56px;border-radius:8px;background:#1c1c1e;overflow:hidden;display:grid;place-items:center;color:#6e6e73;font-weight:600;"><span>{{ r.initial }}</span><sc-if value="{{ r.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ r.photo }}" alt="" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;filter:{{ r.blur }};transition:filter .2s;" style-hover="filter:none;"></sc-if></a>
               <div style="display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;min-width:0;">
@@ -81,12 +81,12 @@
                 </div>
               </div>
             </div>
-            <sc-if value="{{ r.focusOpen }}" hint-placeholder-val="{{ false }}"><div style="margin:12px 0 0;background:#0d0d0e;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;max-width:640px;">
+            <sc-if value="{{ r.focusOpen }}" hint-placeholder-val="{{ false }}"><div style="background:#0d0d0e;padding:0 20px 16px 90px;border-bottom:1px solid #2c2c2e;"><div style="background:#1c1c1e;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;max-width:640px;">
                 <span style="font-size:13px;font-weight:600;color:#a1a1a6;">{{ r.fLabel }}</span>
                 <div style="display:grid;grid-template-columns:80px minmax(0,1fr);gap:6px 12px;font-size:15px;align-items:baseline;"><span style="color:#6e6e73;font-size:13px;">Now</span><span style="color:#a1a1a6;overflow-wrap:anywhere;">{{ r.fCur }}</span><span style="color:#6e6e73;font-size:13px;">Suggested</span><span style="color:#f5f5f7;font-weight:600;overflow-wrap:anywhere;">{{ r.fNew }}</span></div>
                 <sc-if value="{{ r.fHasNote }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#a1a1a6;">{{ r.fNote }}</span></sc-if>
                 <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px;"><sc-if value="{{ r.fHasShop }}" hint-placeholder-val="{{ true }}"><a href="{{ r.fShop }}" target="_blank" rel="noopener" style="color:#ffd60a;">Check on the shop page</a></sc-if><button onClick="{{ r.fMore }}" style="border:0;background:none;color:#ffd60a;cursor:pointer;padding:0;font-size:13px;">Open the full entry</button></div>
-              </div></sc-if>
+              </div></div></sc-if>
               <sc-if value="{{ r.rejOpen }}" hint-placeholder-val="{{ false }}">
               <div style="padding:12px 20px 16px;border-bottom:1px solid #1c1c1e;background:#0d0d0e;display:flex;flex-direction:column;gap:10px;">
                 <span style="font-size:13px;font-weight:600;color:#a1a1a6;">Why? Optional. The person who sent it sees this.</span>
@@ -643,6 +643,7 @@ class Component extends DCLogic {
       const dup = r.tag === k[0] || (r.kind === 'hidden' && /^Hidden/.test(r.tag || '')) || (r.kind === 'photo' && r.tag === 'Shared photo'); r.hasTag = !!r.tag && !dup;
       if (r.tag === 'Shared photo · new account') r.tag = 'New account'; if (r.tag === 'Typed-in change') r.tag = 'Typed in';
       if (!/^Report/.test(r.tag || '')) { r.tagColor = '#a1a1a6'; r.tagBg = '#2c2c2e'; } });
+    rows.forEach(r => { r.rowLine = r.focusOpen ? 'none' : '1px solid #1c1c1e'; if (r.focusOpen && (!r.selBg || r.selBg === 'transparent')) r.selBg = '#0d0d0e'; });
     rows.sort((a, b) => String(a.at).localeCompare(String(b.at)));
     const F = [['all', 'All'], ['reports', 'Reports'], ['new', 'New accounts'], ['shops', 'Unknown shops'], ['typed', 'Typed-in changes'], ['fixes', 'Fixes'], ['photos', 'Shared photos'], ['items', 'Other pending']];
     const n = k => k === 'all' ? rows.length : rows.filter(r => r.grp === k).length;
@@ -670,7 +671,7 @@ class Component extends DCLogic {
       bStats: [['', 'All'], ['live', 'Live'], ['pending', 'Waiting'], ['hidden', 'Hidden'], ['gone', 'No longer sold'], ['removed', 'Removed']].map(([k, l]) => { const on = (st.bst || '') === k; return { label: l, bg: on ? '#ffd60a' : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: () => this.setState({ bst: k }, () => this.browse()) }; }),
       counts: [cnt.live != null ? cnt.live + ' live' : '', cnt.pending ? cnt.pending + ' pending' : '', cnt.hidden ? cnt.hidden + ' hidden' : '', cnt.gone ? cnt.gone + ' no longer sold' : ''].filter(Boolean).join(' · '),
       isQueue: page === 'queue', queueTitle: isBrowse ? 'All entries · ' + shown.length + (shown.length >= 120 ? '+' : '') : (F.find(x => x[0] === st.filter) || F[0])[1] + ' · ' + shown.length, queueEmpty: !shown.length,
-      rows: shown.map(r => { const open = st.openKey === r.key, cid = isBrowse ? r.key.slice(1) : null, on = !!cid && (st.sel || []).includes(cid); return Object.assign({}, r, { canSel: isBrowse, cols: isBrowse ? '24px 56px minmax(0,1fr)' : '56px minmax(0,1fr)', boxRing: on ? '#ffd60a' : '#48484a', boxBg: on ? '#ffd60a' : 'transparent', boxMark: on ? '✓' : '', selBg: on ? '#16140a' : 'transparent', toggleSel: () => this.setState(s => { const L = s.sel || []; return { sel: L.includes(cid) ? L.filter(x => x !== cid) : L.concat(cid) }; }), initial: (r.title || '?').charAt(0).toUpperCase(), hasPhoto: !!r.photo, hasNote: !!r.note, op: st.loading && !open ? 0.6 : 1, open, ed: open ? edv : {} }); }),
+      rows: shown.map(r => { const open = st.openKey === r.key, cid = isBrowse ? r.key.slice(1) : null, on = !!cid && (st.sel || []).includes(cid); return Object.assign({}, r, { canSel: isBrowse, cols: isBrowse ? '24px 56px minmax(0,1fr)' : '56px minmax(0,1fr)', boxRing: on ? '#ffd60a' : '#48484a', boxBg: on ? '#ffd60a' : 'transparent', boxMark: on ? '✓' : '', selBg: on ? '#16140a' : 'transparent', rowLine: '1px solid #1c1c1e', toggleSel: () => this.setState(s => { const L = s.sel || []; return { sel: L.includes(cid) ? L.filter(x => x !== cid) : L.concat(cid) }; }), initial: (r.title || '?').charAt(0).toUpperCase(), hasPhoto: !!r.photo, hasNote: !!r.note, op: st.loading && !open ? 0.6 : 1, open, ed: open ? edv : {} }); }),
       isDupes: page === 'dupes', dupeN: String((st.dupes || []).length), dupeEmpty: !st.dBusy && !(st.dupes || []).length, dupeEmptyTxt: st.dupes ? 'No likely duplicates right now.' : '',
       dupes: (st.dupes || []).map(p => { const one = x => ({ name: x.name, url: x.url, photo: (x.photos || [])[0] || '', hasPhoto: !!(x.photos || []).length, sub: [x.brand || x.domain, x.status, (x.own_n || 0) + ' own · ' + (x.want_n || 0) + ' want', ((x.options || {}).colors || []).length ? ((x.options || {}).colors || []).map(c => c.name).join(', ') : ''].filter(Boolean).join(' · ') });
         return { a: one(p.a), b: one(p.b), op: st.dBusy ? 0.6 : 1, simTxt: Math.round(p.sim * 100) + '% similar name',
