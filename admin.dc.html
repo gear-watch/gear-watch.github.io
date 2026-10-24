@@ -72,7 +72,7 @@
               <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" style="position:relative;width:56px;height:56px;border-radius:8px;background:#1c1c1e;overflow:hidden;display:grid;place-items:center;color:#6e6e73;font-weight:600;"><span>{{ r.initial }}</span><sc-if value="{{ r.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ r.photo }}" alt="" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;filter:{{ r.blur }};transition:filter .2s;" style-hover="filter:none;"></sc-if></a>
               <div style="display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;min-width:0;">
                 <div style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:3px;">
-                  <span style="display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;"><span style="flex:none;white-space:nowrap;font-size:12px;border-radius:9999px;padding:2px 8px;color:{{ r.tagColor }};background:{{ r.tagBg }};">{{ r.tag }}</span><span style="font-size:15px;font-weight:600;overflow-wrap:anywhere;">{{ r.title }}</span></span>
+                  <span style="display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;"><span style="flex:none;white-space:nowrap;font-size:12px;font-weight:600;border-radius:9999px;padding:2px 9px;color:{{ r.kColor }};background:{{ r.kBg }};box-shadow:{{ r.kRing }};">{{ r.kLabel }}</span><sc-if value="{{ r.hasTag }}" hint-placeholder-val="{{ true }}"><span style="flex:none;white-space:nowrap;font-size:11px;border-radius:9999px;padding:2px 8px;color:{{ r.tagColor }};background:{{ r.tagBg }};">{{ r.tag }}</span></sc-if><span style="font-size:15px;font-weight:600;overflow-wrap:anywhere;">{{ r.title }}</span></span>
                   <span style="font-size:13px;color:#a1a1a6;overflow-wrap:anywhere;">{{ r.sub }}</span>
                   <sc-if value="{{ r.hasNote }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#d1d1d6;">“{{ r.note }}”</span></sc-if>
                 </div>
@@ -606,7 +606,7 @@ class Component extends DCLogic {
       if (!hidden && unk && isAdmin && c.shop !== 'blocked') acts.push(btn('Trust shop', () => this.run('catalog_shop', { d: c.domain, st: 'trusted' }, c.domain + ' is trusted'), 'yes'));
       if (isAdmin && (unk || hidden) && c.shop !== 'blocked') acts.push(btn('Block shop', () => this.run('catalog_shop', { d: c.domain, st: 'blocked' }, c.domain + ' is blocked'), 'no'));
       acts.unshift(btn(st.openKey === 'i' + c.id ? 'Close' : 'Details', () => this.openEd('i' + c.id, c.id, c.status === 'pending')));
-      rows.push(Object.assign(t, { key: 'i' + c.id, at: c.created_at, grp: hidden ? 'reports' : unk ? 'shops' : c.by_new ? 'new' : 'items', title: c.name, url: c.url, photo: (c.photos || [])[0] || '', blur: 'none',
+      rows.push(Object.assign(t, { kind: hidden ? 'hidden' : c.reapprove ? 'recheck' : 'new', key: 'i' + c.id, at: c.created_at, grp: hidden ? 'reports' : unk ? 'shops' : c.by_new ? 'new' : 'items', title: c.name, url: c.url, photo: (c.photos || [])[0] || '', blur: 'none',
         sub: [c.domain, c.by ? 'added by @' + c.by : '', c.same_link ? c.same_link + (c.same_link === 1 ? ' other has it' : ' others have it') : ''].filter(Boolean).join(' · '), note: '', acts })); });
     flags.forEach(f => { const it = f.item || {}, rep = f.kind === 'report', typed = TYPED.includes(f.field), isPh = /^photo:/.test(f.field || '');
       const t = rep ? Object.assign({ tag: 'Report · ' + f.agree }, RED) : f.by_new ? Object.assign({ tag: 'New account' }, BLUE) : Object.assign({ tag: typed ? 'Typed-in change' : 'Fix · ' + f.agree + ' agree' }, GREY);
@@ -614,7 +614,7 @@ class Component extends DCLogic {
       const acts = rep ? [btn('Dismiss', dec('flag', f.id, 'reject', 'Dismissed')), btn(isPh ? 'Remove photo' : 'Remove item', dec('flag', f.id, 'approve', 'Removed'), 'no')]
         : [btn('Reject', rj('f' + f.id, 'flag', f.id)), btn('Approve', dec('flag', f.id, 'approve', 'Applied'), 'yes')];
       if (!isPh) acts.unshift(btn(st.openKey === 'f' + f.id ? 'Close' : 'Details', () => this.openEd('f' + f.id, f.catalog_id, false)));
-      rows.push(Object.assign(t, { key: 'f' + f.id, at: f.created_at, grp: rep ? 'reports' : f.by_new ? 'new' : typed ? 'typed' : 'fixes', title, url: isPh ? f.value : it.url || '', photo: isPh ? f.value : it.photo || '', blur: isPh || (rep && /photo/i.test(f.reason || '')) ? 'blur(8px)' : 'none',
+      rows.push(Object.assign(t, { kind: rep ? (isPh || /photo/i.test(f.reason || '') ? 'photorep' : 'report') : 'fix:' + (f.field || ''), key: 'f' + f.id, at: f.created_at, grp: rep ? 'reports' : f.by_new ? 'new' : typed ? 'typed' : 'fixes', title, url: isPh ? f.value : it.url || '', photo: isPh ? f.value : it.photo || '', blur: isPh || (rep && /photo/i.test(f.reason || '')) ? 'blur(8px)' : 'none',
         sub: [rep ? '“' + f.reason + '”' : it.name, f.by ? '@' + f.by : '', it.status && it.status !== 'live' ? 'entry ' + it.status : ''].filter(Boolean).join(' · '), note: f.note || '', acts })); });
     rows.forEach(r => { const R = st.rej, on = !!R && R.key === r.key; r.rejOpen = on; r.rejPicks = []; r.rejNote = '';
       if (!on) return; const setN = v => this.setState(z => ({ rej: Object.assign({}, z.rej, { note: v }) }));
@@ -624,7 +624,16 @@ class Component extends DCLogic {
     ((q && q.photos) || []).forEach(ph => { const it = ph.item || {}, hidden = ph.status === 'hidden';
       const t = hidden ? Object.assign({ tag: 'Hidden photo' }, RED) : ph.by_new ? Object.assign({ tag: 'Shared photo · new account' }, BLUE) : Object.assign({ tag: 'Shared photo' }, GREY);
       const acts = hidden ? [btn('Restore', dec('photo', ph.id, 'restore', 'Restored')), btn('Remove', dec('photo', ph.id, 'remove', 'Removed'), 'no')] : [btn('Remove', dec('photo', ph.id, 'remove', 'Removed'), 'no'), btn('Approve', dec('photo', ph.id, 'approve', 'Approved'), 'yes')];
-      rows.push(Object.assign(t, { key: 'p' + ph.id, at: ph.created_at, grp: hidden ? 'reports' : 'photos', title: 'Photo on “' + (it.name || '') + '”', url: ph.url, photo: ph.url, blur: hidden ? 'blur(8px)' : 'none', sub: [ph.by ? 'shared by @' + ph.by : '', 'hover to unblur'].filter((x, i) => i === 0 ? x : hidden).join(' · '), note: '', acts })); });
+      rows.push(Object.assign(t, { kind: hidden ? 'hidden' : 'photo', key: 'p' + ph.id, at: ph.created_at, grp: hidden ? 'reports' : 'photos', title: 'Photo on “' + (it.name || '') + '”', url: ph.url, photo: ph.url, blur: hidden ? 'blur(8px)' : 'none', sub: [ph.by ? 'shared by @' + ph.by : '', 'hover to unblur'].filter((x, i) => i === 0 ? x : hidden).join(' · '), note: '', acts })); });
+    // Type pill first (what kind of request), the old tag stays as a small grey warning.
+    const KC = { green: ['#30d158', '#0f2e17'], teal: ['#64d2ff', '#0f2a36'], purple: ['#bf5af2', '#2a1436'], blue: ['#0a84ff', '#0b2240'], orange: ['#ff9f0a', '#33220a'], red: ['#ff453a', '#3a1512'] };
+    const KIND = { new: ['New item', 'green'], recheck: ['Re-check', 'teal'], photo: ['Shared photo', 'purple'], report: ['Report', 'red'], photorep: ['Photo report', 'red'], hidden: ['Hidden', 'red'],
+      'fix:category': ['Category change', 'blue'], 'fix:material': ['Material change', 'blue'], 'fix:name': ['Name change', 'blue'], 'fix:brand': ['Brand change', 'blue'], 'fix:link': ['New link', 'blue'], 'fix:size': ['New size', 'blue'], 'fix:entry': ['New zip / entry', 'blue'], 'fix:duplicate': ['Duplicate', 'orange'], 'fix:gone': ['No longer sold', 'orange'] };
+    rows.forEach(r => { const k = KIND[r.kind] || (String(r.kind).indexOf('fix:') === 0 ? ['Suggested change', 'blue'] : ['Request', 'blue']), c = KC[k[1]];
+      r.kLabel = k[0]; r.kColor = c[0]; r.kBg = c[1]; r.kRing = r.kind === 'hidden' ? 'inset 0 0 0 1px #ff453a' : 'none';
+      const dup = r.tag === k[0] || (r.kind === 'hidden' && /^Hidden/.test(r.tag || '')) || (r.kind === 'photo' && r.tag === 'Shared photo'); r.hasTag = !!r.tag && !dup;
+      if (r.tag === 'Shared photo · new account') r.tag = 'New account'; if (r.tag === 'Typed-in change') r.tag = 'Typed in';
+      if (!/^Report/.test(r.tag || '')) { r.tagColor = '#a1a1a6'; r.tagBg = '#2c2c2e'; } });
     rows.sort((a, b) => String(a.at).localeCompare(String(b.at)));
     const F = [['all', 'All'], ['reports', 'Reports'], ['new', 'New accounts'], ['shops', 'Unknown shops'], ['typed', 'Typed-in changes'], ['fixes', 'Fixes'], ['photos', 'Shared photos'], ['items', 'Other pending']];
     const n = k => k === 'all' ? rows.length : rows.filter(r => r.grp === k).length;
