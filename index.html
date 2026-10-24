@@ -3506,7 +3506,9 @@ class Component extends DCLogic {
   closeFItem() { const all = this.state.fFromFeed && !this.state.fOutfit; this.animOut(this.fItemRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => this.setState(all ? { fItem: null, friend: null, fFromFeed: false, unfArm: false } : { fItem: null })); }
   closeFriend(cb) { this.animOut(this.friendRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ friend: null, fItem: null, fOutfit: null, fOutItem: null, unfArm: false }); if (cb) cb(); }); }
   prof() { const d = this.state.data; return d.profiles.find(p => p.id === d.activeId) || d.profiles[0]; }
-  mutate(fn) { const data = JSON.parse(JSON.stringify(this.state.data)); const p = data.profiles.find(x => x.id === data.activeId) || data.profiles[0]; fn(p, data); this.stamp(p); this.save(data); }
+  // quiet: background updates (catalog copies) are saved on this device but don't count as an edit,
+  // so another device's newer save isn't overwritten by them during cloud sync.
+  mutate(fn, quiet) { const data = JSON.parse(JSON.stringify(this.state.data)); const p = data.profiles.find(x => x.id === data.activeId) || data.profiles[0]; fn(p, data); this.stamp(p); this.save(data, quiet); }
   stamp(p) { const t = todayISO(), now = Date.now();
     (p.items || []).forEach(i => { if (i.added === t && !i.addedAt) i.addedAt = now; if (i.ownedOn === t && i.ownedAtD !== t) { i.ownedAt = now; i.ownedAtD = t; } });
     (p.outfits || []).forEach(o => { if (o.created === t && !o.createdAt) o.createdAt = now; const lw = String((o.worn || []).slice(-1)[0] || '').slice(0, 10); if (lw === t && o.wornAtD !== t) { o.wornAt = now; o.wornAtD = t; } }); }
@@ -3669,7 +3671,7 @@ class Component extends DCLogic {
         let ph = shop(it); if (!ph.length && !it.catalogId) ph = await look(it.url);
         try { const r = await G.cat('catalog_submit', { p: { url: it.url, name: it.name, brand: it.brandUnknown ? '' : it.brand || '', category: it.category || '', materials: it.materials || [], latexMm: it.latexMm || '', photos: ph, options: it.m2m ? { m2m: true } : undefined, price: it.status === 'wanted' && it.price != null ? it.price : null, was: it.status === 'wanted' && it.shopWas != null ? it.shopWas : null, currency: it.currency || '€' } }); if (r && r.id) got[it.id] = { id: r.id, st: r.status }; }
         catch (e) { const m = (e && e.message) || ''; if (/database update/.test(m)) { this.catOff = true; break; } if (/can’t be added|link is needed/i.test(m)) got[it.id] = { no: true }; else break; } }
-      if (Object.keys(got).length) this.mutate(pp => pp.items.forEach(i => { const g = got[i.id]; if (!g) return; if (g.no) i.catNo = true; else { i.catalogId = g.id; i.catSt = g.st; i.catV2 = true; if (i.m2m) i.catV3 = true; } }));
+      if (Object.keys(got).length) this.mutate(pp => pp.items.forEach(i => { const g = got[i.id]; if (!g) return; if (g.no) i.catNo = true; else { i.catalogId = g.id; i.catSt = g.st; i.catV2 = true; if (i.m2m) i.catV3 = true; } }), true);
       if (this.catOff) return;
       await this.catLinksNow();
       await this.catSyncCopies();
@@ -3677,8 +3679,9 @@ class Component extends DCLogic {
     } catch (e) { if (/database update/.test((e && e.message) || '')) this.catOff = true; } finally { this.catBusyRun = false; }
   }
   // Keep linked items in step with the catalog: shared details follow moderators' fixes; size, colour, price paid, notes and your own photos stay yours.
-  catApply(i, r) { const before = JSON.stringify([i.name, i.brand, i.category, i.materials, i.latexMm, i.photos, i.catSt, i.catPh, i.catRe, i.catOpt, i.size, i.m2m, i.colour, i.zip, i.notSure]);
+  catApply(i, r) { const before = JSON.stringify([i.name, i.brand, i.category, i.materials, i.latexMm, i.photos, i.catSt, i.catPh, i.catRe, i.catOpt, i.size, i.m2m, i.colour, i.zip, i.notSure, i.catAt]);
     if (r.reapproved_at && r.reapproved_at !== i.catRe) i.catRe = r.reapproved_at;
+    if (r.updated_at && i.catAt !== r.updated_at) i.catAt = r.updated_at;
     const own = x => /^data:/.test(x) || /\/storage\/v1\/object\/(public|authenticated)\/photos\//.test(x) || (i.origs || []).some(o => o && o.c === x);
     i.catSt = r.status; if (r.options && JSON.stringify(r.options) !== JSON.stringify(i.catOpt || null)) {
       // The catalog's choices for a field changed: an earlier "Not sure yet" for it no longer counts, so the copy asks again.
@@ -3689,7 +3692,7 @@ class Component extends DCLogic {
       const cp = (r.photos || []).filter(x => /^https?:/.test(x));
       if (!i.catPh) i.catPh = cp;
       else if (JSON.stringify(i.catPh) !== JSON.stringify(cp)) { const prev = i.catPh, ph = (i.photos || []).filter(x => own(x) || !prev.includes(x) || cp.includes(x)), add = cp.filter(x => !prev.includes(x) && !ph.includes(x)).slice(0, 4); let at = 0; ph.forEach((x, j) => { if (!own(x)) at = j + 1; }); ph.splice(at, 0, ...add); i.photos = ph; i.catPh = cp; } }
-    return JSON.stringify([i.name, i.brand, i.category, i.materials, i.latexMm, i.photos, i.catSt, i.catPh, i.catRe, i.catOpt, i.size, i.m2m, i.colour, i.zip, i.notSure]) !== before; }
+    return JSON.stringify([i.name, i.brand, i.category, i.materials, i.latexMm, i.photos, i.catSt, i.catPh, i.catRe, i.catOpt, i.size, i.m2m, i.colour, i.zip, i.notSure, i.catAt]) !== before; }
   // Your copy doesn't match the catalog's choices yet. Wishlist: empty is fine ("not sure yet"), a choice the catalog doesn't offer isn't. Owned: everything the catalog offers must be picked.
   catSingles(o) { o = o || {}; const sz = cleanSizes(o.sizes).filter(z => z !== 'Made to measure'), mtm = !!o.m2m || cleanSizes(o.sizes).includes('Made to measure'), out = {};
     if (!o.nosize) { if (sz.length === 1 && !mtm) out.size = sz[0]; else if (!sz.length && mtm) out.m2m = true; }
@@ -3713,19 +3716,22 @@ class Component extends DCLogic {
   // Only asks for entries changed since the last check, so it stays cheap.
   async catSyncCopies() { const G = window.GWSync, A = G && G.state ? G.state() : {}; if (!G || !G.cat || !A.user || this._cSync || !navigator.onLine) return;
     if (Date.now() - (this._cSyncAt || 0) < 20000) return; this._cSync = true; this._cSyncAt = Date.now();
-    try { const k = 'gw-cat-sync4-' + A.user.id; let mem = {}; try { mem = JSON.parse(localStorage.getItem(k) || '{}') || {}; } catch (e) {}
+    try { const k = 'gw-cat-sync5-' + A.user.id; let mem = {}; try { mem = JSON.parse(localStorage.getItem(k) || '{}') || {}; } catch (e) {}
       const D = this.state.data, p = D.profiles.find(x => x.id === D.activeId) || D.profiles[0], ids = [...new Set(p.items.filter(i => i.catalogId).map(i => i.catalogId))].slice(0, 300); if (!ids.length) return;
-      const known = new Set(mem.ids || []), fresh = ids.filter(id => !known.has(id)), old = ids.filter(id => known.has(id)), rows = [];
+      // v: the catalog version this device last applied per entry. A copy carrying another version (e.g. pulled from another device) gets a full refresh.
+      const V = mem.v || {}, stale = id => p.items.some(i => i.catalogId === id && i.catAt !== V[id]);
+      const known = new Set(mem.ids || []), fresh = ids.filter(id => !known.has(id) || stale(id)), old = ids.filter(id => known.has(id) && !stale(id)), rows = [];
       if (fresh.length) { const r = await G.cat('catalog_rows', { ids: fresh }); rows.push(...((r && r.rows) || [])); }
       let at = mem.at || null; if (old.length) { const r = await G.cat('catalog_rows', { ids: old, since: at }); rows.push(...((r && r.rows) || [])); if (r && r.at) at = r.at; }
       rows.forEach(r => { if (r.updated_at && (!at || r.updated_at > at)) at = r.updated_at; });
-      try { localStorage.setItem(k, JSON.stringify({ ids, at })); } catch (e) {}
+      rows.forEach(r => { if (r.id) V[r.id] = r.updated_at; });
+      try { localStorage.setItem(k, JSON.stringify({ ids, at, v: V })); } catch (e) {}
       rows.forEach(r => this.catApplyRow(r));
       if (Date.now() - (this._caAt || 0) > 60000) { this._caAt = Date.now(); G.cat('catalog_my_activity').then(r => { if (r) this.setState({ catAct: r }); }).catch(() => {}); } }
     catch (e) {} finally { this._cSync = false; } }
   catApplyRow(r) { if (!r || !r.id) return; const D = this.state.data, p = D.profiles.find(x => x.id === D.activeId) || D.profiles[0];
     if (!p.items.some(i => i.catalogId === r.id && this.catApply(JSON.parse(JSON.stringify(i)), r))) return;
-    this.mutate(pp => pp.items.forEach(i => { if (i.catalogId === r.id) this.catApply(i, r); })); }
+    this.mutate(pp => pp.items.forEach(i => { if (i.catalogId === r.id) this.catApply(i, r); }), true); }
   async catLinksNow(force) { const G = window.GWSync, A = G && G.state ? G.state() : {}; if (!G || !G.cat || !A.user) return;
     const D = this.state.data, p = D.profiles.find(x => x.id === D.activeId) || D.profiles[0], seen = new Set();
     const links = p.items.filter(i => i.catalogId && !i.private && ['wanted', 'ordered', 'owned'].includes(i.status) && !seen.has(i.catalogId) && seen.add(i.catalogId)).map(i => ({ id: i.catalogId, s: i.status, c: i.colour || '', z: i.m2m ? 'Made to measure' : i.size || '' }));
