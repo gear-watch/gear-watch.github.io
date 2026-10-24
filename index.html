@@ -1092,6 +1092,20 @@ input::placeholder{color:#6e6e73;}
       <button onClick="{{ fi.onAdd }}" style="border:0;background:{{ fi.addBg }};color:{{ fi.addFg }};border-radius:9999px;padding:14px;font-size:17px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">{{ fi.addLabel }}</button>
       <sc-if value="{{ fi.hasUrl }}" hint-placeholder-val="{{ true }}"><a href="{{ fi.url }}" target="_blank" rel="noopener" style="display:block;text-align:center;border-radius:9999px;padding:14px;background:#1c1c1e;color:#f5f5f7;font-size:17px;text-decoration:none;" style-active="transform:scale(0.95);">View at {{ fi.host }}</a></sc-if>
     </div>
+    <sc-if value="{{ fi.hasOutfits }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="right" style="padding:24px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">In {{ fi.outfitCount }}</div>
+      <div style="display:flex;gap:10px;overflow-x:auto;padding:0 16px;scrollbar-width:none;">
+        <sc-for list="{{ fi.outfits }}" as="o" hint-placeholder-count="1">
+          <div data-anim="pop" onClick="{{ o.onOpen }}" style="flex:none;width:112px;display:flex;flex-direction:column;gap:6px;cursor:pointer;" style-active="transform:scale(0.97);">
+            <div style="position:relative;width:112px;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:#1c1c1e;">
+              <sc-if value="{{ o.hasCover }}" hint-placeholder-val="{{ false }}"><img src="{{ o.cover }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if>
+              <sc-if value="{{ o.noCover }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;container-type:inline-size;overflow:hidden;padding:4px;box-sizing:border-box;"><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:calc((100cqw - 8px) / 3);grid-auto-flow:dense;gap:4px;"><sc-for list="{{ o.board }}" as="b" hint-placeholder-count="0"><div style="grid-column:{{ b.span }};grid-row:{{ b.span }};position:relative;border-radius:8px;overflow:hidden;background:#2c2c2e;"><sc-if value="{{ b.hasSrc }}" hint-placeholder-val="{{ true }}"><img src="{{ b.src }}" alt="" draggable="false" style="display:block;width:100%;height:100%;object-fit:cover;object-position:top;pointer-events:none;"></sc-if><sc-if value="{{ b.noSrc }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:grid;place-items:center;color:#6e6e73;font-weight:600;">{{ b.initial }}</span></sc-if></div></sc-for></div></div></sc-if>
+            </div>
+            <span style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ o.name }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
   </div>
 </sc-if>
 <sc-if value="{{ hasViewer }}" hint-placeholder-val="{{ false }}">
@@ -2967,7 +2981,7 @@ class Component extends DCLogic {
       if (it.status === 'ordered' && it.orderedOn) { const t0 = new Date(it.orderedOn + 'T12:00').getTime(), days = Math.floor((now - t0) / 86400000); if (days >= 10) { const tt = t0 + 10 * 86400000;
         out.push(Object.assign({}, base, { k: 'bx' + it.id, cat: 'prices', t: tt, icBox: true, who: it.name, text: 'has been on the way for ' + days + ' days. Arrived yet?', time: relT(new Date(tt).toISOString()), hasThumb: !!ph, thumb: ph, onTap: go('coll') })); } } });
     // Catalog decisions on things you sent in.
-    { const CA = st.catAct || {}, mineOf = cid => (P0.items || []).find(i => i.catalogId === cid), setMine = cid => () => { const it = mineOf(cid); this.closeNt(() => { if (it) { this.setState({ tab: it.status === 'wanted' ? 'wish' : 'coll' }); this.openForm(it); } else this.openCatId(cid); }); };
+    { const CA = st.catAct || {}, mineOf = cid => (P0.items || []).find(i => i.catalogId === cid), setMine = cid => () => { const it = mineOf(cid); if (it) this.ntMark(); this.closeNt(() => { if (it) { this.setState({ tab: it.status === 'wanted' ? 'wish' : 'coll' }); this.openForm(it); } else this.openCatId(cid); }); };
       const row = (k, x, t, ok, text, onTap, it) => { const need = !!it && this.needsEdit(it); out.push(Object.assign({}, base, { k, cat: 'catalog', t: need ? Infinity : t, avBg: ok ? '#2a2614' : '#2c2c2e', icStar: true, hasThumb: !!x.photo, thumb: x.photo || '', who: x.name || 'Your item', text, time: relT(new Date(t).toISOString()), onTap, hasEdit: need, onEdit: e => this.fixItem(it, e) })); };
       (CA.added || []).forEach(x => { const t = x.decided_at ? new Date(x.decided_at).getTime() : 0; if (!t || now - t > 30 * 86400000 || !['live', 'removed'].includes(x.status)) return; const ok = x.status === 'live';
         const back = ok && mineOf(x.id) && mineOf(x.id).catRe && Math.abs(new Date(mineOf(x.id).catRe).getTime() - t) < 600000;
@@ -3490,7 +3504,7 @@ class Component extends DCLogic {
     }
     return out; }
   closeFItem() { const all = this.state.fFromFeed && !this.state.fOutfit; this.animOut(this.fItemRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => this.setState(all ? { fItem: null, friend: null, fFromFeed: false, unfArm: false } : { fItem: null })); }
-  closeFriend(cb) { this.animOut(this.friendRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ friend: null, fItem: null, fOutfit: null, unfArm: false }); if (cb) cb(); }); }
+  closeFriend(cb) { this.animOut(this.friendRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => { this.setState({ friend: null, fItem: null, fOutfit: null, fOutItem: null, unfArm: false }); if (cb) cb(); }); }
   prof() { const d = this.state.data; return d.profiles.find(p => p.id === d.activeId) || d.profiles[0]; }
   mutate(fn) { const data = JSON.parse(JSON.stringify(this.state.data)); const p = data.profiles.find(x => x.id === data.activeId) || data.profiles[0]; fn(p, data); this.stamp(p); this.save(data); }
   stamp(p) { const t = todayISO(), now = Date.now();
@@ -3500,7 +3514,7 @@ class Component extends DCLogic {
     try { const d = JSON.parse(raw), pr = d && ((d.profiles || []).find(x => x.id === d.activeId) || (d.profiles || [])[0]), ss = ((pr && pr.sessions) || []).filter(s => s && s.values && Object.keys(s.values).length);
       if (ss.length) { const ord = ss.map((s, i) => [s, i]).sort((a, b) => String(a[0].date).localeCompare(String(b[0].date)) || a[1] - b[1]).map(x => x[0]), values = {}; ord.forEach(s => Object.assign(values, s.values)); this._flSess = { date: ord[ord.length - 1].date, values }; } } catch (e) {}
     return this._flSess; }
-  closeFOutfit() { const all = this.state.fFromFeed; this.animOut(this.fOutRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => this.setState(all ? { fOutfit: null, fItem: null, friend: null, fFromFeed: false, unfArm: false } : { fOutfit: null })); }
+  closeFOutfit() { const B = this.state.fOutItem, back = B && B.o === this.state.fOutfit && B.f === this.state.friend ? { id: B.id, kind: B.kind } : null, all = this.state.fFromFeed && !back; this.animOut(this.fOutRef.current, [{ transform: 'none' }, { transform: 'translateX(100%)' }], 320, () => this.setState(back ? { fOutfit: null, fItem: back, fOutItem: null, fiIdx: 0 } : all ? { fOutfit: null, fItem: null, friend: null, fFromFeed: false, unfArm: false, fOutItem: null } : { fOutfit: null, fOutItem: null })); }
   mutItem(id, fn) { this.mutate(p => { const it = p.items.find(x => x.id === id); if (it) fn(it, p); }); }
   dropItem() { return this.prof().items.filter(i => i.status === 'wanted' && dropOf(i) > 0).sort((a, b) => dropOf(b) - dropOf(a))[0]; }
   budgetInfo(p) {
@@ -3541,7 +3555,7 @@ class Component extends DCLogic {
     if (!cb && this.state.sheet === 'cprod' && ['form', 'act', 'disc'].includes(this.state.catFrom)) { this.setState({ sheet: { act: 'cact', disc: 'cdisc' }[this.state.catFrom] || 'form', catView: null }); return; }
     if (!cb && this.state.sheet === 'cvar' && this.state.catP) { this.setState({ sheet: (this.state.cvar && this.state.cvar.back) || 'cprod' }); return; }
     if (!cb && this.state.sheet === 'cact' && this.state.cactBack) { this.setState({ sheet: this.state.cactBack, cactBack: null }); return; }
-    const done = () => { this.setState({ sheet: null, form: null }); if (cb) cb(); };
+    const done = () => { const wasForm = this.state.sheet === 'form'; this.setState({ sheet: null, form: null }); if (cb) cb(); if (wasForm) this._ntBack = null; };
     if (this.backdropRef.current && !this.reduce) this.backdropRef.current.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' });
     this.animOut(this.sheetRef.current, [{ transform: 'none' }, { transform: 'translateY(100%)' }], 300, done);
   }
@@ -3688,7 +3702,10 @@ class Component extends DCLogic {
     if (ents.length && ((it.zip && !ents.includes(it.zip)) || (req('zip') && !it.zip))) return true;
     if (mm.length && (it.materials || []).includes('Latex') && ((it.latexMm && !mm.includes(it.latexMm)) || (req('mm') && !it.latexMm))) return true;
     return false; }
-  fixItem(it, e) { if (e) e.stopPropagation(); const go = () => { this.setState({ tab: it.status === 'wanted' ? 'wish' : 'coll' }); this.openForm(it); }; if (this.state.ntOpen) this.closeNt(go); else go(); }
+  // Edits started from Notifications return there after Save.
+  ntMark() { this._ntBack = { tab: this.state.tab, f: this.state.ntF || 'all' }; }
+  ntReturn() { const b = this._ntBack; this._ntBack = null; if (!b) return; setTimeout(() => this.setState({ tab: b.tab }, () => { this.openNt(); this.setState({ ntF: b.f }); }), 120); }
+  fixItem(it, e) { if (e) e.stopPropagation(); const go = () => { this.setState({ tab: it.status === 'wanted' ? 'wish' : 'coll' }); this.openForm(it); }; if (this.state.ntOpen) { this.ntMark(); this.closeNt(go); } else go(); }
   // Runs on open, whenever the app comes back to the front, and every 2 minutes while it's open.
   // Only asks for entries changed since the last check, so it stays cheap.
   async catSyncCopies() { const G = window.GWSync, A = G && G.state ? G.state() : {}; if (!G || !G.cat || !A.user || this._cSync || !navigator.onLine) return;
@@ -3953,6 +3970,7 @@ class Component extends DCLogic {
         else p.items.push(Object.assign({ id: uid(), status: 'wanted', added: t, history: price != null ? [{ date: t, price }] : [] }, base, { price }));
       });
       this.toast(isNew ? (f.status === 'owned' ? 'Added to your collection' : 'Added to your wishlist') : 'Saved');
+      this.ntReturn();
     });
   }
   openPaid(it, to) { this.setState({ sheet: 'paid', paid: { id: it.id, to, amt: it.paid != null ? String(it.paid) : '', cur: it.paid != null ? it.paidCur || '€' : '€', count: to === 'owned' && it.status === 'wanted' ? false : !it.noBudget } }); }
@@ -4189,11 +4207,13 @@ class Component extends DCLogic {
           price: FI.pu ? 'Price unknown' : FI.p == null ? '' : (FI.ap ? '≈ ' : '') + money(FI.c || '€', FI.p), hasPrice: FI.p != null || !!FI.pu, hasStars: isW ? !!FI.r : !!FI.rc, stars: this.stars((isW ? FI.r : FI.rc) || 0), starsLbl: isW ? 'How much they want it' : 'Recommends it', rows, hasRows: rows.length > 0,
           url: FI.u || '', hasUrl: !!host, host, addLabel: have ? 'On your list' : 'Add to my wishlist', addBg: have ? '#1c1c1e' : ACC, addFg: have ? '#6e6e73' : '#000',
           onAdd: e => { if (have) return; this.bump(e.currentTarget, 1.04); addF(FI); }, onBack: () => this.closeFItem(),
+          ...(() => { const inO = O.filter(o => (o.ids || []).includes(FI.id)).reverse(); return { hasOutfits: inO.length > 0, outfitCount: plural(inO.length, 'outfit'), outfits: inO.map(o => { const its = (o.ids || []).map(id => all.find(x => x.id === id)).filter(Boolean).map(x => ({ id: x.id, name: x.n, category: x.cat, g: x.g, photos: x.ph || [] })), cov = (o.ph || [])[0];
+            return { name: o.n, cover: cov || '', hasCover: !!cov, noCover: !cov, board: cov ? [] : this.board(its, o.sz), onOpen: () => { if (st.fOutfit === o.id) { this.closeFItem(); return; } this.setState({ fOutfit: o.id, fItem: null, fOutItem: Object.assign({}, st.fItem, { o: o.id, f: st.friend }) }); } }; }) }; })(),
           onZoom: () => this.openViewer(phs, st.fiIdx || 0, i => { const el = this.fiCarRef.current; if (el) el.scrollTo({ left: i * el.clientWidth }); this.setState({ fiIdx: i }); }) }; }
       const FOo = st.fOutfit ? O.find(o => o.id === st.fOutfit) : null;
       if (FOo) { const its = (FOo.ids || []).map(id => { const c = C.find(x => x.id === id); if (c) return [c, 'coll']; const w = W.find(x => x.id === id); return w ? [w, 'wish'] : null; }).filter(Boolean), oph = FOo.ph || [], cov = oph[0];
         const foTot = its.reduce((a, [x]) => a + (x.pp != null ? x.pp * (FX[x.pc || '€'] || 1) : 0), 0), foRough = its.some(([x]) => x.pp == null || x.ap);
-        fo = { back: st.fFromFeed ? 'Feed' : '@' + fU.username, name: FOo.n, sub: [plural(its.length, 'piece'), foTot ? (foRough ? 'about ' : '') + eurR(foTot) + ' total' : '', FOo.w ? 'Worn ' + FOo.w + '×' : '', FOo.lw ? 'Last worn ' + fmtD(String(FOo.lw).slice(0, 10)) : ''].filter(Boolean).join(' · '),
+        fo = { back: st.fOutItem && st.fOutItem.o === st.fOutfit && st.fOutItem.f === st.friend ? 'Back' : st.fFromFeed ? 'Feed' : '@' + fU.username, name: FOo.n, sub: [plural(its.length, 'piece'), foTot ? (foRough ? 'about ' : '') + eurR(foTot) + ' total' : '', FOo.w ? 'Worn ' + FOo.w + '×' : '', FOo.lw ? 'Last worn ' + fmtD(String(FOo.lw).slice(0, 10)) : ''].filter(Boolean).join(' · '),
           cover: cov || '', hasCover: !!cov, noCover: !cov, zoomCur: cov ? 'zoom-in' : 'default', onZoom: () => { if (cov) this.openViewer(oph, 0); },
           board: cov ? [] : this.board(its.map(([x]) => ({ id: x.id, name: x.n, category: x.cat, g: x.g, photos: x.ph || [] })), FOo.sz),
           pins: cov ? Object.entries(FOo.tg || {}).map(([id, t]) => { const hit = its.find(([x]) => x.id === id); return hit ? { name: hit[0].n, x: t.x + '%', y: t.y + '%', onTap: e => { e.stopPropagation(); this.setState({ fItem: { id, kind: hit[1] }, fiIdx: 0 }); } } : null; }).filter(Boolean) : [],
