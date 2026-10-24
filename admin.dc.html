@@ -46,10 +46,29 @@
               <input value="{{ bq }}" onChange="{{ onBq }}" placeholder="Search name, brand, category or link" type="search" autocomplete="off" style="width:100%;box-sizing:border-box;background:#1c1c1e;border:0;border-radius:9999px;padding:9px 16px;font-size:15px;color:#f5f5f7;outline:none;">
               <div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ bStats }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div>
             </div>
+            <div style="padding:10px 20px;border-bottom:1px solid #1c1c1e;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;">
+              <span style="font-size:14px;color:{{ gp.selColor }};">{{ gp.selTxt }}</span>
+              <button onClick="{{ gp.selAll }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:#f5f5f7;background:#2c2c2e;" style-active="transform:scale(0.95);">{{ gp.selAllLbl }}</button>
+              <sc-if value="{{ gp.hasSel }}" hint-placeholder-val="{{ false }}"><button onClick="{{ gp.clear }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:#f5f5f7;background:#2c2c2e;" style-active="transform:scale(0.95);">Clear</button><button onClick="{{ gp.toggle }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:#000;background:#ffd60a;font-weight:600;" style-active="transform:scale(0.95);">{{ gp.toggleLbl }}</button></sc-if>
+            </div>
+            <sc-if value="{{ gp.open }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;background:#0d0d0e;display:flex;flex-direction:column;gap:12px;">
+                <span style="font-size:13px;color:#a1a1a6;">Pick what to change on all {{ gp.n }}. Anything you don’t pick stays as it is on each item.</span>
+                <sc-for list="{{ gp.parts }}" as="p" hint-placeholder-count="4">
+                  <div style="background:#1c1c1e;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+                    <span style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:15px;font-weight:600;">{{ p.title }}</span><span style="font-size:13px;color:{{ p.stateC }};">{{ p.state }}</span></span>
+                    <sc-if value="{{ p.has }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;"><sc-for list="{{ p.vals }}" as="v" hint-placeholder-count="3"><span style="background:#3a3a3c;border-radius:9999px;padding:4px 12px;font-size:13px;">{{ v }}</span></sc-for><button onClick="{{ p.undo }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:#a1a1a6;background:none;padding:4px 6px;">Don’t change</button></div></sc-if>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ p.srcs }}" as="s" hint-placeholder-count="1"><button onClick="{{ s.onTap }}" style="max-width:100%;border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;background:#2c2c2e;color:#f5f5f7;display:flex;align-items:center;gap:8px;text-align:left;" style-active="transform:scale(0.95);"><span style="font-weight:600;color:#ffd60a;flex:none;">{{ s.lbl }}</span><span style="color:#a1a1a6;overflow-wrap:anywhere;">{{ s.sub }}</span></button></sc-for></div>
+                  </div>
+                </sc-for>
+                <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;align-items:center;"><span style="font-size:13px;color:#a1a1a6;">{{ gp.prog }}</span><button onClick="{{ gp.toggle }}" style="border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;color:#f5f5f7;background:#2c2c2e;">Cancel</button><button onClick="{{ gp.apply }}" style="border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;color:#000;background:#ffd60a;font-weight:600;opacity:{{ gp.applyOp }};">{{ gp.applyLbl }}</button></div>
+              </div>
+            </sc-if>
           </sc-if>
           <sc-if value="{{ queueEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px 20px;color:#a1a1a6;font-size:15px;">{{ emptyTxt }}</div></sc-if>
           <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
-            <div style="display:flex;flex-direction:column;"><div style="display:grid;grid-template-columns:56px minmax(0,1fr);gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid #1c1c1e;opacity:{{ r.op }};">
+            <div style="display:flex;flex-direction:column;"><div style="display:grid;grid-template-columns:{{ r.cols }};gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid #1c1c1e;opacity:{{ r.op }};background:{{ r.selBg }};">
+              <sc-if value="{{ r.canSel }}" hint-placeholder-val="{{ false }}"><button onClick="{{ r.toggleSel }}" aria-label="Select" style="width:24px;height:24px;border-radius:6px;border:2px solid {{ r.boxRing }};background:{{ r.boxBg }};padding:0;cursor:pointer;display:grid;place-items:center;color:#000;font-size:14px;font-weight:700;line-height:1;">{{ r.boxMark }}</button></sc-if>
               <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" style="position:relative;width:56px;height:56px;border-radius:8px;background:#1c1c1e;overflow:hidden;display:grid;place-items:center;color:#6e6e73;font-weight:600;"><span>{{ r.initial }}</span><sc-if value="{{ r.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ r.photo }}" alt="" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;filter:{{ r.blur }};transition:filter .2s;" style-hover="filter:none;"></sc-if></a>
               <div style="display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;min-width:0;">
                 <div style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:3px;">
@@ -383,6 +402,34 @@ class Component extends DCLogic {
       lookName: () => this.edLook('name'), lookBrand: () => this.edLook('brand'), lookPrice: () => this.edLook('price'),
       lookNameLbl: ed.looking === 'name' ? 'Looking…' : 'Look up on shop', lookBrandLbl: ed.looking === 'brand' ? 'Looking…' : 'Look up on shop', lookPriceLbl: ed.looking === 'price' ? 'Looking…' : 'Look up on shop',
       cancel: () => this.setState({ openKey: null, ed: null }), saveLbl: ed.saving ? 'Saving…' : 'Save', saveOp: ed.saving ? 0.5 : 1, save: () => this.edSave(false), canApprove: !!ed.pendingItem, needOpts: !!ed.pendingItem && !(ed.sizes || []).length && !ed.m2m, needCol: !!ed.pendingItem && !(ed.colors || []).length && !ed.custom, needEnt: !!ed.pendingItem && ['Catsuit', 'Surfsuit'].includes(ed.category) && !(ed.entries || []).length, saveApprove: () => this.edSave(true) }; }
+  // Group edit: copy sizes / colours / zip & entry / thickness onto several entries at once.
+  grpVals(list) { const st = this.state, sel = (st.sel || []).filter(id => list.some(c => c.id === id)), G = st.grp || {}, n = sel.length;
+    const L = k => { try { return JSON.parse(localStorage.getItem('gw-adm-last-' + k) || 'null'); } catch (e) { return null; } };
+    const setG = o => this.setState(s => ({ grp: Object.assign({}, s.grp, o) }));
+    const PRE = [['XS–XXL', ['XS', 'S', 'M', 'L', 'XL', 'XXL']], ['S–XL', ['S', 'M', 'L', 'XL']], ['One size', ['One size']]];
+    const part = (k, title, show, srcs) => { const v = G[k]; return { title, has: !!v, vals: v ? show(v) : [], state: v ? 'Will be replaced on all ' + n : 'Not changing', stateC: v ? '#ffd60a' : '#6e6e73', undo: () => setG({ [k]: null }), srcs }; };
+    const ls = L('sizes'), lc = L('colors'), le = L('entries'), lm = L('mm');
+    const parts = [
+      part('sizes', 'Sizes', v => [].concat(v.sizes, v.m2m ? ['Made to measure'] : []), [].concat(ls ? [{ lbl: 'Copy from last', sub: ls.name + ' · ' + [].concat(ls.sizes || [], ls.m2m ? ['Made to measure'] : []).join(', '), onTap: () => setG({ sizes: { sizes: ls.sizes.slice(), m2m: !!ls.m2m } }) }] : [], PRE.map(([l, z]) => ({ lbl: l, sub: '', onTap: () => setG({ sizes: { sizes: z.slice(), m2m: false } }) })))),
+      part('colors', 'Colours', v => [].concat(v.colors.map(x => x.name), v.custom ? ['Custom colours'] : []), lc ? [{ lbl: 'Copy from last', sub: lc.name + ' · ' + [].concat((lc.colors || []).map(x => x.name), lc.custom ? ['Custom'] : []).join(', '), onTap: () => setG({ colors: { colors: (lc.colors || []).slice(), custom: !!lc.custom } }) }] : []),
+      part('entries', 'Zip and entry', v => v.entries, le ? [{ lbl: 'Copy from last', sub: le.name + ' · ' + le.entries.join(', '), onTap: () => setG({ entries: { entries: le.entries.slice() } }) }] : []),
+      part('mm', 'Latex thickness', v => v.mm.map(x => x + ' mm'), lm ? [{ lbl: 'Copy from last', sub: lm.name + ' · ' + lm.mm.map(x => x + ' mm').join(', ') + ' · only latex items', onTap: () => setG({ mm: { mm: lm.mm.slice() } }) }] : [])
+    ].map(p => Object.assign(p, { srcs: p.srcs.length ? p.srcs : [{ lbl: 'Nothing saved yet', sub: 'Save one item with these filled in first', onTap: () => {} }] }));
+    const any = ['sizes', 'colors', 'entries', 'mm'].some(k => G[k]), busy = !!st.grpBusy;
+    return { hasSel: n > 0, n: String(n), selTxt: n ? n + ' selected' : 'Tick entries to edit several at once', selColor: n ? '#f5f5f7' : '#6e6e73', selAllLbl: list.length && list.every(c => (st.sel || []).includes(c.id)) ? 'Unselect all' : 'Select all ' + list.length,
+      selAll: () => this.setState(s => { const all = list.every(c => (s.sel || []).includes(c.id)); return { sel: all ? [] : list.map(c => c.id) }; }), clear: () => this.setState({ sel: [], grpOpen: false }),
+      open: !!st.grpOpen && n > 0, toggle: () => this.setState({ grpOpen: !st.grpOpen }), toggleLbl: st.grpOpen ? 'Close group edit' : 'Group edit', parts,
+      applyLbl: busy ? 'Saving…' : 'Apply & save to ' + n, applyOp: any && !busy ? 1 : 0.45, prog: st.grpProg || '', apply: () => { if (any && !busy) this.grpApply(sel); } }; }
+  async grpApply(ids) { const G = window.GWSync, g = this.state.grp || {}; let done = 0, skip = 0, fail = 0; this.setState({ grpBusy: true });
+    for (const cid of ids) { this.setState({ grpProg: (done + skip + fail + 1) + ' of ' + ids.length + '…' });
+      try { const c = await G.cat('catalog_get', { cid }); if (!c) { fail++; continue; } const o = Object.assign({ colors: [], sizes: [], entries: [], mm: [], custom: false, m2m: false }, c.options || {}), p = {};
+        if (g.sizes) { o.sizes = g.sizes.sizes.slice(); o.m2m = !!g.sizes.m2m; }
+        if (g.colors) { o.colors = g.colors.colors.map(x => ({ name: x.name, hex: x.hex || null })); o.custom = !!g.colors.custom; }
+        if (g.entries) o.entries = g.entries.entries.slice();
+        const latex = (c.materials || []).includes('Latex'); if (g.mm && latex) { o.mm = g.mm.mm.slice(); p.latexMm = g.mm.mm[0] || ''; } else if (g.mm && !(g.sizes || g.colors || g.entries)) { skip++; continue; }
+        p.options = o; await G.cat('catalog_edit', { cid, p }); done++; } catch (e) { fail++; } }
+    this.setState({ grpBusy: false, grpProg: '', grpOpen: false, sel: [], grp: {} });
+    this.say('Updated ' + done + (done === 1 ? ' entry' : ' entries') + (skip ? ' · ' + skip + ' skipped (not latex)' : '') + (fail ? ' · ' + fail + ' failed' : '')); this.browse(); }
   browse() { const G = window.GWSync; if (!G) return; const tok = (this.bTok = (this.bTok || 0) + 1); this.setState({ bBusy: true });
     G.cat('catalog_admin_search', { q: (this.state.bq || '').trim(), st: this.state.bst || '', lim: 120 }).then(r => { if (tok === this.bTok) this.setState({ bRes: r || [], bBusy: false }); }).catch(e => { if (tok === this.bTok) { this.setState({ bBusy: false }); this.say((e && e.message) || 'Couldn’t search'); } }); }
   loadCovers() { const G = window.GWSync; if (!G) return; G.cat('catalog_tiles').then(r => this.setState({ tilesA: r || [] })).catch(e => this.say((e && e.message) || 'Couldn’t load')); }
@@ -453,12 +500,13 @@ class Component extends DCLogic {
       reload: () => this.load(),
       filters: F.map(([k, l]) => { const c = n(k); return { k, label: l, n: String(c), nColor: k === 'reports' && c ? '#ff453a' : '#a1a1a6', bg: page === 'queue' && st.filter === k ? '#1c1c1e' : 'transparent', onTap: () => this.setState({ filter: k, page: 'queue', openKey: null, ed: null }) }; }).filter(x => x.k === 'all' || x.n !== '0' || st.filter === x.k),
       pages: [['browse', 'All entries'], ['dupes', 'Possible duplicates'], ['covers', 'Category covers'], ['shops', 'Known shops'], ['staff', 'Staff'], ['log', 'Change log']].map(([k, l]) => ({ label: l, bg: page === k ? '#1c1c1e' : 'transparent', onTap: () => { this.setState({ page: k, openKey: null, ed: null }); if (k === 'browse') setTimeout(() => this.browse(), 0); if (k === 'dupes') setTimeout(() => this.loadDupes(), 0); if (k === 'covers') setTimeout(() => this.loadCovers(), 0); } })),
+      gp: this.grpVals(isBrowse ? (st.bRes || []) : []),
       isList: page === 'queue' || isBrowse, isBrowse, listSort: isBrowse ? (st.bBusy ? 'Searching…' : 'Recently changed first') : 'Oldest first', emptyTxt: isBrowse ? (st.bRes ? 'No entries found.' : '') : 'Nothing waiting.',
       bq: st.bq || '', onBq: e => { this.setState({ bq: e.target.value }); clearTimeout(this.bT); this.bT = setTimeout(() => this.browse(), 300); },
       bStats: [['', 'All'], ['live', 'Live'], ['pending', 'Waiting'], ['hidden', 'Hidden'], ['gone', 'No longer sold'], ['removed', 'Removed']].map(([k, l]) => { const on = (st.bst || '') === k; return { label: l, bg: on ? '#ffd60a' : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: () => this.setState({ bst: k }, () => this.browse()) }; }),
       counts: [cnt.live != null ? cnt.live + ' live' : '', cnt.pending ? cnt.pending + ' pending' : '', cnt.hidden ? cnt.hidden + ' hidden' : '', cnt.gone ? cnt.gone + ' no longer sold' : ''].filter(Boolean).join(' · '),
       isQueue: page === 'queue', queueTitle: isBrowse ? 'All entries · ' + shown.length + (shown.length >= 120 ? '+' : '') : (F.find(x => x[0] === st.filter) || F[0])[1] + ' · ' + shown.length, queueEmpty: !shown.length,
-      rows: shown.map(r => { const open = st.openKey === r.key; return Object.assign({}, r, { initial: (r.title || '?').charAt(0).toUpperCase(), hasPhoto: !!r.photo, hasNote: !!r.note, op: st.loading && !open ? 0.6 : 1, open, ed: open ? edv : {} }); }),
+      rows: shown.map(r => { const open = st.openKey === r.key, cid = isBrowse ? r.key.slice(1) : null, on = !!cid && (st.sel || []).includes(cid); return Object.assign({}, r, { canSel: isBrowse, cols: isBrowse ? '24px 56px minmax(0,1fr)' : '56px minmax(0,1fr)', boxRing: on ? '#ffd60a' : '#48484a', boxBg: on ? '#ffd60a' : 'transparent', boxMark: on ? '✓' : '', selBg: on ? '#16140a' : 'transparent', toggleSel: () => this.setState(s => { const L = s.sel || []; return { sel: L.includes(cid) ? L.filter(x => x !== cid) : L.concat(cid) }; }), initial: (r.title || '?').charAt(0).toUpperCase(), hasPhoto: !!r.photo, hasNote: !!r.note, op: st.loading && !open ? 0.6 : 1, open, ed: open ? edv : {} }); }),
       isDupes: page === 'dupes', dupeN: String((st.dupes || []).length), dupeEmpty: !st.dBusy && !(st.dupes || []).length, dupeEmptyTxt: st.dupes ? 'No likely duplicates right now.' : '',
       dupes: (st.dupes || []).map(p => { const one = x => ({ name: x.name, url: x.url, photo: (x.photos || [])[0] || '', hasPhoto: !!(x.photos || []).length, sub: [x.brand || x.domain, x.status, (x.own_n || 0) + ' own · ' + (x.want_n || 0) + ' want', ((x.options || {}).colors || []).length ? ((x.options || {}).colors || []).map(c => c.name).join(', ') : ''].filter(Boolean).join(' · ') });
         return { a: one(p.a), b: one(p.b), op: st.dBusy ? 0.6 : 1, simTxt: Math.round(p.sim * 100) + '% similar name',
