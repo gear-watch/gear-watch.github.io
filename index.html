@@ -1537,7 +1537,7 @@ input::placeholder{color:#6e6e73;}
         </div>
         <div data-anim="up" style="padding:20px 20px 0;display:flex;flex-direction:column;gap:2px;">
           <span style="font-size:14px;font-weight:600;color:#f5f5f7;letter-spacing:-0.224px;">Yours to choose</span>
-          <sc-if value="{{ fLock.hasTodo }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:var(--gw-accent,#ffd60a);display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:9999px;background:var(--gw-accent,#ffd60a);flex:none;"></span><span>{{ fLock.todoTxt }}</span></span></sc-if>
+          <sc-if value="{{ fLock.hasTodo }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;"><sc-for list="{{ fLock.todoList }}" as="m" hint-placeholder-count="2"><span style="background:rgba(255,69,58,0.24);color:#fff;border-radius:9999px;padding:3px 10px 3px 8px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:9999px;background:#ff6961;flex:none;"></span><span>{{ m.label }}</span></span></sc-for></div></sc-if>
           <sc-if value="{{ fLock.noTodo }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#a1a1a6;">{{ fLock.doneTxt }}</span></sc-if>
         </div>
       </sc-if>
@@ -4460,7 +4460,7 @@ class Component extends DCLogic {
       fillFromLink: e => { this.bump(e.currentTarget, 1.08); this.fillFromLink(); }, toggleM2M: () => this.setF('m2m', !f.m2m),
       m2mTrack: f.m2m ? ACC : '#39393d', m2mKnob: f.m2m ? '20px' : '0px',
       matChips: MATS.concat((st.data.customMats || []).filter(m => !MATS.includes(m))).map(m => { const on = (f.materials || []).includes(m); return { label: m, bg: on ? ACC : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.08); this.setState(s => { const cur = s.form.materials || []; return { form: Object.assign({}, s.form, { materials: cur.includes(m) ? cur.filter(x => x !== m) : cur.concat(m), matAuto: false }) }; }); } }; }),
-      fLock: (() => { const LK = this.formLock(f); if (!LK) return { hasPrevS: false, hasPrevC: false, hasPrevZ: false, hasPrevM: false, badS: [], on: false, off: true, colFree: true, colChips: false, m2mShow: true, colors: [], catEdit: true, matEdit: true, catKnown: false, matKnown: false, anyKnown: false, mmPick: false, mmChips: [], hasTodo: false, noTodo: false, cSize: '#a1a1a6', cCol: '#a1a1a6', cZip: '#a1a1a6', cMm: '#a1a1a6' };
+      fLock: (() => { const LK = this.formLock(f); if (!LK) return { todoList: [], hasPrevS: false, hasPrevC: false, hasPrevZ: false, hasPrevM: false, badS: [], on: false, off: true, colFree: true, colChips: false, m2mShow: true, colors: [], catEdit: true, matEdit: true, catKnown: false, matKnown: false, anyKnown: false, mmPick: false, mmChips: [], hasTodo: false, noTodo: false, cSize: '#a1a1a6', cCol: '#a1a1a6', cZip: '#a1a1a6', cMm: '#a1a1a6' };
         const catK = !!(LK.C && LK.C.category), matK = !!(LK.C && (LK.C.materials || []).length);
         const cs = LK.o.colors || [], custom = !!LK.o.custom, cust = custom && (!!f.colourCustom || (!!f.colour && !cs.some(x => x.name === f.colour)));
         const chip = (label, on, dot, tap) => ({ label, dot, bg: on ? ACC : '#1c1c1e', color: on ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.06); tap(); } });
@@ -4468,11 +4468,11 @@ class Component extends DCLogic {
         const badS = [].concat(f.m2m ? [] : (f.sizesOk || []).length ? f.sizesOk : f.size ? [f.size] : []).filter(z => szL.length && !szL.includes(z)), badC = f.colour && cs.length && !custom && !cs.some(x => x.name === f.colour) ? f.colour : '', badZ = f.zip && entL.length && !entL.includes(f.zip) ? f.zip : '', badM = f.latexMm && mmL.length && !mmL.includes(f.latexMm) ? f.latexMm : '';
         const okS = f.m2m || [].concat((f.sizesOk || []).length ? f.sizesOk : f.size ? [f.size] : []).some(z => !szL.length || szL.includes(z));
         const needS = (szL.length > 0 || !!oz.m2m) && !okS, needC = (cs.length > 0 || custom) && (!String(f.colour || '').trim() || !!badC),
-          needZ = entL.length > 0 && (!f.zip || !!badZ), needM = mmL.length > 0 && (!f.latexMm || !!badM), todo = [needS && 'size', needC && 'colour', needZ && 'zip and entry', needM && 'thickness'].filter(Boolean), Y = ACC, G0 = '#a1a1a6';
+          needZ = entL.length > 0 && (!f.zip || !!badZ), needM = mmL.length > 0 && (!f.latexMm || !!badM), todo = [needS && 'size', needC && 'colour', needZ && 'zip and entry', needM && 'thickness'].filter(Boolean), Y = '#ff6961', G0 = '#a1a1a6';
         const todoTxt = todo.length ? 'Still to pick: ' + (todo.length > 1 ? todo.slice(0, -1).join(', ') + ' and ' + todo[todo.length - 1] : todo[0]) : '';
         const prev = v => 'Previously selected: ' + v + ' · not offered anymore';
         return { hasPrevS: badS.length > 0, prevS: prev(badS.join(', ')), hasPrevC: !!badC, prevC: prev(badC), hasPrevZ: !!badZ, prevZ: prev(badZ), hasPrevM: !!badM, prevM: prev(badM + ' mm'), badS,
-          hasTodo: todo.length > 0, noTodo: !todo.length, todoTxt, doneTxt: f.status === 'wanted' ? 'All set. Change these any time.' : 'All set. Add what you paid and your own photos.', cSize: needS ? Y : G0, cCol: needC ? Y : G0, cZip: needZ ? Y : G0, cMm: needM ? Y : G0,
+          hasTodo: todo.length > 0, noTodo: !todo.length, todoTxt, todoList: todo.map(t => ({ label: t.charAt(0).toUpperCase() + t.slice(1) })), doneTxt: f.status === 'wanted' ? 'All set. Change these any time.' : 'All set. Add what you paid and your own photos.', cSize: needS ? Y : G0, cCol: needC ? Y : G0, cZip: needZ ? Y : G0, cMm: needM ? Y : G0,
           on: true, off: false, brand: f.brandUnknown ? 'Unknown' : f.brand || '—', catLbl: f.category || '—', matLbl: (f.materials || []).join(', ') + ((f.materials || []).includes('Latex') && f.latexMm && (LK.o.mm || []).length < 2 ? ' · ' + f.latexMm + ' mm' : '') || '—',
           mmPick: (LK.o.mm || []).length > 1, mmChips: (LK.o.mm || []).map(v => chip(v + ' mm', f.latexMm === v, '', () => this.setF('latexMm', f.latexMm === v ? '' : v))),
           catKnown: catK, matKnown: matK, anyKnown: catK || matK || (LK.o.mm || []).length > 1, catEdit: !catK, matEdit: !matK,
