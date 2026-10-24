@@ -3514,7 +3514,13 @@ class Component extends DCLogic {
     if (this.backdropRef.current && !this.reduce) this.backdropRef.current.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' });
     this.animOut(this.sheetRef.current, [{ transform: 'none' }, { transform: 'translateY(100%)' }], 300, done);
   }
-  goTab(t, e) { if (e) this.bump(e.currentTarget.firstElementChild, 1.25); if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; const S = this.state, ov = S.friend || S.fItem || S.fOutfit; if (t === S.tab && !S.detail && !S.outfit && !ov) return; this.setState(Object.assign({ tab: t, detail: null, outfit: null }, ov ? { friend: null, fItem: null, fOutfit: null, fFromFeed: false, unfArm: false } : {})); }
+  goTab(t, e) { if (e) this.bump(e.currentTarget.firstElementChild, 1.25); const S = this.state;
+    // Tabs also close whatever is open on top: notifications, an empty story draft, sheets, the story viewer.
+    if (S.sc) { const C = S.sc; if ((C.files || []).length || String(C.caption || '').trim() || C.poll) { this.toast('Post or cancel your story first'); return; } this.scClose(); }
+    if (S.ntOpen) this.setState({ ntOpen: false });
+    if (S.sheet) this.closeSheet();
+    if (S.sv && this.svClose) this.svClose();
+    if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; const ov = S.friend || S.fItem || S.fOutfit; if (t === S.tab && !S.detail && !S.outfit && !ov) return; this.setState(Object.assign({ tab: t, detail: null, outfit: null }, ov ? { friend: null, fItem: null, fOutfit: null, fFromFeed: false, unfArm: false } : {})); }
   ensureCut(src) {
     if (!src || !this.state.cutsReady) return; const k = hashS(src);
     if (k in this.state.cuts) return; this._cq = this._cq || new Set(); if (this._cq.has(k)) return; this._cq.add(k);
