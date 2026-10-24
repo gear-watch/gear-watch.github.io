@@ -30,9 +30,16 @@ const num = s => {
 };
 const codeOf = c => { if (!c) return null; c = String(c).trim(); return ({ '€': 'EUR', '$': 'USD', '£': 'GBP' })[c] || (/^[A-Z]{3}$/.test(c) ? c : null); };
 
+// Ask shops for prices in the user's own currency: Shopify Markets reads these cookies, many WooCommerce currency plugins read ?currency=.
+const CC = { USD: 'US', GBP: 'GB', EUR: 'NL' };
+const wantHdr = w => (w && CC[w] ? { cookie: 'cart_currency=' + w + '; localization=' + CC[w] } : null);
+const withCur = (url, w) => (w ? url + (url.includes('?') ? '&' : '?') + 'currency=' + w : url);
+// Every colour/size combination from a Shopify feed, with its own price and stock.
+function shopVars(j) { const names = (j.options || []).map(o => String(typeof o === 'string' ? o : (o && o.name) || '')), ci = names.findIndex(n => /colou?r|kleur|farbe/i.test(n)), si = names.findIndex(n => /size|maat|größe|taille/i.test(n));
+  return (j.variants || []).slice(0, 80).map(v => ({ c: ci >= 0 ? v['option' + (ci + 1)] || null : null, s: si >= 0 ? v['option' + (si + 1)] || null : null, p: v.price ? v.price / 100 : null, w: v.compare_at_price && v.compare_at_price > v.price ? v.compare_at_price / 100 : null, in: v.available !== false })).filter(v => v.p != null); }
 const BOT = /cf-chl|challenge-platform|Just a moment\.\.\.|Attention Required|captcha-delivery|Access denied|Human verification|Checking if you(?:'|’)re human|security check to protect|Verify you are human|Pardon Our Interruption/i;
-async function get(url, json) {
-  const r = await fetch(url, { headers: json ? Object.assign({}, HEAD, { accept: 'application/json' }) : HEAD, redirect: 'follow' });
+async function get(url, json, extra) {
+  const r = await fetch(url, { headers: Object.assign({}, HEAD, json ? { accept: 'application/json' } : {}, extra || {}), redirect: 'follow' });
   const text = await r.text();
   if (!r.ok) { const e = new Error('HTTP ' + r.status); e.blocked = [401, 403, 429, 503].includes(r.status); throw e; }
   if (json && /^\s*</.test(text) && BOT.test(text.slice(0, 20000))) { const e = new Error('bot check page'); e.blocked = true; throw e; }
@@ -55,19 +62,22 @@ async function readerGo(url, fmt, target) {
 }
 
 // ---- shop platforms with a clean product feed ----
-async function shopify(u) {
+async function shopify(u, want) {
   if (!/\/products\/[^/?#]+/.test(u.pathname)) return null;
   const base = u.origin + u.pathname.replace(/\/+$/, ''), variant = u.searchParams.get('variant');
-  const j = JSON.parse(await get(base + '.js', true)), vs = j.variants || [];
+  const H = wantHdr(want), j = JSON.parse(await get(base + '.js', true, H)), vs = j.variants || [];
   const v = vs.find(x => String(x.id) === variant) || vs.find(x => x.available) || vs[0];
   if (!v || !v.price) return null;
-  let cur = null; try { cur = JSON.parse(await get(u.origin + '/cart.js', true)).currency || null; } catch {}
+  let cur = null; try { cur = JSON.parse(await get(u.origin + '/cart.js', true, H)).currency || null; } catch {}
   const was = v.compare_at_price && v.compare_at_price > v.price ? v.compare_at_price / 100 : null;
-  return { price: v.price / 100, was, cur, how: 'Shopify feed' };
+  return { price: v.price / 100, was, cur, how: 'Shopify feed' + (want && codeOf(cur) === want ? ', shop’s own ' + want + ' price' : '') };
 }
-async function woo(u) {
+async function wooApi(api, want) {
+  if (want) { try { const j = JSON.parse(await get(withCur(api, want), true)), p = Array.isArray(j) ? j[0] : null; if (p && p.prices && p.prices.currency_code === want) return j; } catch {} }
+  return JSON.parse(await get(api, true)); }
+async function woo(u, want) {
   const m = u.pathname.match(/\/product\/([^/?#]+)/); if (!m) return null;
-  const j = JSON.parse(await get(u.origin + '/wp-json/wc/store/v1/products?slug=' + encodeURIComponent(m[1]), true));
+  const j = await wooApi(u.origin + '/wp-json/wc/store/v1/products?slug=' + encodeURIComponent(m[1]), want);
   const p = Array.isArray(j) ? j[0] : null; if (!p || !p.prices) return null;
   const pr = p.prices, d = Math.pow(10, pr.currency_minor_unit ?? 2);
   const raw = Number(pr.price) || (pr.price_range ? Number(pr.price_range.min_amount) : 0);
@@ -133,7 +143,7 @@ function wasOf(html, price) {
   for (const m of html.matchAll(/"price"\s*:\s*"?([\d.]+)"?[^{}]{0,200}?"priceType"\s*:\s*"[^"]*(?:Strikethrough|ListPrice|SRP)/gi)) c.push(num(m[1]));
   const wc = html.match(/class=["'][^"']*\bprice\b[^"']*["'][^>]*>([\s\S]{0,800}?)<\/(?:p|div)>/i);
   if (wc) { const d = wc[1].match(/<(del|s|strike)\b[\s\S]*?<\/\1>/i); if (d) { const b = visible(d[0]).match(/[$€£]\s?([\d.,]+)|([\d.,]+)\s?[$€£]/); if (b) c.push(num(b[1] || b[2])); } }
-  const ej = html.match(/"(?:compareAtPrice|compare_at_price|regularPrice|regular_price|originalPrice|oldPrice|listPrice|wasPrice)"\s*:\s*"?(\d+(?:[.,]\d{1,2})?)/); if (ej) c.push(num(ej[1]));
+  const ej = html.match(/"(?:compareAtPrice|compare_at_price|regularPrice|regular_price|originalPrice|original_price|originPrice|origin_price|oldPrice|old_price|listPrice|list_price|marketPrice|market_price|wasPrice)"\s*:\s*"?(\d+(?:[.,]\d{1,2})?)/); if (ej) { let v = num(ej[1]); if (/^\d+$/.test(ej[1]) && v >= 5000 && price < 5000) v = v / 100; c.push(v); }
   // Markdown from the page reader (~~€310~~), struck-out prices anywhere, "Was US $310.00", and "25% off" next to a matching price.
   const st = html.match(/~~\s*(?:US\s*)?[$€£]\s?([\d.,]+)\s*~~/); if (st) c.push(num(st[1]));
   const dl = html.match(/<(del|s|strike)\b[^>]*>\s*(?:<[^>]+>\s*)*(?:US\s*)?[$€£]\s?([\d.,]+)/i); if (dl) c.push(num(dl[2]));
@@ -159,7 +169,7 @@ function parse0(html, u) {
   // Prices embedded in the page's own scripts (Wix, custom shops)
   const ej = html.match(/"(?:price|formattedPrice|finalPrice|salePrice|discountedPrice)"\s*:\s*"?[^\d"]{0,4}(\d+(?:[.,]\d{1,2})?)"?[^{}]{0,160}?"(?:priceCurrency|currency|currencyCode)"\s*:\s*"([A-Z]{3})"/)
     || html.match(/"(?:priceCurrency|currency|currencyCode)"\s*:\s*"([A-Z]{3})"[^{}]{0,160}?"(?:price|finalPrice|salePrice|discountedPrice)"\s*:\s*"?(\d+(?:[.,]\d{1,2})?)/);
-  if (ej) { const a = /^[A-Z]{3}$/.test(ej[1]) ? { c: ej[1], p: ej[2] } : { c: ej[2], p: ej[1] }; if (num(a.p)) return { price: num(a.p), cur: a.c, how: 'shop page data' }; }
+  if (ej) { const a = /^[A-Z]{3}$/.test(ej[1]) ? { c: ej[1], p: ej[2] } : { c: ej[2], p: ej[1] }; let pv = num(a.p); if (pv && /^\d+$/.test(String(a.p)) && pv >= 5000) pv = pv / 100; if (pv) return { price: pv, cur: a.c, how: 'shop page data' }; }
   const text = visible(html);
   const lb = text.match(LIBI); if (lb) return { price: num(lb[1]), cur: 'GBP', how: 'Libidex price' };
   // Latex Catfish (OpenCart): "$29.00 USD BASE PRICE"
@@ -176,9 +186,9 @@ function parse0(html, u) {
 }
 
 async function check(entry) {
-  const u = new URL(entry.url), tried = [];
+  const u = new URL(entry.url), tried = [], want = /libidex\.com/.test(entry.url) ? null : codeOf(entry.currency);
   for (const fn of [shopify, woo, magento]) {
-    try { const r = await fn(u); if (r) return Object.assign(r, { via: 'feed' }); } catch (e) { tried.push(fn.name + ': ' + e.message); }
+    try { const r = await fn(u, want); if (r) return Object.assign(r, { via: 'feed' }); } catch (e) { tried.push(fn.name + ': ' + e.message); }
   }
   let blocked = false;
   try { const html = await get(entry.url); const r = parse(html, u); if (r) return Object.assign(r, { via: 'page' });
@@ -236,7 +246,7 @@ function optsFromText(md) { const lines = md.split('\n').map(l => l.replace(/[*_
     if (m[2]) vals.push(m[2].trim());
     for (let k = i + 1; k < Math.min(lines.length, i + 16); k++) { const v = lines[k]; if (!v) continue; if (/:\s*/.test(v) || /[$€£]\s?\d/.test(v) || v.length > 22 || /^(add to cart|buy now|quantity|qty)/i.test(v)) break; if (!vals.includes(v)) vals.push(v); }
     groups.push({ name: m[1], values: vals.filter(Boolean).slice(0, 30) }); });
-  const sizes = (groups.find(g => /size|maat/i.test(g.name)) || {}).values || [], cols = groups.filter(g => /colou?r|kleur/i.test(g.name)), pats = groups.filter(g => /pattern|trim/i.test(g.name));
+  const sizes = cleanSizes((groups.find(g => /size|maat/i.test(g.name)) || {}).values), cols = groups.filter(g => /colou?r|kleur/i.test(g.name)), pats = groups.filter(g => /pattern|trim/i.test(g.name));
   let colors = [];
   if (cols.length === 1 && cols[0].values.length === 1 && pats.length && pats[0].values.length > 1) colors = pats[0].values.map(v => cols[0].values[0] + ' with ' + v + ' lines');
   else colors = cols.concat(pats).flatMap(g => g.values);
@@ -259,11 +269,16 @@ async function readerMd(url) {
   if (!r.ok) throw new Error('reader HTTP ' + r.status);
   const t = await r.text(); if (t.length < 20000 && BOT.test(t)) throw new Error('reader got the bot check too'); return t;
 }
+const SZ_WORD = /^(x{0,3}s|x{0,4}l|[2-6]x[sl]|m|sm|ml|small|medium|large|extra|x|petite|tall|long|short|regular|reg|plus|one|size|os|free|custom|made|to|measure|mtm|uk|eu|us|it|fr|de|au|jp|kids?|boys?|girls?|mens?|womens?|ladies|unisex|cup|waist|chest|and|or|[a-h]{1,2}|\d{1,3}(?:[.,]5)?[a-h]{0,2}|\d+x\d+)$/i;
+const SZ_BAD = /choose|select|option|guide|chart|clear|stock|sold|cart|basket|wish|colou?r|price|delivery|shipping|review|qty|quantity|please|weeks?|days?/i;
+function cleanSizes(a) { const out = []; (a || []).forEach(v => { let t = String(v == null ? '' : v).replace(/\s*[\(\[][^)\]]*[\)\]]/g, '').replace(/\s*[+-]?\s*[£$€]\s*\d.*$/, '').replace(/\s+/g, ' ').trim(); if (!t || t.length > 24 || SZ_BAD.test(t)) return; if (/^made to measure$/i.test(t)) t = 'Made to measure'; const w = t.split(/[\s\/\-–]+/).filter(Boolean); if (w.length && w.length <= 4 && w.every(x => SZ_WORD.test(x)) && !out.includes(t)) out.push(t); }); return out; }
+const SZ_ORD = ['xxxs', '3xs', 'xxs', '2xs', 'xs', 's', 'small', 'm', 'medium', 'regular', 'l', 'large', 'xl', 'xxl', '2xl', 'xxxl', '3xl', '4xl', '5xl'];
+function sortSizes(a) { const rank = v => { const k = String(v).toLowerCase().replace(/[^a-z0-9]/g, ''); const i = SZ_ORD.indexOf(k); if (i >= 0) return i; const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? 999 : 100 + n; }; return a.slice().sort((x, y) => rank(x) - rank(y)); }
 // Colour and size choices from a shop feed: [{ name: 'Color', values: [...] }, ...]
-function optsFrom(list) { const o = { colors: [], sizes: [] };
+function optsFrom(list) { const o = { colors: [], sizes: [], entries: [] };
   for (const x of list || []) { const n = String(x && x.name || ''), vals = (x.values || []).map(v => decode(typeof v === 'string' ? v : v && v.name)).filter(Boolean).slice(0, 30);
-    if (/colou?r|kleur|farbe|couleur/i.test(n)) o.colors = vals.map(name => ({ name })); else if (/size|maat|größe|taille/i.test(n)) o.sizes = vals; }
-  return o.colors.length || o.sizes.length ? o : null; }
+    if (/colou?r|kleur|farbe|couleur/i.test(n)) o.colors = vals.map(name => ({ name })); else if (/size|maat|größe|taille/i.test(n)) o.sizes = sortSizes(cleanSizes(vals)); else if (/zip|entry|opening|instap/i.test(n)) o.entries = vals.filter(v => v.length <= 40 && !/choose|select/i.test(v)).slice(0, 12); }
+  return o.colors.length || o.sizes.length || o.entries.length ? o : null; }
 // App-style shops (like Furrjoi) load the product with JavaScript from a JSON endpoint. Try the usual ones.
 function pickProd(j, depth) { if (!j || typeof j !== 'object' || (depth || 0) > 4) return null; if (Array.isArray(j)) return j.length === 1 ? pickProd(j[0], (depth || 0) + 1) : null;
   const name = j.name || j.title || j.goods_name || j.goodsName || j.productName || j.product_name, price = j.price ?? j.sale_price ?? j.salePrice ?? j.sellPrice ?? j.final_price ?? j.min_price;
@@ -273,31 +288,51 @@ async function spaApi(u) { const id = (u.pathname.match(/\/(\d+)\/?$/) || [])[1]
   const cands = ['/api/product/' + id, '/api/products/' + id, '/api/goods/' + id, '/api/goods/detail/' + id, '/api/product/detail/' + id, '/api/v1/product/' + id, '/api/v1/products/' + id, '/api/' + seg + '/' + id, '/api/product/info?id=' + id, '/api/goods/info?id=' + id, '/api/product?id=' + id];
   for (const p of cands) { let j = null; try { const r = await fetch(base + p, { headers: Object.assign({}, HEAD, { accept: 'application/json' }) }); if (!r.ok) continue; const t = await r.text(); if (!/^\s*[{[]/.test(t)) continue; j = JSON.parse(t); } catch { continue; }
     const p0 = pickProd(j); if (!p0) continue; const num0 = v => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
-    const price = num0(p0.price ?? p0.sale_price ?? p0.salePrice ?? p0.sellPrice ?? p0.final_price ?? p0.min_price), was = num0(p0.original_price ?? p0.originalPrice ?? p0.market_price ?? p0.marketPrice ?? p0.compare_price ?? p0.comparePrice ?? p0.old_price ?? p0.regular_price);
+    // Some shops send amounts in cents (25800 = $258.00).
+    const centsHint = Object.keys(p0).some(k => /cent|minor/i.test(k)) || /"(?:currency_minor_unit|minor_unit)"/.test(JSON.stringify(j).slice(0, 20000));
+    const fix = v => { if (v == null) return null; const isInt = Number.isInteger(v); return isInt && (centsHint || v >= 5000) ? Math.round(v) / 100 : v; };
+    const price = fix(num0(p0.price ?? p0.sale_price ?? p0.salePrice ?? p0.sellPrice ?? p0.final_price ?? p0.min_price));
+    let was = null; for (const k of Object.keys(p0)) { if (!/orig|old|market|compare|list|was|before|msrp|crossed|line_?price|del_?price|regular/i.test(k)) continue; const v = fix(num0(p0[k])); if (v && price && v > price * 1.01 && v <= price * 4) { was = v; break; } }
     let imgs = [].concat(p0.images || p0.imgs || p0.pics || p0.pictures || p0.gallery || p0.photos || [], p0.image || p0.cover || p0.img || p0.main_image || []).map(x => typeof x === 'string' ? x : x && (x.url || x.src || x.path || x.image)).filter(Boolean).map(x => abs(x, base)).filter(Boolean);
     const opts = optsFrom([].concat(p0.options || p0.attrs || p0.attributes || p0.specs || p0.sku_attrs || []).map(a => ({ name: a.name || a.title || a.attr_name, values: [].concat(a.values || a.options || a.items || a.list || []).map(v => typeof v === 'string' ? v : v && (v.name || v.value || v.title)) })));
-    return { name: decode(p0.name || p0.title || p0.goods_name || p0.goodsName || p0.productName || p0.product_name), brand: null, price, was: was && price && was > price ? was : null, cur: p0.currency || p0.currency_code || null, images: cleanImgs(imgs, base), desc: decode(String(p0.description || p0.desc || p0.content || '').replace(/<[^>]+>/g, ' ')).slice(0, 1500), options: opts, how: 'shop data (' + p + ')' }; }
+    return { name: decode(p0.name || p0.title || p0.goods_name || p0.goodsName || p0.productName || p0.product_name), brand: null, price, was, cur: p0.currency || p0.currency_code || null, images: cleanImgs(imgs, base), desc: decode(String(p0.description || p0.desc || p0.content || '').replace(/<[^>]+>/g, ' ')).slice(0, 1500), options: opts, how: 'shop data (' + p + ')' }; }
   return null; }
-async function lookup(url) {
+// WooCommerce product pages (Feturax and others): variations, dropdowns and colour swatches in the page itself.
+function wooForm(html) {
+  const unesc = s => String(s).replace(/&quot;/g, '"').replace(/&#0?39;/g, "'").replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  const nice = s => decode(String(s || '').replace(/[-_]+/g, ' ')).replace(/\b\w/g, c => c.toUpperCase()).trim();
+  const groups = {}, add = (k, v) => { const key = String(k || '').replace(/^attribute_/, '').replace(/^pa_/, ''); if (!key || !v || /^choose|^select|^kies/i.test(v)) return; (groups[key] = groups[key] || []); if (!groups[key].includes(v)) groups[key].push(v); };
+  let price = null, was = null; const variants = [];
+  const vm = html.match(/data-product_variations=["']([^"']+)["']/);
+  if (vm && vm[1] !== 'false') { try { const vs = JSON.parse(unesc(vm[1])); for (const v of vs) { const at = v.attributes || {}, ak = Object.keys(at), ck = ak.find(k => /colou?r|kleur/i.test(k)), sk = ak.find(k => /size|maat/i.test(k));
+        if (Number(v.display_price) && variants.length < 80) variants.push({ c: ck && at[ck] ? nice(at[ck]) : null, s: sk && at[sk] ? nice(at[sk]) : null, p: Number(v.display_price), w: Number(v.display_regular_price) > Number(v.display_price) ? Number(v.display_regular_price) : null, in: v.is_in_stock !== false });
+        for (const k in at) add(k, nice(at[k])); const p = Number(v.display_price), r = Number(v.display_regular_price); if (p && (price == null || p < price)) { price = p; was = r > p ? r : null; } } } catch {} }
+  for (const m of html.matchAll(/<select[^>]+name=["']attribute_([^"']+)["'][^>]*>([\s\S]*?)<\/select>/gi)) for (const o of m[2].matchAll(/<option[^>]*value=["']([^"']*)["'][^>]*>([\s\S]*?)<\/option>/gi)) if (o[1]) add(m[1], decode(o[2]) || nice(o[1]));
+  for (const m of html.matchAll(/data-attribute_name=["']attribute_([^"']+)["'][\s\S]{0,4000}?<\/(?:ul|div)>/gi)) for (const s of m[0].matchAll(/data-(?:value|term)=["']([^"']+)["'][^>]*?(?:title=["']([^"']+)["'])?/gi)) add(m[1], s[2] ? decode(s[2]) : nice(s[1]));
+  const keys = Object.keys(groups), colorK = keys.filter(k => /colou?r|kleur|pattern|trim/i.test(k)), sizeK = keys.find(k => /size|maat/i.test(k)), entK = keys.find(k => /zip|entry|opening/i.test(k));
+  const opts = { colors: colorK.flatMap(k => groups[k]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 30).map(name => ({ name })), sizes: sizeK ? sortSizes(cleanSizes(groups[sizeK])).slice(0, 30) : [], entries: entK ? groups[entK].slice(0, 12) : [] };
+  return { options: opts.colors.length || opts.sizes.length || opts.entries.length ? opts : null, price, was, variants }; }
+async function lookup(url, want) {
   const u = new URL(url), tried = [];
   if (/\/products\/[^/?#]+/.test(u.pathname)) {
-    try { const j = JSON.parse(await get(u.origin + u.pathname.replace(/\/+$/, '') + '.js', true)), variant = u.searchParams.get('variant'), vs = j.variants || [];
+    try { const H = wantHdr(want), j = JSON.parse(await get(u.origin + u.pathname.replace(/\/+$/, '') + '.js', true, H)), variant = u.searchParams.get('variant'), vs = j.variants || [];
       const v = vs.find(x => String(x.id) === variant) || vs.find(x => x.available) || vs[0];
-      let cur = null; try { cur = JSON.parse(await get(u.origin + '/cart.js', true)).currency || null; } catch {}
-      return { name: decode(j.title), brand: decode(j.vendor) || null, price: v && v.price ? v.price / 100 : j.price ? j.price / 100 : null, was: v && v.compare_at_price && v.compare_at_price > v.price ? v.compare_at_price / 100 : null, cur, images: cleanImgs([v && v.featured_image && v.featured_image.src].concat(j.images || []), u.href), desc: j.description || '', options: optsFrom((j.options || []).map(x => typeof x === 'string' ? null : x).filter(Boolean)), how: 'Shopify feed' };
+      let cur = null; try { cur = JSON.parse(await get(u.origin + '/cart.js', true, H)).currency || null; } catch {}
+      return { name: decode(j.title), brand: decode(j.vendor) || null, price: v && v.price ? v.price / 100 : j.price ? j.price / 100 : null, was: v && v.compare_at_price && v.compare_at_price > v.price ? v.compare_at_price / 100 : null, cur, images: cleanImgs([v && v.featured_image && v.featured_image.src].concat(j.images || []), u.href), desc: j.description || '', options: optsFrom((j.options || []).map(x => typeof x === 'string' ? null : x).filter(Boolean)), variants: shopVars(j), how: 'Shopify feed' };
     } catch (e) { tried.push('shopify: ' + e.message); }
   }
   const wm = u.pathname.match(/\/product\/([^/?#]+)/);
   if (wm) {
-    try { const j = JSON.parse(await get(u.origin + '/wp-json/wc/store/v1/products?slug=' + encodeURIComponent(wm[1]), true)), p = Array.isArray(j) ? j[0] : null;
-      if (p) { const pr = p.prices || {}, d = Math.pow(10, pr.currency_minor_unit ?? 2), raw = Number(pr.price) || (pr.price_range ? Number(pr.price_range.min_amount) : 0);
-        return { name: decode(p.name), brand: (p.brands && p.brands[0] && decode(p.brands[0].name)) || null, price: raw ? raw / d : null, was: Number(pr.regular_price) > raw ? Number(pr.regular_price) / d : null, cur: pr.currency_code || null, images: cleanImgs((p.images || []).map(x => x.src), u.href), desc: (p.short_description || '') + ' ' + (p.description || ''), options: optsFrom((p.attributes || []).map(a => ({ name: a.name, values: (a.terms || []).map(t => t.name) }))), how: 'WooCommerce feed' }; }
+    try { const j = await wooApi(u.origin + '/wp-json/wc/store/v1/products?slug=' + encodeURIComponent(wm[1]), want), p = Array.isArray(j) ? j[0] : null;
+      if (p) { const wf = await get(url).then(wooForm).catch(() => null); const pr = p.prices || {}, d = Math.pow(10, pr.currency_minor_unit ?? 2), raw = Number(pr.price) || (pr.price_range ? Number(pr.price_range.min_amount) : 0);
+        return { name: decode(p.name), brand: (p.brands && p.brands[0] && decode(p.brands[0].name)) || null, price: raw ? raw / d : null, was: Number(pr.regular_price) > raw ? Number(pr.regular_price) / d : null, cur: pr.currency_code || null, images: cleanImgs((p.images || []).map(x => x.src), u.href), desc: (p.short_description || '') + ' ' + (p.description || ''), options: optsFrom((p.attributes || []).map(a => ({ name: a.name, values: (a.terms || []).map(t => t.name) }))) || (wf && wf.options), variants: wf && wf.variants.length && (!want || pr.currency_code !== want) ? wf.variants : null, how: 'WooCommerce feed' }; }
     } catch (e) { tried.push('woocommerce: ' + e.message); }
   }
   let siteBrand = null;
   try { const html = await get(url), r = fromPage(html, u), site = String(meta(html, 'og:site_name') || '').trim(), host = u.hostname.replace(/^www\./, '').split('.')[0].toLowerCase();
     const gen = !r.name || r.name.trim().toLowerCase() === site.toLowerCase() || r.name.trim().toLowerCase() === host;
     if (gen) { siteBrand = site || null; r.name = ''; r.images = r.images.filter(x => !/og|banner|share|social/i.test(x)); if (/og:image:width" content="3[0-9]{3}/.test(html)) r.images = []; }
+    if (/woocommerce|wp-content/i.test(html)) { const wf = wooForm(html); if (wf.variants.length) r.variants = wf.variants; if (wf.options && !r.options) r.options = wf.options; if (wf.price != null && (r.price == null || wf.price < r.price)) { r.price = wf.price; if (wf.was) r.was = wf.was; } }
     if (r.name && (r.images.length || r.price)) { const md = html.match(/<meta[^>]+(?:name|property)=["'](?:og:)?description["'][^>]*content=["']([^"']*)/i); return Object.assign(r, { desc: r.desc || (md ? md[1] : ''), how: 'product page' }); } tried.push('page: not enough found'); }
   catch (e) { tried.push('page: ' + e.message); }
   try { const r = await spaApi(u); if (r && r.name) return Object.assign(r, { brand: r.brand || siteBrand }); } catch (e) { tried.push('shop data: ' + e.message); }
@@ -305,12 +340,16 @@ async function lookup(url) {
   catch (e) { tried.push('reader: ' + e.message); }
   const err = new Error('Couldn’t read that page'); err.detail = tried.join(' · '); throw err;
 }
-async function lookupOne(url, ctx) {
+async function lookupOne(url, ctx, want) {
   const key = normUrl(url); if (!key) return { ok: false, error: 'Not a valid link' };
-  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup7/' + encodeURIComponent(key));
+  if (/libidex\.com/.test(url) || !CC[want]) want = null;
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup10/' + (want || '-') + '/' + encodeURIComponent(key));
   const hit = await cache.match(ck); if (hit) return hit.json();
   let out;
-  try { const r = await lookup(url), code = codeOf(r.cur); out = { ok: true, name: r.name || '', brand: r.brand || '', price: r.price ?? null, was: r.was ?? null, options: r.options || null, currency: /libidex\.com/.test(url) ? '£' : (SYM[code] || code || null), images: r.images || [], desc: decode(String(r.desc || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim().slice(0, 1500), how: r.how }; }
+  try { const r = await lookup(url, want), code = codeOf(r.cur), vars = (r.variants || []).filter(v => v && v.p > 0).slice(0, 80);
+    // Cheapest colour/size that's in stock, when it's cheaper than the main price.
+    const lowV = vars.filter(v => v.in).sort((a, b) => a.p - b.p)[0], low = lowV && r.price && lowV.p < r.price * 0.99 ? { p: lowV.p, c: lowV.c, s: lowV.s } : null;
+    out = { ok: true, variants: vars.length > 1 ? vars : null, low, native: !!want && code === want, name: r.name || '', brand: r.brand || '', price: r.price ?? null, was: r.was ?? null, options: r.options || null, currency: /libidex\.com/.test(url) ? '£' : (SYM[code] || code || null), images: r.images || [], desc: decode(String(r.desc || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim().slice(0, 1500), how: r.how }; }
   catch (e) { out = { ok: false, error: String(e.message || e), detail: e.detail || '' }; }
   ctx.waitUntil(cache.put(ck, new Response(JSON.stringify(out), { headers: { 'cache-control': 'max-age=' + (out.ok ? 86400 : 600) } })));
   return out;
@@ -353,7 +392,7 @@ const json = (o, status = 200) => new Response(JSON.stringify(o, null, 2), { sta
 
 async function one(entry, ctx, force) {
   const key = normUrl(entry.url); if (!key) return null;
-  const cache = caches.default, ck = new Request('https://gearwatch-cache/v2/' + encodeURIComponent(key));
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/v3/' + (codeOf(entry.currency) || '-') + '/' + encodeURIComponent(key));
   if (!force) { const hit = await cache.match(ck); if (hit) return [key, await hit.json()]; }
   let out; const now = new Date().toISOString(), lk = new Request('https://gearwatch-cache/last-ok/' + encodeURIComponent(key));
   try { const r = await check(entry); out = { ok: true, price: r.price, was: r.was ?? null, currency: curFor(entry, r), checked: now, okAt: now, how: r.how, via: r.via };
@@ -460,13 +499,15 @@ export default {
     corsFor(req, env);
     if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
     const sp0 = new URL(req.url).searchParams, admin = !!(env && env.ADMIN_KEY) && sameKey(req.headers.get('x-admin-key') || sp0.get('key'), env.ADMIN_KEY);
+    // ?img=<shop photo> → the photo with CORS, so the app can crop and fit shop photos.
+    if (req.method === 'GET' && sp0.get('img')) return imgProxy(sp0.get('img'));
     if (req.method === 'GET' && !sp0.get('url') && !sp0.get('lookup')) return json({ ok: true, about: 'GearWatch price helper. Only signed-in GearWatch users can use it.' });
     if (req.method === 'GET' && !admin) return json({ error: 'Testing links from the address bar needs your ADMIN_KEY.' }, 403);
     let who = { uid: 'admin' };
     if (!admin) { who = await signedIn(req, env, ctx); if (!who.uid) return json({ error: who.error, auth: true }, who.status || 401); }
     if (req.method === 'GET') {
       const sp = sp0, url = sp.get('url');
-      if (sp.get('lookup')) return json(await lookupOne(sp.get('lookup'), ctx));
+      if (sp.get('lookup')) return json(await lookupOne(sp.get('lookup'), ctx, codeOf(sp.get('want'))));
       if (!url) return json({ ok: true, about: 'GearWatch price helper. Add ?url=<product link> to test a price, or ?lookup=<product link> to test filling in a new item.' });
       const r = await one({ url, currency: new URL(req.url).searchParams.get('cur') || '€' }, ctx, true);
       return json(r ? Object.assign({ key: r[0] }, r[1]) : { error: 'Not a valid link' });
@@ -475,7 +516,7 @@ export default {
     let body; try { body = await req.json(); } catch { return json({ error: 'Bad JSON' }, 400); }
     const list = (body.items || []).filter(x => x && /^https?:\/\//.test(x.url || '')).slice(0, 40), force = !!body.force;
     if (!admin && !(await underLimit(who.uid, body.lookup ? 1 : Math.max(1, list.length), ctx))) return json({ error: 'Too many checks. Try again in a few minutes.' }, 429);
-    if (body.lookup) return json(await lookupOne(String(body.lookup), ctx));
+    if (body.lookup) return json(await lookupOne(String(body.lookup), ctx, codeOf(body.want)));
     const items = {};
     for (let i = 0; i < list.length; i += 5) {
       const res = await Promise.all(list.slice(i, i + 5).map(e => one(e, ctx, force)));
