@@ -3722,7 +3722,9 @@ class Component extends DCLogic {
     if (r.status === 'live' || r.status === 'gone') { if (r.name) i.name = r.name; if (r.brand) { i.brand = r.brand; i.brandUnknown = false; } if (r.category && r.category !== i.category) { i.category = r.category; delete i.cgroup; } if ((r.materials || []).length) { i.materials = r.materials.slice(); const mmL = ((r.options || {}).mm || []); if (mmL.length > 1) { if (i.latexMm && !mmL.includes(i.latexMm)) i.latexMm = ''; } else if (r.latex_mm) i.latexMm = r.latex_mm; }
       const cp = (r.photos || []).filter(x => /^https?:/.test(x));
       if (!i.catPh) i.catPh = cp;
-      else if (JSON.stringify(i.catPh) !== JSON.stringify(cp)) { const prev = i.catPh, ph = (i.photos || []).filter(x => own(x) || !prev.includes(x) || cp.includes(x)), add = cp.filter(x => !prev.includes(x) && !ph.includes(x)).slice(0, 4); let at = 0; ph.forEach((x, j) => { if (!own(x)) at = j + 1; }); ph.splice(at, 0, ...add); i.photos = ph; i.catPh = cp; } }
+      else if (JSON.stringify(i.catPh) !== JSON.stringify(cp)) { const prev = i.catPh, old = i.photos || [], ph = old.filter(x => own(x) || !prev.includes(x) || cp.includes(x)), add = cp.filter(x => !prev.includes(x) && !ph.includes(x)).slice(0, 4);
+        // New shop photos go where the shop photos were, so photos you moved in front stay in front.
+        let at = -1; ph.forEach((x, j) => { if (!own(x)) at = j + 1; }); if (at < 0) { const f = old.findIndex(x => !own(x)); at = f < 0 ? ph.length : old.slice(0, f).filter(x => ph.includes(x)).length; } ph.splice(at, 0, ...add); i.photos = ph; i.catPh = cp; } }
     return JSON.stringify([i.name, i.brand, i.category, i.materials, i.latexMm, i.photos, i.catSt, i.catPh, i.catRe, i.catOpt, i.size, i.m2m, i.colour, i.zip, i.notSure, i.catAt]) !== before; }
   // Your copy doesn't match the catalog's choices yet. Wishlist: empty is fine ("not sure yet"), a choice the catalog doesn't offer isn't. Owned: everything the catalog offers must be picked.
   catSingles(o) { o = o || {}; const sz = cleanSizes(o.sizes).filter(z => z !== 'Made to measure'), mtm = !!o.m2m || cleanSizes(o.sizes).includes('Made to measure'), out = {};
