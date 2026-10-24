@@ -95,7 +95,7 @@
       if (!(sp.budget && sp.budget.amount) && lp.budget && lp.budget.amount) sp.budget = lp.budget;
     });
     out.collCats = [...new Set((out.collCats || []).concat(L.collCats || []))];
-    out.onboarded = !!(out.onboarded || L.onboarded); out.v = out.v || L.v || 1;
+    out.onboarded = !!(out.onboarded || L.onboarded); out.v = out.v || L.v || 1; if (!out.cur && L.cur) out.cur = L.cur;
     Object.keys(L).forEach(k => { if (/^imp\d+$/.test(k) && L[k]) out[k] = true; });
     if (!out.profiles.find(p => p.id === out.activeId)) out.activeId = (out.profiles[0] || {}).id;
     return out;
@@ -367,7 +367,7 @@
     location.reload();
   }
 
-  async function pushSave(j, kinds) { if (!sb) await connect(); if (!sb || !S.user) throw new Error('Sign in first'); const k = (j && j.keys) || {}; const r = await sb.rpc('push_save', { ep: j.endpoint, k: k.p256dh, a: k.auth, wants: kinds || ['friends', 'stories'] }); if (r.error) throw new Error(/push_save|function/i.test(r.error.message || '') ? 'Notifications need a database update. Run supabase/setup.sql again.' : r.error.message); }
+  async function pushSave(j, kinds) { if (!sb) await connect(); if (!sb || !S.user) throw new Error('Sign in first'); const k = (j && j.keys) || {}; const r = await sb.rpc('push_save', { ep: j.endpoint, k: k.p256dh, a: k.auth, wants: kinds || ['friends', 'stories', 'catalog'] }); if (r.error) throw new Error(/push_save|function/i.test(r.error.message || '') ? 'Notifications need a database update. Run supabase/setup.sql again.' : r.error.message); }
   async function pushTest() { if (!sb) await connect(); if (!sb || !S.user) throw new Error('Sign in first'); const r = await sb.rpc('push_test'); if (r.error) throw new Error(/push_test|function/i.test(r.error.message || '') ? 'Run supabase/setup.sql again first.' : r.error.message); return r.data; }
   async function pushRemove(ep) { if (!sb || !S.user) return; try { await sb.rpc('push_remove', { ep }); } catch (e) {} }
   // ===== Public catalog =====
