@@ -3342,7 +3342,7 @@ class Component extends DCLogic {
     const W = im.naturalWidth, H = im.naturalHeight; if (!W || !H || Math.abs(W / H - 1) < 0.1) return null;
     const k = Math.min(1, 360 / Math.max(W, H)), w = Math.max(1, Math.round(W * k)), hh = Math.max(1, Math.round(H * k)), sc = document.createElement('canvas'); sc.width = w; sc.height = hh;
     const g = sc.getContext('2d'); g.drawImage(im, 0, 0, w, hh); let d; try { d = g.getImageData(0, 0, w, hh).data; } catch (e) { return null; }
-    const lum = (x, y) => { const i = (y * w + x) * 4; return Math.min(d[i], d[i + 1], d[i + 2]); }, corner = (x0, y0) => { let n = 0, s = 0; for (let y = y0; y < y0 + 6 && y < hh; y++) for (let x = x0; x < x0 + 6 && x < w; x++) { s += lum(x, y); n++; } return n ? s / n : 0; };
+    const lum = (x, y) => { const i = (y * w + x) * 4; return d[i + 3] < 24 ? 255 : Math.min(d[i], d[i + 1], d[i + 2]); }, corner = (x0, y0) => { let n = 0, s = 0; for (let y = y0; y < y0 + 6 && y < hh; y++) for (let x = x0; x < x0 + 6 && x < w; x++) { s += lum(x, y); n++; } return n ? s / n : 0; };
     if ([corner(0, 0), corner(w - 6, 0), corner(0, hh - 6), corner(w - 6, hh - 6)].some(v => v < 238)) return null;
     let x1 = w, y1 = hh, x2 = -1, y2 = -1; for (let y = 0; y < hh; y++) for (let x = 0; x < w; x++) if (lum(x, y) < 236) { if (x < x1) x1 = x; if (x > x2) x2 = x; if (y < y1) y1 = y; if (y > y2) y2 = y; }
     if (x2 < 0) return null; const bx = x1 / k, by = y1 / k, bw = (x2 - x1 + 1) / k, bh = (y2 - y1 + 1) / k, side = Math.max(bw, bh) * 1.1, S = Math.round(Math.min(1200, side)), f = S / side;
@@ -3351,9 +3351,9 @@ class Component extends DCLogic {
   shopFitSoon(ms) { clearTimeout(this._sfT); this._sfT = setTimeout(() => this.shopFitRun(), ms || 4000); }
   async shopFitRun() { if (this._sfBusy) return; this._sfBusy = true;
     try { const shopPh = x => /^https?:/.test(x || '') && !/\/storage\/v1\//.test(x);
-      for (let n = 0; n < 12; n++) { const p = this.prof(), it = (p.items || []).find(i => (i.photos || []).some(x => shopPh(x) && !(i.fitChk || []).includes(x))); if (!it) break;
-        const src = it.photos.find(x => shopPh(x) && !(it.fitChk || []).includes(x)), out = await this.shopFit(src);
-        this.mutate(pp => { const i = pp.items.find(x => x.id === it.id); if (!i) return; i.fitChk = (i.fitChk || []).concat(src).slice(-30); if (!out) return; const at = (i.photos || []).indexOf(src); if (at < 0) return; i.photos[at] = out; i.origs = (i.origs || []).filter(o => o.c !== src).concat({ c: out, o: src, auto: true }); }, !out); }
+      for (let n = 0; n < 12; n++) { const p = this.prof(), chk = i => i.fitV === 2 ? i.fitChk || [] : [], it = (p.items || []).find(i => (i.photos || []).some(x => shopPh(x) && !chk(i).includes(x))); if (!it) break;
+        const src = it.photos.find(x => shopPh(x) && !chk(it).includes(x)), out = await this.shopFit(src);
+        this.mutate(pp => { const i = pp.items.find(x => x.id === it.id); if (!i) return; i.fitChk = (i.fitV === 2 ? i.fitChk || [] : []).concat(src).slice(-30); i.fitV = 2; if (!out) return; const at = (i.photos || []).indexOf(src); if (at < 0) return; i.photos[at] = out; i.origs = (i.origs || []).filter(o => o.c !== src).concat({ c: out, o: src, auto: true }); }, !out); }
     } catch (e) {} finally { this._sfBusy = false; } }
   async pcDone() { const P = this.state.pc; if (!P || P.busy) return; const r = P.rect;
     if (P.mode === 'share') { const im = await this.pcLoad(P.src).catch(() => null); if (!im) { this.toast('Couldn’t crop that photo'); return; }
