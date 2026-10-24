@@ -283,8 +283,10 @@
     let r = await sel('id,user_id,created_at,expires_at,audience,blur,caption,cap_bg,media,items,poll,highlight');
     if (r.error && /cap_bg/.test(r.error.message || '')) r = await sel('id,user_id,created_at,expires_at,audience,blur,caption,media,items,poll,highlight');
     if (r.error) { if (/stories/i.test(r.error.message || '') && /exist|schema/i.test(r.error.message || '')) return { missing: true, list: [] }; throw new Error(r.error.message); }
-    const list = r.data || [], ids = list.map(s => s.id), urls = await signed(list.flatMap(s => (s.media || []).map(m => m.path)));
-    list.forEach(s => (s.media || []).forEach(m => { m.url = urls[m.path] || ''; }));
+    const list = r.data || [], ids = list.map(s => s.id), urls = await signed(list.flatMap(s => (s.media || []).filter(m => m.path).map(m => m.path)));
+    list.forEach(s => (s.media || []).forEach(m => { m.url = m.pub || urls[m.path] || ''; }));
+    // Official @GearWatch account(s): their stories show for everyone.
+    let official = []; try { const o = await sb.from('profiles').select('id,username,avatar').eq('official', true).limit(3); if (!o.error) official = (o.data || []).map(x => ({ id: x.id, username: x.username, avatar: x.avatar || null, official: true })); } catch (e) {}
     const mine = list.filter(s => s.user_id === me).map(s => s.id), polls = list.filter(s => s.poll).map(s => s.id);
     const q = (t, sel, col, vals) => vals.length ? sb.from(t).select(sel).in(col, vals) : Promise.resolve({ data: [] });
     const NONE = ['00000000-0000-0000-0000-000000000000'];
@@ -298,7 +300,7 @@
         (pc.data || []).forEach(c => { for (let k = 0; k < c.n; k++) synth.push({ story_id: c.story_id, user_id: null, choice: c.choice }); });
         own.forEach(v => { const h = synth.find(x => x.story_id === v.story_id && x.choice === v.choice && !x.user_id); if (h) h.user_id = me; });
         votes = votes.filter(v => !others.includes(v.story_id)).concat(synth); } }
-    return { list, me, seenIds: (sv.data || []).map(x => x.story_id), views: (vw.data || []).filter(x => x.viewer !== me), reactions: rx.data || [], replies: rp.data || [], votes, close: (cf.data || []).map(x => x.friend), prof };
+    return { official, list, me, seenIds: (sv.data || []).map(x => x.story_id), views: (vw.data || []).filter(x => x.viewer !== me), reactions: rx.data || [], replies: rp.data || [], votes, close: (cf.data || []).map(x => x.friend), prof };
   }
   // Deletes your own stories that have ended (and aren't Highlights), files included. Runs from your own app.
   async function storiesCleanup() {
@@ -378,6 +380,10 @@
     if (r.error) { const m = r.error.message || ''; throw new Error(/bucket/i.test(m) ? 'Photo uploads need a database update. Run supabase/catalog.sql.' : /policy|security|unauthori/i.test(m) ? (worn ? 'Sharing photos needs a database update. Run supabase/catalog.sql.' : 'Only staff can upload catalog photos.') : m); }
     return sb.storage.from('catalog').getPublicUrl(path).data.publicUrl;
   }
+  // Staff: post a photo story as @GearWatch to everyone. files: [{ blob, w, h }]
+  async function officialStoryPost(files, caption, notify) { const media = [];
+    for (const f of files || []) media.push({ pub: await catUpload(f.blob), w: f.w || null, h: f.h || null });
+    return cat('official_story_post', { media, caption: caption || '', notify: notify !== false }); }
   async function catRemove(urls) {
     if (!sb || !S.user) return; const paths = (urls || []).map(u => decodeURIComponent((String(u).split('/storage/v1/object/public/catalog/')[1] || '').split('?')[0])).filter(Boolean);
     if (paths.length) await sb.storage.from('catalog').remove(paths);
@@ -389,7 +395,7 @@
     return r.data;
   }
   window.GWSync = {
-    init, cat, catUpload, catRemove, pushSave, pushRemove, pushTest, schedule, sync, social, shareCreate, shareGet, cardUpload, token, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut, deleteAccount,
+    init, cat, catUpload, catRemove, officialStoryPost, pushSave, pushRemove, pushTest, schedule, sync, social, shareCreate, shareGet, cardUpload, token, publicList: () => { try { return host ? publicList(host.get()) : null; } catch (e) { return null; } }, friendsOf, suggestions, setAvatar, follow, findUser, searchUsers, storiesLoad, storiesCleanup, storyPost, storyView, storyReact, storyReply, storyVote, storyPin, storyDelete, closeSet, unfollow, accept, decline, setUsername, sendCode, verify, signOut, deleteAccount,
     attach: h => { host = h; },
     on: f => { subs.add(f); f(Object.assign({}, S)); return () => subs.delete(f); },
     state: () => Object.assign({}, S)

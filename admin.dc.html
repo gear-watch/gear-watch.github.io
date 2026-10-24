@@ -171,6 +171,33 @@
             </div>
           </sc-for>
         </sc-if>
+        <sc-if value="{{ isStory }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;display:flex;flex-direction:column;gap:4px;"><span style="font-size:20px;font-weight:600;">Send story</span><span style="font-size:13px;color:#a1a1a6;line-height:1.5;">Posts a photo story as @GearWatch. Everyone on GearWatch sees it on Home for 24 hours.</span></div>
+          <div style="padding:20px;display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;border-bottom:1px solid #1c1c1e;">
+            <label style="position:relative;width:180px;aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#1c1c1e;border:1px dashed #48484a;display:grid;place-items:center;cursor:pointer;flex:none;">
+              <sc-if value="{{ os.hasImg }}" hint-placeholder-val="{{ false }}"><img src="{{ os.img }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if>
+              <sc-if value="{{ os.noImg }}" hint-placeholder-val="{{ true }}"><span style="font-size:14px;color:#a1a1a6;text-align:center;padding:12px;">Choose a photo<br><span style="font-size:12px;color:#6e6e73;">Portrait works best</span></span></sc-if>
+              <input type="file" accept="image/*" onChange="{{ os.onFile }}" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+            </label>
+            <div style="flex:1;min-width:260px;max-width:480px;display:flex;flex-direction:column;gap:14px;">
+              <div style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;color:#a1a1a6;">Caption · also the notification text</span><textarea value="{{ os.caption }}" onChange="{{ os.onCaption }}" placeholder="New: browse the catalog" rows="3" maxlength="300" style="background:#1c1c1e;border:1px solid #2c2c2e;border-radius:10px;padding:10px 12px;font-size:15px;color:#f5f5f7;resize:vertical;font-family:inherit;"></textarea></div>
+              <button onClick="{{ os.toggleNotify }}" style="border:0;background:#1c1c1e;border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:12px;cursor:pointer;color:#f5f5f7;font-size:15px;text-align:left;"><span style="flex:1;display:flex;flex-direction:column;gap:2px;"><span>Send a phone notification</span><span style="font-size:12px;color:#a1a1a6;">To everyone with story notifications on</span></span><span style="width:44px;height:26px;border-radius:9999px;background:{{ os.track }};position:relative;flex:none;transition:background .2s;"><span style="position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:9999px;background:#fff;transform:{{ os.knob }};transition:transform .2s;"></span></span></button>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><button onClick="{{ os.send }}" style="border:0;border-radius:9999px;padding:10px 22px;font-size:15px;font-weight:600;cursor:pointer;background:{{ os.sendBg }};color:{{ os.sendFg }};">{{ os.sendLbl }}</button><span style="font-size:13px;color:#a1a1a6;">{{ os.note }}</span></div>
+            </div>
+          </div>
+          <div style="padding:16px 20px 8px;font-size:15px;font-weight:600;">Recent · last 14 days</div>
+          <sc-if value="{{ os.noList }}" hint-placeholder-val="{{ false }}"><div style="padding:0 20px 20px;font-size:13px;color:#6e6e73;">No GearWatch stories yet.</div></sc-if>
+          <div style="padding:0 20px 24px;display:flex;flex-wrap:wrap;gap:14px;">
+            <sc-for list="{{ os.list }}" as="o" hint-placeholder-count="0">
+              <div style="width:140px;display:flex;flex-direction:column;gap:6px;">
+                <div style="position:relative;width:140px;aspect-ratio:9/16;border-radius:12px;overflow:hidden;background:#1c1c1e;opacity:{{ o.op }};"><img src="{{ o.img }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></div>
+                <span style="font-size:12px;color:#f5f5f7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ o.caption }}</span>
+                <span style="font-size:12px;color:#a1a1a6;">{{ o.sub }}</span>
+                <button onClick="{{ o.del }}" style="align-self:flex-start;border:0;background:#2c2c2e;color:#ff453a;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;">{{ o.delLbl }}</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
         <sc-if value="{{ isCovers }}" hint-placeholder-val="{{ false }}">
           <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;font-size:20px;font-weight:600;">Category covers</div>
           <div style="padding:12px 20px;font-size:13px;color:#a1a1a6;line-height:1.5;border-bottom:1px solid #1c1c1e;">The photos behind “Browse by category”. Without a cover, the tile uses the photo of its most-owned item. Drop a photo on a tile, paste one after tapping it, or pick a file.</div>
@@ -187,6 +214,24 @@
               </div>
             </sc-for>
           </div>
+          <div style="padding:16px 20px 4px;border-top:1px solid #1c1c1e;font-size:17px;font-weight:600;">Material covers</div>
+          <div style="padding:4px 20px 8px;font-size:13px;color:#a1a1a6;line-height:1.5;">The squares at the top of a category, one per material. Without a cover, the square uses its most-owned item. Drop or paste a photo on a square, or upload one.</div>
+          <sc-if value="{{ matCovMissing }}" hint-placeholder-val="{{ false }}"><div style="padding:0 20px 12px;font-size:13px;color:#ff9f0a;">Run supabase/material-covers.sql first.</div></sc-if>
+          <sc-for list="{{ matCov }}" as="g" hint-placeholder-count="0">
+            <div style="padding:10px 20px 4px;font-size:13px;font-weight:600;color:#a1a1a6;">{{ g.name }}</div>
+            <div style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:12px;">
+              <sc-for list="{{ g.mats }}" as="t" hint-placeholder-count="0">
+                <div onDragOver="{{ t.over }}" onDrop="{{ t.drop }}" onClick="{{ t.focus }}" style="width:110px;display:flex;flex-direction:column;gap:6px;">
+                  <div style="position:relative;width:110px;height:110px;border-radius:12px;overflow:hidden;background:#1c1c1e;box-shadow:{{ t.ring }};cursor:pointer;">
+                    <sc-if value="{{ t.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ t.photo }}" alt="" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;"></sc-if>
+                    <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.05) 30%,rgba(0,0,0,0.72) 100%);"></span>
+                    <span style="position:absolute;left:8px;right:8px;bottom:8px;display:flex;flex-direction:column;"><span style="font-size:13px;font-weight:700;color:#fff;">{{ t.name }}</span><span style="font-size:11px;color:#e5e5ea;">{{ t.sub }}</span></span>
+                  </div>
+                  <div style="display:flex;gap:10px;font-size:12px;align-items:center;"><label style="color:#ffd60a;cursor:pointer;">{{ t.upLbl }}<input type="file" accept="image/*" onChange="{{ t.pick }}" style="display:none;"></label><sc-if value="{{ t.custom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ t.clear }}" style="border:0;background:none;color:#a1a1a6;cursor:pointer;padding:0;font-size:12px;">Automatic</button></sc-if></div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
           <sc-if value="{{ cp.open }}" hint-placeholder-val="{{ false }}">
             <div style="margin:0 20px 20px;background:#0d0d0e;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;">
               <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;"><span style="font-size:15px;font-weight:600;">{{ cp.title }}</span><button onClick="{{ cp.close }}" style="border:0;background:#2c2c2e;color:#f5f5f7;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;">Close</button></div>
@@ -391,6 +436,25 @@ class Component extends DCLogic {
       if (!this.state.ed || this.state.ed.cid !== cid) { G.catRemove && G.catRemove([url]).catch(() => {}); return; } n++;
       this.setState(s => s.ed ? { ed: Object.assign({}, s.ed, { uploaded: (s.ed.uploaded || []).concat(url), photos: s.ed.photos.map(p => p.src === src ? Object.assign({}, p, { src: url }) : p) }) } : null); }
     if (n) this.say(n === 1 ? 'Fitted 1 shop photo to a square' : 'Fitted ' + n + ' shop photos to a square'); }
+  // ===== Send story (as @GearWatch) =====
+  async osLoad() { try { const l = await window.GWSync.cat('official_stories'); this.setState(s => ({ os: Object.assign({}, s.os, { list: l || [] }) })); } catch (e) { this.say((e && e.message) || 'Couldn’t load stories'); } }
+  osSet(p) { this.setState(s => ({ os: Object.assign({ notify: true }, s.os, p) })); }
+  async osPick(e) { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return; const b = await this.shrink(f).catch(() => null); if (!b) { this.say('Couldn’t read that photo'); return; }
+    const url = URL.createObjectURL(b), im = new Image(); im.onload = () => this.osSet({ w: im.naturalWidth, h: im.naturalHeight }); im.src = url; const o = this.state.os || {}; if (o.img) URL.revokeObjectURL(o.img); this.osSet({ blob: b, img: url }); }
+  async osSend() { const o = this.state.os || {}, G = window.GWSync; if (!o.blob || o.busy) return; if (!G || !G.officialStoryPost) { this.say('Reload the page and try again'); return; }
+    if (!o.arm) { this.osSet({ arm: true }); clearTimeout(this._osT); this._osT = setTimeout(() => this.osSet({ arm: false }), 4000); return; }
+    this.osSet({ busy: true, arm: false });
+    try { const n = await G.officialStoryPost([{ blob: o.blob, w: o.w, h: o.h }], o.caption || '', o.notify !== false); if (o.img) URL.revokeObjectURL(o.img); this.osSet({ busy: false, blob: null, img: '', caption: '' }); this.say('Story posted' + (o.notify !== false ? ' · notified ' + n + (n === 1 ? ' person' : ' people') : '')); this.osLoad(); }
+    catch (e) { this.osSet({ busy: false }); this.say((e && e.message) || 'Couldn’t post the story'); } }
+  async osDel(id) { if (this._osDel !== id) { this._osDel = id; clearTimeout(this._osDT); this._osDT = setTimeout(() => { this._osDel = null; this.forceUpdate(); }, 4000); this.forceUpdate(); return; } this._osDel = null;
+    try { await window.GWSync.cat('official_story_delete', { sid: id }); this.say('Story removed'); this.osLoad(); } catch (e) { this.say((e && e.message) || 'Couldn’t remove it'); } }
+  osVals() { const o = this.state.os || {}, on = o.notify !== false, ready = !!o.blob && !o.busy, ago = t => { const m = Math.round((Date.now() - new Date(t).getTime()) / 60000); return m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' d ago'; };
+    return { hasImg: !!o.img, noImg: !o.img, img: o.img || '', caption: o.caption || '', onCaption: e => this.osSet({ caption: e.target.value.slice(0, 300) }), onFile: e => this.osPick(e),
+      toggleNotify: () => this.osSet({ notify: !on }), track: on ? '#30d158' : '#48484a', knob: on ? 'translateX(18px)' : 'none',
+      send: () => this.osSend(), sendLbl: o.busy ? 'Posting…' : o.arm ? 'Tap again to post to everyone' : 'Post story', sendBg: ready ? '#ffd60a' : '#2c2c2e', sendFg: ready ? '#000' : '#6e6e73',
+      note: !o.blob ? 'Pick a photo first' : on ? 'Everyone gets a notification' : 'No notification, it just shows on Home',
+      noList: !!o.list && !o.list.length, list: (o.list || []).map(x => { const live = new Date(x.expires_at).getTime() > Date.now(); return { img: ((x.media || [])[0] || {}).pub || '', caption: x.caption || 'No caption', op: live ? 1 : 0.45,
+        sub: (live ? 'Live · ' : 'Ended · ') + ago(x.created_at) + ' · ' + x.views + (x.views === 1 ? ' view' : ' views'), delLbl: this._osDel === x.id ? 'Tap again' : 'Remove', del: () => this.osDel(x.id) }; }) }; }
   async edSave(approve) { const ed = this.state.ed, G = window.GWSync; if (!ed || !ed.ready || ed.saving) return;
     if (approve && !ed.noSize && !(ed.sizes || []).length && !ed.m2m) { this.say('Add at least one size, or turn on Made to measure'); return; }
     if (approve && !ed.noColor && !(ed.colors || []).length && !ed.custom) { this.say('Add at least one colour, or turn on Custom colours'); return; }
@@ -513,7 +577,7 @@ class Component extends DCLogic {
       toggleM2m: () => setS({ m2m: !S.m2m }), m2mTrack: S && S.m2m ? '#ffd60a' : '#39393d', m2mKnob: S && S.m2m ? '16px' : '0px', cancel: () => this.setState({ setEd: null }),
       save: async () => { if (!S || !String(S.name || '').trim()) { this.say('Give the set a name'); return; } if (!(S.sizes || []).length && !S.m2m) { this.say('Add at least one size'); return; }
         try { await window.GWSync.cat('catalog_size_set_save', { sid: S.id, nm: S.name.trim(), sz: S.sizes, mtm: !!S.m2m }); this.say('Saved ' + S.name.trim()); this.setState({ setEd: null }); this.loadSets(); } catch (e) { this.say((e && e.message) || 'Couldn’t save'); } } }; }
-  loadCovers() { const G = window.GWSync; if (!G) return; G.cat('catalog_tiles').then(r => this.setState({ tilesA: r || [] })).catch(e => this.say((e && e.message) || 'Couldn’t load')); }
+  loadCovers() { const G = window.GWSync; if (!G) return; G.cat('catalog_tiles').then(r => this.setState({ tilesA: r || [] })).catch(e => this.say((e && e.message) || 'Couldn’t load')); G.cat('catalog_tile_mats').then(r => this.setState({ tileMatsA: r || [] })).catch(() => this.setState({ tileMatsA: null })); }
   openCoverPick(t) { const G = window.GWSync; if (!G) return; if (this.state.cpick && this.state.cpick.t === t) { this.setState({ cpick: null }); return; } this.setState({ cpick: { t, loading: true, items: [] } });
     G.cat('catalog_browse', { t, lim: 120 }).then(r => this.setState(s => s.cpick && s.cpick.t === t ? { cpick: { t, loading: false, items: r || [] } } : null)).catch(e => { this.setState({ cpick: null }); this.say((e && e.message) || 'Couldn’t load'); }); }
   async setCover(t, fileOrUrl) { const G = window.GWSync; if (!G) return; this.setState({ coverBusy: t });
@@ -580,7 +644,7 @@ class Component extends DCLogic {
       showMsg, msgTitle, msgSub, ready: !!q, hasRole: !!role, who: A.username ? '@' + A.username : '', roleLbl: isAdmin ? 'Admin' : 'Moderator', isAdmin,
       reload: () => this.load(),
       filters: F.map(([k, l]) => { const c = n(k); return { k, label: l, n: String(c), nColor: k === 'reports' && c ? '#ff453a' : '#a1a1a6', bg: page === 'queue' && st.filter === k ? '#1c1c1e' : 'transparent', onTap: () => this.setState({ filter: k, page: 'queue', openKey: null, ed: null }) }; }).filter(x => x.k === 'all' || x.n !== '0' || st.filter === x.k),
-      pages: [['browse', 'All entries'], ['dupes', 'Possible duplicates'], ['covers', 'Category covers'], ['sets', 'Size sets'], ['shops', 'Known shops'], ['staff', 'Staff'], ['log', 'Change log']].map(([k, l]) => ({ label: l, bg: page === k ? '#1c1c1e' : 'transparent', onTap: () => { this.setState({ page: k, openKey: null, ed: null }); if (k === 'browse') setTimeout(() => this.browse(), 0); if (k === 'dupes') setTimeout(() => this.loadDupes(), 0); if (k === 'covers') setTimeout(() => this.loadCovers(), 0); if (k === 'sets') setTimeout(() => this.loadSets(), 0); } })),
+      pages: [['story', 'Send story'], ['browse', 'All entries'], ['dupes', 'Possible duplicates'], ['covers', 'Category covers'], ['sets', 'Size sets'], ['shops', 'Known shops'], ['staff', 'Staff'], ['log', 'Change log']].map(([k, l]) => ({ label: l, bg: page === k ? '#1c1c1e' : 'transparent', onTap: () => { this.setState({ page: k, openKey: null, ed: null }); if (k === 'browse') setTimeout(() => this.browse(), 0); if (k === 'dupes') setTimeout(() => this.loadDupes(), 0); if (k === 'covers') setTimeout(() => this.loadCovers(), 0); if (k === 'sets') setTimeout(() => this.loadSets(), 0); if (k === 'story') setTimeout(() => this.osLoad(), 0); } })),
       gp: this.grpVals(isBrowse ? (st.bRes || []) : []),
       isList: page === 'queue' || isBrowse, isBrowse, listSort: isBrowse ? (st.bBusy ? 'Searching…' : 'Recently changed first') : 'Oldest first', emptyTxt: isBrowse ? (st.bRes ? 'No entries found.' : '') : 'Nothing waiting.',
       bq: st.bq || '', onBq: e => { this.setState({ bq: e.target.value }); clearTimeout(this.bT); this.bT = setTimeout(() => this.browse(), 300); },
@@ -593,11 +657,17 @@ class Component extends DCLogic {
         return { a: one(p.a), b: one(p.b), op: st.dBusy ? 0.6 : 1, simTxt: Math.round(p.sim * 100) + '% similar name',
           keepA: () => this.merge(p.b.id, p.a.id, p.a.name), keepB: () => this.merge(p.a.id, p.b.id, p.b.name),
           notDupe: async () => { try { await window.GWSync.cat('catalog_not_dupe', { x: p.a.id, y: p.b.id }); this.setState(s => ({ dupes: (s.dupes || []).filter(z => z !== p) })); } catch (e) { this.say((e && e.message) || 'Couldn’t save'); } } }; }),
-      isSets: page === 'sets', sv: this.setsVals(),
+      isSets: page === 'sets', sv: this.setsVals(), isStory: page === 'story', os: this.osVals(),
       isCovers: page === 'covers', covers: [['suits', 'Suits'], ['headgear', 'Headgear'], ['tops', 'Tops & jackets'], ['bottoms', 'Bottoms & underwear'], ['handsfeet', 'Hands & feet'], ['footwear', 'Footwear'], ['harnesses', 'Harnesses'], ['play', 'Restraints & play'], ['accessories', 'Accessories']].map(([k, name]) => { const x = (st.tilesA || []).find(z => z.tile === k) || {}, busy = st.coverBusy === k, file = f => { const fl = Array.from(f || []).find(z => /^image\//.test(z.type || '')); if (fl) this.setCover(k, fl); };
         return { name, choose: e => { e.stopPropagation(); this.openCoverPick(k); }, chooseLbl: st.cpick && st.cpick.t === k ? 'Hide items' : 'Pick from items', photo: x.photo || '', hasPhoto: !!x.photo, custom: !!x.custom, sub: busy ? 'Saving…' : (x.n || 0) + ' items' + (x.custom ? ' · your cover' : x.photo ? ' · automatic' : ''), ring: st.coverFocus === k ? '0 0 0 2px #ffd60a' : 'none', upLbl: x.custom ? 'Change' : 'Upload cover',
           pick: e => { file(e.target.files); e.target.value = ''; }, over: e => e.preventDefault(), drop: e => { e.preventDefault(); const dt = e.dataTransfer; if (dt && dt.files && dt.files.length) { file(dt.files); return; } const u = dt && (dt.getData('text/uri-list') || dt.getData('text')); if (u && /^https?:/.test(u)) this.setCover(k, u.trim()); },
           focus: () => this.setState({ coverFocus: k }), clear: e => { e.stopPropagation(); this.setCover(k, ''); } }; }),
+      matCov: (() => { const TN = { suits: 'Suits', headgear: 'Headgear', tops: 'Tops & jackets', bottoms: 'Bottoms & underwear', handsfeet: 'Hands & feet', footwear: 'Footwear', harnesses: 'Harnesses', play: 'Restraints & play', accessories: 'Accessories' }, L = st.tileMatsA || [];
+        return Object.keys(TN).map(t => ({ name: TN[t], mats: L.filter(x => x.tile === t).map(x => { const k = t + ':' + x.mat, busy = st.coverBusy === k, file = f => { const fl = Array.from(f || []).find(z => /^image\//.test(z.type || '')); if (fl) this.setCover(k, fl); };
+          return { name: x.mat, photo: x.photo || '', hasPhoto: !!x.photo, custom: !!x.custom, sub: busy ? 'Saving…' : x.n + (x.n === 1 ? ' item' : ' items') + (x.custom ? ' · yours' : ''), ring: st.coverFocus === k ? '0 0 0 2px #ffd60a' : 'none', upLbl: x.custom ? 'Change' : 'Upload',
+            pick: e => { file(e.target.files); e.target.value = ''; }, over: e => e.preventDefault(), drop: e => { e.preventDefault(); const dt = e.dataTransfer; if (dt && dt.files && dt.files.length) { file(dt.files); return; } const u = dt && (dt.getData('text/uri-list') || dt.getData('text')); if (u && /^https?:/.test(u)) this.setCover(k, u.trim()); },
+            focus: () => this.setState({ coverFocus: k }), clear: e => { e.stopPropagation(); this.setCover(k, ''); } }; }) })).filter(g => g.mats.length > 1); })(),
+      matCovMissing: st.tileMatsA === null,
       cp: (() => { const P = st.cpick; if (!P || page !== 'covers') return { open: false }; const TN = { suits: 'Suits', headgear: 'Headgear', tops: 'Tops & jackets', bottoms: 'Bottoms & underwear', handsfeet: 'Hands & feet', footwear: 'Footwear', harnesses: 'Harnesses', play: 'Restraints & play', accessories: 'Accessories' }, cur = ((st.tilesA || []).find(z => z.tile === P.t) || {}).photo;
         const ph = []; (P.items || []).forEach(c => (c.photos || []).slice(0, 4).forEach(src => { if (src && !ph.some(x => x.src === src)) ph.push({ src, name: c.name }); }));
         return { open: true, loading: !!P.loading, empty: !P.loading && !ph.length, title: 'Pick a cover for ' + (TN[P.t] || P.t) + ' · ' + ph.length + ' photos', close: () => this.setState({ cpick: null }),
