@@ -2989,8 +2989,8 @@ class Component extends DCLogic {
       (CA.flags || []).forEach(x => { const t = x.resolved_at ? new Date(x.resolved_at).getTime() : 0; if (x.kind !== 'fix' || !t || now - t > 30 * 86400000 || !['applied', 'rejected'].includes(x.status)) return; const ok = x.status === 'applied', pick = x.field === 'size' || x.field === 'entry';
         row('cf' + x.id + x.field + x.status + t, x, t, ok, ok ? (x.field === 'size' ? 'now has size ' + x.value + '. Tap to set yours.' : x.field === 'entry' ? 'now lists ' + x.value + '. Tap to set yours.' : 'was updated with your suggestion.') : 'Your suggestion wasn’t applied' + (x.note ? ': ' + x.note : '.'), ok && pick ? setMine(x.id) : () => this.closeNt(() => this.openCatId(x.id)), ok && pick ? mineOf(x.id) : null); });
       // One notification per item: skip this if the approval above (you added it) already covers it.
-      const doneIds = new Set((CA.added || []).filter(x => x.status === 'live' && x.decided_at).map(x => x.id)), seenRe = new Set();
-      (P0.items || []).forEach(it => { if (!it.catRe || it.catSt !== 'live' || doneIds.has(it.catalogId) || seenRe.has(it.catalogId)) return; seenRe.add(it.catalogId); const t = new Date(it.catRe).getTime(); if (!t || now - t > 30 * 86400000) return;
+      const doneIds = new Set((CA.added || []).filter(x => x.status === 'live' && x.decided_at && now - new Date(x.decided_at).getTime() <= 30 * 86400000).map(x => x.id)), seenRe = new Set();
+      (P0.items || []).forEach(it => { if (!it.catRe || it.catSt !== 'live' || doneIds.has(it.catalogId) || seenRe.has(it.catalogId)) return; const t = new Date(it.catRe).getTime(); if (!t || now - t > 30 * 86400000) return; seenRe.add(it.catalogId);
         row('re' + it.id + it.catRe, { name: it.name, photo: (it.photos || [])[0] || '' }, t, true, 'is back in the catalog with its sizes and options. Tap to set yours.', () => this.fixItem(it), it); });
       // Linked items that drifted from the catalog without a "back in the catalog" moment still get one reminder.
       (P0.items || []).forEach(it => { if (seenRe.has(it.catalogId) || doneIds.has(it.catalogId) || !this.needsEdit(it)) return; row('ne' + it.id, { name: it.name, photo: (it.photos || [])[0] || '' }, now, true, 'needs your size, colour or entry to match the catalog.', () => this.fixItem(it), it); }); }
@@ -3619,9 +3619,9 @@ class Component extends DCLogic {
   // Approved catalog entries: only staff change the shared details; everyone picks their own size and colour.
   formLock(f) { const st = this.state; if (!f || !f.catalogId || !(f.catSt === 'live' || f.catSt === 'gone')) return null;
     const C = st.catP && st.catP.id === f.catalogId && st.catP.options ? st.catP : st.fCat && st.fCat.cid === f.catalogId ? st.fCat.c : null;
-    if (!C && this._fcFor !== f.catalogId) { this._fcFor = f.catalogId; const G = window.GWSync, cid = f.catalogId; if (G && G.cat) G.cat('catalog_get', { cid }).then(c => { if (c) this.setState({ fCat: { cid, c } }); }).catch(() => {}); }
+    if (!C && this._fcFor !== f.catalogId) { this._fcFor = f.catalogId; const G = window.GWSync, cid = f.catalogId; if (G && G.cat) G.cat('catalog_get', { cid }).then(c => { if (!c) return; this.setState({ fCat: { cid, c } }); this.catApplyRow(Object.assign({}, c, { id: cid })); }).catch(() => {}); }
     return { C, o: (C && C.options) || {} }; }
-  openForm(it, status) { this._todoTrack = null; if (this.state.allSetPop) this.setState({ allSetPop: false });
+  openForm(it, status) { this._todoTrack = null; this._fcFor = null; if (this.state.fCat) this.setState({ fCat: null }); if (this.state.allSetPop) this.setState({ allSetPop: false });
     const f = it ? { id: it.id, catalogId: it.catalogId || null, catSt: it.catSt || null, sizesOk: (it.sizesOk || []).slice(), url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, rec: it.rec || 0, notes: it.notes || '', zip: it.zip || '', handmade: !!it.handmade, modified: !!it.modified, mods: it.mods || '', secondHand: !!it.secondHand, boughtFrom: it.boughtFrom || '', condition: it.condition || '', brandUnknown: !!it.brandUnknown, priceUnknown: !!it.priceUnknown, approx: !!it.approx, gotMonth: it.gotMonth || '', preGw: !!it.preGw, materials: (it.materials || []).slice(), latexMm: it.latexMm || '', chlor: !!it.chlor, matAuto: !(it.materials || []).length, status: it.status, origs: (it.origs || []).slice(), photos: (it.photos || []).slice(), onSale: it.shopWas != null, was: it.shopWas != null ? String(it.shopWas) : '' }
       : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: PCUR, size: '', colour: '', m2m: false, rating: 3, rec: 0, notes: '', zip: '', handmade: false, modified: false, mods: '', secondHand: false, boughtFrom: '', condition: '', brandUnknown: false, priceUnknown: false, approx: false, gotMonth: '', preGw: false, materials: [CAT_MAT.Catsuit], latexMm: '', chlor: false, matAuto: true, origs: [], photos: [], status: status || 'wanted' };
     f.found = [];
@@ -3677,16 +3677,19 @@ class Component extends DCLogic {
     } catch (e) { if (/database update/.test((e && e.message) || '')) this.catOff = true; } finally { this.catBusyRun = false; }
   }
   // Keep linked items in step with the catalog: shared details follow moderators' fixes; size, colour, price paid, notes and your own photos stay yours.
-  catApply(i, r) { const before = JSON.stringify([i.name, i.brand, i.category, i.materials, i.latexMm, i.photos, i.catSt, i.catPh, i.catRe, i.catOpt, i.size, i.m2m, i.colour, i.zip]);
+  catApply(i, r) { const before = JSON.stringify([i.name, i.brand, i.category, i.materials, i.latexMm, i.photos, i.catSt, i.catPh, i.catRe, i.catOpt, i.size, i.m2m, i.colour, i.zip, i.notSure]);
     if (r.reapproved_at && r.reapproved_at !== i.catRe) i.catRe = r.reapproved_at;
     const own = x => /^data:/.test(x) || /\/storage\/v1\/object\/(public|authenticated)\/photos\//.test(x) || (i.origs || []).some(o => o && o.c === x);
-    i.catSt = r.status; if (r.options && JSON.stringify(r.options) !== JSON.stringify(i.catOpt || null)) i.catOpt = r.options;
+    i.catSt = r.status; if (r.options && JSON.stringify(r.options) !== JSON.stringify(i.catOpt || null)) {
+      // The catalog's choices for a field changed: an earlier "Not sure yet" for it no longer counts, so the copy asks again.
+      const was = i.catOpt, J = x => JSON.stringify(x || []); if (was && (i.notSure || []).length) { const ch = { size: J(was.sizes) !== J(r.options.sizes) || !!was.m2m !== !!r.options.m2m, colour: J(was.colors) !== J(r.options.colors), zip: J(was.entries) !== J(r.options.entries), mm: J(was.mm) !== J(r.options.mm) }; i.notSure = i.notSure.filter(k => !ch[k]); }
+      i.catOpt = r.options; }
     if ((r.status === 'live' || r.status === 'gone') && r.options) { const one = this.catSingles(r.options); if (one.size && !i.size && !i.m2m) i.size = one.size; if (one.m2m && !i.size && !i.m2m) { i.m2m = true; i.size = 'Made to measure'; } if (one.colour && !String(i.colour || '').trim()) i.colour = one.colour; if (one.zip && !i.zip) i.zip = one.zip; if (one.mm && !i.latexMm && (i.materials || []).includes('Latex')) i.latexMm = one.mm; }
     if (r.status === 'live' || r.status === 'gone') { if (r.name) i.name = r.name; if (r.brand) { i.brand = r.brand; i.brandUnknown = false; } if (r.category && r.category !== i.category) { i.category = r.category; delete i.cgroup; } if ((r.materials || []).length) { i.materials = r.materials.slice(); const mmL = ((r.options || {}).mm || []); if (mmL.length > 1) { if (i.latexMm && !mmL.includes(i.latexMm)) i.latexMm = ''; } else if (r.latex_mm) i.latexMm = r.latex_mm; }
       const cp = (r.photos || []).filter(x => /^https?:/.test(x));
       if (!i.catPh) i.catPh = cp;
       else if (JSON.stringify(i.catPh) !== JSON.stringify(cp)) { const prev = i.catPh, ph = (i.photos || []).filter(x => own(x) || !prev.includes(x) || cp.includes(x)), add = cp.filter(x => !prev.includes(x) && !ph.includes(x)).slice(0, 4); let at = 0; ph.forEach((x, j) => { if (!own(x)) at = j + 1; }); ph.splice(at, 0, ...add); i.photos = ph; i.catPh = cp; } }
-    return JSON.stringify([i.name, i.brand, i.category, i.materials, i.latexMm, i.photos, i.catSt, i.catPh, i.catRe, i.catOpt, i.size, i.m2m, i.colour, i.zip]) !== before; }
+    return JSON.stringify([i.name, i.brand, i.category, i.materials, i.latexMm, i.photos, i.catSt, i.catPh, i.catRe, i.catOpt, i.size, i.m2m, i.colour, i.zip, i.notSure]) !== before; }
   // Your copy doesn't match the catalog's choices yet. Wishlist: empty is fine ("not sure yet"), a choice the catalog doesn't offer isn't. Owned: everything the catalog offers must be picked.
   catSingles(o) { o = o || {}; const sz = cleanSizes(o.sizes).filter(z => z !== 'Made to measure'), mtm = !!o.m2m || cleanSizes(o.sizes).includes('Made to measure'), out = {};
     if (!o.nosize) { if (sz.length === 1 && !mtm) out.size = sz[0]; else if (!sz.length && mtm) out.m2m = true; }
