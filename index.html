@@ -1704,6 +1704,18 @@ input::placeholder{color:#6e6e73;}
       </div>
       <div data-anim="up" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Notes</div>
       <div style="padding:0 16px;"><textarea value="{{ f.notes }}" onChange="{{ fNotes }}" placeholder="{{ fNotesPh }}" rows="3" style="display:block;width:100%;box-sizing:border-box;background:#2c2c2e;border:1px solid #48484a;border-radius:18px;padding:12px 16px;font-size:17px;line-height:1.47;color:#f5f5f7;resize:none;outline:none;font-family:inherit;transition:border-color .2s;" style-focus="border-color:var(--gw-accent,#ffd60a);"></textarea></div>
+      <sc-if value="{{ allSetPop }}" hint-placeholder-val="{{ false }}">
+        <div style="position:sticky;bottom:0;z-index:5;padding:12px 16px 16px;margin-top:16px;background:linear-gradient(180deg,rgba(28,28,30,0) 0%,#1c1c1e 30%);">
+          <div data-anim="up" style="background:#2c2c2e;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 -1px 0 #38383a, 0 12px 32px rgba(0,0,0,0.5);">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="flex:none;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:3px 10px 3px 8px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg><span>All set</span></span>
+              <span style="flex:1;min-width:0;font-size:14px;color:#d1d1d6;line-height:1.36;text-wrap:pretty;">Everything matches the catalog now.</span>
+              <button onClick="{{ allSetHide }}" aria-label="Hide" style="flex:none;border:0;background:none;color:#8e8e93;font-size:18px;line-height:1;cursor:pointer;padding:4px;">×</button>
+            </div>
+            <button onClick="{{ allSetSave }}" style="border:0;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.97);">Save</button>
+          </div>
+        </div>
+      </sc-if>
     </sc-if>
 
     <sc-if value="{{ isSheetBudget }}" hint-placeholder-val="{{ false }}">
@@ -3582,7 +3594,7 @@ class Component extends DCLogic {
     const C = st.catP && st.catP.id === f.catalogId && st.catP.options ? st.catP : st.fCat && st.fCat.cid === f.catalogId ? st.fCat.c : null;
     if (!C && this._fcFor !== f.catalogId) { this._fcFor = f.catalogId; const G = window.GWSync, cid = f.catalogId; if (G && G.cat) G.cat('catalog_get', { cid }).then(c => { if (c) this.setState({ fCat: { cid, c } }); }).catch(() => {}); }
     return { C, o: (C && C.options) || {} }; }
-  openForm(it, status) {
+  openForm(it, status) { this._todoTrack = null; if (this.state.allSetPop) this.setState({ allSetPop: false });
     const f = it ? { id: it.id, catalogId: it.catalogId || null, catSt: it.catSt || null, sizesOk: (it.sizesOk || []).slice(), url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.price == null ? '' : String(it.price), currency: it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, rec: it.rec || 0, notes: it.notes || '', zip: it.zip || '', handmade: !!it.handmade, modified: !!it.modified, mods: it.mods || '', secondHand: !!it.secondHand, boughtFrom: it.boughtFrom || '', condition: it.condition || '', brandUnknown: !!it.brandUnknown, priceUnknown: !!it.priceUnknown, approx: !!it.approx, gotMonth: it.gotMonth || '', preGw: !!it.preGw, materials: (it.materials || []).slice(), latexMm: it.latexMm || '', chlor: !!it.chlor, matAuto: !(it.materials || []).length, status: it.status, origs: (it.origs || []).slice(), photos: (it.photos || []).slice(), onSale: it.shopWas != null, was: it.shopWas != null ? String(it.shopWas) : '' }
       : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: PCUR, size: '', colour: '', m2m: false, rating: 3, rec: 0, notes: '', zip: '', handmade: false, modified: false, mods: '', secondHand: false, boughtFrom: '', condition: '', brandUnknown: false, priceUnknown: false, approx: false, gotMonth: '', preGw: false, materials: [CAT_MAT.Catsuit], latexMm: '', chlor: false, matAuto: true, origs: [], photos: [], status: status || 'wanted' };
     f.found = [];
@@ -4469,6 +4481,7 @@ class Component extends DCLogic {
         const okS = f.m2m || [].concat((f.sizesOk || []).length ? f.sizesOk : f.size ? [f.size] : []).some(z => !szL.length || szL.includes(z));
         const needS = (szL.length > 0 || !!oz.m2m) && !okS, needC = (cs.length > 0 || custom) && (!String(f.colour || '').trim() || !!badC),
           needZ = entL.length > 0 && (!f.zip || !!badZ), needM = mmL.length > 0 && (!f.latexMm || !!badM), todo = [needS && 'size', needC && 'colour', needZ && 'zip and entry', needM && 'thickness'].filter(Boolean), Y = '#ff6961', G0 = '#a1a1a6';
+        { const key = f.id || 'new', prev = this._todoTrack; if (prev && prev.key === key && prev.n > 0 && todo.length === 0 && !st.allSetPop) setTimeout(() => this.setState({ allSetPop: true }), 0); if (todo.length > 0 && st.allSetPop) setTimeout(() => this.setState({ allSetPop: false }), 0); this._todoTrack = { key, n: todo.length }; }
         const todoTxt = todo.length ? 'Still to pick: ' + (todo.length > 1 ? todo.slice(0, -1).join(', ') + ' and ' + todo[todo.length - 1] : todo[0]) : '';
         const prev = v => 'Previously selected: ' + v + ' · not offered anymore';
         return { hasPrevS: badS.length > 0, prevS: prev(badS.join(', ')), hasPrevC: !!badC, prevC: prev(badC), hasPrevZ: !!badZ, prevZ: prev(badZ), hasPrevM: !!badM, prevM: prev(badM + ' mm'), badS,
@@ -4479,6 +4492,7 @@ class Component extends DCLogic {
           missSize: () => { const id = f.catalogId; this.closeSheet(() => { this.openCatId(id); setTimeout(() => this.setState({ sheet: 'cfix', cfx: { f: 'size', v: '' } }), 400); }); },
           fix: () => { const id = f.catalogId; this.closeSheet(() => this.openCatId(id)); }, colChips: cs.length > 0, colFree: !cs.length || cust, colInLbl: cust ? 'Yours' : 'Colour', colInPh: cust ? 'Describe it, e.g. black with yellow trim' : 'Black, yellow trim', m2mShow: false,
           colors: cs.map(x => chip(x.name, !cust && f.colour === x.name, x.hex || guessHex(x.name) || '#3a3a3c', () => { this.setF('colour', x.name); this.setF('colourCustom', false); })).concat(custom ? [chip('Custom colour', cust, 'conic-gradient(#ff453a,#ff9f0a,#ffd60a,#30d158,#64d2ff,#5e5ce6,#bf5af2,#ff453a)', () => { this.setF('colourCustom', true); if (cs.some(x => x.name === f.colour)) this.setF('colour', ''); })] : []) }; })(),
+      allSetPop: !!st.allSetPop && st.sheet === 'form', allSetHide: () => this.setState({ allSetPop: false }), allSetSave: () => { this.setState({ allSetPop: false }); this.saveForm(); },
       fPriceRing: st.focusF === 'price' ? ACC : '#48484a', fPriceFocus: () => this.setState({ focusF: 'price' }), fPriceBlur: () => this.setState({ focusF: null }),
       fWasRing: st.focusF === 'was' ? ACC : '#48484a', fWasFocus: () => this.setState({ focusF: 'was' }), fWasBlur: () => this.setState({ focusF: null }),
       fPriceLbl: f.status === 'owned' || f.status === 'ordered' ? 'You paid' : 'Price', fPricePh: (f.status === 'owned' || f.status === 'ordered') && f.shopNow != null ? 'Shop price now ' + money(f.currency, f.shopNow) : '0',
