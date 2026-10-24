@@ -2870,11 +2870,11 @@ class Component extends DCLogic {
     const el = this.spentRef.current, open = !!this._spOpen && !!el;
     if (!open) { this._spWas = false; return; }
     const v = this._spVal || 0, fmt = n => PCUR + Math.round(n / (FX[PCUR] || 1)).toLocaleString('nl-NL');
-    if (this._spWas) { if (!this._spRaf && this._spShown !== v) { el.textContent = fmt(v); this._spShown = v; } return; }
+    if (this._spWas) { if (!this._spRaf && this._spShown !== fmt(v)) { el.textContent = fmt(v); this._spShown = fmt(v); } return; }
     this._spWas = true; cancelAnimationFrame(this._spRaf);
     const t0 = performance.now(), dur = 1300, ease = x => 1 - Math.pow(1 - x, 4);
     el.animate([{ opacity: 0, transform: 'translateY(8px)', filter: 'blur(4px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: 500, easing: 'cubic-bezier(.2,.8,.2,1)' });
-    const step = now => { const k = Math.min(1, (now - t0) / dur); el.textContent = fmt(v * ease(k)); if (k < 1) this._spRaf = requestAnimationFrame(step); else { this._spRaf = 0; this._spShown = v; } };
+    const step = now => { const k = Math.min(1, (now - t0) / dur); el.textContent = fmt(v * ease(k)); if (k < 1) this._spRaf = requestAnimationFrame(step); else { this._spRaf = 0; this._spShown = fmt(v); } };
     this._spRaf = requestAnimationFrame(step);
   }
   componentDidUpdate() {
