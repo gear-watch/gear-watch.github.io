@@ -1538,7 +1538,7 @@ input::placeholder{color:#6e6e73;}
         <div data-anim="up" style="padding:20px 20px 0;display:flex;flex-direction:column;gap:2px;">
           <span style="font-size:14px;font-weight:600;color:#f5f5f7;letter-spacing:-0.224px;">Yours to choose</span>
           <sc-if value="{{ fLock.hasTodo }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;"><sc-for list="{{ fLock.todoList }}" as="m" hint-placeholder-count="2"><span style="background:rgba(255,69,58,0.24);color:#fff;border-radius:9999px;padding:3px 10px 3px 8px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:9999px;background:#ff6961;flex:none;"></span><span>{{ m.label }}</span></span></sc-for></div></sc-if>
-          <sc-if value="{{ fLock.noTodo }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#a1a1a6;">{{ fLock.doneTxt }}</span></sc-if>
+          <sc-if value="{{ fLock.noTodo }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px;"><span style="background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:3px 10px 3px 8px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M2.5 6.2l2.4 2.3 4.6-5"></path></svg><span>All set</span></span><span style="font-size:13px;color:#a1a1a6;">{{ fLock.doneTxt }}</span></div></sc-if>
         </div>
       </sc-if>
       <sc-if value="{{ fLock.off }}" hint-placeholder-val="{{ true }}">
@@ -4472,7 +4472,7 @@ class Component extends DCLogic {
         const todoTxt = todo.length ? 'Still to pick: ' + (todo.length > 1 ? todo.slice(0, -1).join(', ') + ' and ' + todo[todo.length - 1] : todo[0]) : '';
         const prev = v => 'Previously selected: ' + v + ' · not offered anymore';
         return { hasPrevS: badS.length > 0, prevS: prev(badS.join(', ')), hasPrevC: !!badC, prevC: prev(badC), hasPrevZ: !!badZ, prevZ: prev(badZ), hasPrevM: !!badM, prevM: prev(badM + ' mm'), badS,
-          hasTodo: todo.length > 0, noTodo: !todo.length, todoTxt, todoList: todo.map(t => ({ label: t.charAt(0).toUpperCase() + t.slice(1) })), doneTxt: f.status === 'wanted' ? 'All set. Change these any time.' : 'All set. Add what you paid and your own photos.', cSize: needS ? Y : G0, cCol: needC ? Y : G0, cZip: needZ ? Y : G0, cMm: needM ? Y : G0,
+          hasTodo: todo.length > 0, noTodo: !todo.length, todoTxt, todoList: todo.map(t => ({ label: t.charAt(0).toUpperCase() + t.slice(1) })), doneTxt: f.status === 'wanted' ? 'Change these any time.' : 'Add what you paid and your own photos.', cSize: needS ? Y : G0, cCol: needC ? Y : G0, cZip: needZ ? Y : G0, cMm: needM ? Y : G0,
           on: true, off: false, brand: f.brandUnknown ? 'Unknown' : f.brand || '—', catLbl: f.category || '—', matLbl: (f.materials || []).join(', ') + ((f.materials || []).includes('Latex') && f.latexMm && (LK.o.mm || []).length < 2 ? ' · ' + f.latexMm + ' mm' : '') || '—',
           mmPick: (LK.o.mm || []).length > 1, mmChips: (LK.o.mm || []).map(v => chip(v + ' mm', f.latexMm === v, '', () => this.setF('latexMm', f.latexMm === v ? '' : v))),
           catKnown: catK, matKnown: matK, anyKnown: catK || matK || (LK.o.mm || []).length > 1, catEdit: !catK, matEdit: !matK,
