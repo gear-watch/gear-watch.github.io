@@ -82,6 +82,10 @@
             <sc-if value="{{ gp.open }}" hint-placeholder-val="{{ false }}">
               <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;background:#0d0d0e;display:flex;flex-direction:column;gap:12px;">
                 <span style="font-size:13px;color:#a1a1a6;">Pick what to change on all {{ gp.n }}. Anything you don’t pick stays as it is on each item.</span>
+                <div style="background:#1c1c1e;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+                  <span style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:15px;font-weight:600;">Category</span><span style="font-size:13px;color:{{ gp.catStateC }};">{{ gp.catState }}</span></span>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;"><select value="{{ gp.cat }}" onChange="{{ gp.onCat }}" style="background:#2c2c2e;border:0;border-radius:8px;padding:8px 10px;font-size:14px;color:#f5f5f7;outline:none;min-height:36px;"><option value="">Don’t change</option><sc-for list="{{ gp.catOpts }}" as="o"><option value="{{ o }}">{{ o }}</option></sc-for></select><sc-if value="{{ gp.catHas }}" hint-placeholder-val="{{ false }}"><button onClick="{{ gp.catUndo }}" style="border:0;background:none;color:#a1a1a6;cursor:pointer;padding:4px 6px;font-size:13px;">Don’t change</button></sc-if></div>
+                </div>
                 <sc-for list="{{ gp.parts }}" as="p" hint-placeholder-count="4">
                   <div style="background:#1c1c1e;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
                     <span style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:15px;font-weight:600;">{{ p.title }}</span><span style="font-size:13px;color:{{ p.stateC }};">{{ p.state }}</span></span>
@@ -651,21 +655,22 @@ class Component extends DCLogic {
       part('entries', 'Zip and entry', v => v.entries, le ? [{ lbl: 'Copy from last', sub: le.name + ' · ' + le.entries.join(', '), onTap: () => setG({ entries: { entries: le.entries.slice() } }) }] : []),
       part('mm', 'Latex thickness', v => v.mm.map(x => x + ' mm'), lm ? [{ lbl: 'Copy from last', sub: lm.name + ' · ' + lm.mm.map(x => x + ' mm').join(', ') + ' · only latex items', onTap: () => setG({ mm: { mm: lm.mm.slice() } }) }] : [])
     ].map(p => Object.assign(p, { srcs: p.srcs.length ? p.srcs : [{ lbl: 'Nothing saved yet', sub: 'Save one item with these filled in first', onTap: () => {} }] }));
-    const any = ['sizes', 'colors', 'entries', 'mm'].some(k => G[k]), busy = !!st.grpBusy;
+    const any = ['sizes', 'colors', 'entries', 'mm', 'cat'].some(k => G[k]), busy = !!st.grpBusy;
     return { hasSel: n > 0, n: String(n), selTxt: n ? n + ' selected' : 'Tick entries to edit several at once', selColor: n ? '#f5f5f7' : '#6e6e73', selAllLbl: list.length && list.every(c => (st.sel || []).includes(c.id)) ? 'Unselect all' : 'Select all ' + list.length,
       selAll: () => this.setState(s => { const all = list.every(c => (s.sel || []).includes(c.id)); return { sel: all ? [] : list.map(c => c.id) }; }), clear: () => this.setState({ sel: [], grpOpen: false }),
+      catOpts: this.allCats(), cat: G.cat || '', catHas: !!G.cat, catState: G.cat ? 'All ' + n + ' become ' + G.cat : 'Not changing', catStateC: G.cat ? '#ffd60a' : '#6e6e73', onCat: e => setG({ cat: e.target.value || null }), catUndo: () => setG({ cat: null }),
       open: !!st.grpOpen && n > 0, toggle: () => this.setState({ grpOpen: !st.grpOpen }), toggleLbl: st.grpOpen ? 'Close group edit' : 'Group edit', parts,
       applyLbl: busy ? 'Saving…' : 'Apply & save to ' + n, applyOp: any && !busy ? 1 : 0.45, prog: st.grpProg || '', apply: () => { if (any && !busy) this.grpApply(sel); } }; }
   async grpApply(ids) { const G = window.GWSync, g = this.state.grp || {}; let done = 0, skip = 0, fail = 0; this.setState({ grpBusy: true });
     for (const cid of ids) { this.setState({ grpProg: (done + skip + fail + 1) + ' of ' + ids.length + '…' });
-      try { const c = await G.cat('catalog_get', { cid }); if (!c) { fail++; continue; } const o = Object.assign({ colors: [], sizes: [], entries: [], mm: [], custom: false, m2m: false }, c.options || {}), p = {};
+      try { const c = await G.cat('catalog_get', { cid }); if (!c) { fail++; continue; } const o = Object.assign({ colors: [], sizes: [], entries: [], mm: [], custom: false, m2m: false }, c.options || {}), p = {}; if (g.cat) p.category = g.cat;
         if (g.sizes) { o.sizes = g.sizes.sizes.slice(); o.m2m = !!g.sizes.m2m; o.nosize = false; }
         if (g.colors) { o.colors = g.colors.colors.map(x => ({ name: x.name, hex: x.hex || null })); o.custom = !!g.colors.custom; o.nocolor = false; }
         if (g.entries) o.entries = g.entries.entries.slice();
-        const latex = (c.materials || []).includes('Latex'); if (g.mm && latex) { o.mm = g.mm.mm.slice(); p.latexMm = g.mm.mm[0] || ''; } else if (g.mm && !(g.sizes || g.colors || g.entries)) { skip++; continue; }
-        p.options = o; await G.cat('catalog_edit', { cid, p }); done++; } catch (e) { fail++; } }
+        const latex = (c.materials || []).includes('Latex'); if (g.mm && latex) { o.mm = g.mm.mm.slice(); p.latexMm = g.mm.mm[0] || ''; } else if (g.mm && !(g.sizes || g.colors || g.entries || g.cat)) { skip++; continue; }
+        if (g.sizes || g.colors || g.entries || (g.mm && latex)) p.options = o; await G.cat('catalog_edit', { cid, p }); done++; } catch (e) { fail++; } }
     this.setState({ grpBusy: false, grpProg: '', grpOpen: false, sel: [], grp: {} });
-    this.say('Updated ' + done + (done === 1 ? ' entry' : ' entries') + (skip ? ' · ' + skip + ' skipped (not latex)' : '') + (fail ? ' · ' + fail + ' failed' : '')); this.browse(); }
+    this.say('Updated ' + done + (done === 1 ? ' entry' : ' entries') + (skip ? ' · ' + skip + ' skipped (not latex)' : '') + (fail ? ' · ' + fail + ' failed' : '')); this.browse(); if (g.cat) this.loadCovers(); }
   browse() { const G = window.GWSync; if (!G) return; const tok = (this.bTok = (this.bTok || 0) + 1); this.setState({ bBusy: true });
     G.cat('catalog_admin_search', { q: (this.state.bq || '').trim(), st: this.state.bst || '', lim: 120 }).then(r => { if (tok === this.bTok) this.setState({ bRes: r || [], bBusy: false }); }).catch(e => { if (tok === this.bTok) { this.setState({ bBusy: false }); this.say((e && e.message) || 'Couldn’t search'); } }); }
   allCats() { const b = ['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Mittens', 'Socks', 'Boots', 'Shoes', 'Cuffs', 'Gags', 'Chastity', 'Leashes', 'Collars', 'Toys', 'Equipment', 'Accessory'], ex = (this.state.ocats || []).map(o => o.name).filter(n => !b.includes(n)); return b.slice(0, -1).concat(ex, ['Accessory']); }
