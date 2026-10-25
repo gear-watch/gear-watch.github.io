@@ -187,6 +187,7 @@ function parse0(html, u) {
 
 async function check(entry) {
   const u = new URL(entry.url), tried = [], want = /libidex\.com/.test(entry.url) ? null : codeOf(entry.currency);
+  if (isEtsy(u)) { try { const r = await etsy(u); if (r && r.price != null) return { price: r.price, was: r.was, cur: r.cur, how: r.how, via: 'feed' }; } catch (e) { tried.push(e.message + (e.detail ? ' (' + e.detail + ')' : '')); } }
   for (const fn of [shopify, woo, magento]) {
     try { const r = await fn(u, want); if (r) return Object.assign(r, { via: 'feed' }); } catch (e) { tried.push(fn.name + ': ' + e.message); }
   }
@@ -312,8 +313,26 @@ function wooForm(html) {
   const keys = Object.keys(groups), colorK = keys.filter(k => /colou?r|kleur|pattern|trim/i.test(k)), sizeK = keys.find(k => /size|maat/i.test(k)), entK = keys.find(k => /zip|entry|opening/i.test(k));
   const opts = { colors: colorK.flatMap(k => groups[k]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 30).map(name => ({ name })), sizes: sizeK ? sortSizes(cleanSizes(groups[sizeK])).slice(0, 30) : [], entries: entK ? groups[entK].slice(0, 12) : [] };
   return { options: opts.colors.length || opts.sizes.length || opts.entries.length ? opts : null, price, was, variants }; }
+// ---- Etsy: their pages block normal requests, so use the API (if ETSY_KEY is set), then the link-preview copy social apps get, then the embed feed.
+let ETSY_KEY = '';
+const BOT_UA = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
+const isEtsy = u => /(^|\.)etsy\.(com|me)$/i.test(u.hostname);
+async function etsyId(u) { let m = u.pathname.match(/\/listing\/(\d+)/); if (m) return m[1];
+  if (/etsy\.me$/i.test(u.hostname)) { const r = await fetch(u.href, { redirect: 'follow', headers: { 'user-agent': BOT_UA } }); m = new URL(r.url).pathname.match(/\/listing\/(\d+)/); if (m) return m[1]; } return null; }
+async function etsy(u) {
+  const id = await etsyId(u); if (!id) return null; const tried = [], clean = 'https://www.etsy.com/listing/' + id;
+  if (ETSY_KEY) { try { const r = await fetch('https://openapi.etsy.com/v3/application/listings/' + id + '?includes=Images,Shop', { headers: { 'x-api-key': ETSY_KEY, accept: 'application/json' } }); if (!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json(), p = j.price || {};
+      return { name: decode(j.title), brand: (j.shop && j.shop.shop_name) || null, price: p.amount != null ? p.amount / (p.divisor || 100) : null, was: null, cur: p.currency_code || null, images: cleanImgs((j.images || []).map(x => x.url_fullxfull || x.url_570xN), clean), desc: decode(j.description || '').slice(0, 1500), options: null, how: 'Etsy API' }; } catch (e) { tried.push('etsy api: ' + e.message); } }
+  try { const html = await get(clean, false, { 'user-agent': BOT_UA, accept: 'text/html' }), r = fromPage(html, new URL(clean));
+    if (r.name && (r.images.length || r.price != null)) { const shop = (html.match(/"(?:seller|brand)"\s*:\s*\{[^}]*?"name"\s*:\s*"([^"]+)/) || [])[1]; return Object.assign(r, { brand: r.brand && !/^etsy$/i.test(r.brand) ? r.brand : shop ? decode(shop) : null, how: 'Etsy link preview' }); }
+    tried.push('etsy preview: not enough found'); } catch (e) { tried.push('etsy preview: ' + e.message); }
+  try { const j = JSON.parse(await get('https://www.etsy.com/oembed?url=' + encodeURIComponent(clean), true)); if (j && j.title) return { name: decode(j.title), brand: j.author_name || null, price: null, was: null, cur: null, images: cleanImgs([j.thumbnail_url].filter(Boolean).map(s => s.replace(/il_\d+x\d+/, 'il_fullxfull')), clean), options: null, how: 'Etsy embed' }; }
+  catch (e) { tried.push('etsy embed: ' + e.message); }
+  const e = new Error('Etsy blocked the lookup'); e.detail = tried.join(' · '); throw e;
+}
 async function lookup(url, want) {
   const u = new URL(url), tried = [];
+  if (isEtsy(u)) { try { const r = await etsy(u); if (r) return r; } catch (e) { tried.push(e.message + (e.detail ? ' (' + e.detail + ')' : '')); } }
   if (/\/products\/[^/?#]+/.test(u.pathname)) {
     try { const H = wantHdr(want), j = JSON.parse(await get(u.origin + u.pathname.replace(/\/+$/, '') + '.js', true, H)), variant = u.searchParams.get('variant'), vs = j.variants || [];
       const v = vs.find(x => String(x.id) === variant) || vs.find(x => x.available) || vs[0];
@@ -343,7 +362,7 @@ async function lookup(url, want) {
 async function lookupOne(url, ctx, want) {
   const key = normUrl(url); if (!key) return { ok: false, error: 'Not a valid link' };
   if (/libidex\.com/.test(url) || !CC[want]) want = null;
-  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup10/' + (want || '-') + '/' + encodeURIComponent(key));
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup11/' + (want || '-') + '/' + encodeURIComponent(key));
   const hit = await cache.match(ck); if (hit) return hit.json();
   let out;
   try { const r = await lookup(url, want), code = codeOf(r.cur), vars = (r.variants || []).filter(v => v && v.p > 0).slice(0, 80);
@@ -490,7 +509,7 @@ async function pushRoute(req, env) {
 
 export default {
   async fetch(req, env, ctx) {
-    READER_KEY = (env && env.JINA_KEY) || '';
+    READER_KEY = (env && env.JINA_KEY) || ''; ETSY_KEY = (env && env.ETSY_KEY) || '';
     if (req.method === 'POST' && new URL(req.url).pathname === '/push') return pushRoute(req, env);
     const sm = req.method === 'GET' && new URL(req.url).pathname.match(/^\/s\/([A-Za-z0-9]{5,12})\/?$/);
     if (sm) return sharePage(sm[1], env);
