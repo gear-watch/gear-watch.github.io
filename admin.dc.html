@@ -266,6 +266,36 @@
             <div style="padding:14px 20px;border-bottom:1px solid #1c1c1e;display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><div style="flex:1 1 240px;min-width:0;display:flex;flex-direction:column;gap:3px;"><span style="font-size:15px;font-weight:600;">{{ x.name }}</span><span style="font-size:13px;color:#a1a1a6;overflow-wrap:anywhere;">{{ x.sub }}</span></div><div style="display:flex;gap:8px;"><button onClick="{{ x.edit }}" style="border:0;border-radius:8px;padding:7px 12px;font-size:14px;cursor:pointer;color:#f5f5f7;background:#2c2c2e;">Edit</button><button onClick="{{ x.del }}" style="border:0;border-radius:8px;padding:7px 12px;font-size:14px;cursor:pointer;color:#fff;background:#ff453a;">{{ x.delLbl }}</button></div></div>
           </sc-for>
         </sc-if>
+        <sc-if value="{{ isCcats }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;display:flex;justify-content:space-between;align-items:center;gap:12px;"><span style="font-size:20px;font-weight:600;">Custom categories</span><button onClick="{{ cc.refresh }}" style="border:0;border-radius:8px;padding:7px 12px;font-size:14px;cursor:pointer;color:#f5f5f7;background:#2c2c2e;">Refresh</button></div>
+          <div style="padding:12px 20px;font-size:14px;color:#a1a1a6;line-height:1.45;text-wrap:pretty;border-bottom:1px solid #1c1c1e;">{{ cc.intro }}</div>
+          <sc-if value="{{ cc.busy }}" hint-placeholder-val="{{ false }}"><div style="padding:24px 20px;color:#a1a1a6;font-size:15px;">Looking through everyone’s lists…</div></sc-if>
+          <sc-if value="{{ cc.empty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px 20px;color:#a1a1a6;font-size:15px;">No one is using a custom category.</div></sc-if>
+          <sc-if value="{{ cc.hasPend }}" hint-placeholder-val="{{ false }}"><div style="padding:16px 20px 6px;font-size:13px;color:#a1a1a6;text-transform:uppercase;letter-spacing:0.4px;">To sort</div></sc-if>
+          <sc-for list="{{ cc.pend }}" as="x" hint-placeholder-count="3">
+            <div style="padding:14px 20px;border-bottom:1px solid #1c1c1e;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <div style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:3px;"><span style="font-size:15px;font-weight:600;overflow-wrap:anywhere;">{{ x.label }}</span><span style="font-size:13px;color:#a1a1a6;">{{ x.sub }}</span><sc-if value="{{ x.hasSamples }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#6e6e73;overflow-wrap:anywhere;">{{ x.samples }}</span></sc-if></div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <sc-if value="{{ x.hasSug }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;border-radius:9999px;padding:2px 8px;background:#0a2a3a;color:#64d2ff;">{{ x.sugTxt }}</span></sc-if>
+                <select value="{{ x.to }}" onChange="{{ x.onTo }}" style="background:#1c1c1e;border:0;border-radius:8px;padding:8px 10px;font-size:14px;color:#f5f5f7;outline:none;"><option value="">Choose…</option><sc-for list="{{ cc.opts }}" as="o"><option value="{{ o }}">{{ o }}</option></sc-for></select>
+                <button onClick="{{ x.move }}" style="border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;font-weight:600;color:{{ x.moveCo }};background:{{ x.moveBg }};">{{ x.moveLbl }}</button>
+                
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ cc.hasDone }}" hint-placeholder-val="{{ false }}"><div style="padding:20px 20px 6px;font-size:13px;color:#a1a1a6;text-transform:uppercase;letter-spacing:0.4px;">Moved</div></sc-if>
+          <sc-for list="{{ cc.done }}" as="x" hint-placeholder-count="1">
+            <div style="padding:14px 20px;border-bottom:1px solid #1c1c1e;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <div style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:3px;"><span style="font-size:15px;font-weight:600;overflow-wrap:anywhere;">{{ x.label }}</span><span style="font-size:13px;color:#a1a1a6;">{{ x.sub }}</span><sc-if value="{{ x.hasSamples }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#6e6e73;overflow-wrap:anywhere;">{{ x.samples }}</span></sc-if><span style="font-size:12px;color:#a1a1a6;">{{ x.waitTxt }}</span></div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <sc-if value="{{ x.hasSug }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;border-radius:9999px;padding:2px 8px;background:#0a2a3a;color:#64d2ff;">{{ x.sugTxt }}</span></sc-if>
+                <select value="{{ x.to }}" onChange="{{ x.onTo }}" style="background:#1c1c1e;border:0;border-radius:8px;padding:8px 10px;font-size:14px;color:#f5f5f7;outline:none;"><option value="">Choose…</option><sc-for list="{{ cc.opts }}" as="o"><option value="{{ o }}">{{ o }}</option></sc-for></select>
+                <button onClick="{{ x.move }}" style="border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;font-weight:600;color:{{ x.moveCo }};background:{{ x.moveBg }};">{{ x.moveLbl }}</button>
+                <button onClick="{{ x.undo }}" style="border:0;border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer;color:#f5f5f7;background:#2c2c2e;">Remove rule</button>
+              </div>
+            </div>
+          </sc-for>
+        </sc-if>
         <sc-if value="{{ isShops }}" hint-placeholder-val="{{ false }}">
           <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;font-size:20px;font-weight:600;">Known shops</div>
           <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
@@ -487,7 +517,7 @@ class Component extends DCLogic {
     catch (e) { this._edKeep = null; this._next = null; this.setEd({ saving: false }); this.say((e && e.message) || 'Couldn’t save'); } }
   edVals() { const ed = this.state.ed; if (!ed) return {}; if (!ed.ready) return { loading: true };
     const chip = (label, on, fn) => ({ label, bg: on ? '#ffd60a' : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: fn });
-    const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Socks', 'Boots', 'Shoes', 'Cuffs', 'Gags', 'Leashes', 'Collars', 'Toys', 'Accessory'];
+    const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Mittens', 'Socks', 'Boots', 'Shoes', 'Cuffs', 'Gags', 'Chastity', 'Leashes', 'Collars', 'Toys', 'Equipment', 'Accessory'];
     const MATS = ['Latex', 'Heavy rubber', 'Silicone', 'Neoprene', 'PVC / vinyl', 'PU / faux leather', 'Leather / suede', 'Lycra / spandex', 'Nylon / polyester', 'Metal / hardware', 'Cotton / fabric'];
     const cats = CATS.concat(ed.category && !CATS.includes(ed.category) ? [ed.category] : []), c = ed.c, onN = ed.photos.filter(p => p.on).length, firstOn = ed.photos.findIndex(p => p.on);
     const esc = s => s.replace(/[.*+?^$|()[\]\\{}]/g, '\\$&');
@@ -573,6 +603,23 @@ class Component extends DCLogic {
     this.say('Updated ' + done + (done === 1 ? ' entry' : ' entries') + (skip ? ' · ' + skip + ' skipped (not latex)' : '') + (fail ? ' · ' + fail + ' failed' : '')); this.browse(); }
   browse() { const G = window.GWSync; if (!G) return; const tok = (this.bTok = (this.bTok || 0) + 1); this.setState({ bBusy: true });
     G.cat('catalog_admin_search', { q: (this.state.bq || '').trim(), st: this.state.bst || '', lim: 120 }).then(r => { if (tok === this.bTok) this.setState({ bRes: r || [], bBusy: false }); }).catch(e => { if (tok === this.bTok) { this.setState({ bBusy: false }); this.say((e && e.message) || 'Couldn’t search'); } }); }
+  loadCcats() { const G = window.GWSync; if (!G || !G.cat) return; this.setState({ ccBusy: true }); G.cat('cat_custom_scan').then(r => this.setState({ ccList: r || [], ccBusy: false })).catch(e => { this.setState({ ccBusy: false, ccList: [] }); this.say((e && e.message) || 'Couldn’t load'); }); }
+  async ccMove(x, to) { const G = window.GWSync; if (!G) return; if (!to) { this.say('Pick a category first'); return; } this.setState({ ccSaving: x.k });
+    try { const n = await G.cat('cat_remap_set', { f: x.label, to_cat: to }); this.say(to ? '“' + x.label + '” now goes into ' + to + (n ? ' · ' + n + (n === 1 ? ' catalog entry' : ' catalog entries') + ' updated' : '') : 'Rule removed'); this.loadCcats(); }
+    catch (e) { this.say((e && e.message) || 'Couldn’t save'); } this.setState({ ccSaving: null }); }
+  ccVals() { const st = this.state, L = st.ccList || [], pick = st.ccPick || {};
+    const CC = ['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Mittens', 'Socks', 'Boots', 'Shoes', 'Cuffs', 'Gags', 'Chastity', 'Leashes', 'Collars', 'Toys', 'Equipment', 'Accessory'];
+    const SUG = [[/mitt/, 'Mittens'], [/chast|cage|\bcb\b|kg|belt/, 'Chastity'], [/equip|furnit|bench|sling|frame|cross|spreader|hook|stock|pillory|horse|table/, 'Equipment'], [/mask|hood|helmet|head/, 'Hood'], [/glove|paw|gauntlet/, 'Gloves'], [/boot/, 'Boots'], [/shoe|sneak|heel/, 'Shoes'], [/sock|stocking/, 'Socks'], [/collar/, 'Collars'], [/leash|lead/, 'Leashes'], [/gag|\bbit\b/, 'Gags'], [/cuff|restrain|shackle|strait|bondage/, 'Cuffs'], [/toy|plug|dildo|tail|vibe/, 'Toys'], [/harness/, 'Harness'], [/surf|wetsuit/, 'Surfsuit'], [/suit|zentai|onesie/, 'Catsuit'], [/leotard|singlet/, 'Leotard'], [/short|brief|jock|thong|underwear|boxer/, 'Underwear'], [/legging|trouser|pant|jean/, 'Trousers'], [/tight/, 'Tights'], [/skirt/, 'Skirt'], [/jacket|coat|hoodie/, 'Jacket'], [/top|shirt|tee|vest|bra/, 'Top']];
+    const sug = l => { const s = String(l || '').toLowerCase(), h = SUG.find(r => r[0].test(s)); return h ? h[1] : ''; };
+    const pend = L.filter(x => !x.to_cat), done = L.filter(x => x.to_cat);
+    const row = x => { const to = pick[x.k] != null ? pick[x.k] : x.to_cat || sug(x.label), busy = st.ccSaving === x.k;
+      const bits = [x.people ? x.people + (x.people === 1 ? ' person' : ' people') : '', x.items ? x.items + (x.items === 1 ? ' item' : ' items') : '', x.cat_n ? x.cat_n + (x.cat_n === 1 ? ' catalog entry' : ' catalog entries') : ''].filter(Boolean).join(' · ');
+      return { label: x.label, sub: bits, samples: (x.samples || []).length ? 'e.g. ' + x.samples.join(', ') : '', hasSamples: !!(x.samples || []).length, to, hasSug: !x.to_cat && !!sug(x.label) && to === sug(x.label), sugTxt: 'Suggested',
+        onTo: e => { const v = e.target.value; this.setState(s => ({ ccPick: Object.assign({}, s.ccPick, { [x.k]: v }) })); },
+        moveLbl: busy ? 'Saving…' : x.to_cat ? (to !== x.to_cat ? 'Change for everyone' : 'Moved to ' + x.to_cat) : 'Move for everyone', moveBg: x.to_cat && to === x.to_cat ? '#2c2c2e' : '#ffd60a', moveCo: x.to_cat && to === x.to_cat ? '#a1a1a6' : '#000',
+        move: () => { if (busy || (x.to_cat && to === x.to_cat)) return; this.ccMove(x, to); }, isDone: !!x.to_cat, undo: () => { if (!busy) this.ccMove(x, ''); },
+        waitTxt: x.items ? 'Still on ' + (x.people === 1 ? '1 person’s' : x.people + ' people’s') + ' list until they open the app' : 'Everyone’s moved' }; };
+    return { busy: !!st.ccBusy, refresh: () => this.loadCcats(), opts: CC, pend: pend.map(row), hasPend: pend.length > 0, done: done.map(row), hasDone: done.length > 0, empty: !st.ccBusy && !L.length, intro: 'Categories people made themselves. Pick a built-in one and their items move into it — the catalog right away, each person’s list the next time they open the app.' }; }
   loadSets() { const G = window.GWSync; if (!G || !G.cat) return Promise.resolve(); return G.cat('catalog_size_sets').then(r => this.setState({ sets: r || [] })).catch(e => this.say((e && e.message) || 'Couldn’t load size sets')); }
   setsVals() { const st = this.state, S = st.setEd, sets = st.sets || [], CB = { bg: '#2c2c2e', color: '#f5f5f7' };
     const setS = o => this.setState(z => ({ setEd: Object.assign({}, z.setEd, o) })), addSz = list => setS({ sizes: (S.sizes || []).concat(list.filter(x => !(S.sizes || []).includes(x))) });
@@ -667,7 +714,7 @@ class Component extends DCLogic {
       showMsg, msgTitle, msgSub, ready: !!q, hasRole: !!role, who: A.username ? '@' + A.username : '', roleLbl: isAdmin ? 'Admin' : 'Moderator', isAdmin,
       reload: () => this.load(),
       filters: F.map(([k, l]) => { const c = n(k); return { k, label: l, n: String(c), nColor: k === 'reports' && c ? '#ff453a' : '#a1a1a6', bg: page === 'queue' && st.filter === k ? '#1c1c1e' : 'transparent', onTap: () => this.setState({ filter: k, page: 'queue', openKey: null, ed: null }) }; }).filter(x => x.k === 'all' || x.n !== '0' || st.filter === x.k),
-      pages: [['story', 'Send story'], ['browse', 'All entries'], ['dupes', 'Possible duplicates'], ['covers', 'Category covers'], ['sets', 'Size sets'], ['shops', 'Known shops'], ['staff', 'Staff'], ['log', 'Change log']].map(([k, l]) => ({ label: l, bg: page === k ? '#1c1c1e' : 'transparent', onTap: () => { this.setState({ page: k, openKey: null, ed: null }); if (k === 'browse') setTimeout(() => this.browse(), 0); if (k === 'dupes') setTimeout(() => this.loadDupes(), 0); if (k === 'covers') setTimeout(() => this.loadCovers(), 0); if (k === 'sets') setTimeout(() => this.loadSets(), 0); if (k === 'story') setTimeout(() => this.osLoad(), 0); } })),
+      pages: [['story', 'Send story'], ['browse', 'All entries'], ['dupes', 'Possible duplicates'], ['covers', 'Category covers'], ['sets', 'Size sets'], ['ccats', 'Custom categories'], ['shops', 'Known shops'], ['staff', 'Staff'], ['log', 'Change log']].map(([k, l]) => ({ label: l, bg: page === k ? '#1c1c1e' : 'transparent', onTap: () => { this.setState({ page: k, openKey: null, ed: null }); if (k === 'browse') setTimeout(() => this.browse(), 0); if (k === 'dupes') setTimeout(() => this.loadDupes(), 0); if (k === 'covers') setTimeout(() => this.loadCovers(), 0); if (k === 'sets') setTimeout(() => this.loadSets(), 0); if (k === 'ccats') setTimeout(() => this.loadCcats(), 0); if (k === 'story') setTimeout(() => this.osLoad(), 0); } })),
       gp: this.grpVals(isBrowse ? (st.bRes || []) : []),
       isList: page === 'queue' || isBrowse, isBrowse, listSort: isBrowse ? (st.bBusy ? 'Searching…' : 'Recently changed first') : 'Oldest first', emptyTxt: isBrowse ? (st.bRes ? 'No entries found.' : '') : 'Nothing waiting.',
       bq: st.bq || '', onBq: e => { this.setState({ bq: e.target.value }); clearTimeout(this.bT); this.bT = setTimeout(() => this.browse(), 300); },
@@ -681,7 +728,7 @@ class Component extends DCLogic {
           keepA: () => this.merge(p.b.id, p.a.id, p.a.name), keepB: () => this.merge(p.a.id, p.b.id, p.b.name),
           notDupe: async () => { try { await window.GWSync.cat('catalog_not_dupe', { x: p.a.id, y: p.b.id }); this.setState(s => ({ dupes: (s.dupes || []).filter(z => z !== p) })); } catch (e) { this.say((e && e.message) || 'Couldn’t save'); } } }; }),
       isSets: page === 'sets', sv: this.setsVals(), isStory: page === 'story', os: this.osVals(),
-      isCovers: page === 'covers', covers: [['suits', 'Suits'], ['headgear', 'Headgear'], ['tops', 'Tops & jackets'], ['bottoms', 'Bottoms & underwear'], ['handsfeet', 'Hands & feet'], ['footwear', 'Footwear'], ['harnesses', 'Harnesses'], ['play', 'Restraints & play'], ['accessories', 'Accessories']].map(([k, name]) => { const x = (st.tilesA || []).find(z => z.tile === k) || {}, busy = st.coverBusy === k, file = f => { const fl = Array.from(f || []).find(z => /^image\//.test(z.type || '')); if (fl) this.setCover(k, fl); };
+      isCovers: page === 'covers', covers: [['suits', 'Suits'], ['headgear', 'Headgear'], ['tops', 'Tops & jackets'], ['bottoms', 'Bottoms & underwear'], ['handsfeet', 'Hands & feet'], ['mittens', 'Mittens'], ['footwear', 'Footwear'], ['harnesses', 'Harnesses'], ['play', 'Restraints & play'], ['chastity', 'Chastity'], ['equipment', 'Equipment'], ['accessories', 'Accessories']].map(([k, name]) => { const x = (st.tilesA || []).find(z => z.tile === k) || {}, busy = st.coverBusy === k, file = f => { const fl = Array.from(f || []).find(z => /^image\//.test(z.type || '')); if (fl) this.setCover(k, fl); };
         return { name, choose: e => { e.stopPropagation(); this.openCoverPick(k); }, chooseLbl: st.cpick && st.cpick.t === k ? 'Hide items' : 'Pick from items', photo: x.photo || '', hasPhoto: !!x.photo, custom: !!x.custom, sub: busy ? 'Saving…' : (x.n || 0) + ' items' + (x.custom ? ' · your cover' : x.photo ? ' · automatic' : ''), ring: st.coverFocus === k ? '0 0 0 2px #ffd60a' : 'none', upLbl: x.custom ? 'Change' : 'Upload cover',
           pick: e => { file(e.target.files); e.target.value = ''; }, over: e => e.preventDefault(), drop: e => { e.preventDefault(); const dt = e.dataTransfer; if (dt && dt.files && dt.files.length) { file(dt.files); return; } const u = dt && (dt.getData('text/uri-list') || dt.getData('text')); if (u && /^https?:/.test(u)) this.setCover(k, u.trim()); },
           focus: () => this.setState({ coverFocus: k }), clear: e => { e.stopPropagation(); this.setCover(k, ''); } }; }),
@@ -695,6 +742,7 @@ class Component extends DCLogic {
         const ph = []; (P.items || []).forEach(c => (c.photos || []).slice(0, 4).forEach(src => { if (src && !ph.some(x => x.src === src)) ph.push({ src, name: c.name }); }));
         return { open: true, loading: !!P.loading, empty: !P.loading && !ph.length, title: 'Pick a cover for ' + (TN[P.t] || P.t) + ' · ' + ph.length + ' photos', close: () => this.setState({ cpick: null }),
           photos: ph.map(p => ({ src: p.src, name: p.name, ring: p.src === cur ? '0 0 0 2px #ffd60a' : 'none', pick: () => { this.setCover(P.t, p.src); this.setState({ cpick: null }); } })) }; })(),
+      isCcats: page === 'ccats', cc: this.ccVals(),
       isShops: page === 'shops', shopIn: st.shopIn, onShopIn: e => this.setState({ shopIn: e.target.value }),
       trustIn: () => { const d = shopOf(st.shopIn); if (d) { this.setState({ shopIn: '' }); this.run('catalog_shop', { d, st: 'trusted' }, d + ' is trusted'); } },
       blockIn: () => { const d = shopOf(st.shopIn); if (d) { this.setState({ shopIn: '' }); this.run('catalog_shop', { d, st: 'blocked' }, d + ' is blocked'); } },

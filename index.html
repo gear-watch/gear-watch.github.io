@@ -2391,7 +2391,7 @@ function webUrl(u) { u = String(u || '').trim(); return /^https?:\/\//i.test(u) 
 function matFull(it) { const m = it.materials || []; return m.map((x, k) => { let t = x; if (x === 'Latex') { const d = [it.latexMm ? it.latexMm + ' mm' : '', it.chlor ? 'chlorinated' : ''].filter(Boolean).join(', '); if (d) t += ' (' + d + ')'; } return k === 0 && m.length > 1 ? t + ', mainly' : t; }).join(' · '); }
 const fMat = x => ({ materials: x.mt || [], latexMm: x.mm || '', chlor: !!x.ch });
 function matTag(it) { const m = it.materials || []; if (!m.length) return ''; let t = MAT_SHORT[m[0]] || m[0]; if (m[0] === 'Latex') { if (it.chlor) t = 'Chlorinated'; if (it.latexMm) t += ' ' + it.latexMm; } return t + (m.length > 1 ? ' +' + (m.length - 1) : ''); }
-const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Socks', 'Boots', 'Shoes', 'Cuffs', 'Gags', 'Leashes', 'Collars', 'Toys', 'Accessory'];
+const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Mittens', 'Socks', 'Boots', 'Shoes', 'Cuffs', 'Gags', 'Chastity', 'Leashes', 'Collars', 'Toys', 'Equipment', 'Accessory'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const BUDGET_CHIPS = [50, 100, 150, 250];
 const KF_FORM = ['chest','underbust','waist','waistHip','hips','thigh','knee','calf','ankle','armpit','upperArm','elbow','forearm','wrist','armLength','neck','inseam','waistAnkle','torso','shoulder','head','height','shoe'];
@@ -2411,7 +2411,7 @@ const KNOWN_PHOTOS = {
 };
 const KNOWN = { 'alpha-pup-latex-suit': 85, 'latex-alpha-husky-suit': 136, 'pup-play-latex-catsuit': 108 };
 const CGROUPS = ['Catsuits', 'Leotards / singlets', 'Tops', 'Bottoms / leggings', 'Shorts / briefs', 'Hoods / masks', 'Gloves', 'Socks / feet', 'Boots / shoes', 'Harnesses', 'Restraints', 'Leashes / collars', 'Toys', 'Accessories', 'Other'];
-const CAT2G = { Top: 'Tops', Jacket: 'Tops', Bottoms: 'Bottoms / leggings', Leashes: 'Leashes / collars', Collars: 'Leashes / collars', Toys: 'Toys', Catsuit: 'Catsuits', Surfsuit: 'Catsuits', Leotard: 'Leotards / singlets', Singlet: 'Leotards / singlets', Hood: 'Hoods / masks', Harness: 'Harnesses', Shorts: 'Shorts / briefs', Underwear: 'Shorts / briefs', Trousers: 'Bottoms / leggings', Tights: 'Bottoms / leggings', Skirt: 'Bottoms / leggings', Gloves: 'Gloves', Socks: 'Socks / feet', Boots: 'Boots / shoes', Shoes: 'Boots / shoes', Cuffs: 'Restraints', Gags: 'Restraints' };
+const CAT2G = { Top: 'Tops', Jacket: 'Tops', Bottoms: 'Bottoms / leggings', Leashes: 'Leashes / collars', Collars: 'Leashes / collars', Toys: 'Toys', Catsuit: 'Catsuits', Surfsuit: 'Catsuits', Leotard: 'Leotards / singlets', Singlet: 'Leotards / singlets', Hood: 'Hoods / masks', Harness: 'Harnesses', Shorts: 'Shorts / briefs', Underwear: 'Shorts / briefs', Trousers: 'Bottoms / leggings', Tights: 'Bottoms / leggings', Skirt: 'Bottoms / leggings', Gloves: 'Gloves', Mittens: 'Gloves', Chastity: 'Restraints', Equipment: 'Accessories', Socks: 'Socks / feet', Boots: 'Boots / shoes', Shoes: 'Boots / shoes', Cuffs: 'Restraints', Gags: 'Restraints' };
 const NAME_G = [[/leotard|singlet/i, 'Leotards / singlets'], [/cat ?suit|surf ?suit|body ?suit|zentai|onesie/i, 'Catsuits'], [/hood|mask|drone/i, 'Hoods / masks'], [/harness/i, 'Harnesses'], [/glove|gauntlet|mitt/i, 'Gloves'], [/boot|shoe|sneaker|heel/i, 'Boots / shoes'], [/sock|stocking/i, 'Socks / feet'], [/legging|trouser|pants|jeans|tights|skirt/i, 'Bottoms / leggings'], [/shorts|brief|jock|thong|underwear|boxer/i, 'Shorts / briefs'], [/\btop\b|shirt|\btee\b|vest|\bbra\b|crop|jacket|coat|hoodie|blazer|bomber/i, 'Tops'], [/cuff|restraint|\bgag\b|shackle/i, 'Restraints']];
 function cgroupOf(it, custom) {
   if (CAT2G[it.category]) return CAT2G[it.category];
@@ -2616,7 +2616,7 @@ function shoeSize(s, cur, pref, chart) { if (chart === 'own') return null; const
   if (!best || best.d > 1) return null; const [eu, uk, us] = best.r, usw = us + 1.5, f = x => String(x).replace('.5', '½'), val = { eu, uk, us, usw };
   const p = pref && SHOE_SYS[pref] && pref !== sys ? [pref] : [], rest = ['eu', 'uk', 'us', 'usw'].filter(k => k !== sys && !p.includes(k));
   return { eu, uk, us, usw, sys, label: SHOE_SYS[sys] + ' ' + f(n), sub: '≈ ' + p.concat(rest).slice(0, 2).map(k => SHOE_SYS[k] + ' ' + f(val[k])).join(' · '), conv: k => SHOE_SYS[k] + ' ' + f(val[k]) }; }
-const TILE_NAMES = { suits: 'Suits', headgear: 'Headgear', tops: 'Tops & jackets', bottoms: 'Bottoms & underwear', handsfeet: 'Hands & feet', footwear: 'Footwear', harnesses: 'Harnesses', play: 'Restraints & play', accessories: 'Accessories' };
+const TILE_NAMES = { suits: 'Suits', headgear: 'Headgear', tops: 'Tops & jackets', bottoms: 'Bottoms & underwear', handsfeet: 'Hands & feet', mittens: 'Mittens', footwear: 'Footwear', harnesses: 'Harnesses', play: 'Restraints & play', chastity: 'Chastity', equipment: 'Equipment', accessories: 'Accessories' };
 const plural0 = (n, w) => n + ' ' + (n === 1 ? w : w.replace(/person$/, 'people'));
 const pad = n => String(n).padStart(2, '0');
 const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
@@ -2794,9 +2794,9 @@ class Component extends DCLogic {
         if (s.firstDone && this.socialFor !== s.user.id) { this.socialFor = s.user.id; if (!this.loadSocial()) this.socialFor = null; }
         if (s.firstDone && s.username && this.pendingAdd) { const a = this.pendingAdd; this.pendingAdd = null; setTimeout(() => this.openPerson(a), 400); } } });
       if (window.visualViewport && !this.onVV) { const vv = window.visualViewport; this.onVV = () => { const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)), v = kb > 80 ? kb : 0; if (Math.abs(v - (this.state.kbH || 0)) > 10) this.setState({ kbH: v }); }; vv.addEventListener('resize', this.onVV); vv.addEventListener('scroll', this.onVV); }
-      this.unsubCat = G.on(s => { if (s.user && s.firstDone && !this._catKick) { this._catKick = true; this.catSoon(5000); setTimeout(() => this.catSyncCopies(), 1500); this.staffCheck(true); setTimeout(() => this.loadDisc(), 3000); } if (!s.user) { this._catKick = false; if (this.state.staffRole) this.setState({ staffRole: null, staffQ: 0 }); } });
-      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { this.catSyncCopies(); if (this.state.staffRole) this.staffCheck(); } });
-      this.catSyncT = setInterval(() => { if (document.visibilityState === 'visible') { this.catSyncCopies(); this.shopFitSoon(8000); } }, 120000); this.shopFitSoon(10000);
+      this.unsubCat = G.on(s => { if (s.user && s.firstDone && !this._catKick) { this._catKick = true; this.catSoon(5000); setTimeout(() => this.catSyncCopies(), 1500); setTimeout(() => this.catCatRemaps(), 2500); this.staffCheck(true); setTimeout(() => this.loadDisc(), 3000); } if (!s.user) { this._catKick = false; if (this.state.staffRole) this.setState({ staffRole: null, staffQ: 0 }); } });
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { this.catSyncCopies(); this.catCatRemaps(); if (this.state.staffRole) this.staffCheck(); } });
+      this.catSyncT = setInterval(() => { if (document.visibilityState === 'visible') { this.catSyncCopies(); this.catCatRemaps(); this.shopFitSoon(8000); } }, 120000); this.shopFitSoon(10000);
       G.init(); return true; };
     this.onVis = () => { if (document.visibilityState === 'visible') { this.loadSocial(true); this.forceUpdate(); } }; document.addEventListener('visibilitychange', this.onVis); window.addEventListener('focus', this.onVis);
     this.onRs = () => { this.svMeasure(); this.scMeasure(); const w = window.innerWidth; if ((w >= 900) !== ((this.state.vw || 0) >= 900)) this.setState({ vw: w }); }; window.addEventListener('resize', this.onRs);
@@ -3680,7 +3680,7 @@ class Component extends DCLogic {
     const gCur = /libidex|regulation/.test(host) ? '£' : /kinkfox|kinkprojects/.test(host) ? '$' : '€';
     const gName = s.replace(/-copy$/, '').split('-').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     const name = (L && L.name) || gName, n = name.toLowerCase() + ' ' + s;
-    const category = /hood|mask|drone/.test(n) ? 'Hood' : /harness/.test(n) ? 'Harness' : /gag/.test(n) ? 'Gags' : /cuff|restraint/.test(n) ? 'Cuffs' : /short|brief/.test(n) ? 'Shorts' : /glove/.test(n) ? 'Gloves' : /sock|stocking/.test(n) ? 'Socks' : /surf/.test(n) ? 'Surfsuit' : /suit/.test(n) ? 'Catsuit' : 'Accessory';
+    const category = /hood|mask|drone/.test(n) ? 'Hood' : /harness/.test(n) ? 'Harness' : /gag/.test(n) ? 'Gags' : /cuff|restraint/.test(n) ? 'Cuffs' : /short|brief/.test(n) ? 'Shorts' : /mitt/.test(n) ? 'Mittens' : /glove/.test(n) ? 'Gloves' : /chastity/.test(n) ? 'Chastity' : /sock|stocking/.test(n) ? 'Socks' : /surf/.test(n) ? 'Surfsuit' : /suit/.test(n) ? 'Catsuit' : 'Accessory';
     const price = L && L.price != null ? Math.round(L.price * 100) / 100 : KNOWN[s], pics = (L && L.images && L.images.length ? L.images : KNOWN_PHOTOS[s]) || [];
     const cur = L && ['€', '$', '£'].includes(L.currency) ? L.currency : gCur, brand = (L && L.brand) || gBrand;
     const missing = [price == null ? 'price' : null, pics.length ? null : 'photos'].filter(Boolean);
@@ -3776,6 +3776,13 @@ class Component extends DCLogic {
     const links = p.items.filter(i => i.catalogId && !i.private && ['wanted', 'ordered', 'owned'].includes(i.status) && !seen.has(i.catalogId) && seen.add(i.catalogId)).map(i => ({ id: i.catalogId, s: i.status, c: i.colour || '', z: i.m2m ? 'Made to measure' : i.size || '' }));
     const k = 'gw-cat-links-' + A.user.id, hs = JSON.stringify(links); let prev = null; try { prev = localStorage.getItem(k); } catch (e) {}
     if (force || prev !== hs) { const m = await G.cat('catalog_sync_links', { links }); try { localStorage.setItem(k, hs); } catch (e) {} if (m && typeof m === 'object' && Object.keys(m).length) this.catRemap(m); } }
+  catCatRemaps() { const G = window.GWSync, A = G && G.state ? G.state() : {}; if (!G || !G.cat || !A.user) return; if (Date.now() - (this._ccrAt || 0) < 600000) return; this._ccrAt = Date.now();
+    G.cat('cat_remaps').then(m => { if (!m || typeof m !== 'object' || !Object.keys(m).length) return; const built = new Set(CATS.map(cnorm)), D = this.state.data, moved = {};
+      (D.profiles || []).forEach(p => (p.items || []).forEach(i => { const k = cnorm(i.category); if (i.category && !built.has(k) && m[k] && CATS.includes(m[k])) moved[i.category] = m[k]; }));
+      const ccHit = (D.customCats || []).some(c => m[cnorm(c)] && !built.has(cnorm(c)));
+      if (!Object.keys(moved).length && !ccHit) return;
+      this.mutate((p0, d) => { (d.profiles || []).forEach(p => (p.items || []).forEach(i => { const k = cnorm(i.category); if (i.category && !built.has(k) && m[k] && CATS.includes(m[k])) i.category = m[k]; })); d.customCats = (d.customCats || []).filter(c => built.has(cnorm(c)) || !m[cnorm(c)]); }, true);
+      const f = Object.keys(moved); if (f.length) this.toast(f.length === 1 ? 'Your “' + f[0] + '” items are now under ' + moved[f[0]] : 'Your custom categories now use the built-in ones'); }).catch(() => { this._ccrAt = 0; }); }
   catRemap(m) { this.mutate(pp => pp.items.forEach(i => { if (i.catalogId && m[i.catalogId]) i.catalogId = m[i.catalogId]; })); }
   catDetLoad(id) { const G = window.GWSync, D = this.state.data, p = D.profiles.find(x => x.id === D.activeId) || D.profiles[0], it = p.items.find(x => x.id === id);
     if (!it || !it.catalogId || !(it.status === 'owned' || it.status === 'ordered') || !G || !G.cat || !(this.state.acct || {}).user) { if (this.state.catDet) this.setState({ catDet: null }); return; }

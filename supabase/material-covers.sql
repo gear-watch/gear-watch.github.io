@@ -15,7 +15,7 @@ grant execute on function public.catalog_tile_mats() to authenticated;
 create or replace function public.catalog_tile_cover_set(t text, u text) returns void language plpgsql security definer set search_path = public as $$
 begin
   if not public.is_mod() then raise exception 'Staff only'; end if;
-  if split_part(t, ':', 1) not in ('suits', 'headgear', 'tops', 'bottoms', 'handsfeet', 'footwear', 'harnesses', 'play', 'accessories') or length(t) > 80 then raise exception 'Unknown category'; end if;
+  if split_part(t, ':', 1) not in ('suits', 'headgear', 'tops', 'bottoms', 'handsfeet', 'mittens', 'footwear', 'harnesses', 'play', 'chastity', 'equipment', 'accessories') or length(t) > 80 then raise exception 'Unknown category'; end if;
   if coalesce(u, '') = '' then delete from public.catalog_tile_covers where tile = t;
   else
     if u !~ '^https?://' then raise exception 'That isn’t a photo link'; end if;
