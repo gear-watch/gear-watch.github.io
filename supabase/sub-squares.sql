@@ -8,21 +8,26 @@ create or replace function public.catalog_browse(t text, lim int default 60) ret
   order by (status = 'gone'), own_n + want_n desc, created_at desc limit least(greatest(coalesce(lim, 60), 1), 300)
 $$;
 
--- Sub-squares: staff categories placed inside a main square (e.g. Puphood inside Headgear).
+-- Sub-squares: every type inside a main square (built-in like Hood or Cuffs, plus staff ones like Gasmask).
 create or replace function public.catalog_sub_tiles() returns jsonb language sql stable security definer set search_path = public as $$
-  select coalesce(jsonb_agg(jsonb_build_object('key', 'c:' || cc.norm, 'name', cc.name, 'tile', cc.tile, 'n', coalesce(s.n, 0), 'photo', coalesce(cv.url, s.photo), 'auto', s.photo, 'custom', cv.url is not null) order by cc.created_at), '[]'::jsonb)
-  from public.catalog_categories cc
+  with k as (
+    select cc.norm, cc.name, cc.tile, false builtin from public.catalog_categories cc where cc.tile not like 'c:%'
+    union all
+    select public.cat_norm(b), b, public.cat_tile(b, ''), true from unnest(array['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Mittens', 'Socks', 'Boots', 'Shoes', 'Cuffs', 'Gags', 'Chastity', 'Leashes', 'Collars', 'Toys', 'Equipment', 'Accessory']::text[]) b
+      where not exists (select 1 from public.catalog_categories cc where cc.norm = public.cat_norm(b))
+  )
+  select coalesce(jsonb_agg(jsonb_build_object('key', 'c:' || k.norm, 'name', k.name, 'tile', k.tile, 'builtin', k.builtin, 'n', coalesce(s.n, 0), 'photo', coalesce(cv.url, s.photo), 'auto', s.photo, 'custom', cv.url is not null) order by k.builtin, k.name), '[]'::jsonb)
+  from k
   left join lateral (select count(*) n, (array_agg(c.photos[1] order by c.own_n + c.want_n desc) filter (where c.photos[1] is not null))[1] photo
-    from public.catalog c where c.status = 'live' and public.cat_norm(c.category) = cc.norm) s on true
-  left join public.catalog_tile_covers cv on cv.tile = 'c:' || cc.norm
-  where cc.tile not like 'c:%'
+    from public.catalog c where c.status = 'live' and public.cat_norm(c.category) = k.norm) s on true
+  left join public.catalog_tile_covers cv on cv.tile = 'c:' || k.norm
 $$;
 grant execute on function public.catalog_sub_tiles() to authenticated;
 
 create or replace function public.catalog_tile_cover_set(t text, u text) returns void language plpgsql security definer set search_path = public as $$
 begin
   if not public.is_mod() then raise exception 'Staff only'; end if;
-  if not (split_part(t, ':', 1) in ('suits', 'headgear', 'tops', 'bottoms', 'handsfeet', 'mittens', 'footwear', 'harnesses', 'play', 'chastity', 'equipment', 'accessories') or (split_part(t, ':', 1) = 'c' and exists (select 1 from public.catalog_categories cc where cc.norm = split_part(t, ':', 2)))) or length(t) > 80 then raise exception 'Unknown category'; end if;
+  if not (split_part(t, ':', 1) in ('suits', 'headgear', 'tops', 'bottoms', 'handsfeet', 'mittens', 'footwear', 'harnesses', 'play', 'chastity', 'equipment', 'accessories') or (split_part(t, ':', 1) = 'c' and (split_part(t, ':', 2) = any(array['catsuit', 'surfsuit', 'leotard', 'top', 'jacket', 'bottom', 'hood', 'harnes', 'short', 'underwear', 'trouser', 'tight', 'skirt', 'glove', 'mitten', 'sock', 'boot', 'shoe', 'cuff', 'gag', 'chastity', 'leashe', 'collar', 'toy', 'equipment', 'accessory']::text[]) or exists (select 1 from public.catalog_categories cc where cc.norm = split_part(t, ':', 2))))) or length(t) > 80 then raise exception 'Unknown category'; end if;
   if coalesce(u, '') = '' then delete from public.catalog_tile_covers where tile = t;
   else
     if u !~ '^https?://' then raise exception 'That isn’t a photo link'; end if;
