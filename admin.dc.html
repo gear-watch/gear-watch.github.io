@@ -227,10 +227,26 @@
                 <div style="position:relative;width:140px;aspect-ratio:9/16;border-radius:12px;overflow:hidden;background:#1c1c1e;opacity:{{ o.op }};"><img src="{{ o.img }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></div>
                 <span style="font-size:12px;color:#f5f5f7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ o.caption }}</span>
                 <span style="font-size:12px;color:#a1a1a6;">{{ o.sub }}</span>
-                <button onClick="{{ o.del }}" style="align-self:flex-start;border:0;background:#2c2c2e;color:#ff453a;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;">{{ o.delLbl }}</button>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;"><button onClick="{{ o.viewers }}" style="border:0;background:{{ o.vBg }};color:{{ o.vFg }};border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;">{{ o.vLbl }}</button><button onClick="{{ o.del }}" style="border:0;background:#2c2c2e;color:#ff453a;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;">{{ o.delLbl }}</button></div>
               </div>
             </sc-for>
           </div>
+          <sc-if value="{{ os.hasV }}" hint-placeholder-val="{{ false }}">
+            <div style="margin:0 20px 24px;max-width:560px;background:#1c1c1e;border-radius:14px;overflow:hidden;">
+              <div style="padding:14px 16px;display:flex;flex-direction:column;gap:2px;border-bottom:1px solid #2c2c2e;"><span style="font-size:15px;font-weight:600;">{{ os.vHead }}</span><span style="font-size:13px;color:#a1a1a6;">{{ os.vSub }}</span></div>
+              <sc-if value="{{ os.noV }}" hint-placeholder-val="{{ false }}"><div style="padding:14px 16px;font-size:13px;color:#6e6e73;">Views show up here once people open it.</div></sc-if>
+              <div style="max-height:420px;overflow-y:auto;display:flex;flex-direction:column;">
+                <sc-for list="{{ os.vList }}" as="v" hint-placeholder-count="0">
+                  <div style="padding:10px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #2c2c2e;">
+                    <sc-if value="{{ v.hasAv }}" hint-placeholder-val="{{ false }}"><img src="{{ v.av }}" alt="" style="width:32px;height:32px;border-radius:9999px;object-fit:cover;flex:none;background:#2c2c2e;"></sc-if>
+                    <sc-if value="{{ v.noAv }}" hint-placeholder-val="{{ true }}"><span style="width:32px;height:32px;border-radius:9999px;background:#2c2c2e;flex:none;display:grid;place-items:center;font-size:13px;font-weight:600;">{{ v.initial }}</span></sc-if>
+                    <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;"><span style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ v.name }}</span><span style="font-size:12px;color:#a1a1a6;">{{ v.when }}</span></span>
+                    <sc-if value="{{ v.hasR }}" hint-placeholder-val="{{ false }}"><span style="display:flex;gap:4px;flex:none;"><sc-for list="{{ v.reacts }}" as="r" hint-placeholder-count="0"><span style="background:#2a2614;color:#ffd60a;border-radius:9999px;padding:3px 9px;font-size:12px;font-weight:600;">{{ r.label }}</span></sc-for></span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
         </sc-if>
         <sc-if value="{{ isCovers }}" hint-placeholder-val="{{ false }}">
           <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;font-size:20px;font-weight:600;">Category covers</div>
@@ -547,6 +563,9 @@ class Component extends DCLogic {
     if (n) this.say(n === 1 ? 'Fitted 1 shop photo to a square' : 'Fitted ' + n + ' shop photos to a square'); }
   // ===== Send story (as @GearWatch) =====
   async osLoad() { try { const l = await window.GWSync.cat('official_stories'); this.setState(s => ({ os: Object.assign({}, s.os, { list: l || [] }) })); } catch (e) { this.say((e && e.message) || 'Couldn’t load stories'); } }
+  async osViewers(id) { const o = this.state.os || {}; if (o.vId === id) { this.osSet({ vId: null, viewers: null }); return; } this.osSet({ vId: id, viewers: null, vBusy: true });
+    try { const l = await window.GWSync.cat('official_story_viewers', { sid: id }); if ((this.state.os || {}).vId === id) this.osSet({ viewers: l || [], vBusy: false }); }
+    catch (e) { this.osSet({ vBusy: false, viewers: [] }); this.say(/function|does not exist/i.test((e && e.message) || '') ? 'Run supabase/story-viewers.sql first' : (e && e.message) || 'Couldn’t load viewers'); } }
   osSet(p) { this.setState(s => ({ os: Object.assign({ notify: true }, s.os, p) })); }
   async osPick(e) { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return; const b = await this.shrink(f).catch(() => null); if (!b) { this.say('Couldn’t read that photo'); return; }
     const url = URL.createObjectURL(b), im = new Image(); im.onload = () => this.osSet({ w: im.naturalWidth, h: im.naturalHeight }); im.src = url; const o = this.state.os || {}; if (o.img) URL.revokeObjectURL(o.img); this.osSet({ blob: b, img: url }); }
@@ -562,8 +581,11 @@ class Component extends DCLogic {
       toggleNotify: () => this.osSet({ notify: !on }), track: on ? '#30d158' : '#48484a', knob: on ? 'translateX(18px)' : 'none',
       send: () => this.osSend(), sendLbl: o.busy ? 'Posting…' : o.arm ? 'Tap again to post to everyone' : 'Post story', sendBg: ready ? '#ffd60a' : '#2c2c2e', sendFg: ready ? '#000' : '#6e6e73',
       note: !o.blob ? 'Pick a photo first' : on ? 'Everyone gets a notification' : 'No notification, it just shows on Home',
+      hasV: !!o.vId, vBusy: !!o.vBusy, ...(() => { const V = o.viewers || [], R0 = V.filter(v => (v.reacts || []).length), KL = { paw: 'Paw', flame: 'Heart', want: 'Want' }, cap = ((o.list || []).find(x => x.id === o.vId) || {}).caption || 'this story';
+        return { vHead: o.vBusy ? 'Loading viewers…' : V.length ? V.length + (V.length === 1 ? ' person' : ' people') + ' saw “' + cap.slice(0, 40) + (cap.length > 40 ? '…' : '') + '”' : 'Nobody has seen it yet', vSub: o.vBusy ? '' : R0.length ? R0.length + ' reacted · ' + ['paw', 'flame', 'want'].map(k => { const n = R0.filter(v => v.reacts.includes(k)).length; return n ? n + ' ' + KL[k].toLowerCase() : ''; }).filter(Boolean).join(', ') : V.length ? 'No reactions yet' : '', noV: !o.vBusy && !V.length,
+          vList: V.map(v => ({ name: '@' + (v.username || 'someone'), initial: String(v.username || '?').charAt(0).toUpperCase(), av: v.avatar || '', hasAv: !!v.avatar, noAv: !v.avatar, when: v.seen_at ? ago(v.seen_at) : 'Reacted', hasR: (v.reacts || []).length > 0, reacts: (v.reacts || []).map(k => ({ label: KL[k] || k })) })) }; })(),
       noList: !!o.list && !o.list.length, list: (o.list || []).map(x => { const live = new Date(x.expires_at).getTime() > Date.now(); return { img: ((x.media || [])[0] || {}).pub || '', caption: x.caption || 'No caption', op: live ? 1 : 0.45,
-        sub: (live ? 'Live · ' : 'Ended · ') + ago(x.created_at) + ' · ' + x.views + (x.views === 1 ? ' view' : ' views'), delLbl: this._osDel === x.id ? 'Tap again' : 'Remove', del: () => this.osDel(x.id) }; }) }; }
+        sub: (live ? 'Live · ' : 'Ended · ') + ago(x.created_at) + ' · ' + x.views + (x.views === 1 ? ' view' : ' views') + (x.reacts ? ' · ' + x.reacts + (x.reacts === 1 ? ' reaction' : ' reactions') : ''), vLbl: o.vId === x.id ? 'Hide viewers' : 'Viewers', vBg: o.vId === x.id ? '#ffd60a' : '#2c2c2e', vFg: o.vId === x.id ? '#000' : '#f5f5f7', viewers: () => this.osViewers(x.id), delLbl: this._osDel === x.id ? 'Tap again' : 'Remove', del: () => this.osDel(x.id) }; }) }; }
   async edSave(approve) { const ed = this.state.ed, G = window.GWSync; if (!ed || !ed.ready || ed.saving) return;
     if (approve && !ed.noSize && !(ed.sizes || []).length && !ed.m2m) { this.say('Add at least one size, or turn on Made to measure'); return; }
     if (approve && !ed.noColor && !(ed.colors || []).length && !ed.custom) { this.say('Add at least one colour, or turn on Custom colours'); return; }
