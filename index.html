@@ -199,6 +199,7 @@ input::placeholder{color:#6e6e73;}
                 <span style="font-weight:600;line-height:1.24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.name }}</span>
                 <span style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">{{ it.brand }}</span><sc-if value="{{ it.hasMat }}" hint-placeholder-val="{{ false }}"><span style="flex:none;border:1px solid #48484a;border-radius:9999px;padding:0 7px;font-size:11px;line-height:16px;color:#d1d1d6;white-space:nowrap;">{{ it.matTag }}</span></sc-if></span>
                 <span style="display:flex;gap:2px;align-items:center;"><sc-for list="{{ it.stars }}" as="s" hint-placeholder-count="5"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z" fill="{{ s.fill }}"></path></svg></sc-for></span>
+                <sc-if value="{{ it.hasNote }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:{{ it.noteColor }};letter-spacing:-0.12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ it.note }}</span></sc-if>
               </div>
               <sc-if value="{{ it.needEdit }}" hint-placeholder-val="{{ false }}"><button onClick="{{ it.onFix }}" style="flex:none;align-self:center;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;" style-active="transform:scale(0.95);">Edit needed</button></sc-if>
               <div style="display:flex;flex-direction:column;align-items:flex-end;flex:none;">
@@ -767,8 +768,34 @@ input::placeholder{color:#6e6e73;}
         <span style="font-size:14px;color:#a1a1a6;">{{ d.eurTxt }}</span>
         <sc-if value="{{ d.drop }}" hint-placeholder-val="{{ false }}"><span data-anim="pop" data-delay="500" style="font-size:12px;font-weight:600;color:#000;background:var(--gw-accent,#ffd60a);border-radius:9999px;padding:2px 8px;align-self:center;">Price drop {{ d.dropTxt }}</span></sc-if>
       </div>
-      <sc-if value="{{ d.showCheck }}" hint-placeholder-val="{{ true }}"><span data-anim="fade" style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;letter-spacing:-0.12px;color:{{ d.checkColor }};"><span style="width:6px;height:6px;border-radius:9999px;background:{{ d.checkColor }};flex:none;"></span><span style="min-width:0;">{{ d.checkTxt }}</span><sc-if value="{{ d.canCheck }}" hint-placeholder-val="{{ false }}"><button onClick="{{ d.checkNow }}" style="flex:none;border:0;background:none;padding:2px 0 2px 6px;color:var(--gw-accent,#ffd60a);font-size:12px;cursor:pointer;">{{ d.checkLabel }}</button></sc-if></span></sc-if>
+      <sc-if value="{{ d.showCheck }}" hint-placeholder-val="{{ true }}"><span data-anim="fade" style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;letter-spacing:-0.12px;color:{{ d.checkColor }};"><span style="width:6px;height:6px;border-radius:9999px;background:{{ d.checkColor }};flex:none;"></span><span style="min-width:0;">{{ d.checkTxt }}</span><sc-if value="{{ d.canCheck }}" hint-placeholder-val="{{ false }}"><button onClick="{{ d.checkNow }}" style="flex:none;border:0;background:none;padding:2px 0 2px 6px;color:var(--gw-accent,#ffd60a);font-size:12px;cursor:pointer;">{{ d.checkLabel }}</button></sc-if><sc-if value="{{ d.canPick }}" hint-placeholder-val="{{ false }}"><button onClick="{{ d.openPick }}" style="flex:none;margin-left:auto;border:0;background:none;padding:2px 0 2px 6px;color:var(--gw-accent,#ffd60a);font-size:12px;cursor:pointer;font-family:inherit;">Wrong price?</button></sc-if></span></sc-if>
     </div>
+
+    <sc-if value="{{ d.pickCard }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:9999px;background:#ff9f0a;flex:none;"></span><span style="font-weight:600;">{{ d.pickTitle }}</span></div>
+        <span style="font-size:14px;line-height:1.43;color:#d1d1d6;text-wrap:pretty;">{{ d.pickText }}</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;"><button onClick="{{ d.openPick }}" style="border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:8px 16px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">{{ d.pickBtn }}</button><a href="{{ d.url }}" target="_blank" rel="noopener" style="background:#2c2c2e;color:#f5f5f7;border-radius:9999px;padding:8px 16px;font-size:15px;text-decoration:none;">Open shop</a></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ d.showShops }}" hint-placeholder-val="{{ false }}">
+      <div data-anim="up" style="margin:16px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#2c2c2e;">
+        <div style="background:#1c1c1e;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><span style="font-size:14px;font-weight:600;color:#a1a1a6;">{{ d.shopsHead }}</span><span style="font-size:12px;color:#6e6e73;">{{ d.shopsSub }}</span></div>
+        <sc-for list="{{ d.shops }}" as="s" hint-placeholder-count="1">
+          <div style="background:#1c1c1e;padding:12px 16px;display:flex;align-items:center;gap:10px;">
+            <a href="{{ s.url }}" target="_blank" rel="noopener" style="flex:1;min-width:0;display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;">
+              <span style="width:32px;height:32px;border-radius:8px;background:#2c2c2e;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">{{ s.initial }}</span>
+              <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.host }}</span><span style="font-size:12px;color:{{ s.subColor }};">{{ s.sub }}</span></span>
+              <span style="display:flex;flex-direction:column;align-items:flex-end;flex:none;"><span style="font-weight:600;color:{{ s.priceColor }};">{{ s.price }}</span><span style="font-size:12px;color:#a1a1a6;">{{ s.eur }}</span></span>
+            </a>
+            <sc-if value="{{ s.canPick }}" hint-placeholder-val="{{ false }}"><button onClick="{{ s.onPick }}" style="flex:none;border:0;background:#2c2c2e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:6px 10px;font-size:12px;cursor:pointer;font-family:inherit;">Pick</button></sc-if>
+            <sc-if value="{{ s.canRemove }}" hint-placeholder-val="{{ false }}"><button onClick="{{ s.onRemove }}" aria-label="Remove shop" style="flex:none;border:0;background:none;color:#6e6e73;font-size:20px;line-height:1;padding:4px;cursor:pointer;">×</button></sc-if>
+          </div>
+        </sc-for>
+        <button onClick="{{ d.addShop }}" style="border:0;background:#1c1c1e;padding:12px 16px;text-align:left;color:var(--gw-accent,#ffd60a);font-size:17px;cursor:pointer;font-family:inherit;">+ Add another shop</button>
+      </div>
+    </sc-if>
 
     <div data-anim="up" style="margin:20px 16px 0;background:#1c1c1e;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
@@ -2037,6 +2064,39 @@ input::placeholder{color:#6e6e73;}
       <div data-anim="up" style="padding:12px 24px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;text-align:center;text-wrap:pretty;">{{ inv.note }}</div>
     </sc-if>
 
+    <sc-if value="{{ isSheetPick }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:4px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;text-wrap:pretty;">{{ pp.intro }}</div>
+      <sc-if value="{{ pp.busy }}" hint-placeholder-val="{{ false }}"><div style="padding:24px 20px;color:#a1a1a6;font-size:15px;">Reading the shop’s page…</div></sc-if>
+      <sc-if value="{{ pp.hasList }}" hint-placeholder-val="{{ false }}">
+        <div style="margin:12px 16px 0;border-radius:18px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:#3a3a3c;">
+          <sc-for list="{{ pp.list }}" as="c" hint-placeholder-count="3">
+            <button onClick="{{ c.onTap }}" style="border:0;background:#2c2c2e;padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left;color:#f5f5f7;font-family:inherit;box-shadow:{{ c.ring }};">
+              <span style="width:22px;height:22px;border-radius:9999px;flex:none;box-sizing:border-box;border:{{ c.dotBorder }};background:{{ c.dotBg }};display:flex;align-items:center;justify-content:center;"><span style="width:8px;height:8px;border-radius:9999px;background:{{ c.dotIn }};"></span></span>
+              <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-weight:600;font-size:17px;">{{ c.price }}</span><sc-if value="{{ c.hasWas }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#6e6e73;text-decoration:line-through;">{{ c.was }}</span></sc-if><span style="font-size:12px;color:#a1a1a6;">{{ c.eur }}</span></span><span style="font-size:12px;color:#a1a1a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.label }}</span></span>
+              <sc-if value="{{ c.isBest }}" hint-placeholder-val="{{ false }}"><span style="flex:none;font-size:11px;font-weight:600;color:var(--gw-accent,#ffd60a);">Best guess</span></sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ pp.canManual }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pp.manual }}" style="margin:12px 16px 0;border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:15px;padding:4px;cursor:pointer;text-align:left;font-family:inherit;">None of these · type it myself</button></sc-if>
+    </sc-if>
+
+    <sc-if value="{{ isSheetShop }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:4px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;line-height:1.43;text-wrap:pretty;">{{ sa.intro }}</div>
+      <div style="margin:12px 16px 0;display:flex;gap:8px;">
+        <input value="{{ sa.url }}" onChange="{{ sa.onUrl }}" placeholder="Paste the shop’s link" inputmode="url" autocapitalize="off" autocorrect="off" style="flex:1;min-width:0;background:#2c2c2e;border:0;border-radius:12px;padding:12px 16px;font-size:17px;color:#f5f5f7;outline:none;font-family:inherit;">
+        <button onClick="{{ sa.look }}" style="flex:none;border:0;background:#2c2c2e;color:var(--gw-accent,#ffd60a);border-radius:12px;padding:0 16px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">{{ sa.lookLbl }}</button>
+      </div>
+      <sc-if value="{{ sa.hasErr }}" hint-placeholder-val="{{ false }}"><div style="padding:10px 20px 0;font-size:14px;color:#ff9f0a;">{{ sa.err }}</div></sc-if>
+      <sc-if value="{{ sa.hasRes }}" hint-placeholder-val="{{ false }}">
+        <div style="margin:12px 16px 0;background:#2c2c2e;border-radius:12px;padding:12px;display:flex;align-items:center;gap:12px;">
+          <sc-if value="{{ sa.hasImg }}" hint-placeholder-val="{{ false }}"><img src="{{ sa.img }}" alt="" referrerpolicy="no-referrer" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex:none;background:#3a3a3c;"></sc-if>
+          <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;">{{ sa.name }}</span><span style="font-size:14px;color:#a1a1a6;">{{ sa.sub }}</span></span>
+        </div>
+        <div style="margin:12px 16px 0;display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-radius:12px;background:{{ sa.matchBg }};"><span style="width:8px;height:8px;border-radius:9999px;background:{{ sa.matchDot }};flex:none;margin-top:6px;"></span><span style="font-size:14px;line-height:1.43;color:#d1d1d6;">{{ sa.matchTxt }}</span></div>
+      </sc-if>
+    </sc-if>
+
     <sc-if value="{{ isSheetPaid }}" hint-placeholder-val="{{ false }}">
       <div data-anim="up" style="padding:4px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ pd.item }}</div>
       <div data-anim="up" style="margin:8px 16px 0;background:#2c2c2e;border-radius:18px;padding:12px 12px 12px 16px;display:flex;align-items:center;gap:8px;">
@@ -2644,7 +2704,10 @@ const ordinal = n => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', '
 const fmtD = s => { const d = new Date(s + 'T12:00:00'); return d.getDate() + ' ' + MON[d.getMonth()]; };
 const num = v => (Math.round(v * 100) % 100 ? v.toFixed(2) : String(Math.round(v)));
 const money = (c, v) => { c = c || '€'; return c !== PCUR && FX[c] && FX[PCUR] ? '≈' + PCUR + num(Math.round(v * FX[c] / FX[PCUR])) : c + num(v); };
-const eurOf = it => it.price == null ? null : it.price * (FX[it.currency] || 1);
+const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
+const pkeyOf = (u, pick) => { const k = normUrl(u); return k && pick && pick.k && pick.k !== 'manual' ? k + '#' + pick.k : k; };
+function bestShop(it) { const L = (it.shops || []).filter(x => x && x.p != null).map(x => ({ p: x.p, c: x.c || '€', u: x.u, w: x.w })); if (!L.length) return null; if (it.price != null) L.push({ p: it.price, c: it.currency || '€', u: it.url, w: it.shopWas, main: true }); return L.sort((a, b) => a.p * (FX[a.c] || 1) - b.p * (FX[b.c] || 1))[0]; }
+const eurOf = it => { const b = !it.status || it.status === 'wanted' ? bestShop(it) : null; if (b) return b.p * (FX[b.c] || 1); return it.price == null ? null : it.price * (FX[it.currency] || 1); };
 const paidEur = it => it.paid != null ? it.paid * (FX[it.paidCur || '€'] || 1) : (eurOf(it) || 0);
 function dropOf(it) { const h = it.history || []; if (h.length < 2 || it.price == null) return 0; const max = Math.max.apply(null, h.slice(0, -1).map(x => x.price)); return max > it.price ? (max - it.price) / max : 0; }
 const scoreOf = it => (it.rating || 0) + Math.min(1.5, dropOf(it) * 10);
@@ -2763,11 +2826,20 @@ class Component extends DCLogic {
 
   applyPrices(map) {
     const data = JSON.parse(JSON.stringify(this.state.data)); let changed = false;
+    const take = (u, pick) => (u && (map[pkeyOf(u, pick)] || map[normUrl(u)])) || null;
     data.profiles.forEach(p => p.items.forEach(it => {
-      let e = it.url && map[normUrl(it.url)]; if (!e || !e.checked || (it.checked && e.checked <= it.checked)) return; changed = true;
+      if (it.status === 'wanted') (it.shops || []).forEach(sh => { const e = take(sh.u, sh.pick); if (!e || !e.checked || (sh.chk && e.checked <= sh.chk)) return; changed = true; sh.chk = e.checked;
+        if (!e.ok || e.price == null) { sh.err = /blocked/i.test(e.error || '') ? 'Shop blocked the check' : 'Couldn’t read the price'; return; } sh.err = null;
+        sh.cands = e.cands || null; sh.need = !!e.cands && !sh.pick; sh.gone = !!e.pickGone; if (sh.gone) return;
+        sh.p = e.price; sh.c = ['€', '$', '£'].includes(e.currency) ? e.currency : sh.c || '€'; sh.w = e.was != null && e.was > e.price ? e.was : null; });
+      if (it.pick && it.pick.k === 'manual') return;
+      let e = take(it.url, it.pick); if (!e || !e.checked || (it.checked && e.checked <= it.checked)) return; changed = true;
       it.checked = e.checked; it.checkErr = null;
       it.checkHow = e.how || null; it.checkNote = e.stale && e.okAt ? 'shop blocked a new check, price read ' + agoTxt(e.okAt) : null;
       if (!e.ok || e.price == null) { it.checkErr = /blocked/i.test(e.error || '') ? 'The shop blocked the price check' : /no price/i.test(e.error || '') ? 'No price found on the page' : 'Couldn’t read the price'; return; }
+      it.cands = e.cands || null; it.needPick = !!e.cands && !it.pick; it.pickGone = !!e.pickGone;
+      if (it.pickGone) { it.checkNote = 'the price you picked isn’t on the page anymore'; return; }
+      if (e.native && it.status === 'wanted' && e.currency && it.currency && e.currency !== it.currency && FX[e.currency]) { it.history = []; it.price = null; it.shopWas = null; it.currency = e.currency; it.checkNote = 'shop’s own ' + e.currency + ' price for your region'; }
       const p0 = e.price, w0 = e.was, cur0 = e.currency;
       let ep = e.price; if (e.currency && it.currency && e.currency !== it.currency && FX[e.currency] && FX[it.currency]) { it.checkNote = 'Shop showed ' + e.currency + num(e.price) + ', converted'; ep = Math.round(e.price * FX[e.currency] / FX[it.currency] * 100) / 100; e = Object.assign({}, e, { price: ep, currency: it.currency }); }
       if (e.currency && it.currency && e.currency !== it.currency) { it.checkErr = 'Shop shows ' + e.currency + e.price; return; }
@@ -2779,14 +2851,56 @@ class Component extends DCLogic {
     if (changed) this.save(data, true);
     if (this._catPush && this._catPush.length) setTimeout(() => this.catPushRun(), 1500);
   }
+  curSym(c, f) { return ({ EUR: '€', USD: '$', GBP: '£' })[c] || (['€', '$', '£'].includes(c) ? c : f || '€'); }
+  async openPick(it, si) {
+    const t = si >= 0 ? (it.shops || [])[si] : it, url = t ? (si >= 0 ? t.u : it.url) : ''; if (!url) return;
+    const cur = si >= 0 ? t.c || '€' : it.currency || '€', have = t.cands && t.cands.length > 1 ? t.cands : null;
+    if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0;
+    this.setState({ sheet: 'ppick', pp: { ret: 'item', id: it.id, si, url, cur, list: have || [], sel: have ? 0 : -1, busy: !have } }); if (have) return;
+    const api = (window.GW_PRICE_API || '').trim(), hd = api ? await this.apiHead() : null;
+    if (!hd) { this.setState(z => z.pp ? { pp: Object.assign({}, z.pp, { busy: false }) } : null); this.toast('Sign in to check prices.'); return; }
+    let list = [];
+    try { const r = await fetch(api, { method: 'POST', headers: hd, body: JSON.stringify({ items: [{ url, currency: cur, want: PCUR }], force: true }) }), j = await r.json(), e = (j.items || {})[normUrl(url)];
+      if (e && e.cands) list = e.cands; else if (e && e.ok && e.price != null) list = [{ k: 'best', l: 'The only price on the page', p: e.price, w: e.was, cur: e.currency }]; } catch (er) {}
+    this.setState(z => z.pp && z.pp.url === url ? { pp: Object.assign({}, z.pp, { busy: false, list, sel: list.length ? 0 : -1 }) } : null);
+  }
+  pickUse() { const P = this.state.pp; if (!P) return; const c = (P.list || [])[P.sel]; if (!c) return; const sym = this.curSym(c.cur, P.cur), pick = { k: c.k, l: c.l };
+    if (P.ret === 'form') { this.setState(z => ({ sheet: 'form', pp: null, form: Object.assign({}, z.form, { price: String(c.p), currency: sym, onSale: !!c.w, was: c.w ? String(c.w) : '', pick }) })); return; }
+    const t0 = todayISO();
+    this.closeSheet(() => { this.mutItem(P.id, it => {
+        if (P.si >= 0) { const sh = (it.shops || [])[P.si]; if (!sh) return; sh.pick = pick; sh.p = c.p; sh.c = sym; sh.w = c.w || null; sh.gone = false; sh.need = false; return; }
+        it.pick = pick; it.pickGone = false; it.needPick = false; it.checkNote = null;
+        if (it.currency !== sym) { it.history = []; it.currency = sym; it.price = null; }
+        if (it.price !== c.p) { if (!(it.history || []).length && it.price != null) it.history = [{ date: it.added || t0, price: it.price }]; it.history = (it.history || []).filter(h => h.date !== t0).concat({ date: t0, price: c.p }); it.price = c.p; }
+        it.shopWas = c.w || null; });
+      this.setState({ pp: null }); this.toast('Using ' + sym + num(c.p) + '. We’ll keep checking that one.'); }); }
+  pickManual() { const P = this.state.pp; if (!P) return;
+    if (P.ret === 'form') { this.setState(z => ({ sheet: 'form', pp: null, form: Object.assign({}, z.form, { pick: { k: 'manual' } }) })); this.toast('Type the price in. We won’t change it.'); return; }
+    this.closeSheet(() => { this.mutItem(P.id, it => { it.pick = { k: 'manual' }; it.pickGone = false; it.needPick = false; }); this.setState({ pp: null }); const it = this.prof().items.find(x => x.id === P.id); if (it) setTimeout(() => this.openForm(it), 350); }); }
+  openShopAdd(it) { if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0; this.setState({ sheet: 'shopadd', sa: { id: it.id, url: '', busy: false, res: null, err: '' } }); }
+  async shopLook() { const S = this.state.sa; if (!S || S.busy) return; const raw = String(S.url || '').trim(); let href = '';
+    try { href = new URL(/^https?:/.test(raw) ? raw : 'https://' + raw).href; } catch (e) { this.setState({ sa: Object.assign({}, S, { err: 'That doesn’t look like a link.' }) }); return; }
+    const it = this.prof().items.find(x => x.id === S.id); if (it && normUrl(it.url) === normUrl(href)) { this.setState({ sa: Object.assign({}, S, { err: 'That’s already the main link for this item.' }) }); return; }
+    const api = (window.GW_PRICE_API || '').trim(), hd = api ? await this.apiHead() : null; if (!hd) { this.setState({ sa: Object.assign({}, S, { err: 'Sign in to look up shops.' }) }); return; }
+    this.setState({ sa: Object.assign({}, S, { busy: true, err: '', res: null }) }); let res = null, err = '';
+    try { const r = await fetch(api, { method: 'POST', headers: hd, body: JSON.stringify({ lookup: href, want: PCUR }) }), j = await r.json(); if (j && j.ok) res = Object.assign({ url: href }, j); else err = (j && j.error) || 'Couldn’t read that page.'; } catch (e) { err = 'Couldn’t reach the price helper.'; }
+    if (res && res.price == null) err = 'No price found on that page.';
+    this.setState(z => z.sa ? { sa: Object.assign({}, z.sa, { busy: false, res, err }) } : null); }
+  shopAddSave() { const S = this.state.sa; if (!S || !S.res || S.res.price == null) return; const R0 = S.res, sym = this.curSym(R0.currency, '€'), now = new Date().toISOString(), need = !!(R0.cands && R0.cands.length > 1); let idx = -1;
+    this.mutItem(S.id, it => { it.shops = (it.shops || []).filter(x => normUrl(x.u) !== normUrl(R0.url)).concat({ u: R0.url, p: R0.price, c: sym, w: R0.was != null && R0.was > R0.price ? R0.was : null, chk: now, cands: need ? R0.cands : null, need }); idx = it.shops.length - 1; });
+    this.closeSheet(() => { this.setState({ sa: null }); this.toast('Added ' + hostOf(R0.url)); if (need) { const it = this.prof().items.find(x => x.id === S.id); if (it) setTimeout(() => this.openPick(it, idx), 400); } }); }
   async apiHead() { const G = window.GWSync, t = G && G.token ? await G.token() : null; return t ? { 'content-type': 'application/json', authorization: 'Bearer ' + t } : null; }
   async checkNow(it) { const api = (window.GW_PRICE_API || '').trim(); if (!it || !it.url || this.state.checking) return; if (!api) { this.toast('Price checks aren’t set up. See price-worker/README.md.'); return; }
     const hd = await this.apiHead(); if (!hd) { this.toast('Sign in to check prices.'); return; }
-    this.setState({ checking: it.id }); const k = normUrl(it.url);
-    try { const r = await fetch(api, { method: 'POST', headers: hd, body: JSON.stringify({ items: [{ url: it.url, currency: it.currency }], force: true }) });
-      const j = await r.json(), e = (j.items || {})[k];
-      if (!e) this.toast('No answer from the price helper');
-      else { this.applyPrices({ [k]: Object.assign({}, e, { checked: new Date().toISOString() }) }); this.toast(e.ok && e.stale ? 'Shop blocked a new check. Kept ' + money(e.currency || it.currency, e.price) + ' from ' + agoTxt(e.okAt) + '.' : e.ok ? 'Found ' + money(e.currency || it.currency, e.price) + (e.how ? ' · ' + e.how : '') : (e.error || 'No price found')); }
+    this.setState({ checking: it.id }); const k = pkeyOf(it.url, it.pick), manual = !!(it.pick && it.pick.k === 'manual');
+    const items = (manual ? [] : [{ url: it.url, currency: it.currency, want: PCUR, pick: it.pick || undefined }]).concat(it.status === 'wanted' ? (it.shops || []).filter(x => x.u).map(x => ({ url: x.u, currency: x.c || '€', want: PCUR, pick: x.pick || undefined })) : []);
+    try { const r = await fetch(api, { method: 'POST', headers: hd, body: JSON.stringify({ items, force: true }) });
+      const j = await r.json(), e = (j.items || {})[k], now = new Date().toISOString(), m = {}; Object.keys(j.items || {}).forEach(x => { m[x] = Object.assign({}, j.items[x], { checked: now }); });
+      if (manual) { this.applyPrices(m); this.toast(items.length ? 'Checked your other shops' : 'You typed this price yourself. Tap Wrong price? to pick one from the page.'); }
+      else if (!e) this.toast('No answer from the price helper');
+      else if (e.pickGone) { this.applyPrices(m); this.toast('The price you picked isn’t on the page anymore. Pick again.'); }
+      else if (e.cands && !it.pick) { this.applyPrices(m); this.toast('Found ' + e.cands.length + ' different prices. Pick the right one.'); }
+      else { this.applyPrices(m); this.toast(e.ok && e.stale ? 'Shop blocked a new check. Kept ' + money(e.currency || it.currency, e.price) + ' from ' + agoTxt(e.okAt) + '.' : e.ok ? 'Found ' + money(e.currency || it.currency, e.price) + (e.how ? ' · ' + e.how : '') : (e.error || 'No price found')); }
     } catch (er) { this.toast('Couldn’t reach the price helper'); }
     this.setState({ checking: null }); }
   async syncPrices() {
@@ -2795,8 +2909,9 @@ class Component extends DCLogic {
     const api = (window.GW_PRICE_API || '').trim(); if (!api) return;
     const now = Date.now(), seen = new Set(), list = [];
     this.state.data.profiles.forEach(p => p.items.forEach(it => {
-      if (!it.url || it.status === 'owned') return; const k = normUrl(it.url); if (!k || seen.has(k)) return;
-      if (it.checked && now - new Date(it.checked).getTime() < 6 * 36e5) return; seen.add(k); list.push({ url: it.url, currency: it.currency }); }));
+      if (!it.url || it.status === 'owned') return; const fresh = t => t && now - new Date(t).getTime() < 6 * 36e5;
+      if (!(it.pick && it.pick.k === 'manual') && !fresh(it.checked)) { const k = pkeyOf(it.url, it.pick); if (k && !seen.has(k)) { seen.add(k); list.push({ url: it.url, currency: it.currency, want: PCUR, pick: it.pick || undefined }); } }
+      if (it.status === 'wanted') (it.shops || []).forEach(sh => { if (!sh.u || fresh(sh.chk)) return; const k = pkeyOf(sh.u, sh.pick); if (!k || seen.has(k)) return; seen.add(k); list.push({ url: sh.u, currency: sh.c || '€', want: PCUR, pick: sh.pick || undefined }); }); }));
     if (!list.length) return;
     let hd = null; for (let i = 0; i < 30 && !hd; i++) { hd = await this.apiHead(); if (!hd) await new Promise(r => setTimeout(r, 500)); } if (!hd) return;
     try { const r = await fetch(api, { method: 'POST', headers: hd, body: JSON.stringify({ items: list }) }); if (r.ok) { const j = await r.json(); this.applyPrices((j && j.items) || {}); } } catch (e) {}
@@ -3596,10 +3711,10 @@ class Component extends DCLogic {
   }
   stars(r) { return [1, 2, 3, 4, 5].map(n => ({ fill: n <= r ? ACC : '#48484a' })); }
   vm(it, rank) {
-    const e = eurOf(it), dr = dropOf(it), ph = it.photos || [];
-    return { id: it.id, rank, name: it.name, brand: it.brandUnknown ? 'Unknown brand' : it.brand || (it.handmade ? 'Handmade' : 'No brand'), meta: [it.brand, it.category].filter(Boolean).join(' · '),
+    const e = eurOf(it), dr = dropOf(it), ph = it.photos || [], wnt = it.status === 'wanted', b0 = wnt ? bestShop(it) : null, bp = b0 && !b0.main ? b0 : null, nS = (it.shops || []).length + 1, pk = wnt && !!it.url && (!!it.pickGone || (!!it.needPick && !it.pick));
+    return { hasNote: pk || (wnt && nS > 1), note: pk ? 'Pick the right price' : bp ? hostOf(bp.u) + ' · cheapest of ' + nS : nS > 1 ? nS + ' shops' : '', noteColor: pk ? '#ff9f0a' : bp ? '#30d158' : '#a1a1a6', id: it.id, rank, name: it.name, brand: it.brandUnknown ? 'Unknown brand' : it.brand || (it.handmade ? 'Handmade' : 'No brand'), meta: [it.brand, it.category].filter(Boolean).join(' · '),
       photo: ph[0] || '', hasPhoto: !!ph.length, noPhoto: !ph.length, initial: (it.name || '?').charAt(0).toUpperCase(),
-      priceTxt: it.priceUnknown ? 'Price unknown' : it.price == null ? 'No price' : (it.approx ? '≈ ' : '') + money(it.currency, it.price), eurTxt: it.price != null && it.currency !== '€' ? '≈ €' + Math.round(e) : '',
+      priceTxt: bp ? money(bp.c, bp.p) : it.priceUnknown ? 'Price unknown' : it.price == null ? 'No price' : (it.approx ? '≈ ' : '') + money(it.currency, it.price), eurTxt: bp ? (bp.c !== '€' ? '≈ €' + Math.round(e) : '') : it.price != null && it.currency !== '€' ? '≈ €' + Math.round(e) : '',
       stars: this.stars(it.rating), hasMat: !!(it.materials || []).length, matTag: matTag(it), needEdit: this.needsEdit(it), onFix: e => this.fixItem(it, e), drop: dr > 0, dropTxt: '−' + Math.round(dr * 100) + '%', onOpen: () => this.openDetail(it.id) };
   }
   carGo(i) { const el = this.carRef.current; if (!el) return; const n = el.children.length, j = Math.max(0, Math.min(n - 1, i)); el.scrollTo({ left: j * el.clientWidth, behavior: this.reduce ? 'auto' : 'smooth' }); this.setState({ photoIdx: j }); }
@@ -3679,7 +3794,7 @@ class Component extends DCLogic {
     if (!C && this._fcFor !== f.catalogId) { this._fcFor = f.catalogId; const G = window.GWSync, cid = f.catalogId; if (G && G.cat) G.cat('catalog_get', { cid }).then(c => { if (!c) return; this.setState({ fCat: { cid, c } }); this.catApplyRow(Object.assign({}, c, { id: cid })); }).catch(() => {}); }
     return { C, o: (C && C.options) || {} }; }
   openForm(it, status) { this._todoTrack = null; this._fcFor = null; if (this.state.fCat) this.setState({ fCat: null }); if (this.state.allSetPop) this.setState({ allSetPop: false });
-    const f = it ? { id: it.id, catalogId: it.catalogId || null, catSt: it.catSt || null, sizesOk: (it.sizesOk || []).slice(), url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.status !== 'wanted' && it.paid != null ? String(it.paid) : it.price == null ? '' : String(it.price), currency: it.status !== 'wanted' && it.paid != null ? it.paidCur || '€' : it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, rec: it.rec || 0, notes: it.notes || '', zip: it.zip || '', handmade: !!it.handmade, modified: !!it.modified, mods: it.mods || '', secondHand: !!it.secondHand, boughtFrom: it.boughtFrom || '', condition: it.condition || '', brandUnknown: !!it.brandUnknown, priceUnknown: !!it.priceUnknown, approx: !!it.approx, gotMonth: it.gotMonth || '', preGw: !!it.preGw, materials: (it.materials || []).slice(), latexMm: it.latexMm || '', chlor: !!it.chlor, matAuto: !(it.materials || []).length, status: it.status, origs: (it.origs || []).slice(), photos: (it.photos || []).slice(), onSale: it.shopWas != null, was: it.shopWas != null ? String(it.shopWas) : '' }
+    const f = it ? { id: it.id, catalogId: it.catalogId || null, catSt: it.catSt || null, sizesOk: (it.sizesOk || []).slice(), url: it.url || '', name: it.name, brand: it.brand || '', category: it.category || 'Catsuit', price: it.status !== 'wanted' && it.paid != null ? String(it.paid) : it.price == null ? '' : String(it.price), currency: it.status !== 'wanted' && it.paid != null ? it.paidCur || '€' : it.currency || '€', size: it.size || '', colour: it.colour || '', m2m: !!it.m2m, rating: it.rating || 3, rec: it.rec || 0, notes: it.notes || '', zip: it.zip || '', handmade: !!it.handmade, modified: !!it.modified, mods: it.mods || '', secondHand: !!it.secondHand, boughtFrom: it.boughtFrom || '', condition: it.condition || '', brandUnknown: !!it.brandUnknown, priceUnknown: !!it.priceUnknown, approx: !!it.approx, gotMonth: it.gotMonth || '', preGw: !!it.preGw, materials: (it.materials || []).slice(), latexMm: it.latexMm || '', chlor: !!it.chlor, matAuto: !(it.materials || []).length, status: it.status, pick: it.pick || null, origs: (it.origs || []).slice(), photos: (it.photos || []).slice(), onSale: it.shopWas != null, was: it.shopWas != null ? String(it.shopWas) : '' }
       : { id: null, url: '', name: '', brand: '', category: 'Catsuit', price: '', currency: PCUR, size: '', colour: '', m2m: false, rating: 3, rec: 0, notes: '', zip: '', handmade: false, modified: false, mods: '', secondHand: false, boughtFrom: '', condition: '', brandUnknown: false, priceUnknown: false, approx: false, gotMonth: '', preGw: false, materials: [CAT_MAT.Catsuit], latexMm: '', chlor: false, matAuto: true, origs: [], photos: [], status: status || 'wanted' };
     f.found = [];
     this.setState({ sheet: 'form', form: f, moreOpen: false, fetchMsg: '', fetching: false, newCatOpen: false, newMatOpen: false, sizeOpen: false, catQ: '', catCat: '', catTile: null, catRes: null, catBusy: false, catErr: '', formDisc: null });
@@ -3704,8 +3819,9 @@ class Component extends DCLogic {
     const missing = [price == null ? 'price' : null, pics.length ? null : 'photos'].filter(Boolean);
     const matUpd = this.state.form.matAuto && CAT_MAT[category] ? { materials: [CAT_MAT[category]] } : {};
     this.setState(st => ({ fetching: false, form: Object.assign({}, st.form, { url: href, name: st.form.name || name, brand: st.form.brand || brand, currency: cur, category, price: price != null ? String(price) : st.form.price, onSale: L && L.was != null && price != null && L.was > price ? true : st.form.onSale, was: L && L.was != null && price != null && L.was > price ? String(Math.round(L.was * 100) / 100) : st.form.was, m2m: st.form.m2m || /made-to-(order|measure)/.test(s) || /kinkfox|kinkprojects/.test(host),
-        found: pics.filter(src => !(st.form.photos || []).includes(src)).map(src => ({ src, on: true })), vars: L && L.variants && L.currency === cur ? L.variants : null }, matUpd),
-      fetchMsg: (L ? 'Filled in from ' + host + '.' : 'Couldn’t read ' + host + (why ? ' (' + why.replace(/\.$/, '') + ')' : '') + ', so this is a guess from the link.') + (missing.length ? ' No ' + missing.join(' or ') + ' found, add ' + (missing.length > 1 ? 'them' : 'it') + ' below.' : '') + (L && L.native ? ' Price is the shop’s own ' + cur + ' price.' : '') + (L && L.low ? ' Cheapest option: ' + cur + num(L.low.p) + ([L.low.c, L.low.s].filter(Boolean).length ? ' in ' + [L.low.c, L.low.s].filter(Boolean).join(', ') : '') + '.' : '') + (L && L.variants ? ' Pick a size or colour to see its exact price.' : '') }));
+        found: pics.filter(src => !(st.form.photos || []).includes(src)).map(src => ({ src, on: true })), vars: L && L.variants && L.currency === cur ? L.variants : null, pick: null, cands: L && L.cands && L.cands.length > 1 ? L.cands : null }, matUpd),
+      fetchMsg: (L ? 'Filled in from ' + host + '.' : 'Couldn’t read ' + host + (why ? ' (' + why.replace(/\.$/, '') + ')' : '') + ', so this is a guess from the link.') + (missing.length ? ' No ' + missing.join(' or ') + ' found, add ' + (missing.length > 1 ? 'them' : 'it') + ' below.' : '') + (L && L.native ? ' Price is the shop’s own ' + cur + ' price.' : '') + (L && L.low ? ' Cheapest option: ' + cur + num(L.low.p) + ([L.low.c, L.low.s].filter(Boolean).length ? ' in ' + [L.low.c, L.low.s].filter(Boolean).join(', ') : '') + '.' : '') + (L && L.variants ? ' Pick a size or colour to see its exact price.' : '') + (L && L.cands && L.cands.length > 1 ? ' This page shows ' + L.cands.length + ' different prices.' : '') }));
+    if (L && L.cands && L.cands.length > 1) setTimeout(() => { if (this.state.sheet === 'form' && this.state.form && this.state.form.url === href) this.setState({ sheet: 'ppick', pp: { ret: 'form', list: L.cands, sel: 0, cur } }); }, 450);
   }
   catNorm(u) { return String(u || '').trim().toLowerCase().replace(/^https?:\/\/(www\.)?/, 'https://').replace(/[?#].*$/, '').replace(/\/+$/, ''); }
   catSearching() { const st = this.state; return (st.sheet === 'cdisc' || st.sheet === 'cfilt' || (st.sheet === 'form' && !!st.form && !st.form.id)) && !!((st.catQ || '').trim() || st.catCat || st.catTile); }
@@ -4046,7 +4162,7 @@ class Component extends DCLogic {
     const price = f.priceUnknown || pr == null || isNaN(pr) ? null : pr, t = todayISO(), ownedD = f.gotMonth && !f.preGw ? f.gotMonth + '-01' : t;
     const photos = (f.found || []).filter(x => x.on).map(x => x.src).concat(f.photos || []);
     const size = f.m2m ? 'Made to measure' : (f.size === 'Made to measure' ? '' : f.size), sizesOk = f.status === 'wanted' && !f.m2m ? (f.sizesOk || []).filter(z => z && z !== 'Made to measure') : [];
-    const base = { sizesOk: sizesOk.length > 1 ? sizesOk : [], url: f.url.trim(), name: f.name.trim(), brand: f.brand.trim(), category: f.category, currency: f.currency, size, colour: f.colour, m2m: f.m2m, rating: f.rating, rec: f.rec || 0, notes: (f.notes || '').trim(), zip: ZIP_CATS.includes(f.category) ? f.zip || '' : '', handmade: !!f.handmade, modified: !!f.modified, mods: f.modified ? (f.mods || '').trim() : '', secondHand: !!f.secondHand, boughtFrom: f.secondHand ? (f.boughtFrom || '').trim() : '', condition: f.secondHand ? f.condition || '' : '', brandUnknown: !!f.brandUnknown, priceUnknown: !!f.priceUnknown, approx: !f.priceUnknown && !!f.approx, gotMonth: f.preGw ? '' : f.gotMonth || '', preGw: !!f.preGw, materials: (f.materials || []).slice(), latexMm: (f.materials || []).includes('Latex') ? f.latexMm || '' : '', chlor: (f.materials || []).includes('Latex') && !!f.chlor, origs: (f.origs || []).filter(x => photos.includes(x.c)), photos };
+    const base = { sizesOk: sizesOk.length > 1 ? sizesOk : [], url: f.url.trim(), name: f.name.trim(), brand: f.brand.trim(), category: f.category, currency: f.currency, size, colour: f.colour, m2m: f.m2m, rating: f.rating, rec: f.rec || 0, notes: (f.notes || '').trim(), zip: ZIP_CATS.includes(f.category) ? f.zip || '' : '', handmade: !!f.handmade, modified: !!f.modified, mods: f.modified ? (f.mods || '').trim() : '', secondHand: !!f.secondHand, boughtFrom: f.secondHand ? (f.boughtFrom || '').trim() : '', condition: f.secondHand ? f.condition || '' : '', brandUnknown: !!f.brandUnknown, priceUnknown: !!f.priceUnknown, approx: !f.priceUnknown && !!f.approx, gotMonth: f.preGw ? '' : f.gotMonth || '', preGw: !!f.preGw, materials: (f.materials || []).slice(), latexMm: (f.materials || []).includes('Latex') ? f.latexMm || '' : '', chlor: (f.materials || []).includes('Latex') && !!f.chlor, origs: (f.origs || []).filter(x => photos.includes(x.c)), photos, pick: f.pick || null };
     { const wN = parseFloat(String(f.was || '').replace(',', '.')), pN = parseFloat(String(f.price || '').replace(',', '.')); base.shopWas = f.status !== 'owned' && f.onSale && wN > pN ? Math.round(wN * 100) / 100 : null; }
     if (f.catalogId) { base.catalogId = f.catalogId; base.catSt = f.catSt || 'live'; }
     if (f.catalogId && f.status === 'wanted') base.notSure = [!base.size && !base.m2m ? 'size' : '', !String(base.colour || '').trim() ? 'colour' : '', !base.zip ? 'zip' : '', !base.latexMm ? 'mm' : ''].filter(Boolean);
@@ -4382,9 +4498,10 @@ class Component extends DCLogic {
       if (dIt.brandUnknown) rows.push({ k: 'Brand', v: 'Unknown' }); if (dIt.secondHand) rows.push({ k: 'Second-hand', v: [dIt.condition, dIt.boughtFrom ? 'from ' + dIt.boughtFrom : ''].filter(Boolean).join(' · ') || 'Yes' }); if (dIt.preGw) rows.push({ k: 'Got it', v: 'Before GearWatch' }); else if (dIt.gotMonth) { const gm = dIt.gotMonth.split('-'); rows.push({ k: 'Got it', v: MON[+gm[1] - 1] + ' ' + gm[0] }); }
       if (dIt.handmade) rows.push({ k: 'Handmade', v: 'Yes' }); if (dIt.modified) rows.push({ k: 'Modified', v: dIt.mods || 'Yes' });
       if (dIt.added) rows.push({ k: 'On your list since', v: fmtD(dIt.added) });
+      const dBest = dIt.status === 'wanted' ? bestShop(dIt) : null, dB = dBest && !dBest.main ? dBest : null;
       d = Object.assign({}, v, {
         ...(dIt.status !== 'wanted' && dIt.paid != null ? { drop: false, eurTxt: dIt.paidCur && dIt.paidCur !== '€' ? '≈ €' + Math.round(paidEur(dIt)) : '' } : dIt.status !== 'wanted' ? { drop: false } : {}),
-        priceEl: dIt.status !== 'wanted' && dIt.paid != null ? React.createElement(CountUp, { value: dIt.paid, prefix: dIt.paidCur || '€', dec: dIt.paid % 1 ? 2 : 0, from: 0, dur: 900 }) : dIt.priceUnknown ? 'Price unknown' : dIt.price == null ? 'No price' : dIt.approx ? '≈ ' + money(dIt.currency, dIt.price) : React.createElement(CountUp, { value: dIt.price, prefix: dIt.currency, dec: dIt.price % 1 ? 2 : 0, from: 0, dur: 900 }),
+        priceEl: dB ? dB.c + num(dB.p) : dIt.status !== 'wanted' && dIt.paid != null ? React.createElement(CountUp, { value: dIt.paid, prefix: dIt.paidCur || '€', dec: dIt.paid % 1 ? 2 : 0, from: 0, dur: 900 }) : dIt.priceUnknown ? 'Price unknown' : dIt.price == null ? 'No price' : dIt.approx ? '≈ ' + money(dIt.currency, dIt.price) : React.createElement(CountUp, { value: dIt.price, prefix: dIt.currency, dec: dIt.price % 1 ? 2 : 0, from: 0, dur: 900 }),
         cf: this.catFitVals(dIt), hasCat: !!dIt.catalogId, catPending: dIt.catSt === 'pending', catLbl: dIt.catSt === 'pending' ? 'Waiting for approval' : dIt.catSt === 'gone' ? 'No longer sold' : 'View', openCat: () => this.openCatId(dIt.catalogId),
         photos: ph.map(src => ({ src })), hasPhotos: !!ph.length, noPhotos: !ph.length, multi: ph.length > 1,
         canPrev: st.photoIdx > 0, canNext: st.photoIdx < ph.length - 1,
@@ -4400,6 +4517,15 @@ class Component extends DCLogic {
         paidTxt: dIt.paid == null ? '' : 'Paid ' + money(dIt.paidCur || '€', dIt.paid) + (dIt.paidCur && dIt.paidCur !== '€' ? ' (≈ €' + Math.round(paidEur(dIt)) + ')' : '') + (bi ? (dIt.noBudget ? ' · not in budget' : ' · counted in budget') : ''),
         checkTxt: !dIt.url ? 'No link, so the price isn’t checked' : !dIt.checked ? 'Price not checked yet' : dIt.checkErr ? dIt.checkErr + ' · tried ' + agoTxt(dIt.checked) : 'Price checked ' + agoTxt(dIt.checked) + (dIt.checkNote ? ' · ' + dIt.checkNote : '') + (dIt.surcharge ? ' · incl. +' + Math.round(dIt.surcharge * 100) + '% made to measure' : ''),
         canCheck: !!dIt.url && dIt.status !== 'owned', checkLabel: st.checking === dIt.id ? 'Checking…' : 'Check now', checkNow: () => this.checkNow(dIt),
+        canPick: dIt.status === 'wanted' && !!dIt.url, openPick: () => this.openPick(dIt, -1),
+        pickCard: dIt.status === 'wanted' && !!dIt.url && (!!dIt.pickGone || (!!dIt.needPick && !dIt.pick)), pickTitle: dIt.pickGone ? 'The price you picked is gone' : 'Which price is it?', pickText: dIt.pickGone ? 'The shop changed the page. We kept the last price until you pick again.' : 'This page shows ' + ((dIt.cands || []).length || 'several') + ' different prices. Pick the right one and we’ll keep checking that one.', pickBtn: dIt.pickGone ? 'Pick again' : 'Pick the price',
+        showShops: dIt.status === 'wanted' && !!dIt.url, addShop: () => this.openShopAdd(dIt),
+        ...(() => { const L = [{ u: dIt.url, p: dIt.price, c: dIt.currency || '€', w: dIt.shopWas, main: true, err: dIt.checkErr, need: !!dIt.needPick && !dIt.pick, gone: !!dIt.pickGone }].concat((dIt.shops || []).map((x, i) => ({ u: x.u, p: x.p, c: x.c || '€', w: x.w, i, err: x.err, need: !!x.need && !x.pick, gone: !!x.gone })));
+          const eu = x => x.p == null ? Infinity : x.p * (FX[x.c] || 1), srt = L.slice().sort((a, b) => eu(a) - eu(b)), best = L.length > 1 ? srt[0] : null;
+          return { shopsHead: L.length > 1 ? 'Sold at ' + L.length + ' shops' : 'Shop', shopsSub: L.length > 1 ? 'Cheapest first' : 'Add more to compare prices',
+            shops: srt.map(x => { const h = hostOf(x.u) || 'Shop', isB = !!best && x === best, warn = x.gone || x.need; return { url: x.u, host: h, initial: (h.charAt(0) || '?').toUpperCase(), price: x.p == null ? '—' : x.c + num(x.p), eur: x.p != null && x.c !== PCUR && FX[x.c] && FX[PCUR] ? '≈ ' + PCUR + Math.round(x.p * FX[x.c] / FX[PCUR]) : '', priceColor: isB ? '#30d158' : '#f5f5f7',
+              sub: warn ? (x.gone ? 'Your price is gone. Pick again.' : 'Several prices. Pick one.') : x.err ? x.err : [x.main ? 'Your link' : '', isB ? 'Cheapest' : '', x.w && x.p != null && x.w > x.p ? 'On sale' : ''].filter(Boolean).join(' · ') || ' ', subColor: warn || x.err ? '#ff9f0a' : isB ? '#30d158' : '#a1a1a6',
+              canPick: !x.main && !!warn, onPick: () => this.openPick(dIt, x.i), canRemove: !x.main, onRemove: () => { this.mutItem(dIt.id, it => { it.shops = (it.shops || []).filter((_, j) => j !== x.i); }); this.toast('Removed ' + h); } }; }) }; })(),
         showCheck: dIt.status === 'wanted', checkColor: dIt.checked && !dIt.checkErr ? '#30d158' : dIt.checkErr ? '#ff9f0a' : '#6e6e73',
         isWanted: dIt.status === 'wanted', showAfford: dIt.status === 'wanted' && !p.budgetOff, afford: a.txt, affordDot: a.dot, needBudget: !!a.need,
         hasOrderInfo: dIt.status !== 'wanted' && !!dIt.orderedOn,
@@ -4417,9 +4543,10 @@ class Component extends DCLogic {
     }
 
     const f = st.form || {};
-    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: [st.budgetKind === 'pot' ? 'Current budget' : 'Monthly budget', 'Save'], person: ['', null], invite: ['Invite a friend', null], paid: [st.paid && st.paid.to === 'owned' ? 'Mark as owned' : 'Mark as ordered', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null], cpick: ['Category', null], cprod: ['', null], cact: ['Your catalog activity', null], cfilt: ['Filters', 'Save'], cdisc: [st.catTile && TILE_NAMES[st.catTile] ? TILE_NAMES[st.catTile] : st.discFor === 'owned' ? 'Add something you own' : st.discFor === 'wanted' ? 'Add gear' : 'Catalog', null], cvar: [st.cvar && st.cvar.own ? 'I own this' : 'Add to wishlist', st.cvar && st.cvar.own ? 'Next' : 'Add'], cshare: ['Share photos', st.cshare && st.cshare.busy ? 'Sending…' : 'Send'], cfix: ['Suggest a fix', 'Send'], crep: ['Report', 'Send'] }[st.sheet] || ['', null];
+    const ppC = st.pp && !st.pp.busy ? (st.pp.list || [])[st.pp.sel] : null, ppLbl = ppC ? 'Use ' + this.curSym(ppC.cur, st.pp.cur) + num(ppC.p) : 'Use';
+    const sheetMeta = { form: [f.id ? 'Edit item' : f.status === 'owned' ? 'Add something you own' : 'Add gear', 'Save'], budget: [st.budgetKind === 'pot' ? 'Current budget' : 'Monthly budget', 'Save'], person: ['', null], invite: ['Invite a friend', null], paid: [st.paid && st.paid.to === 'owned' ? 'Mark as owned' : 'Mark as ordered', 'Save'], profiles: ['Profiles', null], point: [st.pointId && PT[st.pointId] ? PT[st.pointId].label : '', null], cpick: ['Category', null], cprod: ['', null], cact: ['Your catalog activity', null], cfilt: ['Filters', 'Save'], cdisc: [st.catTile && TILE_NAMES[st.catTile] ? TILE_NAMES[st.catTile] : st.discFor === 'owned' ? 'Add something you own' : st.discFor === 'wanted' ? 'Add gear' : 'Catalog', null], cvar: [st.cvar && st.cvar.own ? 'I own this' : 'Add to wishlist', st.cvar && st.cvar.own ? 'Next' : 'Add'], cshare: ['Share photos', st.cshare && st.cshare.busy ? 'Sending…' : 'Send'], cfix: ['Suggest a fix', 'Send'], crep: ['Report', 'Send'], ppick: ['Which price is it?', ppLbl], shopadd: ['Add another shop', 'Add'] }[st.sheet] || ['', null];
     if (st.sheet === 'form' && this.catSearching()) sheetMeta[1] = null;
-    const canSave = st.sheet === 'cshare' ? !!st.cshare && !st.cshare.busy && (st.cshare.list || []).some(x => x.on) : st.sheet === 'cfix' ? this.catFixOk() : st.sheet === 'cvar' ? !this.cvarMiss().length : st.sheet === 'crep' ? !!st.crepR : st.sheet === 'form' ? !!(f.name || '').trim() : st.sheet === 'budget' ? toNum(st.budgetIn) > 0 : true;
+    const canSave = st.sheet === 'ppick' ? !!ppC : st.sheet === 'shopadd' ? !!(st.sa && st.sa.res && st.sa.res.price != null && !st.sa.busy) : st.sheet === 'cshare' ? !!st.cshare && !st.cshare.busy && (st.cshare.list || []).some(x => x.on) : st.sheet === 'cfix' ? this.catFixOk() : st.sheet === 'cvar' ? !this.cvarMiss().length : st.sheet === 'crep' ? !!st.crepR : st.sheet === 'form' ? !!(f.name || '').trim() : st.sheet === 'budget' ? toNum(st.budgetIn) > 0 : true;
     const pv = st.pointId ? this.fval(vals, st.pointId) : null;
     const chips = (cur, set) => BUDGET_CHIPS.map(n => { const on = toNum(cur) === n; return { label: PCUR + n, bg: on ? ACC : '#1c1c1e', color: on ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.12); set(String(n)); } }; });
     const ip = st.introPage, introAmt = toNum(st.introBudget);
@@ -4571,7 +4698,7 @@ class Component extends DCLogic {
       deleteItem: () => { if (!st.delArm) { this.setState({ delArm: true }); return; } const id = st.detail; this.closeDetail(() => { this.mutate(pp => { pp.items = pp.items.filter(x => x.id !== id); (pp.outfits || []).forEach(o => { o.itemIds = (o.itemIds || []).filter(x => x !== id); if (o.pos) delete o.pos[id]; }); }); this.toast('Deleted'); }); },
 
       sheetKb: (st.kbH || 0) + 'px', sheetMax: st.kbH ? 'calc(100% - ' + (st.kbH + 48) + 'px)' : '92%', sheetH: this.catSearching() || st.sheet === 'cdisc' || st.sheet === 'cfilt' ? (st.kbH ? 'calc(100% - ' + (st.kbH + 48) + 'px)' : '92%') : 'auto',
-      hasSheet: !!st.sheet, closeSheet: () => this.closeSheet(), sheetTitle: sheetMeta[0], hasSheetAction: !!sheetMeta[1], actionLabel: sheetMeta[1] || '',
+      hasSheet: !!st.sheet, closeSheet: () => (st.sheet === 'ppick' && st.pp && st.pp.ret === 'form' ? this.setState({ sheet: 'form', pp: null }) : this.closeSheet()), sheetTitle: sheetMeta[0], hasSheetAction: !!sheetMeta[1], actionLabel: sheetMeta[1] || '',
       cancelLabel: st.sheet === 'cfilt' ? '‹ ' + (TILE_NAMES[st.catTile] || 'Results') : st.sheet === 'cdisc' && this.catSearching() ? '‹ Catalog' : st.sheet === 'cprod' && ['form', 'act', 'disc'].includes(st.catFrom) ? ({ act: '‹ Activity', disc: '‹ Catalog' }[st.catFrom] || '‹ Results') : sheetMeta[1] ? 'Cancel' : 'Done', actionColor: canSave ? ACC : '#636366',
       sheetAction: () => {
         if (!canSave) return;
@@ -4582,6 +4709,8 @@ class Component extends DCLogic {
         if (st.sheet === 'cfix') { this.catSendFix(); return; }
         if (st.sheet === 'crep') { this.catSendRep(); return; }
         if (st.sheet === 'paid') { this.savePaid(); return; }
+        if (st.sheet === 'ppick') { this.pickUse(); return; }
+        if (st.sheet === 'shopadd') { this.shopAddSave(); return; }
         if (st.sheet === 'budget') {
           const amt = toNum(st.budgetIn), morph = !bi && mode === 'B' && !/budget/i.test(L);
           this.closeSheet(() => {
@@ -4592,6 +4721,14 @@ class Component extends DCLogic {
       },
       staff: { show: !!st.staffRole, hasN: (st.staffQ || 0) > 0, n: (st.staffQ || 0) > 99 ? '99+' : String(st.staffQ || 0), label: (st.staffQ ? st.staffQ + ' waiting in ' : '') + 'Catalog admin' },
       isSheetForm: st.sheet === 'form' && !this.catSearching(), cat: this.catVals(p, f, vals), isSheetBudget: st.sheet === 'budget', isSheetPaid: st.sheet === 'paid',
+      isSheetPick: st.sheet === 'ppick', pp: (() => { const P = st.pp; if (!P) return { list: [] }; const L = P.list || [];
+        return { busy: !!P.busy, hasList: !P.busy && L.length > 0, intro: P.busy ? '' : L.length > 1 ? 'We found ' + L.length + ' prices on this page. Pick the one for the item you want. We’ll keep checking that one.' : L.length ? 'This is the only price we could find on the page.' : 'We couldn’t find a price on the page.', canManual: !P.busy && !(P.si >= 0), manual: () => this.pickManual(),
+          list: L.map((c, i) => { const on = i === P.sel, sym = this.curSym(c.cur, P.cur); return { price: sym + num(c.p), hasWas: !!c.w, was: c.w ? sym + num(c.w) : '', eur: sym !== PCUR && FX[sym] && FX[PCUR] ? '≈ ' + PCUR + Math.round(c.p * FX[sym] / FX[PCUR]) : '', label: c.l || 'On the page', isBest: i === 0 && L.length > 1, ring: on ? 'inset 0 0 0 2px ' + ACC : 'none', dotBorder: on ? '0' : '2px solid #636366', dotBg: on ? ACC : 'transparent', dotIn: on ? '#000' : 'transparent', onTap: () => this.setState(z => ({ pp: Object.assign({}, z.pp, { sel: i }) })) }; }) }; })(),
+      isSheetShop: st.sheet === 'shopadd', sa: (() => { const S = st.sa; if (!S) return {}; const it = p.items.find(x => x.id === S.id), R0 = S.res;
+        const tok = v => String(v || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length > 2), a = tok(it && it.name), b = tok(R0 && R0.name), same = a.length ? a.filter(w => b.includes(w)).length / a.length >= 0.5 : false, sym = R0 ? this.curSym(R0.currency, '€') : '€';
+        return { intro: 'For ' + (it ? it.name : 'this item') + '. We’ll check this shop’s price too.', url: S.url, onUrl: e => { const v = e.target.value; this.setState(z => ({ sa: Object.assign({}, z.sa, { url: v, res: null, err: '' }) })); }, look: () => this.shopLook(), lookLbl: S.busy ? 'Looking…' : 'Look up',
+          hasErr: !!S.err, err: S.err || '', hasRes: !!R0 && R0.price != null, hasImg: !!(R0 && (R0.images || [])[0]), img: R0 ? (R0.images || [])[0] || '' : '', name: R0 ? R0.name || hostOf(R0.url) : '', sub: R0 ? [hostOf(R0.url), R0.price != null ? sym + num(R0.price) : ''].filter(Boolean).join(' · ') : '',
+          matchBg: same ? '#1c2a20' : '#2a2414', matchDot: same ? '#30d158' : '#ff9f0a', matchTxt: same ? 'Looks like the same product. The names match.' : 'The name is different. Check it’s the same product before adding.' }; })(),
       pd: (() => { const P = st.paid, it = P ? p.items.find(x => x.id === P.id) : null; if (!it) return { curs: [] };
         const setP = o => this.setState(s => ({ paid: Object.assign({}, s.paid, o) })), SYMS = { '€': '€', '$': '$', '£': '£' }, est = eurOf(it);
         const ph = P.cur === '€' ? (est != null ? num(Math.round(est * 100) / 100) : '0') : (it.price != null && it.currency === P.cur ? num(it.price) : '0');

@@ -62,13 +62,19 @@ async function readerGo(url, fmt, target) {
 }
 
 // ---- shop platforms with a clean product feed ----
+// Shopify Markets: ask for the visitor's region first (cookies), then with ?country=&currency= if the shop ignored the cookies.
+async function shopJson(u, want) {
+  const base = u.origin + u.pathname.replace(/\/+$/, ''), H = wantHdr(want);
+  const cartCur = async q => { try { return JSON.parse(await get(u.origin + '/cart.js' + q, true, H)).currency || null; } catch { return null; } };
+  let j = JSON.parse(await get(base + '.js', true, H)), cur = await cartCur('');
+  if (want && CC[want] && codeOf(cur) !== want) { const q = '?country=' + CC[want] + '&currency=' + want; try { const j2 = JSON.parse(await get(base + '.js' + q, true, H)), c2 = await cartCur(q); if (codeOf(c2) === want) { j = j2; cur = c2; } } catch {} }
+  return { j, cur };
+}
 async function shopify(u, want) {
   if (!/\/products\/[^/?#]+/.test(u.pathname)) return null;
-  const base = u.origin + u.pathname.replace(/\/+$/, ''), variant = u.searchParams.get('variant');
-  const H = wantHdr(want), j = JSON.parse(await get(base + '.js', true, H)), vs = j.variants || [];
+  const variant = u.searchParams.get('variant'), { j, cur } = await shopJson(u, want), vs = j.variants || [];
   const v = vs.find(x => String(x.id) === variant) || vs.find(x => x.available) || vs[0];
   if (!v || !v.price) return null;
-  let cur = null; try { cur = JSON.parse(await get(u.origin + '/cart.js', true, H)).currency || null; } catch {}
   const was = v.compare_at_price && v.compare_at_price > v.price ? v.compare_at_price / 100 : null;
   return { price: v.price / 100, was, cur, how: 'Shopify feed' + (want && codeOf(cur) === want ? ', shop’s own ' + want + ' price' : '') };
 }
@@ -113,7 +119,7 @@ function fromJsonLd(html, u) {
           for (const x of [of].concat(of.offers || [])) {
             const specs = [].concat(x.priceSpecification || []).filter(s => s && !/ListPrice|StrikethroughPrice/i.test(s.priceType || ''));
             const price = num(x.price ?? x.lowPrice ?? (specs[0] && specs[0].price));
-            if (price) found.push({ price, cur: x.priceCurrency || (specs[0] && specs[0].priceCurrency) || null, url: x.url || '' });
+            if (price) found.push({ price, cur: x.priceCurrency || (specs[0] && specs[0].priceCurrency) || null, url: x.url || '', l: decode(x.name || '') || (x.sku ? 'SKU ' + x.sku : ''), k: 'ld:' + String(x.sku || x.url || x.name || found.length).slice(0, 60) });
           }
         }
       }
@@ -122,7 +128,7 @@ function fromJsonLd(html, u) {
   }
   if (!found.length) return null;
   const variant = u.searchParams.get('variant'), pick = (variant && found.find(f => f.url.includes(variant))) || found.slice().sort((a, b) => a.price - b.price)[0];
-  return { price: pick.price, cur: pick.cur, how: 'product data on the page' };
+  return { price: pick.price, cur: pick.cur, how: 'product data on the page', ld: found };
 }
 const meta = (html, prop) => {
   const a = html.match(new RegExp(`<meta[^>]+(?:property|name|itemprop)=["']${prop}["'][^>]*content=["']([^"']+)`, 'i'));
@@ -133,6 +139,42 @@ const visible = html => html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\
 // Libidex: "£119.95 ($160.4 approx )" or "Regular Price £84.95 Special Price £76.46 (... approx)". The first one is the product's own.
 const LIBI = /(?:Regular Price\s*£\s?[\d,]+\.\d{2}\s*Special Price\s*)?£\s?([\d,]+\.\d{2})\s*\([^)]*approx/i;
 const PRICE = /([$€£])\s?(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?|\d+(?:[.,]\d{2})?)\s*(USD|EUR|GBP)?|(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?|\d+(?:[.,]\d{2})?)\s?(€|EUR|USD|GBP|£)/g;
+
+// Every different price we can see, with the words next to it, so the user can pick the right one when they disagree.
+const lbl = s => decode(String(s || '')).replace(/[|•·:–—-]+\s*$/, '').trim().split(/\s+/).slice(-5).join(' ').slice(0, 50);
+function candList(list, best) {
+  const out = [], seen = new Set();
+  for (const c of list) { if (!c || !(c.p > 0)) continue; const key = c.p.toFixed(2), w = c.w > c.p ? Math.round(c.w * 100) / 100 : null;
+    if (seen.has(key)) { const o = out.find(x => x.p.toFixed(2) === key); if (o && !o.w && w) o.w = w; continue; } seen.add(key); if (out.length >= 6) continue;
+    out.push({ k: String(c.k).slice(0, 80), l: String(c.l || '').slice(0, 60), p: Math.round(c.p * 100) / 100, w, cur: codeOf(c.cur) || (best && codeOf(best.cur)) || null }); }
+  if (out.length < 2) return null;
+  if (best) out.sort((a, b) => (Math.abs(a.p - best.price) < 0.005 ? -1 : 0) - (Math.abs(b.p - best.price) < 0.005 ? -1 : 0));
+  return out;
+}
+function pageCands(html, u, best) {
+  const c = [];
+  const mg = html.match(/data-price-amount=["']([\d.]+)["'][^>]*data-price-type=["']finalPrice/i) || html.match(/data-price-type=["']finalPrice["'][^>]*data-price-amount=["']([\d.]+)/i);
+  if (mg) c.push({ k: 'mg', l: 'Main price', p: num(mg[1]) });
+  const ld = fromJsonLd(html, u); if (ld && ld.ld) ld.ld.forEach((o, i) => c.push({ k: o.k, l: o.l || (ld.ld.length > 1 ? 'Option ' + (i + 1) : 'Product data'), p: o.price, cur: o.cur }));
+  const ip = meta(html, 'price'); if (num(ip)) c.push({ k: 'ip', l: 'Price tag', p: num(ip), cur: meta(html, 'priceCurrency') });
+  const mp = meta(html, 'product:price:amount') || meta(html, 'og:price:amount'); if (num(mp)) c.push({ k: 'og', l: 'Link preview price', p: num(mp), cur: meta(html, 'product:price:currency') || meta(html, 'og:price:currency') });
+  const wc = html.match(/class=["'][^"']*\bprice\b[^"']*["'][^>]*>([\s\S]{0,800}?)<\/(?:p|div)>/i);
+  if (wc) { const ins = wc[1].match(/<ins[\s\S]*?<\/ins>/i), b = visible(ins ? ins[0] : wc[1]).match(/([$€£])\s?([\d.,]+)|([\d.,]+)\s?([$€£])/), del = wc[1].match(/<del[\s\S]*?<\/del>/i), d = del && visible(del[0]).match(/([$€£])\s?([\d.,]+)|([\d.,]+)\s?([$€£])/);
+    if (b && num(b[2] || b[3])) c.push({ k: 'box', l: ins ? 'Sale price' : 'Price box', p: num(b[2] || b[3]), w: d ? num(d[2] || d[3]) : null, cur: b[1] || b[4] }); }
+  if (!c.length || (best && /guess/.test(best.how || ''))) { const text = visible(html); let n = 0;
+    for (const t of text.matchAll(PRICE)) { if (n >= 8) break; const before = text.slice(Math.max(0, t.index - 40), t.index);
+      if (/(free (shipping|delivery)[^€$£]*|over|above|orders? from|spend|cart|subtotal|total|basket|shipping|delivery)\s*:?\s*$/i.test(before)) continue;
+      const p = num(t[2] || t[4]); if (!p) continue; n++; const l = lbl(before.split(/[$€£]\s?[\d.,]+(?:\s*(?:USD|EUR|GBP))?|[\d.,]+\s?(?:€|EUR|USD|GBP|£)/).pop()); c.push({ k: 't:' + l, l: l || 'On the page', p, cur: t[3] || t[1] || t[5] }); } }
+  if (best && !c.some(x => Math.abs(x.p - best.price) < 0.005)) c.unshift({ k: 'best', l: 'Main price', p: best.price, cur: best.cur });
+  return candList(c, best);
+}
+// Keep checking the price the user picked. If it's gone from the page, say so rather than guess.
+function usePick(r, pick) {
+  if (!r || !pick || !pick.k || !r.cands) return r;
+  const c = r.cands.find(x => x.k === pick.k) || (pick.l ? r.cands.find(x => x.l === pick.l) : null);
+  if (c) return Object.assign(r, { price: c.p, was: c.w, cur: c.cur || r.cur, picked: true });
+  return Object.assign(r, { pickGone: true });
+}
 
 // The original (before-sale) price, when the page shows one. Only trusted when it's above the price and not wildly off.
 function wasOf(html, price) {
@@ -153,7 +195,7 @@ function wasOf(html, price) {
   const ok = c.filter(x => x && x > price * 1.01 && x <= price * 4);
   return ok.length ? ok[0] : null;
 }
-function parse(html, u) { const r = parse0(html, u); if (r && r.was == null) r.was = wasOf(html, r.price); return r; }
+function parse(html, u) { const r = parse0(html, u); if (r && r.was == null) r.was = wasOf(html, r.price); if (r) { delete r.ld; try { r.cands = pageCands(html, u, r); } catch { r.cands = null; } } return r; }
 function parse0(html, u) {
   // Magento (Libidex): the final (sale) price. Amount is in the store currency.
   const mg = html.match(/data-price-amount=["']([\d.]+)["'][^>]*data-price-type=["']finalPrice/i) || html.match(/data-price-type=["']finalPrice["'][^>]*data-price-amount=["']([\d.]+)/i);
@@ -186,20 +228,20 @@ function parse0(html, u) {
 }
 
 async function check(entry) {
-  const u = new URL(entry.url), tried = [], want = /libidex\.com/.test(entry.url) ? null : codeOf(entry.currency);
+  const u = new URL(entry.url), tried = [], want = /libidex\.com/.test(entry.url) ? null : codeOf(entry.want || entry.currency);
   if (isEtsy(u)) { try { const r = await etsy(u); if (r && r.price != null) return { price: r.price, was: r.was, cur: r.cur, how: r.how, via: 'feed' }; } catch (e) { tried.push(e.message + (e.detail ? ' (' + e.detail + ')' : '')); } }
   for (const fn of [shopify, woo, magento]) {
     try { const r = await fn(u, want); if (r) return Object.assign(r, { via: 'feed' }); } catch (e) { tried.push(fn.name + ': ' + e.message); }
   }
   let blocked = false;
-  try { const html = await get(entry.url); const r = parse(html, u); if (r) return Object.assign(r, { via: 'page' });
+  try { const html = await get(entry.url, false, wantHdr(want)); const r = parse(html, u); if (r) return Object.assign(usePick(r, entry.pick), { via: 'page' });
     const title = ((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '').trim().slice(0, 80);
     tried.push('page: no price found (' + Math.round(html.length / 1024) + ' KB, title "' + title + '", starts "' + visible(html).trim().slice(0, 140) + '")'); }
   catch (e) { blocked = !!e.blocked; tried.push('page: ' + e.message); }
   // Cheapest first: just the price area as text, then as HTML, and only then the whole page.
   for (const [fmt, target] of [['text', true], ['html', true], ['text', false]]) {
     const name = 'reader ' + fmt + (target ? ' (price area)' : ' (whole page)');
-    try { const h = await readerGo(entry.url, fmt, target); const r = parse(h, u); if (r) return Object.assign(r, { via: 'reader' }); tried.push(name + ': no price found'); }
+    try { const h = await readerGo(entry.url, fmt, target); const r = parse(h, u); if (r) return Object.assign(usePick(r, entry.pick), { via: 'reader' }); tried.push(name + ': no price found'); }
     catch (e) { tried.push(name + ': ' + e.message); if (/429/.test(e.message)) break; }
   }
   const err = new Error(blocked ? 'Shop blocked the check' : 'No price found on the page'); err.detail = tried.join(' · '); throw err;
@@ -334,9 +376,8 @@ async function lookup(url, want) {
   const u = new URL(url), tried = [];
   if (isEtsy(u)) { try { const r = await etsy(u); if (r) return r; } catch (e) { tried.push(e.message + (e.detail ? ' (' + e.detail + ')' : '')); } }
   if (/\/products\/[^/?#]+/.test(u.pathname)) {
-    try { const H = wantHdr(want), j = JSON.parse(await get(u.origin + u.pathname.replace(/\/+$/, '') + '.js', true, H)), variant = u.searchParams.get('variant'), vs = j.variants || [];
+    try { const { j, cur } = await shopJson(u, want), variant = u.searchParams.get('variant'), vs = j.variants || [];
       const v = vs.find(x => String(x.id) === variant) || vs.find(x => x.available) || vs[0];
-      let cur = null; try { cur = JSON.parse(await get(u.origin + '/cart.js', true, H)).currency || null; } catch {}
       return { name: decode(j.title), brand: decode(j.vendor) || null, price: v && v.price ? v.price / 100 : j.price ? j.price / 100 : null, was: v && v.compare_at_price && v.compare_at_price > v.price ? v.compare_at_price / 100 : null, cur, images: cleanImgs([v && v.featured_image && v.featured_image.src].concat(j.images || []), u.href), desc: j.description || '', options: optsFrom((j.options || []).map(x => typeof x === 'string' ? null : x).filter(Boolean)), variants: shopVars(j), how: 'Shopify feed' };
     } catch (e) { tried.push('shopify: ' + e.message); }
   }
@@ -348,7 +389,7 @@ async function lookup(url, want) {
     } catch (e) { tried.push('woocommerce: ' + e.message); }
   }
   let siteBrand = null;
-  try { const html = await get(url), r = fromPage(html, u), site = String(meta(html, 'og:site_name') || '').trim(), host = u.hostname.replace(/^www\./, '').split('.')[0].toLowerCase();
+  try { const html = await get(url, false, wantHdr(want)), r = fromPage(html, u), site = String(meta(html, 'og:site_name') || '').trim(), host = u.hostname.replace(/^www\./, '').split('.')[0].toLowerCase();
     const gen = !r.name || r.name.trim().toLowerCase() === site.toLowerCase() || r.name.trim().toLowerCase() === host;
     if (gen) { siteBrand = site || null; r.name = ''; r.images = r.images.filter(x => !/og|banner|share|social/i.test(x)); if (/og:image:width" content="3[0-9]{3}/.test(html)) r.images = []; }
     if (/woocommerce|wp-content/i.test(html)) { const wf = wooForm(html); if (wf.variants.length) r.variants = wf.variants; if (wf.options && !r.options) r.options = wf.options; if (wf.price != null && (r.price == null || wf.price < r.price)) { r.price = wf.price; if (wf.was) r.was = wf.was; } }
@@ -362,13 +403,13 @@ async function lookup(url, want) {
 async function lookupOne(url, ctx, want) {
   const key = normUrl(url); if (!key) return { ok: false, error: 'Not a valid link' };
   if (/libidex\.com/.test(url) || !CC[want]) want = null;
-  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup11/' + (want || '-') + '/' + encodeURIComponent(key));
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup12/' + (want || '-') + '/' + encodeURIComponent(key));
   const hit = await cache.match(ck); if (hit) return hit.json();
   let out;
   try { const r = await lookup(url, want), code = codeOf(r.cur), vars = (r.variants || []).filter(v => v && v.p > 0).slice(0, 80);
     // Cheapest colour/size that's in stock, when it's cheaper than the main price.
     const lowV = vars.filter(v => v.in).sort((a, b) => a.p - b.p)[0], low = lowV && r.price && lowV.p < r.price * 0.99 ? { p: lowV.p, c: lowV.c, s: lowV.s } : null;
-    out = { ok: true, variants: vars.length > 1 ? vars : null, low, native: !!want && code === want, name: r.name || '', brand: r.brand || '', price: r.price ?? null, was: r.was ?? null, options: r.options || null, currency: /libidex\.com/.test(url) ? '£' : (SYM[code] || code || null), images: r.images || [], desc: decode(String(r.desc || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim().slice(0, 1500), how: r.how }; }
+    out = { ok: true, variants: vars.length > 1 ? vars : null, low, native: !!want && code === want, name: r.name || '', brand: r.brand || '', price: r.price ?? null, was: r.was ?? null, options: r.options || null, currency: /libidex\.com/.test(url) ? '£' : (SYM[code] || code || null), cands: r.cands || null, images: r.images || [], desc: decode(String(r.desc || '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim().slice(0, 1500), how: r.how }; }
   catch (e) { out = { ok: false, error: String(e.message || e), detail: e.detail || '' }; }
   ctx.waitUntil(cache.put(ck, new Response(JSON.stringify(out), { headers: { 'cache-control': 'max-age=' + (out.ok ? 86400 : 600) } })));
   return out;
@@ -411,10 +452,12 @@ const json = (o, status = 200) => new Response(JSON.stringify(o, null, 2), { sta
 
 async function one(entry, ctx, force) {
   const key = normUrl(entry.url); if (!key) return null;
-  const cache = caches.default, ck = new Request('https://gearwatch-cache/v3/' + (codeOf(entry.currency) || '-') + '/' + encodeURIComponent(key));
-  if (!force) { const hit = await cache.match(ck); if (hit) return [key, await hit.json()]; }
-  let out; const now = new Date().toISOString(), lk = new Request('https://gearwatch-cache/last-ok/' + encodeURIComponent(key));
-  try { const r = await check(entry); out = { ok: true, price: r.price, was: r.was ?? null, currency: curFor(entry, r), checked: now, okAt: now, how: r.how, via: r.via };
+  const pk = entry.pick && entry.pick.k ? String(entry.pick.k).slice(0, 80) : '', want = /libidex\.com/.test(entry.url) ? null : codeOf(entry.want || entry.currency), rk = key + (pk ? '#' + pk : '');
+  const tag = (want || '-') + '/' + (codeOf(entry.currency) || '-') + '/' + encodeURIComponent(pk || '-') + '/' + encodeURIComponent(key);
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/v4/' + tag);
+  if (!force) { const hit = await cache.match(ck); if (hit) return [rk, await hit.json()]; }
+  let out; const now = new Date().toISOString(), lk = new Request('https://gearwatch-cache/last-ok2/' + tag);
+  try { const r = await check(entry); out = { ok: true, price: r.price, was: r.was ?? null, currency: curFor(entry, r), checked: now, okAt: now, how: r.how, via: r.via, cands: r.cands || null, pickGone: !!r.pickGone, native: !!want && codeOf(r.cur) === want && want !== codeOf(entry.currency) };
     ctx.waitUntil(cache.put(lk, new Response(JSON.stringify(out), { headers: { 'cache-control': 'max-age=' + 7 * 86400 } }))); }
   catch (e) {
     // Shops like Libidex let the check through only some of the time. Keep the last price that was read (up to a week old).
@@ -425,7 +468,7 @@ async function one(entry, ctx, force) {
   // 6 hours for normal checks, 24 hours when the reader was needed, 6 hours for blocked checks.
   const ttl = out.stale ? 21600 : out.ok ? (out.via === 'reader' ? 86400 : 21600) : 3600;
   ctx.waitUntil(cache.put(ck, new Response(JSON.stringify(out), { headers: { 'cache-control': 'max-age=' + ttl } })));
-  return [key, out];
+  return [rk, out];
 }
 
 async function imgProxy(u) {
