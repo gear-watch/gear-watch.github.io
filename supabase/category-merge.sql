@@ -6,8 +6,18 @@
 create or replace function public.cat_norm(c text) returns text language sql immutable as $$
   select regexp_replace(regexp_replace(lower(coalesce(c, '')), '[^a-z]', '', 'g'), 's$', '')
 $$;
-create or replace function public.cat_builtin() returns text[] language sql immutable as $$
-  select array['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Mittens', 'Socks', 'Boots', 'Shoes', 'Cuffs', 'Gags', 'Chastity', 'Leashes', 'Collars', 'Toys', 'Equipment', 'Accessory']::text[]
+-- Categories staff add for everyone. tile = an existing square, or 'c:<name>' for its own square.
+create table if not exists public.catalog_categories (
+  norm text primary key,
+  name text not null,
+  tile text not null,
+  zip boolean not null default false,
+  created_by uuid references auth.users on delete set null,
+  created_at timestamptz default now()
+);
+alter table public.catalog_categories enable row level security;
+create or replace function public.cat_builtin() returns text[] language sql stable security definer set search_path = public as $$
+  select array['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Mittens', 'Socks', 'Boots', 'Shoes', 'Cuffs', 'Gags', 'Chastity', 'Leashes', 'Collars', 'Toys', 'Equipment', 'Accessory']::text[] || coalesce((select array_agg(name order by created_at) from public.catalog_categories), '{}'::text[])
 $$;
 create table if not exists public.category_remaps (
   from_norm text primary key,

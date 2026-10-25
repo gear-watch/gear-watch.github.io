@@ -2617,6 +2617,12 @@ function shoeSize(s, cur, pref, chart) { if (chart === 'own') return null; const
   const p = pref && SHOE_SYS[pref] && pref !== sys ? [pref] : [], rest = ['eu', 'uk', 'us', 'usw'].filter(k => k !== sys && !p.includes(k));
   return { eu, uk, us, usw, sys, label: SHOE_SYS[sys] + ' ' + f(n), sub: '≈ ' + p.concat(rest).slice(0, 2).map(k => SHOE_SYS[k] + ' ' + f(val[k])).join(' · '), conv: k => SHOE_SYS[k] + ' ' + f(val[k]) }; }
 const TILE_NAMES = { suits: 'Suits', headgear: 'Headgear', tops: 'Tops & jackets', bottoms: 'Bottoms & underwear', handsfeet: 'Hands & feet', mittens: 'Mittens', footwear: 'Footwear', harnesses: 'Harnesses', play: 'Restraints & play', chastity: 'Chastity', equipment: 'Equipment', accessories: 'Accessories' };
+const OC_CATS = CATS.slice(), OC_TILES = Object.assign({}, TILE_NAMES), OC_ZIP = ZIP_CATS.slice();
+function applyOcats(list) { list = Array.isArray(list) ? list.filter(o => o && o.name) : []; const ai = OC_CATS.indexOf('Accessory'), extra = list.map(o => o.name).filter(n => !OC_CATS.some(c => cnorm(c) === cnorm(n)));
+  CATS.length = 0; CATS.push(...OC_CATS.slice(0, ai), ...extra, ...OC_CATS.slice(ai));
+  Object.keys(TILE_NAMES).forEach(k => delete TILE_NAMES[k]); Object.keys(OC_TILES).forEach(k => { if (k !== 'accessories') TILE_NAMES[k] = OC_TILES[k]; }); list.forEach(o => { if (/^c:/.test(o.tile || '')) TILE_NAMES[o.tile] = o.name; }); TILE_NAMES.accessories = OC_TILES.accessories;
+  ZIP_CATS.length = 0; ZIP_CATS.push(...OC_ZIP, ...list.filter(o => o.zip).map(o => o.name)); }
+try { applyOcats(JSON.parse(localStorage.getItem('gw-ocats') || '[]')); } catch (e) {}
 const plural0 = (n, w) => n + ' ' + (n === 1 ? w : w.replace(/person$/, 'people'));
 const pad = n => String(n).padStart(2, '0');
 const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
@@ -2794,9 +2800,9 @@ class Component extends DCLogic {
         if (s.firstDone && this.socialFor !== s.user.id) { this.socialFor = s.user.id; if (!this.loadSocial()) this.socialFor = null; }
         if (s.firstDone && s.username && this.pendingAdd) { const a = this.pendingAdd; this.pendingAdd = null; setTimeout(() => this.openPerson(a), 400); } } });
       if (window.visualViewport && !this.onVV) { const vv = window.visualViewport; this.onVV = () => { const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)), v = kb > 80 ? kb : 0; if (Math.abs(v - (this.state.kbH || 0)) > 10) this.setState({ kbH: v }); }; vv.addEventListener('resize', this.onVV); vv.addEventListener('scroll', this.onVV); }
-      this.unsubCat = G.on(s => { if (s.user && s.firstDone && !this._catKick) { this._catKick = true; this.catSoon(5000); setTimeout(() => this.catSyncCopies(), 1500); setTimeout(() => this.catCatRemaps(), 2500); this.staffCheck(true); setTimeout(() => this.loadDisc(), 3000); } if (!s.user) { this._catKick = false; if (this.state.staffRole) this.setState({ staffRole: null, staffQ: 0 }); } });
-      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { this.catSyncCopies(); this.catCatRemaps(); if (this.state.staffRole) this.staffCheck(); } });
-      this.catSyncT = setInterval(() => { if (document.visibilityState === 'visible') { this.catSyncCopies(); this.catCatRemaps(); this.shopFitSoon(8000); } }, 120000); this.shopFitSoon(10000);
+      this.unsubCat = G.on(s => { if (s.user && s.firstDone && !this._catKick) { this._catKick = true; this.catSoon(5000); setTimeout(() => this.catSyncCopies(), 1500); setTimeout(() => this.catOcats(), 800); setTimeout(() => this.catCatRemaps(), 2500); this.staffCheck(true); setTimeout(() => this.loadDisc(), 3000); } if (!s.user) { this._catKick = false; if (this.state.staffRole) this.setState({ staffRole: null, staffQ: 0 }); } });
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { this.catSyncCopies(); this.catOcats(); this.catCatRemaps(); if (this.state.staffRole) this.staffCheck(); } });
+      this.catSyncT = setInterval(() => { if (document.visibilityState === 'visible') { this.catSyncCopies(); this.catOcats(); this.catCatRemaps(); this.shopFitSoon(8000); } }, 120000); this.shopFitSoon(10000);
       G.init(); return true; };
     this.onVis = () => { if (document.visibilityState === 'visible') { this.loadSocial(true); this.forceUpdate(); } }; document.addEventListener('visibilitychange', this.onVis); window.addEventListener('focus', this.onVis);
     this.onRs = () => { this.svMeasure(); this.scMeasure(); const w = window.innerWidth; if ((w >= 900) !== ((this.state.vw || 0) >= 900)) this.setState({ vw: w }); }; window.addEventListener('resize', this.onRs);
@@ -3776,6 +3782,13 @@ class Component extends DCLogic {
     const links = p.items.filter(i => i.catalogId && !i.private && ['wanted', 'ordered', 'owned'].includes(i.status) && !seen.has(i.catalogId) && seen.add(i.catalogId)).map(i => ({ id: i.catalogId, s: i.status, c: i.colour || '', z: i.m2m ? 'Made to measure' : i.size || '' }));
     const k = 'gw-cat-links-' + A.user.id, hs = JSON.stringify(links); let prev = null; try { prev = localStorage.getItem(k); } catch (e) {}
     if (force || prev !== hs) { const m = await G.cat('catalog_sync_links', { links }); try { localStorage.setItem(k, hs); } catch (e) {} if (m && typeof m === 'object' && Object.keys(m).length) this.catRemap(m); } }
+  catOcats() { const G = window.GWSync; if (!G || !G.cat) return; if (Date.now() - (this._ocAt || 0) < 100000) return; this._ocAt = Date.now();
+    G.cat('cat_official').then(list => { if (!Array.isArray(list)) return; let prev = []; try { prev = JSON.parse(localStorage.getItem('gw-ocats') || '[]'); } catch (e) {} const was = JSON.stringify(prev), now = JSON.stringify(list); try { localStorage.setItem('gw-ocats', now); } catch (e) {}
+      applyOcats(list); const D = this.state.data || {}, off = new Map(list.map(o => [cnorm(o.name), o.name])), gone = prev.filter(o => o && o.name && !off.has(cnorm(o.name))).map(o => o.name), used = new Set();
+      (D.profiles || []).forEach(p => (p.items || []).forEach(i => { if (i.category) used.add(i.category); }));
+      const fixI = [...used].some(c => off.has(cnorm(c)) && off.get(cnorm(c)) !== c), fixC = (D.customCats || []).some(c => off.has(cnorm(c))), keep = gone.filter(n => used.has(n) && !(D.customCats || []).includes(n));
+      if (fixI || fixC || keep.length) this.mutate((p0, d) => { (d.profiles || []).forEach(p => (p.items || []).forEach(i => { const o = i.category && off.get(cnorm(i.category)); if (o) i.category = o; })); d.customCats = (d.customCats || []).filter(c => !off.has(cnorm(c))).concat(keep); }, true);
+      else if (was !== now) this.forceUpdate(); }).catch(() => { this._ocAt = 0; }); }
   catCatRemaps() { const G = window.GWSync, A = G && G.state ? G.state() : {}; if (!G || !G.cat || !A.user) return; if (Date.now() - (this._ccrAt || 0) < 600000) return; this._ccrAt = Date.now();
     G.cat('cat_remaps').then(m => { if (!m || typeof m !== 'object' || !Object.keys(m).length) return; const built = new Set(CATS.map(cnorm)), D = this.state.data, moved = {};
       (D.profiles || []).forEach(p => (p.items || []).forEach(i => { const k = cnorm(i.category); if (i.category && !built.has(k) && m[k] && CATS.includes(m[k])) moved[i.category] = m[k]; }));

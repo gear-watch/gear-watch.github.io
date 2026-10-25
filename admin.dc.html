@@ -266,6 +266,27 @@
             <div style="padding:14px 20px;border-bottom:1px solid #1c1c1e;display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><div style="flex:1 1 240px;min-width:0;display:flex;flex-direction:column;gap:3px;"><span style="font-size:15px;font-weight:600;">{{ x.name }}</span><span style="font-size:13px;color:#a1a1a6;overflow-wrap:anywhere;">{{ x.sub }}</span></div><div style="display:flex;gap:8px;"><button onClick="{{ x.edit }}" style="border:0;border-radius:8px;padding:7px 12px;font-size:14px;cursor:pointer;color:#f5f5f7;background:#2c2c2e;">Edit</button><button onClick="{{ x.del }}" style="border:0;border-radius:8px;padding:7px 12px;font-size:14px;cursor:pointer;color:#fff;background:#ff453a;">{{ x.delLbl }}</button></div></div>
           </sc-for>
         </sc-if>
+        <sc-if value="{{ isOcats }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;"><span style="font-size:20px;font-weight:600;">Categories</span></div>
+          <div style="padding:12px 20px;font-size:14px;color:#a1a1a6;line-height:1.45;text-wrap:pretty;border-bottom:1px solid #1c1c1e;">{{ oc.intro }}</div>
+          <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <input value="{{ oc.name }}" onChange="{{ oc.onName }}" onKeyDown="{{ oc.onKey }}" placeholder="New category, e.g. Gasmask" maxlength="30" autocomplete="off" style="flex:1 1 200px;min-width:0;box-sizing:border-box;background:#1c1c1e;border:0;border-radius:8px;padding:9px 12px;font-size:15px;color:#f5f5f7;outline:none;">
+            <select value="{{ oc.tile }}" onChange="{{ oc.onTile }}" style="background:#1c1c1e;border:0;border-radius:8px;padding:9px 10px;font-size:14px;color:#f5f5f7;outline:none;"><sc-for list="{{ oc.opts }}" as="o"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+            <button onClick="{{ oc.zipTap }}" style="border:0;border-radius:8px;padding:9px 12px;font-size:14px;cursor:pointer;color:{{ oc.zipCo }};background:{{ oc.zipBg }};">Needs zip or entry</button>
+            <button onClick="{{ oc.add }}" style="border:0;border-radius:8px;padding:9px 14px;font-size:14px;font-weight:600;cursor:pointer;color:#000;background:#ffd60a;">{{ oc.addLbl }}</button>
+          </div>
+          <sc-if value="{{ oc.empty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px 20px;color:#a1a1a6;font-size:15px;">No categories added yet. The built-in ones always stay.</div></sc-if>
+          <sc-for list="{{ oc.rows }}" as="r" hint-placeholder-count="2">
+            <div style="padding:14px 20px;border-bottom:1px solid #1c1c1e;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <div style="flex:1 1 200px;min-width:0;display:flex;flex-direction:column;gap:3px;"><span style="font-size:15px;font-weight:600;overflow-wrap:anywhere;">{{ r.name }}</span><span style="font-size:13px;color:#a1a1a6;">{{ r.where }}</span></div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <select value="{{ r.tile }}" onChange="{{ r.onTile }}" style="background:#1c1c1e;border:0;border-radius:8px;padding:8px 10px;font-size:14px;color:#f5f5f7;outline:none;"><sc-for list="{{ oc.opts }}" as="o"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+                <button onClick="{{ r.zipTap }}" style="border:0;border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer;color:#f5f5f7;background:#2c2c2e;">{{ r.zipLbl }}</button>
+                <button onClick="{{ r.del }}" style="border:0;border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer;color:#f5f5f7;background:{{ r.delBg }};">{{ r.delLbl }}</button>
+              </div>
+            </div>
+          </sc-for>
+        </sc-if>
         <sc-if value="{{ isCcats }}" hint-placeholder-val="{{ false }}">
           <div style="padding:16px 20px;border-bottom:1px solid #1c1c1e;display:flex;justify-content:space-between;align-items:center;gap:12px;"><span style="font-size:20px;font-weight:600;">Custom categories</span><button onClick="{{ cc.refresh }}" style="border:0;border-radius:8px;padding:7px 12px;font-size:14px;cursor:pointer;color:#f5f5f7;background:#2c2c2e;">Refresh</button></div>
           <div style="padding:12px 20px;font-size:14px;color:#a1a1a6;line-height:1.45;text-wrap:pretty;border-bottom:1px solid #1c1c1e;">{{ cc.intro }}</div>
@@ -390,7 +411,7 @@ class Component extends DCLogic {
     if (pe && (pe.uploaded || []).length && (!ne || ne.cid !== pe.cid || !ne.uploaded)) { const keep = this._edKeep, gone = pe.uploaded.filter(u => !(keep && keep.has(u))); this._edKeep = null; const G = window.GWSync; if (gone.length && G && G.catRemove) G.catRemove(gone).catch(() => {}); } }
   componentWillUnmount() { document.removeEventListener('paste', this.onPaste); if (this.unsub) this.unsub(); clearTimeout(this.tt); clearInterval(this.poll); document.removeEventListener('visibilitychange', this.onVis); }
   say(t) { clearTimeout(this.tt); this.setState({ toast: t }); this.tt = setTimeout(() => this.setState({ toast: '' }), 2600); }
-  async load() { const G = window.GWSync; if (!G || !G.cat) return; this.setState({ loading: true });
+  async load() { const G = window.GWSync; if (!G || !G.cat) return; this.setState({ loading: true }); this.loadOcats();
     try { const [q, info] = await Promise.all([G.cat('catalog_queue'), G.cat('catalog_admin_info')]); this.setState({ q, info, err: '', loading: false }); this.fillPhotos(); }
     catch (e) { this.setState({ err: (e && e.message) || 'Couldn’t load', loading: false }); } }
   // Entries without photos: read the shop page and save its photos to the entry.
@@ -517,7 +538,7 @@ class Component extends DCLogic {
     catch (e) { this._edKeep = null; this._next = null; this.setEd({ saving: false }); this.say((e && e.message) || 'Couldn’t save'); } }
   edVals() { const ed = this.state.ed; if (!ed) return {}; if (!ed.ready) return { loading: true };
     const chip = (label, on, fn) => ({ label, bg: on ? '#ffd60a' : '#2c2c2e', color: on ? '#000' : '#f5f5f7', onTap: fn });
-    const CATS = ['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Mittens', 'Socks', 'Boots', 'Shoes', 'Cuffs', 'Gags', 'Chastity', 'Leashes', 'Collars', 'Toys', 'Equipment', 'Accessory'];
+    const CATS = this.allCats();
     const MATS = ['Latex', 'Heavy rubber', 'Silicone', 'Neoprene', 'PVC / vinyl', 'PU / faux leather', 'Leather / suede', 'Lycra / spandex', 'Nylon / polyester', 'Metal / hardware', 'Cotton / fabric'];
     const cats = CATS.concat(ed.category && !CATS.includes(ed.category) ? [ed.category] : []), c = ed.c, onN = ed.photos.filter(p => p.on).length, firstOn = ed.photos.findIndex(p => p.on);
     const esc = s => s.replace(/[.*+?^$|()[\]\\{}]/g, '\\$&');
@@ -603,12 +624,32 @@ class Component extends DCLogic {
     this.say('Updated ' + done + (done === 1 ? ' entry' : ' entries') + (skip ? ' · ' + skip + ' skipped (not latex)' : '') + (fail ? ' · ' + fail + ' failed' : '')); this.browse(); }
   browse() { const G = window.GWSync; if (!G) return; const tok = (this.bTok = (this.bTok || 0) + 1); this.setState({ bBusy: true });
     G.cat('catalog_admin_search', { q: (this.state.bq || '').trim(), st: this.state.bst || '', lim: 120 }).then(r => { if (tok === this.bTok) this.setState({ bRes: r || [], bBusy: false }); }).catch(e => { if (tok === this.bTok) { this.setState({ bBusy: false }); this.say((e && e.message) || 'Couldn’t search'); } }); }
+  allCats() { const b = ['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Mittens', 'Socks', 'Boots', 'Shoes', 'Cuffs', 'Gags', 'Chastity', 'Leashes', 'Collars', 'Toys', 'Equipment', 'Accessory'], ex = (this.state.ocats || []).map(o => o.name).filter(n => !b.includes(n)); return b.slice(0, -1).concat(ex, ['Accessory']); }
+  tileList() { const b = [['suits', 'Suits'], ['headgear', 'Headgear'], ['tops', 'Tops & jackets'], ['bottoms', 'Bottoms & underwear'], ['handsfeet', 'Hands & feet'], ['mittens', 'Mittens'], ['footwear', 'Footwear'], ['harnesses', 'Harnesses'], ['play', 'Restraints & play'], ['chastity', 'Chastity'], ['equipment', 'Equipment'], ['accessories', 'Accessories']], own = (this.state.ocats || []).filter(o => /^c:/.test(o.tile || '')).map(o => [o.tile, o.name]); return b.slice(0, -1).concat(own, b.slice(-1)); }
+  loadOcats() { const G = window.GWSync; if (!G || !G.cat) return; G.cat('cat_official').then(r => this.setState({ ocats: Array.isArray(r) ? r : [] })).catch(() => {}); }
+  async ocSave(nm, tile, zip, done) { const G = window.GWSync; if (!G) return; const n = String(nm || '').trim(); if (n.length < 2) { this.say('Give it a name'); return; } this.setState({ ocBusy: n });
+    try { const saved = await G.cat('cat_official_set', { nm: n, tl: tile || '', zp: !!zip }); if (done) done(); this.say(done ? '“' + saved + '” added for everyone' : 'Saved'); this.loadOcats(); this.loadCovers(); }
+    catch (e) { this.say((e && e.message) || 'Couldn’t save'); } this.setState({ ocBusy: null }); }
+  async ocDel(nm) { const G = window.GWSync; if (!G) return; this.setState({ ocBusy: nm, ocDelA: null });
+    try { await G.cat('cat_official_del', { nm }); this.say('“' + nm + '” removed'); this.loadOcats(); this.loadCovers(); } catch (e) { this.say((e && e.message) || 'Couldn’t remove'); } this.setState({ ocBusy: null }); }
+  ocVals() { const st = this.state, L = st.ocats || [], B = [['suits', 'Suits'], ['headgear', 'Headgear'], ['tops', 'Tops & jackets'], ['bottoms', 'Bottoms & underwear'], ['handsfeet', 'Hands & feet'], ['mittens', 'Mittens'], ['footwear', 'Footwear'], ['harnesses', 'Harnesses'], ['play', 'Restraints & play'], ['chastity', 'Chastity'], ['equipment', 'Equipment'], ['accessories', 'Accessories']], TN = Object.fromEntries(B), nm = st.ocName || '', tile = st.ocTile || '', zip = !!st.ocZip;
+    const opts = [{ v: '', l: 'Its own square' }].concat(B.map(([k, l]) => ({ v: k, l: 'Inside ' + l })));
+    return { name: nm, onName: e => this.setState({ ocName: e.target.value }), tile, onTile: e => this.setState({ ocTile: e.target.value }), opts,
+      zipBg: zip ? '#ffd60a' : '#2c2c2e', zipCo: zip ? '#000' : '#f5f5f7', zipTap: () => this.setState({ ocZip: !zip }),
+      addLbl: st.ocBusy && st.ocBusy === nm.trim() ? 'Adding…' : 'Add for everyone', add: () => { if (!st.ocBusy) this.ocSave(nm, tile, zip, () => this.setState({ ocName: '', ocTile: '', ocZip: false })); },
+      onKey: e => { if (e.key === 'Enter' && !st.ocBusy) this.ocSave(nm, tile, zip, () => this.setState({ ocName: '', ocTile: '', ocZip: false })); },
+      empty: !L.length, has: L.length > 0,
+      rows: L.map(o => { const own = /^c:/.test(o.tile), armed = st.ocDelA === o.name;
+        return { name: o.name, where: own ? 'Own square' : 'Inside ' + (TN[o.tile] || o.tile), zipTxt: o.zip ? 'Needs zip or entry' : '', hasZip: !!o.zip, tile: own ? '' : o.tile,
+          onTile: e => this.ocSave(o.name, e.target.value, o.zip), zipLbl: o.zip ? 'Zip or entry: on' : 'Zip or entry: off', zipTap: () => this.ocSave(o.name, own ? '' : o.tile, !o.zip),
+          delLbl: armed ? 'Tap again to remove' : 'Remove', delBg: armed ? '#ff453a' : '#2c2c2e', del: () => { if (st.ocBusy) return; if (armed) this.ocDel(o.name); else { this.setState({ ocDelA: o.name }); clearTimeout(this._ocT); this._ocT = setTimeout(() => this.setState({ ocDelA: null }), 3000); } } }; }),
+      intro: 'Add a category everyone can pick. Give it its own square in the catalog, or put it inside an existing one — a Gasmask can sit inside Headgear. People who already made one with the same name get moved onto it.' }; }
   loadCcats() { const G = window.GWSync; if (!G || !G.cat) return; this.setState({ ccBusy: true }); G.cat('cat_custom_scan').then(r => this.setState({ ccList: r || [], ccBusy: false })).catch(e => { this.setState({ ccBusy: false, ccList: [] }); this.say((e && e.message) || 'Couldn’t load'); }); }
   async ccMove(x, to) { const G = window.GWSync; if (!G) return; if (!to) { this.say('Pick a category first'); return; } this.setState({ ccSaving: x.k });
     try { const n = await G.cat('cat_remap_set', { f: x.label, to_cat: to }); this.say(to ? '“' + x.label + '” now goes into ' + to + (n ? ' · ' + n + (n === 1 ? ' catalog entry' : ' catalog entries') + ' updated' : '') : 'Rule removed'); this.loadCcats(); }
     catch (e) { this.say((e && e.message) || 'Couldn’t save'); } this.setState({ ccSaving: null }); }
   ccVals() { const st = this.state, L = st.ccList || [], pick = st.ccPick || {};
-    const CC = ['Catsuit', 'Surfsuit', 'Leotard', 'Top', 'Jacket', 'Bottoms', 'Hood', 'Harness', 'Shorts', 'Underwear', 'Trousers', 'Tights', 'Skirt', 'Gloves', 'Mittens', 'Socks', 'Boots', 'Shoes', 'Cuffs', 'Gags', 'Chastity', 'Leashes', 'Collars', 'Toys', 'Equipment', 'Accessory'];
+    const CC = this.allCats();
     const SUG = [[/mitt/, 'Mittens'], [/chast|cage|\bcb\b|kg|belt/, 'Chastity'], [/equip|furnit|bench|sling|frame|cross|spreader|hook|stock|pillory|horse|table/, 'Equipment'], [/mask|hood|helmet|head/, 'Hood'], [/glove|paw|gauntlet/, 'Gloves'], [/boot/, 'Boots'], [/shoe|sneak|heel/, 'Shoes'], [/sock|stocking/, 'Socks'], [/collar/, 'Collars'], [/leash|lead/, 'Leashes'], [/gag|\bbit\b/, 'Gags'], [/cuff|restrain|shackle|strait|bondage/, 'Cuffs'], [/toy|plug|dildo|tail|vibe/, 'Toys'], [/harness/, 'Harness'], [/surf|wetsuit/, 'Surfsuit'], [/suit|zentai|onesie/, 'Catsuit'], [/leotard|singlet/, 'Leotard'], [/short|brief|jock|thong|underwear|boxer/, 'Underwear'], [/legging|trouser|pant|jean/, 'Trousers'], [/tight/, 'Tights'], [/skirt/, 'Skirt'], [/jacket|coat|hoodie/, 'Jacket'], [/top|shirt|tee|vest|bra/, 'Top']];
     const sug = l => { const s = String(l || '').toLowerCase(), h = SUG.find(r => r[0].test(s)); return h ? h[1] : ''; };
     const pend = L.filter(x => !x.to_cat), done = L.filter(x => x.to_cat);
@@ -714,7 +755,7 @@ class Component extends DCLogic {
       showMsg, msgTitle, msgSub, ready: !!q, hasRole: !!role, who: A.username ? '@' + A.username : '', roleLbl: isAdmin ? 'Admin' : 'Moderator', isAdmin,
       reload: () => this.load(),
       filters: F.map(([k, l]) => { const c = n(k); return { k, label: l, n: String(c), nColor: k === 'reports' && c ? '#ff453a' : '#a1a1a6', bg: page === 'queue' && st.filter === k ? '#1c1c1e' : 'transparent', onTap: () => this.setState({ filter: k, page: 'queue', openKey: null, ed: null }) }; }).filter(x => x.k === 'all' || x.n !== '0' || st.filter === x.k),
-      pages: [['story', 'Send story'], ['browse', 'All entries'], ['dupes', 'Possible duplicates'], ['covers', 'Category covers'], ['sets', 'Size sets'], ['ccats', 'Custom categories'], ['shops', 'Known shops'], ['staff', 'Staff'], ['log', 'Change log']].map(([k, l]) => ({ label: l, bg: page === k ? '#1c1c1e' : 'transparent', onTap: () => { this.setState({ page: k, openKey: null, ed: null }); if (k === 'browse') setTimeout(() => this.browse(), 0); if (k === 'dupes') setTimeout(() => this.loadDupes(), 0); if (k === 'covers') setTimeout(() => this.loadCovers(), 0); if (k === 'sets') setTimeout(() => this.loadSets(), 0); if (k === 'ccats') setTimeout(() => this.loadCcats(), 0); if (k === 'story') setTimeout(() => this.osLoad(), 0); } })),
+      pages: [['story', 'Send story'], ['browse', 'All entries'], ['dupes', 'Possible duplicates'], ['covers', 'Category covers'], ['sets', 'Size sets'], ['ocats', 'Categories'], ['ccats', 'Custom categories'], ['shops', 'Known shops'], ['staff', 'Staff'], ['log', 'Change log']].map(([k, l]) => ({ label: l, bg: page === k ? '#1c1c1e' : 'transparent', onTap: () => { this.setState({ page: k, openKey: null, ed: null }); if (k === 'browse') setTimeout(() => this.browse(), 0); if (k === 'dupes') setTimeout(() => this.loadDupes(), 0); if (k === 'covers') setTimeout(() => this.loadCovers(), 0); if (k === 'sets') setTimeout(() => this.loadSets(), 0); if (k === 'ccats') setTimeout(() => this.loadCcats(), 0); if (k === 'ocats') setTimeout(() => this.loadOcats(), 0); if (k === 'story') setTimeout(() => this.osLoad(), 0); } })),
       gp: this.grpVals(isBrowse ? (st.bRes || []) : []),
       isList: page === 'queue' || isBrowse, isBrowse, listSort: isBrowse ? (st.bBusy ? 'Searching…' : 'Recently changed first') : 'Oldest first', emptyTxt: isBrowse ? (st.bRes ? 'No entries found.' : '') : 'Nothing waiting.',
       bq: st.bq || '', onBq: e => { this.setState({ bq: e.target.value }); clearTimeout(this.bT); this.bT = setTimeout(() => this.browse(), 300); },
@@ -728,11 +769,11 @@ class Component extends DCLogic {
           keepA: () => this.merge(p.b.id, p.a.id, p.a.name), keepB: () => this.merge(p.a.id, p.b.id, p.b.name),
           notDupe: async () => { try { await window.GWSync.cat('catalog_not_dupe', { x: p.a.id, y: p.b.id }); this.setState(s => ({ dupes: (s.dupes || []).filter(z => z !== p) })); } catch (e) { this.say((e && e.message) || 'Couldn’t save'); } } }; }),
       isSets: page === 'sets', sv: this.setsVals(), isStory: page === 'story', os: this.osVals(),
-      isCovers: page === 'covers', covers: [['suits', 'Suits'], ['headgear', 'Headgear'], ['tops', 'Tops & jackets'], ['bottoms', 'Bottoms & underwear'], ['handsfeet', 'Hands & feet'], ['mittens', 'Mittens'], ['footwear', 'Footwear'], ['harnesses', 'Harnesses'], ['play', 'Restraints & play'], ['chastity', 'Chastity'], ['equipment', 'Equipment'], ['accessories', 'Accessories']].map(([k, name]) => { const x = (st.tilesA || []).find(z => z.tile === k) || {}, busy = st.coverBusy === k, file = f => { const fl = Array.from(f || []).find(z => /^image\//.test(z.type || '')); if (fl) this.setCover(k, fl); };
+      isCovers: page === 'covers', covers: this.tileList().map(([k, name]) => { const x = (st.tilesA || []).find(z => z.tile === k) || {}, busy = st.coverBusy === k, file = f => { const fl = Array.from(f || []).find(z => /^image\//.test(z.type || '')); if (fl) this.setCover(k, fl); };
         return { name, choose: e => { e.stopPropagation(); this.openCoverPick(k); }, chooseLbl: st.cpick && st.cpick.t === k ? 'Hide items' : 'Pick from items', photo: x.photo || '', hasPhoto: !!x.photo, custom: !!x.custom, sub: busy ? 'Saving…' : (x.n || 0) + ' items' + (x.custom ? ' · your cover' : x.photo ? ' · automatic' : ''), ring: st.coverFocus === k ? '0 0 0 2px #ffd60a' : 'none', upLbl: x.custom ? 'Change' : 'Upload cover',
           pick: e => { file(e.target.files); e.target.value = ''; }, over: e => e.preventDefault(), drop: e => { e.preventDefault(); const dt = e.dataTransfer; if (dt && dt.files && dt.files.length) { file(dt.files); return; } const u = dt && (dt.getData('text/uri-list') || dt.getData('text')); if (u && /^https?:/.test(u)) this.setCover(k, u.trim()); },
           focus: () => this.setState({ coverFocus: k }), clear: e => { e.stopPropagation(); this.setCover(k, ''); } }; }),
-      matCov: (() => { const TN = { suits: 'Suits', headgear: 'Headgear', tops: 'Tops & jackets', bottoms: 'Bottoms & underwear', handsfeet: 'Hands & feet', footwear: 'Footwear', harnesses: 'Harnesses', play: 'Restraints & play', accessories: 'Accessories' }, L = st.tileMatsA || [];
+      matCov: (() => { const TN = Object.fromEntries(this.tileList()), L = st.tileMatsA || [];
         return Object.keys(TN).map(t => ({ name: TN[t], mats: L.filter(x => x.tile === t).map(x => { const k = t + ':' + x.mat, busy = st.coverBusy === k, file = f => { const fl = Array.from(f || []).find(z => /^image\//.test(z.type || '')); if (fl) this.setCover(k, fl); };
           return { name: x.mat, photo: x.photo || '', hasPhoto: !!x.photo, custom: !!x.custom, sub: busy ? 'Saving…' : x.n + (x.n === 1 ? ' item' : ' items') + (x.custom ? ' · yours' : ''), ring: st.coverFocus === k ? '0 0 0 2px #ffd60a' : 'none', upLbl: x.custom ? 'Change' : 'Upload',
             pick: e => { file(e.target.files); e.target.value = ''; }, over: e => e.preventDefault(), drop: e => { e.preventDefault(); const dt = e.dataTransfer; if (dt && dt.files && dt.files.length) { file(dt.files); return; } const u = dt && (dt.getData('text/uri-list') || dt.getData('text')); if (u && /^https?:/.test(u)) this.setCover(k, u.trim()); },
@@ -742,6 +783,7 @@ class Component extends DCLogic {
         const ph = []; (P.items || []).forEach(c => (c.photos || []).slice(0, 4).forEach(src => { if (src && !ph.some(x => x.src === src)) ph.push({ src, name: c.name }); }));
         return { open: true, loading: !!P.loading, empty: !P.loading && !ph.length, title: 'Pick a cover for ' + (TN[P.t] || P.t) + ' · ' + ph.length + ' photos', close: () => this.setState({ cpick: null }),
           photos: ph.map(p => ({ src: p.src, name: p.name, ring: p.src === cur ? '0 0 0 2px #ffd60a' : 'none', pick: () => { this.setCover(P.t, p.src); this.setState({ cpick: null }); } })) }; })(),
+      isOcats: page === 'ocats', oc: this.ocVals(),
       isCcats: page === 'ccats', cc: this.ccVals(),
       isShops: page === 'shops', shopIn: st.shopIn, onShopIn: e => this.setState({ shopIn: e.target.value }),
       trustIn: () => { const d = shopOf(st.shopIn); if (d) { this.setState({ shopIn: '' }); this.run('catalog_shop', { d, st: 'trusted' }, d + ' is trusted'); } },
