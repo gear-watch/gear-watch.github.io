@@ -767,7 +767,7 @@ input::placeholder{color:#6e6e73;}
         <span style="font-size:14px;color:#a1a1a6;">{{ d.eurTxt }}</span>
         <sc-if value="{{ d.drop }}" hint-placeholder-val="{{ false }}"><span data-anim="pop" data-delay="500" style="font-size:12px;font-weight:600;color:#000;background:var(--gw-accent,#ffd60a);border-radius:9999px;padding:2px 8px;align-self:center;">Price drop {{ d.dropTxt }}</span></sc-if>
       </div>
-      <span data-anim="fade" style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;letter-spacing:-0.12px;color:{{ d.checkColor }};"><span style="width:6px;height:6px;border-radius:9999px;background:{{ d.checkColor }};flex:none;"></span><span style="min-width:0;">{{ d.checkTxt }}</span><sc-if value="{{ d.canCheck }}" hint-placeholder-val="{{ false }}"><button onClick="{{ d.checkNow }}" style="flex:none;border:0;background:none;padding:2px 0 2px 6px;color:var(--gw-accent,#ffd60a);font-size:12px;cursor:pointer;">{{ d.checkLabel }}</button></sc-if></span>
+      <sc-if value="{{ d.showCheck }}" hint-placeholder-val="{{ true }}"><span data-anim="fade" style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;letter-spacing:-0.12px;color:{{ d.checkColor }};"><span style="width:6px;height:6px;border-radius:9999px;background:{{ d.checkColor }};flex:none;"></span><span style="min-width:0;">{{ d.checkTxt }}</span><sc-if value="{{ d.canCheck }}" hint-placeholder-val="{{ false }}"><button onClick="{{ d.checkNow }}" style="flex:none;border:0;background:none;padding:2px 0 2px 6px;color:var(--gw-accent,#ffd60a);font-size:12px;cursor:pointer;">{{ d.checkLabel }}</button></sc-if></span></sc-if>
     </div>
 
     <div data-anim="up" style="margin:20px 16px 0;background:#1c1c1e;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px;">
@@ -1067,7 +1067,7 @@ input::placeholder{color:#6e6e73;}
     <sc-if value="{{ fi.hasPhotos }}" hint-placeholder-val="{{ true }}">
       <div data-anim="scale" style="margin:{{ fiMargin }};max-width:{{ fiMaxW }};position:relative;">
         <div ref="{{ fiCarRef }}" onScroll="{{ fi.onScroll }}" onClick="{{ fi.onZoom }}" style="cursor:zoom-in;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:18px;background:#1c1c1e;aspect-ratio:4/5;">
-          <sc-for list="{{ fi.photos }}" as="ph" hint-placeholder-count="1"><img src="{{ ph.src }}" alt="" draggable="false" referrerpolicy="no-referrer" decoding="async" onError="{{ ph.onErr }}" style="flex:none;width:100%;height:100%;object-fit:cover;object-position:top;scroll-snap-align:start;transform:translateZ(0);-webkit-backface-visibility:hidden;"></sc-for>
+          <sc-for list="{{ fi.photos }}" as="ph" hint-placeholder-count="1"><img src="{{ ph.src }}" alt="" draggable="false" referrerpolicy="no-referrer" decoding="async" data-retry="1" style="flex:none;width:100%;height:100%;object-fit:cover;object-position:top;scroll-snap-align:start;transform:translateZ(0);-webkit-backface-visibility:hidden;"></sc-for>
         </div>
         <sc-if value="{{ fi.multi }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:12px;bottom:12px;background:rgba(0,0,0,0.6);color:#f5f5f7;border-radius:9999px;padding:4px 10px;font-size:12px;font-weight:600;">{{ fi.counter }}</span></sc-if>
       </div>
@@ -2801,6 +2801,8 @@ class Component extends DCLogic {
     try { const r = await fetch(api, { method: 'POST', headers: hd, body: JSON.stringify({ items: list }) }); if (r.ok) { const j = await r.json(); this.applyPrices((j && j.items) || {}); } } catch (e) {}
   }
   componentDidMount() {
+    this._imgRetry = e => { const im = e.target; if (!im || im.tagName !== 'IMG' || !im.dataset.retry) return; const cur = im.getAttribute('src') || '', src = im.dataset.src0 && cur.startsWith(im.dataset.src0) ? im.dataset.src0 : cur; if (!src || src.includes('{{')) return; if (im.dataset.src0 !== src) { im.dataset.src0 = src; im.dataset.tries = 0; } const n = +(im.dataset.tries || 0); if (n >= 2) return; im.dataset.tries = n + 1; setTimeout(() => { if (im.isConnected && im.dataset.src0 === src) im.src = src + (src.includes('?') ? '&' : '?') + 'r' + (n + 1) + '=' + Date.now(); }, 800 * (n + 1)); };
+    document.addEventListener('error', this._imgRetry, true);
     this.syncPrices();
     idb.all().then(c => this.setState({ cuts: c || {}, cutsReady: true }));
     const hook = () => { const G = window.GWSync; if (!G) return false;
@@ -4290,7 +4292,7 @@ class Component extends DCLogic {
       const FI = st.fItem ? (st.fItem.kind === 'coll' ? C : W).find(x => x.id === st.fItem.id) : null;
       if (FI) { const isW = st.fItem.kind !== 'coll', have = mineKey.has(fKey(FI)), phs = (FI.ph || []), host = (() => { try { return new URL(FI.u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } })();
         const rows = [['Brand', FI.b], ['Category', FI.g || FI.cat], ['Size', FI.m ? 'Made to measure' : FI.s], ['Colour', FI.co], [(FI.mt || []).length > 1 ? 'Materials' : 'Material', matFull(fMat(FI))], ['Entry', FI.z], ['Paid', !isW && FI.pp != null ? (FI.ap ? '≈ ' : '') + money(FI.pc || '€', FI.pp) : !isW && FI.pu ? 'Unknown' : ''], ['Handmade', FI.hm ? 'Yes' : ''], ['Second-hand', FI.sh ? (FI.cnd || 'Yes') : ''], ['Modified', FI.md ? (FI.md === 1 ? 'Yes' : FI.md) : ''], ['Status', isW ? '' : FI.ow ? 'On the way' : 'Owned'], [isW ? 'Added' : 'Since', isW ? (FI.a ? fmtD(FI.a) : '') : FI.pre ? 'Before GearWatch' : (FI.o ? fmtD(FI.o) : '')]].filter(r => r[1]).map(([k, v]) => ({ k, v: String(v) }));
-        fi = { back: st.fFromFeed && !st.fOutfit ? 'Feed' : st.fOutfit ? 'Outfit' : '@' + fU.username, kicker: isW ? 'On their wishlist' : 'In their collection', name: FI.n, initial: ini(FI.n), photos: phs.map(src => ({ src, onErr: e => { const im = e.currentTarget, n = +(im.dataset.tries || 0); if (n >= 2) return; im.dataset.tries = n + 1; setTimeout(() => { if (im.isConnected) im.src = src + (src.includes('?') ? '&' : '?') + 'r' + (n + 1) + '=' + Date.now(); }, 800 * (n + 1)); } })), hasPhotos: phs.length > 0, noPhotos: !phs.length, multi: phs.length > 1, counter: ((st.fiIdx || 0) + 1) + ' / ' + phs.length,
+        fi = { back: st.fFromFeed && !st.fOutfit ? 'Feed' : st.fOutfit ? 'Outfit' : '@' + fU.username, kicker: isW ? 'On their wishlist' : 'In their collection', name: FI.n, initial: ini(FI.n), photos: phs.map(src => ({ src })), hasPhotos: phs.length > 0, noPhotos: !phs.length, multi: phs.length > 1, counter: ((st.fiIdx || 0) + 1) + ' / ' + phs.length,
           onScroll: e => { const el = e.currentTarget, k = Math.round(el.scrollLeft / el.clientWidth); if (k !== (st.fiIdx || 0)) this.setState({ fiIdx: k }); },
           price: FI.pu ? 'Price unknown' : FI.p == null ? '' : (FI.ap ? '≈ ' : '') + money(FI.c || '€', FI.p), hasPrice: FI.p != null || !!FI.pu, hasStars: isW ? !!FI.r : !!FI.rc, stars: this.stars((isW ? FI.r : FI.rc) || 0), starsLbl: isW ? 'How much they want it' : 'Recommends it', rows, hasRows: rows.length > 0,
           url: FI.u || '', hasUrl: !!host, host, addLabel: have ? 'On your list' : 'Add to my wishlist', addBg: have ? '#1c1c1e' : ACC, addFg: have ? '#6e6e73' : '#000',
@@ -4380,7 +4382,8 @@ class Component extends DCLogic {
       if (dIt.handmade) rows.push({ k: 'Handmade', v: 'Yes' }); if (dIt.modified) rows.push({ k: 'Modified', v: dIt.mods || 'Yes' });
       if (dIt.added) rows.push({ k: 'On your list since', v: fmtD(dIt.added) });
       d = Object.assign({}, v, {
-        priceEl: dIt.priceUnknown ? 'Price unknown' : dIt.price == null ? 'No price' : dIt.approx ? '≈ ' + money(dIt.currency, dIt.price) : React.createElement(CountUp, { value: dIt.price, prefix: dIt.currency, dec: dIt.price % 1 ? 2 : 0, from: 0, dur: 900 }),
+        ...(dIt.status !== 'wanted' && dIt.paid != null ? { drop: false, eurTxt: dIt.paidCur && dIt.paidCur !== '€' ? '≈ €' + Math.round(paidEur(dIt)) : '' } : dIt.status !== 'wanted' ? { drop: false } : {}),
+        priceEl: dIt.status !== 'wanted' && dIt.paid != null ? React.createElement(CountUp, { value: dIt.paid, prefix: dIt.paidCur || '€', dec: dIt.paid % 1 ? 2 : 0, from: 0, dur: 900 }) : dIt.priceUnknown ? 'Price unknown' : dIt.price == null ? 'No price' : dIt.approx ? '≈ ' + money(dIt.currency, dIt.price) : React.createElement(CountUp, { value: dIt.price, prefix: dIt.currency, dec: dIt.price % 1 ? 2 : 0, from: 0, dur: 900 }),
         cf: this.catFitVals(dIt), hasCat: !!dIt.catalogId, catPending: dIt.catSt === 'pending', catLbl: dIt.catSt === 'pending' ? 'Waiting for approval' : dIt.catSt === 'gone' ? 'No longer sold' : 'View', openCat: () => this.openCatId(dIt.catalogId),
         photos: ph.map(src => ({ src })), hasPhotos: !!ph.length, noPhotos: !ph.length, multi: ph.length > 1,
         canPrev: st.photoIdx > 0, canNext: st.photoIdx < ph.length - 1,
@@ -4396,11 +4399,11 @@ class Component extends DCLogic {
         paidTxt: dIt.paid == null ? '' : 'Paid ' + money(dIt.paidCur || '€', dIt.paid) + (dIt.paidCur && dIt.paidCur !== '€' ? ' (≈ €' + Math.round(paidEur(dIt)) + ')' : '') + (bi ? (dIt.noBudget ? ' · not in budget' : ' · counted in budget') : ''),
         checkTxt: !dIt.url ? 'No link, so the price isn’t checked' : !dIt.checked ? 'Price not checked yet' : dIt.checkErr ? dIt.checkErr + ' · tried ' + agoTxt(dIt.checked) : 'Price checked ' + agoTxt(dIt.checked) + (dIt.checkNote ? ' · ' + dIt.checkNote : '') + (dIt.surcharge ? ' · incl. +' + Math.round(dIt.surcharge * 100) + '% made to measure' : ''),
         canCheck: !!dIt.url && dIt.status !== 'owned', checkLabel: st.checking === dIt.id ? 'Checking…' : 'Check now', checkNow: () => this.checkNow(dIt),
-        checkColor: dIt.checked && !dIt.checkErr ? '#30d158' : dIt.checkErr ? '#ff9f0a' : '#6e6e73',
+        showCheck: dIt.status === 'wanted', checkColor: dIt.checked && !dIt.checkErr ? '#30d158' : dIt.checkErr ? '#ff9f0a' : '#6e6e73',
         isWanted: dIt.status === 'wanted', showAfford: dIt.status === 'wanted' && !p.budgetOff, afford: a.txt, affordDot: a.dot, needBudget: !!a.need,
         hasOrderInfo: dIt.status !== 'wanted' && !!dIt.orderedOn,
         orderInfo: dIt.status === 'owned' ? 'Received' + (dIt.ownedOn ? ' ' + fmtD(dIt.ownedOn) : '') + '. Ordered ' + fmtD(dIt.orderedOn) + (dIt.paid != null ? ' for ' + money(dIt.paidCur || '€', dIt.paid) : '') + '.' : 'Ordered ' + fmtD(dIt.orderedOn) + (dIt.paid != null ? ' for ' + money(dIt.paidCur || '€', dIt.paid) : '') + '.',
-        hasHist: h.length >= 2, histPts, histX, histY, histFrom: h.length ? fmtD(h[0].date) : '', histTo: h.length ? fmtD(h[h.length - 1].date) : '',
+        hasHist: h.length >= 2 && dIt.status === 'wanted', histPts, histX, histY, histFrom: h.length ? fmtD(h[0].date) : '', histTo: h.length ? fmtD(h[h.length - 1].date) : '',
         histRange: h.length >= 2 ? 'Highest ' + money(dIt.currency, Math.max.apply(null, h.map(x => x.price))) + ' · Now ' + money(dIt.currency, dIt.price) : '',
         rows, m2m: !!dIt.m2m, brand: dIt.brand || 'this shop', needNote: nd.note, needCount: hasSession ? rec + ' of ' + nd.ids.length + ' measured' : 'Not measured yet', needRows,
         needFig: bodyFig({ bare: true, lines: nd.ids.filter(id => vals[id] != null).map(id => ({ id })) }),
