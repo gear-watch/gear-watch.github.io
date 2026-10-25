@@ -168,6 +168,14 @@ function pageCands(html, u, best) {
   if (best && !c.some(x => Math.abs(x.p - best.price) < 0.005)) c.unshift({ k: 'best', l: 'Main price', p: best.price, cur: best.cur });
   return candList(c, best);
 }
+// Shops with a currency switcher (WooPayments, WOOCS, CURCY and similar) take the currency as a link parameter.
+const curUrl = (url, w) => url + (url.includes('?') ? '&' : '?') + 'currency=' + w + '&wmc-currency=' + w;
+async function inWant(url, u, want, r) {
+  if (!want || !r || r.price == null || codeOf(r.cur) === want) return r;
+  try { const r2 = parse(await get(curUrl(url, want), false, wantHdr(want)), u); if (!r2) return r;
+    if (codeOf(r2.cur) !== want) { const c = (r2.cands || []).find(x => x.cur === want); if (!c) return r; Object.assign(r2, { price: c.p, was: c.w, cur: want }); }
+    const cs = (r2.cands || []).filter(x => x.cur === want); r2.cands = cs.length > 1 ? cs : null; r2.how = (r2.how || 'page') + ', shop’s own ' + want + ' price'; return r2;
+  } catch { return r; } }
 // Keep checking the price the user picked. If it's gone from the page, say so rather than guess.
 function usePick(r, pick) {
   if (!r || !pick || !pick.k || !r.cands) return r;
@@ -234,7 +242,7 @@ async function check(entry) {
     try { const r = await fn(u, want); if (r) return Object.assign(r, { via: 'feed' }); } catch (e) { tried.push(fn.name + ': ' + e.message); }
   }
   let blocked = false;
-  try { const html = await get(entry.url, false, wantHdr(want)); const r = parse(html, u); if (r) return Object.assign(usePick(r, entry.pick), { via: 'page' });
+  try { const html = await get(entry.url, false, wantHdr(want)); let r = parse(html, u); if (r) { r = await inWant(entry.url, u, want, r); return Object.assign(usePick(r, entry.pick), { via: 'page' }); }
     const title = ((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '').trim().slice(0, 80);
     tried.push('page: no price found (' + Math.round(html.length / 1024) + ' KB, title "' + title + '", starts "' + visible(html).trim().slice(0, 140) + '")'); }
   catch (e) { blocked = !!e.blocked; tried.push('page: ' + e.message); }
@@ -282,7 +290,7 @@ function fromPage(html, u) {
   for (const m of html.matchAll(/<meta[^>]+(?:property|name)=["'](?:og:image(?::secure_url)?|twitter:image)["'][^>]*content=["']([^"']+)/gi)) imgs.push(m[1]);
   const site = meta(html, 'og:site_name'), brand = p.brand ? decode(typeof p.brand === 'string' ? p.brand : p.brand.name) : null;
   const raw = decode(p.name || meta(html, 'og:title') || (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '');
-  return { name: trimSite(raw, site, u.hostname.replace(/^www\./, '')), brand: brand || site || null, price: pr ? pr.price : null, was: pr ? pr.was : null, cur: pr ? pr.cur : null, images: cleanImgs(imgs, u.href) };
+  return { name: trimSite(raw, site, u.hostname.replace(/^www\./, '')), brand: brand || site || null, price: pr ? pr.price : null, was: pr ? pr.was : null, cur: pr ? pr.cur : null, cands: pr ? pr.cands || null : null, images: cleanImgs(imgs, u.href) };
 }
 function optsFromText(md) { const lines = md.split('\n').map(l => l.replace(/[*_#>\[\]]/g, '').replace(/\(https?:[^)]*\)/g, '').trim()), groups = [];
   lines.forEach((l, i) => { const m = l.match(/^((?:[A-Za-z][A-Za-z ]{0,28}?)?(?:colou?r|pattern|trim|size|maat|kleur))\s*:\s*(.{0,30})$/i); if (!m) return; const vals = [];
@@ -303,7 +311,7 @@ function fromMarkdown(md, u) {
   let imgs = Array.from(md.matchAll(/!\[[^\]]*\]\((https?:[^)\s]+)/g)).map(m => m[1]);
   const prod = imgs.filter(s => /product|catalog|uploads|cdn\.shopify|wixstatic/i.test(s)); if (prod.length) imgs = prod;
   const pr = parse(md, u);
-  return { name: trimSite(title, '', u.hostname.replace(/^www\./, '')), brand: null, price: pr ? pr.price : null, was: pr ? pr.was : null, cur: pr ? pr.cur : null, images: cleanImgs(imgs, u.href), options: optsFromText(md) };
+  return { name: trimSite(title, '', u.hostname.replace(/^www\./, '')), brand: null, price: pr ? pr.price : null, was: pr ? pr.was : null, cur: pr ? pr.cur : null, cands: pr ? pr.cands || null : null, images: cleanImgs(imgs, u.href), options: optsFromText(md) };
 }
 async function readerMd(url) {
   const h = { 'x-return-format': 'markdown', accept: 'text/plain', 'x-timeout': '25', 'x-no-cache': 'true', 'x-engine': 'browser' };
@@ -393,6 +401,7 @@ async function lookup(url, want) {
     const gen = !r.name || r.name.trim().toLowerCase() === site.toLowerCase() || r.name.trim().toLowerCase() === host;
     if (gen) { siteBrand = site || null; r.name = ''; r.images = r.images.filter(x => !/og|banner|share|social/i.test(x)); if (/og:image:width" content="3[0-9]{3}/.test(html)) r.images = []; }
     if (/woocommerce|wp-content/i.test(html)) { const wf = wooForm(html); if (wf.variants.length) r.variants = wf.variants; if (wf.options && !r.options) r.options = wf.options; if (wf.price != null && (r.price == null || wf.price < r.price)) { r.price = wf.price; if (wf.was) r.was = wf.was; } }
+    if (want && r.price != null && codeOf(r.cur) !== want) { const r2 = await inWant(url, u, want, { price: r.price, cur: r.cur, how: '' }); if (codeOf(r2.cur) === want) { r.price = r2.price; r.was = r2.was; r.cur = r2.cur; r.cands = r2.cands; r.variants = null; } }
     if (r.name && (r.images.length || r.price)) { const md = html.match(/<meta[^>]+(?:name|property)=["'](?:og:)?description["'][^>]*content=["']([^"']*)/i); return Object.assign(r, { desc: r.desc || (md ? md[1] : ''), how: 'product page' }); } tried.push('page: not enough found'); }
   catch (e) { tried.push('page: ' + e.message); }
   try { const r = await spaApi(u); if (r && r.name) return Object.assign(r, { brand: r.brand || siteBrand }); } catch (e) { tried.push('shop data: ' + e.message); }
@@ -403,7 +412,7 @@ async function lookup(url, want) {
 async function lookupOne(url, ctx, want) {
   const key = normUrl(url); if (!key) return { ok: false, error: 'Not a valid link' };
   if (/libidex\.com/.test(url) || !CC[want]) want = null;
-  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup12/' + (want || '-') + '/' + encodeURIComponent(key));
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/lookup13/' + (want || '-') + '/' + encodeURIComponent(key));
   const hit = await cache.match(ck); if (hit) return hit.json();
   let out;
   try { const r = await lookup(url, want), code = codeOf(r.cur), vars = (r.variants || []).filter(v => v && v.p > 0).slice(0, 80);
@@ -454,7 +463,7 @@ async function one(entry, ctx, force) {
   const key = normUrl(entry.url); if (!key) return null;
   const pk = entry.pick && entry.pick.k ? String(entry.pick.k).slice(0, 80) : '', want = /libidex\.com/.test(entry.url) ? null : codeOf(entry.want || entry.currency), rk = key + (pk ? '#' + pk : '');
   const tag = (want || '-') + '/' + (codeOf(entry.currency) || '-') + '/' + encodeURIComponent(pk || '-') + '/' + encodeURIComponent(key);
-  const cache = caches.default, ck = new Request('https://gearwatch-cache/v4/' + tag);
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/v5/' + tag);
   if (!force) { const hit = await cache.match(ck); if (hit) return [rk, await hit.json()]; }
   let out; const now = new Date().toISOString(), lk = new Request('https://gearwatch-cache/last-ok2/' + tag);
   try { const r = await check(entry); out = { ok: true, price: r.price, was: r.was ?? null, currency: curFor(entry, r), checked: now, okAt: now, how: r.how, via: r.via, cands: r.cands || null, pickGone: !!r.pickGone, native: !!want && codeOf(r.cur) === want && want !== codeOf(entry.currency) };
