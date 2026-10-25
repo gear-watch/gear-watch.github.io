@@ -36,7 +36,7 @@ self.addEventListener('fetch', e => {
     if (a.token) {
       try {
         const r = await fetch(u.slice(0, i) + AUTHD + key.slice(i + PUB.length), { mode: 'cors', credentials: 'omit', headers: { Authorization: 'Bearer ' + a.token, apikey: a.key } });
-        if (r.ok) { cache.put(key, r.clone()).catch(() => {}); return r; }
+        if (r.ok) { const b = await r.blob(); if (b.size) { const h = new Headers({ 'content-type': r.headers.get('content-type') || b.type || 'image/jpeg' }), full = new Response(b, { status: 200, headers: h }); cache.put(key, full.clone()).catch(() => {}); return full; } }
       } catch (err) {}
     }
     return fetch(req);
