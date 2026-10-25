@@ -3603,7 +3603,7 @@ class Component extends DCLogic {
     if (!cb && this.state.sheet === 'cprod' && ['form', 'act', 'disc'].includes(this.state.catFrom)) { this.setState({ sheet: { act: 'cact', disc: 'cdisc' }[this.state.catFrom] || 'form', catView: null }); return; }
     if (!cb && this.state.sheet === 'cvar' && this.state.catP) { this.setState({ sheet: (this.state.cvar && this.state.cvar.back) || 'cprod' }); return; }
     if (!cb && this.state.sheet === 'cact' && this.state.cactBack) { this.setState({ sheet: this.state.cactBack, cactBack: null }); return; }
-    const done = () => { const wasForm = this.state.sheet === 'form'; this.setState({ sheet: null, form: null }); if (cb) cb(); if (wasForm) this._ntBack = null; };
+    const done = () => { const wasForm = this.state.sheet === 'form'; this.setState({ sheet: null, form: null }); const after = () => { if (cb) cb(); if (wasForm) this._ntBack = null; }; if (cb) setTimeout(after, 0); else after(); };
     if (this.backdropRef.current && !this.reduce) this.backdropRef.current.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' });
     this.animOut(this.sheetRef.current, [{ transform: 'none' }, { transform: 'translateY(100%)' }], 300, done);
   }
