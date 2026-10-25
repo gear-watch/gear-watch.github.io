@@ -1868,6 +1868,7 @@ input::placeholder{color:#6e6e73;}
         </div>
       </sc-if>
       <sc-if value="{{ cat.pr.mine }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cat.pr.openMine }}" style="margin:16px 16px 0;width:calc(100% - 32px);border:0;background:#2c2c2e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">{{ cat.pr.mineLbl }}</button></sc-if>
+      <sc-if value="{{ cat.pr.wantMore }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cat.pr.wish }}" style="margin:10px 16px 0;width:calc(100% - 32px);border:0;background:#2c2c2e;color:#f5f5f7;border-radius:9999px;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;" style-active="transform:scale(0.95);"><span>+ Wishlist</span><span style="font-size:12px;font-weight:400;color:#a1a1a6;">Want another colour or size?</span></button></sc-if>
       <sc-if value="{{ cat.pr.mineAlsoW }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cat.pr.openMineW }}" style="margin:10px 16px 0;width:calc(100% - 32px);border:0;background:#2c2c2e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">Open in your wishlist</button></sc-if>
       <div style="padding:16px 16px 0;display:flex;justify-content:center;gap:24px;">
         <button onClick="{{ cat.pr.fix }}" style="border:0;background:none;color:#a1a1a6;font-size:14px;cursor:pointer;padding:6px;">Suggest a fix</button>
@@ -3056,7 +3057,7 @@ class Component extends DCLogic {
     if (noPh.length) cands.push({ k: 'photos', isPhotos: true, title: noPh.length === 1 ? 'Add a photo to 1 item' : 'Add photos to ' + noPh.length + ' items', sub: 'Items with a photo look better in your friends’ feeds.', cta: 'Show', go: () => this.goTab(noPhC >= noPh.length - noPhC ? 'coll' : 'wish') });
     const nc = cands.filter(c => !this.hidHome('n-' + c.k)), n0 = nc.length ? nc[dayN % nc.length] : null;
     const nudge = n0 ? Object.assign({ isStory: false, isOutfit: false, isPhotos: false }, n0, { onCta: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); n0.go(); }, onHide: () => this.hideHome('n-' + n0.k) }) : {};
-    const pool = []; acc.forEach(f => { const L = SO.lists[f.id]; ((L && L.wish) || []).forEach(i => { if ((i.ph || []).length && !mineKey.has(fKey(i)) && !this.hidHome('p-' + f.id + '-' + i.id)) pool.push([f, i]); }); });
+    const pool = []; acc.forEach(f => { const L = SO.lists[f.id]; ((L && L.wish) || []).forEach(i => { if ((i.ph || []).length && !mineKey.has(fKey(i)) && !items.some(x => fKey({ u: x.url, n: x.name }) === fKey(i)) && !this.hidHome('p-' + f.id + '-' + i.id)) pool.push([f, i]); }); });
     const pk = pool.length ? pool[(dayN * 7) % pool.length] : null;
     const pick = pk ? (([f, i]) => ({ who: '@' + f.username, initial: String(f.username || '?').charAt(0).toUpperCase(), av: f.avatar || '', hasAv: !!f.avatar, img: i.ph[0], name: i.n, sub: [i.b, i.p == null ? '' : money(i.c || '€', i.p)].filter(Boolean).join(' · ') || ' ',
       onOpen: () => this.setState({ friend: f.id, friendTab: 'wish', fItem: { id: i.id, kind: 'wish' }, fiIdx: 0, unfArm: false, fOutfit: null, fFromFeed: true }), onAdd: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.06); addF(i); }, onHide: () => this.hideHome('p-' + f.id + '-' + i.id) }))(pk) : {};
@@ -3974,7 +3975,7 @@ class Component extends DCLogic {
         frTitle: frN ? plural(frN, 'friend') + ' ' + (frN === 1 ? 'has' : 'have') + ' this' : (c.own_n || 0) + ' own · ' + (c.want_n || 0) + ' want', frSub: fr == null ? 'Checking friends…' : frN ? fr.slice(0, 4).map(x => '@' + x.username + (x.color || x.size ? ' (' + [x.color, x.size].filter(Boolean).join(' · ') + ')' : '')).join(', ') + (frN > 4 ? ' +' + (frN - 4) : '') : 'People on GearWatch',
         mine: !!m, notMine: !m, mineLbl: m ? (m.status === 'wanted' ? 'Open in your wishlist' : 'Open in your collection') : '',
         openMine: () => { const id = m && m.id, s2 = m && m.status; this.closeSheet(() => { if (!id) return; this.setState({ tab: s2 === 'wanted' ? 'wish' : 'coll' }); this.openDetail(id); }); },
-        mineAlsoW: !!m && m.status !== 'wanted' && !!mineW(c), openMineW: () => { const w = mineW(c), id = w && w.id; this.closeSheet(() => { if (!id) return; this.setState({ tab: 'wish' }); this.openDetail(id); }); },
+        mineAlsoW: !!m && m.status !== 'wanted' && !!mineW(c), wantMore: !!m && m.status !== 'wanted' && !mineW(c), openMineW: () => { const w = mineW(c), id = w && w.id; this.closeSheet(() => { if (!id) return; this.setState({ tab: 'wish' }); this.openDetail(id); }); },
         wish: e => { this.bump(e.currentTarget, 1.04); this.catWish(c); }, own: e => { this.bump(e.currentTarget, 1.04); this.catOwn(c); },
         fix: () => { if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0; this.setState({ sheet: 'cfix', cfx: { f: '', v: '' } }); }, report: () => { if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0; this.setState({ sheet: 'crep', crepR: '', crepN: '' }); } };
       const x = st.cfx || {}, setX = o => this.setState(s => ({ cfx: Object.assign({}, s.cfx, o) }));
@@ -4190,7 +4191,7 @@ class Component extends DCLogic {
     const gStep = !A.configured ? null : !A.ready ? 'loading' : !A.user ? (st.authSent ? 'code' : 'email') : A.needName ? 'name' : !A.firstDone ? 'loading' : null, gate = !!gStep;
     const ini = s => (String(s || '?').replace(/^@/, '').charAt(0) || '?').toUpperCase();
     const fKey = i => i.u ? normUrl(i.u) : 'n:' + String(i.n || '').toLowerCase();
-    const mineKey = new Set(p.items.map(i => fKey({ u: i.url, n: i.name })));
+    const mineKey = new Set(p.items.filter(i => i.status === 'wanted').map(i => fKey({ u: i.url, n: i.name })));
     const openF = (id, tab) => () => this.setState({ friend: id, friendTab: tab, unfArm: false, fOutfit: null, fItem: null, fFromFeed: false });
     const feed = [];
     SO.following.filter(f => f.status === 'accepted').forEach(f => { const L = SO.lists[f.id]; if (!L) return; const who = '@' + f.username, all = (L.wish || []).concat(L.coll || []);
