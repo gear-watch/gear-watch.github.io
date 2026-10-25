@@ -1,11 +1,11 @@
 {
-  "updated": "2026-10-24T06:55:56.787Z",
+  "updated": "2026-10-25T06:56:47.236Z",
   "items": {
     "mybluewolf.com/products/blue-service-animal-harness-made-to-order-copy?variant=53061676761451": {
       "ok": true,
       "price": 295,
       "currency": "$",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "Shopify feed",
       "via": "feed"
     },
@@ -13,7 +13,7 @@
       "ok": true,
       "price": 136,
       "currency": "$",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "WooCommerce feed",
       "via": "feed"
     },
@@ -21,7 +21,7 @@
       "ok": true,
       "price": 107.96,
       "currency": "£",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "Libidex price",
       "via": "reader"
     },
@@ -29,7 +29,7 @@
       "ok": true,
       "price": 85,
       "currency": "$",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "WooCommerce feed",
       "via": "feed"
     },
@@ -37,7 +37,7 @@
       "ok": true,
       "price": 110,
       "currency": "$",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "WooCommerce feed",
       "via": "feed"
     },
@@ -45,7 +45,7 @@
       "ok": true,
       "price": 450,
       "currency": "€",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "product data on the page",
       "via": "page"
     },
@@ -53,7 +53,7 @@
       "ok": true,
       "price": 116,
       "currency": "$",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "WooCommerce feed",
       "via": "feed"
     },
@@ -61,7 +61,7 @@
       "ok": true,
       "price": 119.95,
       "currency": "£",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "Libidex price",
       "via": "reader"
     },
@@ -69,7 +69,7 @@
       "ok": true,
       "price": 109.95,
       "currency": "£",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "Libidex price",
       "via": "reader"
     },
@@ -77,7 +77,7 @@
       "ok": true,
       "price": 29,
       "currency": "$",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "Latex Catfish price",
       "via": "page"
     },
@@ -85,7 +85,7 @@
       "ok": true,
       "price": 65,
       "currency": "$",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "WooCommerce feed",
       "via": "feed"
     },
@@ -93,7 +93,7 @@
       "ok": true,
       "price": 68,
       "currency": "$",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "WooCommerce feed",
       "via": "feed"
     },
@@ -101,7 +101,7 @@
       "ok": true,
       "price": 36,
       "currency": "$",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "WooCommerce feed",
       "via": "feed"
     },
@@ -109,7 +109,7 @@
       "ok": false,
       "price": null,
       "currency": "$",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "error": "Shop blocked the check",
       "detail": "page: HTTP 403 · reader text (price area): reader HTTP 403 · reader html (price area): reader HTTP 401 · reader text (whole page): reader HTTP 403"
     },
@@ -117,7 +117,7 @@
       "ok": true,
       "price": 70.8,
       "currency": "€",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "Shopify feed",
       "via": "feed"
     },
@@ -125,7 +125,7 @@
       "ok": true,
       "price": 40.8,
       "currency": "€",
-      "checked": "2026-10-24T06:55:56.787Z",
+      "checked": "2026-10-25T06:56:47.236Z",
       "how": "Shopify feed",
       "via": "feed"
     }
