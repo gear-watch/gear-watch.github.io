@@ -32,7 +32,8 @@ const codeOf = c => { if (!c) return null; c = String(c).trim(); return ({ '€'
 
 // Ask shops for prices in the user's own currency: Shopify Markets reads these cookies, many WooCommerce currency plugins read ?currency=.
 const CC = { USD: 'US', GBP: 'GB', EUR: 'NL' };
-const wantHdr = w => (w && CC[w] ? { cookie: 'cart_currency=' + w + '; localization=' + CC[w] } : null);
+// Shopify (cart_currency, localization), OpenCart (currency), CURCY (wmc_current_currency), WOOCS, Aelia and Alg switchers all read a cookie.
+const wantHdr = w => (w && CC[w] ? { cookie: ['cart_currency', 'currency', 'wmc_current_currency', 'woocs_current_currency', 'aelia_cs_selected_currency', 'alg_currency'].map(k => k + '=' + w).concat('localization=' + CC[w]).join('; ') } : null);
 const withCur = (url, w) => (w ? url + (url.includes('?') ? '&' : '?') + 'currency=' + w : url);
 // Every colour/size combination from a Shopify feed, with its own price and stock.
 function shopVars(j) { const names = (j.options || []).map(o => String(typeof o === 'string' ? o : (o && o.name) || '')), ci = names.findIndex(n => /colou?r|kleur|farbe/i.test(n)), si = names.findIndex(n => /size|maat|größe|taille/i.test(n));
@@ -161,7 +162,7 @@ function pageCands(html, u, best) {
   const wc = html.match(/class=["'][^"']*\bprice\b[^"']*["'][^>]*>([\s\S]{0,800}?)<\/(?:p|div)>/i);
   if (wc) { const ins = wc[1].match(/<ins[\s\S]*?<\/ins>/i), b = visible(ins ? ins[0] : wc[1]).match(/([$€£])\s?([\d.,]+)|([\d.,]+)\s?([$€£])/), del = wc[1].match(/<del[\s\S]*?<\/del>/i), d = del && visible(del[0]).match(/([$€£])\s?([\d.,]+)|([\d.,]+)\s?([$€£])/);
     if (b && num(b[2] || b[3])) c.push({ k: 'box', l: ins ? 'Sale price' : 'Price box', p: num(b[2] || b[3]), w: d ? num(d[2] || d[3]) : null, cur: b[1] || b[4] }); }
-  if (!c.length || (best && /guess/.test(best.how || ''))) { const text = visible(html); let n = 0;
+  if (best && /guess/.test(best.how || '')) { const text = visible(html); let n = 0;
     for (const t of text.matchAll(PRICE)) { if (n >= 8) break; const before = text.slice(Math.max(0, t.index - 40), t.index);
       if (/(free (shipping|delivery)[^€$£]*|over|above|orders? from|spend|cart|subtotal|total|basket|shipping|delivery)\s*:?\s*$/i.test(before)) continue;
       const p = num(t[2] || t[4]); if (!p) continue; n++; const l = lbl(before.split(/[$€£]\s?[\d.,]+(?:\s*(?:USD|EUR|GBP))?|[\d.,]+\s?(?:€|EUR|USD|GBP|£)/).pop()); c.push({ k: 't:' + l, l: l || 'On the page', p, cur: t[3] || t[1] || t[5] }); } }
@@ -169,7 +170,7 @@ function pageCands(html, u, best) {
   return candList(c, best);
 }
 // Shops with a currency switcher (WooPayments, WOOCS, CURCY and similar) take the currency as a link parameter.
-const curUrl = (url, w) => url + (url.includes('?') ? '&' : '?') + 'currency=' + w + '&wmc-currency=' + w;
+const curUrl = (url, w) => url + (url.includes('?') ? '&' : '?') + 'currency=' + w + '&wmc-currency=' + w + '&aelia_cs_currency=' + w;
 async function inWant(url, u, want, r) {
   if (!want || !r || r.price == null || codeOf(r.cur) === want) return r;
   try { const r2 = parse(await get(curUrl(url, want), false, wantHdr(want)), u); if (!r2) return r;
@@ -223,7 +224,8 @@ function parse0(html, u) {
   const text = visible(html);
   const lb = text.match(LIBI); if (lb) return { price: num(lb[1]), cur: 'GBP', how: 'Libidex price' };
   // Latex Catfish (OpenCart): "$29.00 USD BASE PRICE"
-  const cf = text.match(/[$€£]\s?([\d,]+\.\d{2})\s*(USD|EUR|GBP)\s*(?:[$€£]\s?[\d,]+\.\d{2}\s*(?:USD|EUR|GBP)\s*)?BASE PRICE/i);
+  // OpenCart shows the chosen currency either way round: "$29.00 USD" or "26,50€ EUR".
+  const cf = text.match(/(?:[$€£]\s?)?(\d[\d.,]*\d)\s?(?:[$€£])?\s*(USD|EUR|GBP|AUD|CAD)\s*(?:(?:[$€£]\s?)?\d[\d.,]*\d\s?(?:[$€£])?\s*(?:USD|EUR|GBP|AUD|CAD)\s*)?BASE PRICE/i);
   if (cf) return { price: num(cf[1]), cur: cf[2], how: 'Latex Catfish price' };
   // Last resort: the first real price in the visible text, skipping cart totals and shipping thresholds.
   for (const t of text.matchAll(PRICE)) {
@@ -239,13 +241,15 @@ async function check(entry) {
   const u = new URL(entry.url), tried = [], want = /libidex\.com/.test(entry.url) ? null : codeOf(entry.want || entry.currency);
   if (isEtsy(u)) { try { const r = await etsy(u); if (r && r.price != null) return { price: r.price, was: r.was, cur: r.cur, how: r.how, via: 'feed' }; } catch (e) { tried.push(e.message + (e.detail ? ' (' + e.detail + ')' : '')); } }
   for (const fn of [shopify, woo, magento]) {
-    try { const r = await fn(u, want); if (r) return Object.assign(r, { via: 'feed' }); } catch (e) { tried.push(fn.name + ': ' + e.message); }
+    try { const r = await fn(u, want); if (r) { if (want && codeOf(r.cur) !== want) { const r2 = await inWant(entry.url, u, want, r); if (r2 !== r && codeOf(r2.cur) === want) return Object.assign(usePick(r2, entry.pick), { via: 'page' }); } return Object.assign(r, { via: 'feed' }); } } catch (e) { tried.push(fn.name + ': ' + e.message); }
   }
   let blocked = false;
   try { const html = await get(entry.url, false, wantHdr(want)); let r = parse(html, u); if (r) { r = await inWant(entry.url, u, want, r); return Object.assign(usePick(r, entry.pick), { via: 'page' }); }
     const title = ((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '').trim().slice(0, 80);
     tried.push('page: no price found (' + Math.round(html.length / 1024) + ' KB, title "' + title + '", starts "' + visible(html).trim().slice(0, 140) + '")'); }
   catch (e) { blocked = !!e.blocked; tried.push('page: ' + e.message); }
+  // App-style shops (Furrjoi): their own product data, before the slower page reader.
+  try { const r = await spaApi(u, want); if (r && r.price != null) return Object.assign(r, { via: 'feed' }); } catch (e) { tried.push('shop data: ' + e.message); }
   // Cheapest first: just the price area as text, then as HTML, and only then the whole page.
   for (const [fmt, target] of [['text', true], ['html', true], ['text', false]]) {
     const name = 'reader ' + fmt + (target ? ' (price area)' : ' (whole page)');
@@ -335,10 +339,13 @@ function pickProd(j, depth) { if (!j || typeof j !== 'object' || (depth || 0) > 
   const name = j.name || j.title || j.goods_name || j.goodsName || j.productName || j.product_name, price = j.price ?? j.sale_price ?? j.salePrice ?? j.sellPrice ?? j.final_price ?? j.min_price;
   if (name && price != null && !isNaN(parseFloat(price))) return j;
   for (const k of ['data', 'product', 'goods', 'item', 'result', 'detail', 'info']) { const r = pickProd(j[k], (depth || 0) + 1); if (r) return r; } return null; }
-async function spaApi(u) { const id = (u.pathname.match(/\/(\d+)\/?$/) || [])[1]; if (!id) return null; const base = u.origin, seg = u.pathname.split('/').filter(Boolean)[0] || '';
+async function spaApi(u, want) { const id = (u.pathname.match(/\/(\d+)\/?$/) || [])[1]; if (!id) return null; const base = u.origin, seg = u.pathname.split('/').filter(Boolean)[0] || '';
   const cands = ['/api/product/' + id, '/api/products/' + id, '/api/goods/' + id, '/api/goods/detail/' + id, '/api/product/detail/' + id, '/api/v1/product/' + id, '/api/v1/products/' + id, '/api/' + seg + '/' + id, '/api/product/info?id=' + id, '/api/goods/info?id=' + id, '/api/product?id=' + id];
-  for (const p of cands) { let j = null; try { const r = await fetch(base + p, { headers: Object.assign({}, HEAD, { accept: 'application/json' }) }); if (!r.ok) continue; const t = await r.text(); if (!/^\s*[{[]/.test(t)) continue; j = JSON.parse(t); } catch { continue; }
-    const p0 = pickProd(j); if (!p0) continue; const num0 = v => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
+  const getJ = async p => { try { const r = await fetch(base + p, { headers: Object.assign({}, HEAD, { accept: 'application/json' }, wantHdr(want) || {}) }); if (!r.ok) return null; const t = await r.text(); return /^\s*[{[]/.test(t) ? JSON.parse(t) : null; } catch { return null; } };
+  for (const p of cands) { let j = await getJ(p); if (!j) continue;
+    let p0 = pickProd(j); if (!p0) continue;
+    // Ask for the user's currency too, in case the shop's data can send it.
+    if (want && codeOf(p0.currency || p0.currency_code) !== want) { const j2 = await getJ(p + (p.includes('?') ? '&' : '?') + 'currency=' + want), q = j2 && pickProd(j2); if (q && codeOf(q.currency || q.currency_code) === want) { j = j2; p0 = q; } } const num0 = v => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
     // Some shops send amounts in cents (25800 = $258.00).
     const centsHint = Object.keys(p0).some(k => /cent|minor/i.test(k)) || /"(?:currency_minor_unit|minor_unit)"/.test(JSON.stringify(j).slice(0, 20000));
     const fix = v => { if (v == null) return null; const isInt = Number.isInteger(v); return isInt && (centsHint || v >= 5000) ? Math.round(v) / 100 : v; };
@@ -404,7 +411,7 @@ async function lookup(url, want) {
     if (want && r.price != null && codeOf(r.cur) !== want) { const r2 = await inWant(url, u, want, { price: r.price, cur: r.cur, how: '' }); if (codeOf(r2.cur) === want) { r.price = r2.price; r.was = r2.was; r.cur = r2.cur; r.cands = r2.cands; r.variants = null; } }
     if (r.name && (r.images.length || r.price)) { const md = html.match(/<meta[^>]+(?:name|property)=["'](?:og:)?description["'][^>]*content=["']([^"']*)/i); return Object.assign(r, { desc: r.desc || (md ? md[1] : ''), how: 'product page' }); } tried.push('page: not enough found'); }
   catch (e) { tried.push('page: ' + e.message); }
-  try { const r = await spaApi(u); if (r && r.name) return Object.assign(r, { brand: r.brand || siteBrand }); } catch (e) { tried.push('shop data: ' + e.message); }
+  try { const r = await spaApi(u, want); if (r && r.name) return Object.assign(r, { brand: r.brand || siteBrand }); } catch (e) { tried.push('shop data: ' + e.message); }
   try { const md = await readerMd(url), r = fromMarkdown(md, u); if (r.name || r.images.length) return Object.assign(r, { brand: r.brand || siteBrand, desc: r.desc || md.slice(0, 3000), how: 'page reader' }); tried.push('reader: nothing found'); }
   catch (e) { tried.push('reader: ' + e.message); }
   const err = new Error('Couldn’t read that page'); err.detail = tried.join(' · '); throw err;

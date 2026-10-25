@@ -2683,7 +2683,7 @@ function shoeSize(s, cur, pref, chart) { if (chart === 'own') return null; const
   if (!best || best.d > 1) return null; const [eu, uk, us] = best.r, usw = us + 1.5, f = x => String(x).replace('.5', '½'), val = { eu, uk, us, usw };
   const p = pref && SHOE_SYS[pref] && pref !== sys ? [pref] : [], rest = ['eu', 'uk', 'us', 'usw'].filter(k => k !== sys && !p.includes(k));
   return { eu, uk, us, usw, sys, label: SHOE_SYS[sys] + ' ' + f(n), sub: '≈ ' + p.concat(rest).slice(0, 2).map(k => SHOE_SYS[k] + ' ' + f(val[k])).join(' · '), conv: k => SHOE_SYS[k] + ' ' + f(val[k]) }; }
-const TILE_NAMES = { suits: 'Suits', headgear: 'Headgear', tops: 'Tops & jackets', bottoms: 'Bottoms & underwear', handsfeet: 'Hands & feet', mittens: 'Mittens', footwear: 'Footwear', harnesses: 'Harnesses', play: 'Restraints & play', chastity: 'Chastity', equipment: 'Equipment', accessories: 'Accessories' };
+const TILE_NAMES = { suits: 'Suits', headgear: 'Headgear', tops: 'Tops & jackets', bottoms: 'Bottoms & underwear', handsfeet: 'Hands & feet', footwear: 'Footwear', harnesses: 'Harnesses', play: 'Restraints & play', chastity: 'Chastity', equipment: 'Equipment', accessories: 'Accessories' };
 const OC_CATS = CATS.slice(), OC_TILES = Object.assign({}, TILE_NAMES), OC_ZIP = ZIP_CATS.slice();
 // Which Collection group each admin-made category lands in, from the square it sits under.
 const OC_G = {}, TILE2G = { suits: 'Catsuits', headgear: 'Hoods / masks', tops: 'Tops', bottoms: 'Bottoms / leggings', mittens: 'Gloves', footwear: 'Boots / shoes', harnesses: 'Harnesses', play: 'Restraints', chastity: 'Restraints', equipment: 'Accessories', accessories: 'Accessories' };
