@@ -2421,9 +2421,10 @@ function cgroupOf(it, custom) {
   if (it.category === 'Accessory') return 'Accessories';
   if (OC_G[it.category]) return OC_G[it.category];
   const k = cnorm(it.category);
+  if (k) { const ok = Object.keys(OC_G).find(x => cnorm(x) === k); if (ok) return OC_G[ok]; }
   if (k) { const m = CGROUPS.find(x => x !== 'Other' && cnorm(x) === k) || (custom || []).find(x => cnorm(x) === k); if (m) return m; }
   const hit = NAME_G.find(r => r[0].test(it.name || '')); if (hit) return hit[1];
-  return it.category && CATS.includes(it.category) ? 'Other' : null;
+  return it.category && CATS.includes(it.category) ? 'Other' : (String(it.category || '').trim() || null);
 }
 function unifyCats(d) { const cc = d.customCats = d.customCats || [], addC = n => { const hit = CATS.concat(cc).find(c => cnorm(c) === cnorm(n)); if (hit) return hit; cc.push(n); return n; };
   (d.collCats || []).forEach(g => { if (!CGROUPS.includes(g)) addC(g); });
