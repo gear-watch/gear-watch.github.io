@@ -2,13 +2,13 @@
 -- Run once in Supabase → SQL Editor, after setup.sql. Safe to run again.
 --
 -- Titles:
---   TOY, Puppy, Drone: a friend joined through you (a friend counts once they have a profile picture and an item)
+--   TOY, Puppy, Drone: a counted invite, for both people (the inviter and the friend who joined) (a friend counts once they have a profile picture and an item)
 --   Gearhead: 25 or more owned items (ordered items don't count)
 --   Early bird and titles you set by hand keep working and stay pickable.
 -- People pick their title in the app (tap the title on your own profile). The app can only pick titles they have.
 --
 -- Handy queries:
---   Who invited whom:
+--   Who invited whom (or open Table Editor → invites_named):
 --     select a.username as inviter, b.username as invitee, i.how, i.created_at, i.counted_at from public.invites i
 --       join public.profiles a on a.id = i.inviter join public.profiles b on b.id = i.invitee order by i.created_at desc;
 --   Give someone a title by hand:
@@ -36,6 +36,19 @@ create index if not exists invites_inviter on public.invites (inviter);
 alter table public.invites enable row level security;
 drop policy if exists "see own invites" on public.invites;
 create policy "see own invites" on public.invites for select to authenticated using (inviter = auth.uid() or invitee = auth.uid());
+
+-- Who invited whom, with usernames. Open it in Table Editor → invites_named (or: select * from public.invites_named;).
+-- Only visible to you in the dashboard; the app can't read it.
+create or replace view public.invites_named with (security_invoker = true) as
+  select a.username as inviter, b.username as invitee,
+    case when i.how = 'manual' then 'Picked by hand' else 'Invite link' end as how,
+    case when i.counted_at is not null then 'Counts' else 'Waiting for picture + first item' end as status,
+    i.created_at as joined_at, i.counted_at
+  from public.invites i
+  left join public.profiles a on a.id = i.inviter
+  left join public.profiles b on b.id = i.invitee
+  order by i.created_at desc;
+revoke all on public.invites_named from public, anon, authenticated;
 
 -- Any title put on a profile (Early bird, ones set by hand) is also kept in the list, so it stays pickable.
 create or replace function public.keep_title_trg() returns trigger language plpgsql security definer set search_path = public as $$
@@ -82,7 +95,7 @@ $$;
 create or replace function public.invite_titles(uid uuid) returns void language plpgsql security definer set search_path = public as $$
 declare n int; t text; got boolean := false;
 begin
-  select count(*) into n from public.invites where inviter = uid and counted_at is not null;
+  select count(*) into n from public.invites where (inviter = uid or invitee = uid) and counted_at is not null;
   if n >= 1 then
     foreach t in array array['TOY', 'Puppy', 'Drone'] loop if public.give_title(uid, t) then got := true; end if; end loop;
     if got then perform public.title_push(uid, 'TOY, Puppy and Drone'); end if;
@@ -101,6 +114,7 @@ begin
      and exists (select 1 from public.user_data u, jsonb_array_elements(u.data->'gw'->'profiles') pr, jsonb_array_elements(pr->'items') it where u.user_id = uid) then
     update public.invites set counted_at = now() where invitee = uid;
     perform public.invite_titles(inv);
+    perform public.invite_titles(uid);
   end if;
 end $$;
 
@@ -122,7 +136,8 @@ $$;
 revoke all on function public.can_claim(uuid) from public, anon, authenticated;
 
 -- The app calls this once after sign-up: ref is the inviter's username or id (from the invite link, or picked by hand).
--- Only once, never yourself, and only someone who joined before you. You become friends straight away.
+-- Only once, never yourself, and only someone who joined before you.
+-- Through a link you become friends straight away; picked by hand, you must already be friends.
 create or replace function public.claim_invite(ref text, manual boolean default false) returns jsonb language plpgsql security definer set search_path = public as $$
 declare me uuid := auth.uid(); inv uuid; made timestamptz; r text := trim(coalesce(ref, ''));
 begin
@@ -134,6 +149,9 @@ begin
   else select id into inv from public.profiles where username = lower(regexp_replace(r, '^@', '')); end if;
   if inv is null or inv = me then return jsonb_build_object('ok', false, 'why', 'nobody'); end if;
   if (select created_at from auth.users where id = inv) > made then return jsonb_build_object('ok', false, 'why', 'newer'); end if;
+  if manual and not (exists (select 1 from public.follows where follower = me and followee = inv and status = 'accepted')
+                    and exists (select 1 from public.follows where follower = inv and followee = me and status = 'accepted')) then
+    return jsonb_build_object('ok', false, 'why', 'notfriends'); end if;
   insert into public.invites (invitee, inviter, how) values (me, inv, case when manual then 'manual' else 'link' end) on conflict do nothing;
   insert into public.follows (follower, followee, status) values (me, inv, 'accepted'), (inv, me, 'accepted')
     on conflict (follower, followee) do update set status = 'accepted';
@@ -187,3 +205,6 @@ grant execute on function public.friends_of(uuid) to authenticated;
 
 -- Catch everyone who already qualifies (no push notifications for this first run).
 do $$ declare r record; begin perform set_config('gw.quiet', '1', true); for r in select user_id from public.user_data loop perform public.title_checks(r.user_id); end loop; perform set_config('gw.quiet', '', true); end $$;
+
+-- Backfill invitee titles: friends who already joined through a counted invite get them too.
+select public.invite_titles(invitee) from public.invites where counted_at is not null;
