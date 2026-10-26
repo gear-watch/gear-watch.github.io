@@ -3090,7 +3090,7 @@ class Component extends DCLogic {
     this._pg = s.group;
   }
   initGutterScroll() {
-    const isGutter = t => t === document.body || t === document.documentElement;
+    const isGutter = t => { const root = this.rootRef.current; if (!root || !t || root.contains(t)) return false; for (let el = t; el; el = el.parentElement) { if (el === document.body || el === document.documentElement) return true; if (/^(BUTTON|A|INPUT|TEXTAREA|SELECT|LABEL|IMG|SPAN|SVG)$/i.test(el.tagName) || el.getAttribute('style')) return false; } return true; };
     const scroller = y => {
       const root = this.rootRef.current; if (!root) return null;
       const r = root.getBoundingClientRect(), yy = Math.min(Math.max(y, r.top + 60), r.bottom - 60);
