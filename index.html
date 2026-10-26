@@ -2904,9 +2904,10 @@ class Component extends DCLogic {
     } catch (er) { this.toast('Couldn’t reach the price helper'); }
     this.setState({ checking: null }); }
   async syncPrices() {
-    try { const r = await fetch('./prices.json', { cache: 'no-store' }); if (r.ok) { const j = await r.json(); this.applyPrices((j && j.items) || {}); } } catch (e) {}
     for (let i = 0; i < 20 && !('GW_PRICE_API' in window); i++) await new Promise(r => setTimeout(r, 100));
-    const api = (window.GW_PRICE_API || '').trim(); if (!api) return;
+    const api = (window.GW_PRICE_API || '').trim();
+    // prices.json is the old daily check (no regional prices). Only used when the price helper isn't set up.
+    if (!api) { try { const r = await fetch('./prices.json', { cache: 'no-store' }); if (r.ok) { const j = await r.json(); this.applyPrices((j && j.items) || {}); } } catch (e) {} return; }
     const now = Date.now(), seen = new Set(), list = [];
     this.state.data.profiles.forEach(p => p.items.forEach(it => {
       if (!it.url || it.status === 'owned') return; const fresh = t => t && now - new Date(t).getTime() < 6 * 36e5;
