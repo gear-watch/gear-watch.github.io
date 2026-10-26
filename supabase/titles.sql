@@ -176,7 +176,11 @@ create or replace function public.title_status() returns jsonb language sql stab
     'joined', (select count(*) from public.invites where inviter = auth.uid()),
     'counted', (select count(*) from public.invites where inviter = auth.uid() and counted_at is not null),
     'invitedBy', (select p.username from public.invites i join public.profiles p on p.id = i.inviter where i.invitee = auth.uid()),
-    'canClaim', public.can_claim(auth.uid()))
+    'canClaim', public.can_claim(auth.uid()),
+    'pending', (select jsonb_build_object('by', p.username, 'pic', me.avatar is not null,
+                 'item', exists (select 1 from public.user_data u, jsonb_array_elements(u.data->'gw'->'profiles') pr, jsonb_array_elements(pr->'items') it where u.user_id = auth.uid()))
+               from public.invites i join public.profiles p on p.id = i.inviter join public.profiles me on me.id = auth.uid()
+               where i.invitee = auth.uid() and i.counted_at is null))
 $$;
 
 revoke all on function public.give_title(uuid, text) from public, anon, authenticated;
