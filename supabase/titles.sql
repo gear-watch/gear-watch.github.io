@@ -2,7 +2,7 @@
 -- Run once in Supabase → SQL Editor, after setup.sql. Safe to run again.
 --
 -- Titles:
---   TOY, Puppy, Drone: 3 friends joined through you (a friend counts once they have a profile picture and an item)
+--   TOY, Puppy, Drone: a friend joined through you (a friend counts once they have a profile picture and an item)
 --   Gearhead: 25 or more owned items (ordered items don't count)
 --   Early bird and titles you set by hand keep working and stay pickable.
 -- People pick their title in the app (tap the title on your own profile). The app can only pick titles they have.
@@ -83,7 +83,7 @@ create or replace function public.invite_titles(uid uuid) returns void language 
 declare n int; t text; got boolean := false;
 begin
   select count(*) into n from public.invites where inviter = uid and counted_at is not null;
-  if n >= 3 then
+  if n >= 1 then
     foreach t in array array['TOY', 'Puppy', 'Drone'] loop if public.give_title(uid, t) then got := true; end if; end loop;
     if got then perform public.title_push(uid, 'TOY, Puppy and Drone'); end if;
   end if;
