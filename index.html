@@ -1897,6 +1897,7 @@ input::placeholder{color:#6e6e73;}
       </sc-if>
       <sc-if value="{{ cat.pr.mine }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cat.pr.openMine }}" style="margin:16px 16px 0;width:calc(100% - 32px);border:0;background:#2c2c2e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">{{ cat.pr.mineLbl }}</button></sc-if>
       <sc-if value="{{ cat.pr.wantMore }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cat.pr.wish }}" style="margin:10px 16px 0;width:calc(100% - 32px);border:0;background:#2c2c2e;color:#f5f5f7;border-radius:9999px;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;" style-active="transform:scale(0.95);"><span>+ Wishlist</span><span style="font-size:12px;font-weight:400;color:#a1a1a6;">Want another colour or size?</span></button></sc-if>
+      <sc-if value="{{ cat.pr.mine }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cat.pr.own }}" style="margin:10px 16px 0;width:calc(100% - 32px);border:0;background:#2c2c2e;color:#f5f5f7;border-radius:9999px;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;" style-active="transform:scale(0.95);"><span>+ Collection</span><span style="font-size:12px;font-weight:400;color:#a1a1a6;">{{ cat.pr.ownMoreSub }}</span></button></sc-if>
       <sc-if value="{{ cat.pr.mineAlsoW }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cat.pr.openMineW }}" style="margin:10px 16px 0;width:calc(100% - 32px);border:0;background:#2c2c2e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;" style-active="transform:scale(0.95);">Open in your wishlist</button></sc-if>
       <div style="padding:16px 16px 0;display:flex;justify-content:center;gap:24px;">
         <button onClick="{{ cat.pr.fix }}" style="border:0;background:none;color:#a1a1a6;font-size:14px;cursor:pointer;padding:6px;">Suggest a fix</button>
@@ -2985,6 +2986,7 @@ class Component extends DCLogic {
     try { const r = await fetch(api, { method: 'POST', headers: hd, body: JSON.stringify({ items: list }) }); if (r.ok) { const j = await r.json(); this.applyPrices((j && j.items) || {}); } } catch (e) {}
   }
   componentDidMount() {
+    this.initGutterScroll();
     this._imgRetry = e => { const im = e.target; if (!im || im.tagName !== 'IMG' || !im.dataset.retry) return; const cur = im.getAttribute('src') || '', src = im.dataset.src0 && cur.startsWith(im.dataset.src0) ? im.dataset.src0 : cur; if (!src || src.includes('{{')) return; if (im.dataset.src0 !== src) { im.dataset.src0 = src; im.dataset.tries = 0; } const n = +(im.dataset.tries || 0); if (n >= 2) return; im.dataset.tries = n + 1; setTimeout(() => { if (im.isConnected && im.dataset.src0 === src) im.src = src + (src.includes('?') ? '&' : '?') + 'r' + (n + 1) + '=' + Date.now(); }, 800 * (n + 1)); };
     document.addEventListener('error', this._imgRetry, true);
     this.syncPrices();
@@ -3087,7 +3089,26 @@ class Component extends DCLogic {
     if (this._pg !== undefined && this._pg !== s.group) this.replay('[data-row]', 'up');
     this._pg = s.group;
   }
-  componentWillUnmount() { clearInterval(this.catSyncT); cancelAnimationFrame(this.svRaf); if (this.onPaste) window.removeEventListener('paste', this.onPaste); window.removeEventListener('pointerdown', this.dsDown, true); window.removeEventListener('pointermove', this.dsMove); window.removeEventListener('pointerup', this.dsUp); window.removeEventListener('pointercancel', this.dsUp); window.removeEventListener('dragstart', this.dsDrag, true); if (this.onRs) window.removeEventListener('resize', this.onRs); if (this.unsubSync) this.unsubSync(); if (this.onKey) window.removeEventListener('keydown', this.onKey); clearTimeout(this.vwTapT); clearInterval(this.socPoll); if (this.onVis) { document.removeEventListener('visibilitychange', this.onVis); window.removeEventListener('focus', this.onVis); } clearInterval(this.syPoll); if (this.onHash) window.removeEventListener('hashchange', this.onHash); clearInterval(this.tick); if (this.mo) this.mo.disconnect(); [this.t1, this.t2, this.t3, this.t4, this.t5].forEach(clearTimeout); }
+  initGutterScroll() {
+    const isGutter = t => t === document.body || t === document.documentElement;
+    const scroller = y => {
+      const root = this.rootRef.current; if (!root) return null;
+      const r = root.getBoundingClientRect(), yy = Math.min(Math.max(y, r.top + 60), r.bottom - 60);
+      let el = document.elementFromPoint(r.left + r.width / 2, yy);
+      while (el && el !== root.parentNode) { const cs = getComputedStyle(el); if (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 1) return el; el = el.parentElement; }
+      return null;
+    };
+    this._gWheel = e => { if (!isGutter(e.target) || e.ctrlKey) return; const s = scroller(e.clientY); if (!s) return; e.preventDefault(); s.scrollTop += e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY; };
+    let g = null;
+    this._gStart = e => { cancelAnimationFrame(this._gRaf); if (!isGutter(e.target) || e.touches.length !== 1) { g = null; return; } const s = scroller(e.touches[0].clientY); g = s ? { s, y: e.touches[0].clientY, t: performance.now(), v: 0 } : null; };
+    this._gMove = e => { if (!g) return; e.preventDefault(); const y = e.touches[0].clientY, now = performance.now(), dy = g.y - y, dt = Math.max(1, now - g.t); g.s.scrollTop += dy; g.v = 0.8 * (dy / dt) + 0.2 * g.v; g.y = y; g.t = now; };
+    this._gEnd = () => { if (!g) return; const s = g.s; let v = performance.now() - g.t > 80 ? 0 : g.v * 16; g = null; const step = () => { if (Math.abs(v) < 0.4) return; s.scrollTop += v; v *= 0.95; this._gRaf = requestAnimationFrame(step); }; step(); };
+    window.addEventListener('wheel', this._gWheel, { passive: false });
+    window.addEventListener('touchstart', this._gStart, { passive: true });
+    window.addEventListener('touchmove', this._gMove, { passive: false });
+    window.addEventListener('touchend', this._gEnd); window.addEventListener('touchcancel', this._gEnd);
+  }
+  componentWillUnmount() { window.removeEventListener('wheel', this._gWheel); window.removeEventListener('touchstart', this._gStart); window.removeEventListener('touchmove', this._gMove); window.removeEventListener('touchend', this._gEnd); window.removeEventListener('touchcancel', this._gEnd); cancelAnimationFrame(this._gRaf); clearInterval(this.catSyncT); cancelAnimationFrame(this.svRaf); if (this.onPaste) window.removeEventListener('paste', this.onPaste); window.removeEventListener('pointerdown', this.dsDown, true); window.removeEventListener('pointermove', this.dsMove); window.removeEventListener('pointerup', this.dsUp); window.removeEventListener('pointercancel', this.dsUp); window.removeEventListener('dragstart', this.dsDrag, true); if (this.onRs) window.removeEventListener('resize', this.onRs); if (this.unsubSync) this.unsubSync(); if (this.onKey) window.removeEventListener('keydown', this.onKey); clearTimeout(this.vwTapT); clearInterval(this.socPoll); if (this.onVis) { document.removeEventListener('visibilitychange', this.onVis); window.removeEventListener('focus', this.onVis); } clearInterval(this.syPoll); if (this.onHash) window.removeEventListener('hashchange', this.onHash); clearInterval(this.tick); if (this.mo) this.mo.disconnect(); [this.t1, this.t2, this.t3, this.t4, this.t5].forEach(clearTimeout); }
 
   isFramed() { return !!this.props.framed && this.props.framed !== 'false'; }
   introOn() { return !(this.props.intro === false || this.props.intro === 'false'); }
@@ -4196,7 +4217,7 @@ class Component extends DCLogic {
         url: c.url || '', domain: c.domain || '', linkSub: c.status === 'gone' ? 'The shop page is gone' : 'Open the shop page',
         hasFr: frN > 0, frAv: (fr || []).slice(0, 3).map((x, i) => ({ initial: (x.username || '?').charAt(0).toUpperCase(), av: x.avatar || '', hasAv: !!x.avatar, ml: i ? '-8px' : '0' })),
         frTitle: frN ? (() => { const h = fr.filter(x => x.status !== 'wanted').length, w = frN - h, vb = (n, a1, a2) => n === 1 ? a1 : a2; return [h ? plural(h, 'friend') + ' ' + vb(h, 'has', 'have') + ' this' : '', w ? (h ? w + ' ' + vb(w, 'wants', 'want') + ' it' : plural(w, 'friend') + ' ' + vb(w, 'wants', 'want') + ' this') : ''].filter(Boolean).join(' · '); })() : (c.own_n || 0) + ' own · ' + (c.want_n || 0) + ' want', frSub: fr == null ? 'Checking friends…' : frN ? fr.slice().sort((x, y) => (x.status === 'wanted') - (y.status === 'wanted')).slice(0, 4).map(x => '@' + x.username + (x.status === 'wanted' ? ' wants it' : x.status === 'ordered' ? ' ordered it' : '') + (x.color || x.size ? ' (' + [x.color, x.size].filter(Boolean).join(' · ') + ')' : '')).join(', ') + (frN > 4 ? ' +' + (frN - 4) : '') : 'People on GearWatch',
-        mine: !!m, notMine: !m, mineLbl: m ? (m.status === 'wanted' ? 'Open in your wishlist' : 'Open in your collection') : '',
+        mine: !!m, notMine: !m, ownMoreSub: m && isO(m) ? 'Own another colour or size?' : 'Already own one in another colour or size?', mineLbl: m ? (m.status === 'wanted' ? 'Open in your wishlist' : 'Open in your collection') : '',
         openMine: () => { const id = m && m.id, s2 = m && m.status; this.closeSheet(() => { if (!id) return; this.setState({ tab: s2 === 'wanted' ? 'wish' : 'coll' }); this.openDetail(id); }); },
         mineAlsoW: !!m && m.status !== 'wanted' && !!mineW(c), wantMore: !!m && m.status !== 'wanted' && !mineW(c), openMineW: () => { const w = mineW(c), id = w && w.id; this.closeSheet(() => { if (!id) return; this.setState({ tab: 'wish' }); this.openDetail(id); }); },
         wish: e => { this.bump(e.currentTarget, 1.04); this.catWish(c); }, own: e => { this.bump(e.currentTarget, 1.04); this.catOwn(c); },
