@@ -1851,7 +1851,7 @@ input::placeholder{color:#6e6e73;}
         </div>
       </sc-if>
       <div style="display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 16px;">
-        <sc-for list="{{ cat.pr.photos }}" as="ph" hint-placeholder-count="1"><img src="{{ ph.src }}" alt="" referrerpolicy="no-referrer" style="flex:none;width:{{ ph.w }};height:300px;border-radius:12px;object-fit:cover;object-position:top;background:#2c2c2e;scroll-snap-align:center;"></sc-for>
+        <sc-for list="{{ cat.pr.photos }}" as="ph" hint-placeholder-count="1"><img src="{{ ph.src }}" alt="" referrerpolicy="no-referrer" style="flex:none;width:{{ ph.w }};height:clamp(300px, 52vh, 620px);border-radius:12px;object-fit:cover;object-position:top;background:#2c2c2e;scroll-snap-align:center;"></sc-for>
         <sc-if value="{{ cat.pr.noPhoto }}" hint-placeholder-val="{{ false }}"><span style="flex:1;height:180px;border-radius:12px;background:#2c2c2e;display:grid;place-items:center;color:#6e6e73;font-size:34px;font-weight:600;">{{ cat.pr.initial }}</span></sc-if>
       </div>
       <div data-anim="up" style="padding:16px 20px 0;display:flex;flex-direction:column;gap:2px;">
@@ -4715,7 +4715,7 @@ class Component extends DCLogic {
       deleteLabel: st.delArm ? 'Tap again to delete' : 'Delete item',
       deleteItem: () => { if (!st.delArm) { this.setState({ delArm: true }); return; } const id = st.detail; this.closeDetail(() => { this.mutate(pp => { pp.items = pp.items.filter(x => x.id !== id); (pp.outfits || []).forEach(o => { o.itemIds = (o.itemIds || []).filter(x => x !== id); if (o.pos) delete o.pos[id]; }); }); this.toast('Deleted'); }); },
 
-      sheetKb: (st.kbH || 0) + 'px', sheetMax: st.kbH ? 'calc(100% - ' + (st.kbH + 48) + 'px)' : '92%', sheetH: this.catSearching() || st.sheet === 'cdisc' || st.sheet === 'cfilt' ? (st.kbH ? 'calc(100% - ' + (st.kbH + 48) + 'px)' : '92%') : 'auto',
+      sheetKb: (st.kbH || 0) + 'px', sheetMax: st.kbH ? 'calc(100% - ' + (st.kbH + 48) + 'px)' : '92%', sheetH: this.catSearching() || st.sheet === 'cdisc' || st.sheet === 'cfilt' || st.sheet === 'cprod' ? (st.kbH ? 'calc(100% - ' + (st.kbH + 48) + 'px)' : '92%') : 'auto',
       hasSheet: !!st.sheet, closeSheet: () => (st.sheet === 'ppick' && st.pp && st.pp.ret === 'form' ? this.setState({ sheet: 'form', pp: null }) : this.closeSheet()), sheetTitle: sheetMeta[0], hasSheetAction: !!sheetMeta[1], actionLabel: sheetMeta[1] || '',
       cancelLabel: st.sheet === 'cfilt' ? '‹ ' + (TILE_NAMES[st.catTile] || 'Results') : st.sheet === 'cdisc' && this.catSearching() ? '‹ Catalog' : st.sheet === 'cprod' && ['form', 'act', 'disc'].includes(st.catFrom) ? ({ act: '‹ Activity', disc: '‹ Catalog' }[st.catFrom] || '‹ Results') : sheetMeta[1] ? 'Cancel' : 'Done', actionColor: canSave ? ACC : '#636366',
       sheetAction: () => {
