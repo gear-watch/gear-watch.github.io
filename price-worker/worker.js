@@ -239,7 +239,7 @@ function parse0(html, u) {
 
 async function check(entry) {
   const u = new URL(entry.url), tried = [], want = /libidex\.com/.test(entry.url) ? null : codeOf(entry.want || entry.currency);
-  if (isEtsy(u)) { try { const r = await etsy(u); if (r && r.price != null) return { price: r.price, was: r.was, cur: r.cur, how: r.how, via: 'feed' }; } catch (e) { tried.push(e.message + (e.detail ? ' (' + e.detail + ')' : '')); } }
+  if (isEtsy(u)) { try { const r = await etsy(u, want); if (r && r.price != null) return { price: r.price, was: r.was, cur: r.cur, how: r.how, via: 'feed' }; } catch (e) { tried.push(e.message + (e.detail ? ' (' + e.detail + ')' : '')); } }
   for (const fn of [shopify, woo, magento]) {
     try { const r = await fn(u, want); if (r) { if (want && codeOf(r.cur) !== want) { const r2 = await inWant(entry.url, u, want, r); if (r2 !== r && codeOf(r2.cur) === want) return Object.assign(usePick(r2, entry.pick), { via: 'page' }); } return Object.assign(r, { via: 'feed' }); } } catch (e) { tried.push(fn.name + ': ' + e.message); }
   }
@@ -373,23 +373,49 @@ function wooForm(html) {
 // ---- Etsy: their pages block normal requests, so use the API (if ETSY_KEY is set), then the link-preview copy social apps get, then the embed feed.
 let ETSY_KEY = '';
 const BOT_UA = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
-const isEtsy = u => /(^|\.)etsy\.(com|me)$/i.test(u.hostname);
+// Etsy Pattern shops (own domain, e.g. g8dboy.com) use Etsy's /listing/<id>/ paths, so treat those as Etsy too.
+const isEtsy = u => /(^|\.)etsy\.(com|me)$/i.test(u.hostname) || /^\/(?:[a-z]{2}(?:-[a-z]{2})?\/)?listing\/\d+/i.test(u.pathname);
 async function etsyId(u) { let m = u.pathname.match(/\/listing\/(\d+)/); if (m) return m[1];
   if (/etsy\.me$/i.test(u.hostname)) { const r = await fetch(u.href, { redirect: 'follow', headers: { 'user-agent': BOT_UA } }); m = new URL(r.url).pathname.match(/\/listing\/(\d+)/); if (m) return m[1]; } return null; }
-async function etsy(u) {
+// Etsy pages don't always label the price's currency. Find it in the page: priceCurrency / currency_code, or the symbol printed next to the amount.
+function etsyCur(html, price) {
+  const m = html.match(/"(?:priceCurrency|currency_code|currencyCode)"\s*:\s*"([A-Z]{3})"/) || html.match(/property="(?:og:price:currency|product:price:currency)"\s+content="([A-Z]{3})"/) || html.match(/content="([A-Z]{3})"\s+property="(?:og:price:currency|product:price:currency)"/);
+  if (m) return m[1];
+  if (price == null) return null; const a = price.toFixed(2), n = '(?:' + a.replace('.', '[.,]') + (Number.isInteger(price) ? '|' + price : '') + ')';
+  const s = html.match(new RegExp('(US\\$|€|£|\\$|EUR|USD|GBP)\\s?' + n + '(?![\\d])')) || html.match(new RegExp('(?<![\\d.,])' + n + '\\s?(€|£|EUR|USD|GBP)'));
+  return s ? codeOf(s[1].replace('US$', '$')) : null;
+}
+async function etsy(u, want) {
   const id = await etsyId(u); if (!id) return null; const tried = [], clean = 'https://www.etsy.com/listing/' + id;
-  if (ETSY_KEY) { try { const r = await fetch('https://openapi.etsy.com/v3/application/listings/' + id + '?includes=Images,Shop', { headers: { 'x-api-key': ETSY_KEY, accept: 'application/json' } }); if (!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json(), p = j.price || {};
+  if (ETSY_KEY) { try { const r = await fetch('https://api.etsy.com/v3/application/listings/' + id + '?includes=Images,Shop', { headers: { 'x-api-key': ETSY_KEY, accept: 'application/json' } }); if (!r.ok) { let m = ''; try { m = (await r.json()).error || ''; } catch (e) {} throw new Error('HTTP ' + r.status + (m ? ' ' + m : '') + (r.status === 401 || r.status === 403 ? ' (set ETSY_KEY to keystring:shared secret, or add ETSY_SECRET)' : '')); } const j = await r.json(), p = j.price || {};
       return { name: decode(j.title), brand: (j.shop && j.shop.shop_name) || null, price: p.amount != null ? p.amount / (p.divisor || 100) : null, was: null, cur: p.currency_code || null, images: cleanImgs((j.images || []).map(x => x.url_fullxfull || x.url_570xN), clean), desc: decode(j.description || '').slice(0, 1500), options: null, how: 'Etsy API' }; } catch (e) { tried.push('etsy api: ' + e.message); } }
-  try { const html = await get(clean, false, { 'user-agent': BOT_UA, accept: 'text/html' }), r = fromPage(html, new URL(clean));
-    if (r.name && (r.images.length || r.price != null)) { const shop = (html.match(/"(?:seller|brand)"\s*:\s*\{[^}]*?"name"\s*:\s*"([^"]+)/) || [])[1]; return Object.assign(r, { brand: r.brand && !/^etsy$/i.test(r.brand) ? r.brand : shop ? decode(shop) : null, how: 'Etsy link preview' }); }
-    tried.push('etsy preview: not enough found'); } catch (e) { tried.push('etsy preview: ' + e.message); }
+  // Without the API: ask for the copy that link-preview bots get. Pinterest needs prices for product pins, so its copy is the most likely to carry one.
+  const UAS = [['pinterest', 'Pinterestbot/1.0 (+http://www.pinterest.com/bot.html)'], ['facebook', BOT_UA], ['twitter', 'Twitterbot/1.0'], ['slack', 'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)']];
+  let best = null;
+  const own = !/(^|\.)etsy\.(com|me)$/i.test(u.hostname), tries = (own ? [['shop site', UA, u.href], ['shop site, pinterest', UAS[0][1], u.href]] : []).concat(UAS.map(([n, a]) => [n, a, clean]));
+  // Etsy picks the display currency from where the request comes from (US for the worker); locale_override=EUR|en-GB|NL asks for yours.
+  const lo = pg => { if (!want) return pg; const x = new URL(pg); x.searchParams.set('locale_override', want + '|en-GB|' + ({ EUR: 'NL', GBP: 'GB', USD: 'US' }[want] || 'NL')); return x.href; };
+  for (const [nm, ua, pg0] of tries) { const pg = lo(pg0);
+    try { const html = await get(pg, false, { 'user-agent': ua, accept: 'text/html' }), cu = new URL(pg), r = fromPage(html, cu);
+      let price = r.price, cur = codeOf(r.cur);
+      if (price == null) { const ej = html.match(/"price"\s*:\s*\{\s*"amount"\s*:\s*(\d+)\s*,\s*"divisor"\s*:\s*(\d+)\s*,\s*"currency_code"\s*:\s*"([A-Z]{3})"/);
+        if (ej) { price = Number(ej[1]) / (Number(ej[2]) || 100); cur = ej[3]; }
+        else { const p = parse(html, cu); if (p && p.price != null && !/guess/.test(p.how || '')) { price = p.price; cur = codeOf(p.cur); } } }
+      if (price != null && !cur) cur = etsyCur(html, price);
+      if (r.name && (r.images.length || price != null)) { const shop = (html.match(/"(?:seller|brand)"\s*:\s*\{[^}]*?"name"\s*:\s*"([^"]+)/) || [])[1];
+        const o = Object.assign(r, { price: price ?? null, cur: cur || null, brand: r.brand && !/^etsy$/i.test(r.brand) ? r.brand : shop ? decode(shop) : null, how: 'Etsy link preview (' + nm + ')' });
+        if (o.price != null && (!want || codeOf(o.cur) === want)) return o; if (!best || (best.price == null && o.price != null)) best = o; tried.push('etsy ' + nm + (o.price != null ? ': price in ' + o.cur + ', not ' + want : ': no price in preview')); }
+      else tried.push('etsy ' + nm + ': not enough found'); }
+    catch (e) { tried.push('etsy ' + nm + ': ' + e.message); }
+  }
+  if (best) return best;
   try { const j = JSON.parse(await get('https://www.etsy.com/oembed?url=' + encodeURIComponent(clean), true)); if (j && j.title) return { name: decode(j.title), brand: j.author_name || null, price: null, was: null, cur: null, images: cleanImgs([j.thumbnail_url].filter(Boolean).map(s => s.replace(/il_\d+x\d+/, 'il_fullxfull')), clean), options: null, how: 'Etsy embed' }; }
   catch (e) { tried.push('etsy embed: ' + e.message); }
   const e = new Error('Etsy blocked the lookup'); e.detail = tried.join(' · '); throw e;
 }
 async function lookup(url, want) {
   const u = new URL(url), tried = [];
-  if (isEtsy(u)) { try { const r = await etsy(u); if (r) return r; } catch (e) { tried.push(e.message + (e.detail ? ' (' + e.detail + ')' : '')); } }
+  if (isEtsy(u)) { try { const r = await etsy(u, codeOf(want)); if (r) return r; } catch (e) { tried.push(e.message + (e.detail ? ' (' + e.detail + ')' : '')); } }
   if (/\/products\/[^/?#]+/.test(u.pathname)) {
     try { const { j, cur } = await shopJson(u, want), variant = u.searchParams.get('variant'), vs = j.variants || [];
       const v = vs.find(x => String(x.id) === variant) || vs.find(x => x.available) || vs[0];
@@ -577,7 +603,7 @@ async function pushRoute(req, env) {
 
 export default {
   async fetch(req, env, ctx) {
-    READER_KEY = (env && env.JINA_KEY) || ''; ETSY_KEY = (env && env.ETSY_KEY) || '';
+    READER_KEY = (env && env.JINA_KEY) || ''; ETSY_KEY = String((env && env.ETSY_KEY) || '').trim(); { const s = String((env && env.ETSY_SECRET) || '').trim(); if (ETSY_KEY && s && !ETSY_KEY.includes(':')) ETSY_KEY += ':' + s; } // Etsy wants keystring:shared secret
     if (req.method === 'POST' && new URL(req.url).pathname === '/push') return pushRoute(req, env);
     const sm = req.method === 'GET' && new URL(req.url).pathname.match(/^\/s\/([A-Za-z0-9]{5,12})\/?$/);
     if (sm) return sharePage(sm[1], env);
@@ -596,7 +622,7 @@ export default {
       const sp = sp0, url = sp.get('url');
       if (sp.get('lookup')) return json(await lookupOne(sp.get('lookup'), ctx, codeOf(sp.get('want'))));
       if (!url) return json({ ok: true, about: 'GearWatch price helper. Add ?url=<product link> to test a price, or ?lookup=<product link> to test filling in a new item.' });
-      const r = await one({ url, currency: new URL(req.url).searchParams.get('cur') || '€' }, ctx, true);
+      const r = await one({ url, currency: sp.get('cur') || '€', want: sp.get('want') || undefined }, ctx, true); // &want=EUR tests the regional price like the app
       return json(r ? Object.assign({ key: r[0] }, r[1]) : { error: 'Not a valid link' });
     }
     if (req.method !== 'POST') return json({ error: 'Use GET or POST' }, 405);

@@ -227,7 +227,7 @@
   const rpcErr = e => new Error(/function|schema cache|does not exist/i.test((e && e.message) || '') ? 'Run supabase/setup.sql again to turn this on.' : (e && e.message) || 'Couldn’t load');
   async function friendsOf(id) { if (!sb) await connect(); if (!sb || !S.user) return null;
     const r = await sb.rpc('friends_of', { target: id }); if (r.error) throw rpcErr(r.error);
-    return (r.data || []).map(x => ({ id: x.id, username: x.username, avatar: x.avatar || null })); }
+    return (r.data || []).map(x => ({ id: x.id, username: x.username, avatar: x.avatar || null, title: x.title || null })); }
   async function suggestions() { if (!sb || !S.user) return [];
     const r = await sb.rpc('friend_suggestions'); if (r.error) return [];
     // The official @GearWatch account is never suggested as a friend.
