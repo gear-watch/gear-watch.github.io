@@ -42,7 +42,7 @@ create policy "see own invites" on public.invites for select to authenticated us
 create or replace view public.invites_named with (security_invoker = true) as
   select a.username as inviter, b.username as invitee,
     case when i.how = 'manual' then 'Picked by hand' else 'Invite link' end as how,
-    case when i.counted_at is not null then 'Counts' else 'Waiting for picture + first item' end as status,
+    case when i.counted_at is not null then 'Counts' else 'Waiting' end as status,
     i.created_at as joined_at, i.counted_at
   from public.invites i
   left join public.profiles a on a.id = i.inviter
@@ -110,8 +110,7 @@ begin
     if public.give_title(uid, 'Gearhead') then perform public.title_push(uid, 'Gearhead'); end if;
   end if;
   select inviter into inv from public.invites where invitee = uid and counted_at is null;
-  if inv is not null and exists (select 1 from public.profiles where id = uid and avatar is not null)
-     and exists (select 1 from public.user_data u, jsonb_array_elements(u.data->'gw'->'profiles') pr, jsonb_array_elements(pr->'items') it where u.user_id = uid) then
+  if inv is not null then
     update public.invites set counted_at = now() where invitee = uid;
     perform public.invite_titles(inv);
     perform public.invite_titles(uid);
@@ -152,7 +151,8 @@ begin
   if manual and not (exists (select 1 from public.follows where follower = me and followee = inv and status = 'accepted')
                     and exists (select 1 from public.follows where follower = inv and followee = me and status = 'accepted')) then
     return jsonb_build_object('ok', false, 'why', 'notfriends'); end if;
-  insert into public.invites (invitee, inviter, how) values (me, inv, case when manual then 'manual' else 'link' end) on conflict do nothing;
+  insert into public.invites (invitee, inviter, how, counted_at) values (me, inv, case when manual then 'manual' else 'link' end, now()) on conflict do nothing;
+  perform public.invite_titles(inv); perform public.invite_titles(me);
   insert into public.follows (follower, followee, status) values (me, inv, 'accepted'), (inv, me, 'accepted')
     on conflict (follower, followee) do update set status = 'accepted';
   perform public.title_checks(me);
@@ -212,3 +212,8 @@ do $$ declare r record; begin perform set_config('gw.quiet', '1', true); for r i
 
 -- Backfill invitee titles: friends who already joined through a counted invite get them too.
 select public.invite_titles(invitee) from public.invites where counted_at is not null;
+
+-- Every invite counts straight away (no picture or item needed).
+update public.invites set counted_at = now() where counted_at is null;
+select public.invite_titles(invitee) from public.invites;
+select public.invite_titles(inviter) from public.invites;
