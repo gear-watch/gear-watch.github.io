@@ -23,6 +23,7 @@
 html,body{margin:0;height:100%;background:#000;-webkit-tap-highlight-color:transparent;}
 a{color:#ffd60a;text-decoration:none;}
 a:hover{text-decoration:underline;}
+@keyframes gwspin{to{transform:rotate(360deg);}}
 input,button,textarea{font-family:inherit;}
 input:focus,textarea:focus{outline:2px solid #ffd60a;outline-offset:0;}
 input::placeholder{color:#6e6e73;}
@@ -1857,7 +1858,7 @@ input::placeholder{color:#6e6e73;}
       <div data-anim="up" style="padding:16px 20px 0;display:flex;flex-direction:column;gap:2px;">
         <span style="font-size:13px;color:#a1a1a6;">{{ cat.pr.meta }}</span>
         <span style="font-size:24px;font-weight:600;letter-spacing:-0.3px;line-height:1.2;text-wrap:pretty;">{{ cat.pr.name }}</span>
-        <span style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px;"><span style="font-size:20px;font-weight:600;">{{ cat.pr.price }}</span><span style="font-size:13px;color:#a1a1a6;">{{ cat.pr.low }}</span></span>
+        <span style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px;"><span style="font-size:20px;font-weight:600;">{{ cat.pr.price }}</span><span style="font-size:13px;color:#a1a1a6;">{{ cat.pr.low }}</span></span><sc-if value="{{ cat.pr.checking }}" hint-placeholder-val="{{ false }}"><span data-anim="fade" style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:13px;color:#a1a1a6;"><span style="width:12px;height:12px;border-radius:9999px;border:2px solid #48484a;border-top-color:var(--gw-accent,#ffd60a);box-sizing:border-box;animation:gwspin .8s linear infinite;flex:none;"></span><span>{{ cat.pr.checkTxt }}</span></span></sc-if>
         <sc-if value="{{ cat.pr.hasPill }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;margin-top:8px;display:flex;align-items:center;gap:6px;background:#2c2c2e;border-radius:9999px;padding:3px 10px;font-size:13px;"><span style="width:8px;height:8px;border-radius:9999px;background:{{ cat.pr.pillDot }};"></span><span>{{ cat.pr.pill }}</span></span></sc-if>
       </div>
       <sc-if value="{{ cat.pr.hasColors }}" hint-placeholder-val="{{ false }}"><div style="padding:18px 16px 0;display:flex;flex-wrap:wrap;gap:8px;"><sc-for list="{{ cat.pr.colors }}" as="o" hint-placeholder-count="3"><span style="display:flex;align-items:center;gap:7px;font-size:13px;color:#f5f5f7;background:#2c2c2e;border-radius:9999px;padding:5px 12px 5px 6px;"><span style="width:14px;height:14px;border-radius:9999px;background:{{ o.dot }};box-shadow:inset 0 0 0 1px rgba(255,255,255,0.3);flex:none;"></span>{{ o.label }}</span></sc-for></div></sc-if>
@@ -2749,6 +2750,9 @@ const payPeriod = (day, now) => { now = now || new Date(); const y = now.getFull
 const ordinal = n => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
 const fmtD = s => { const d = new Date(s + 'T12:00:00'); return d.getDate() + ' ' + MON[d.getMonth()]; };
 const num = v => (Math.round(v * 100) % 100 ? v.toFixed(2) : String(Math.round(v)));
+// Regional catalog prices you've checked yourself (see catRegional), shown instead of the ≈ conversion.
+let CAT_RP = null; const catRp = () => { if (!CAT_RP) { try { CAT_RP = JSON.parse(localStorage.getItem('gw-catrp') || '{}') || {}; } catch (e) { CAT_RP = {}; } } return CAT_RP; };
+const catPx = c => { const h = c && c.id != null ? catRp()[c.id + '|' + PCUR] : null; return h && h.p != null ? Object.assign({}, c, { price: h.p, was_price: h.w, currency: PCUR }) : c; };
 const money = (c, v) => { c = c || '€'; return c !== PCUR && FX[c] && FX[PCUR] ? '≈' + PCUR + num(Math.round(v * FX[c] / FX[PCUR])) : c + num(v); };
 const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
 const pkeyOf = (u, pick) => { const k = normUrl(u); return k && pick && pick.k && pick.k !== 'manual' ? k + '#' + pick.k : k; };
@@ -4091,14 +4095,13 @@ class Component extends DCLogic {
   // Catalog prices are stored in one currency. When it isn't yours, ask the shop for your currency when the item is opened
   // (remembered for 6 hours). Not Libidex: it always charges in pounds.
   async catRegional(c) { if (!c || !c.url || c.price == null || (c.currency || '€') === PCUR || /libidex\.com/i.test(c.url)) return;
-    let C = {}; try { C = JSON.parse(localStorage.getItem('gw-catrp') || '{}') || {}; } catch (e) {}
-    const k = c.id + '|' + PCUR, hit = C[k], show = h => { const P = this.state.catP; if (P && P.id === c.id) this.setState({ catRp: { id: c.id, p: h.p, w: h.w, c: PCUR } }); };
+    const C = catRp(), k = c.id + '|' + PCUR, hit = C[k], show = h => { const P = this.state.catP; if (P && P.id === c.id) this.setState({ catRp: { id: c.id, p: h.p, w: h.w, c: PCUR } }); };
     if (hit && Date.now() - hit.at < 6 * 36e5) { if (hit.p != null) show(hit); return; }
     const api = (window.GW_PRICE_API || '').trim(), hd = api ? await this.apiHead() : null; if (!hd) return;
-    let j = null; try { const r = await fetch(api, { method: 'POST', headers: hd, body: JSON.stringify({ lookup: c.url, want: PCUR }) }); j = await r.json(); } catch (e) { return; }
-    if (!j || j.error) return; const okP = !!j.ok && j.price != null && j.currency === PCUR, h = { p: okP ? j.price : null, w: okP && j.was != null && j.was > j.price ? j.was : null, at: Date.now() };
+    this.setState({ catRpBusy: c.id }); let j = null; try { const r = await fetch(api, { method: 'POST', headers: hd, body: JSON.stringify({ lookup: c.url, want: PCUR }) }); j = await r.json(); } catch (e) {}
+    this.setState(z => z.catRpBusy === c.id ? { catRpBusy: null } : null); if (!j || j.error) return; const okP = !!j.ok && j.price != null && j.currency === PCUR, h = { p: okP ? j.price : null, w: okP && j.was != null && j.was > j.price ? j.was : null, at: Date.now() };
     C[k] = h; const ks = Object.keys(C); if (ks.length > 200) ks.sort((a, b) => C[a].at - C[b].at).slice(0, ks.length - 200).forEach(x => { delete C[x]; });
-    try { localStorage.setItem('gw-catrp', JSON.stringify(C)); } catch (e) {} if (okP) show(h); }
+    try { localStorage.setItem('gw-catrp', JSON.stringify(C)); } catch (e) {} if (okP) { show(h); this.forceUpdate(); } }
   async catFillPhotos(c) { const G = window.GWSync, api = (window.GW_PRICE_API || '').trim(); this._catPhTry = this._catPhTry || new Set(); if (!api || !c.url || this._catPhTry.has(c.id)) return; this._catPhTry.add(c.id);
     const hd = await this.apiHead(); if (!hd) return; let ph = [];
     try { const r = await fetch(api, { method: 'POST', headers: hd, body: JSON.stringify({ lookup: c.url }) }), j = await r.json(); if (j && j.ok) ph = (j.images || []).filter(x => /^https?:/.test(x) && !/\/storage\/v1\//.test(x)).slice(0, 6); } catch (e) {}
@@ -4142,7 +4145,7 @@ class Component extends DCLogic {
     this._vals = vals;
     const st = this.state, G = window.GWSync, A = st.acct || {}, on = !!(G && G.cat && A.user), mine = this.catMine(p), plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
     const mineAll = c => mine['id:' + c.id] || (c.url ? mine['u:' + this.catNorm(c.url)] : null) || [], isO = i => i.status === 'owned' || i.status === 'ordered';
-    const mineOf = c => { const a = mineAll(c); return a.find(isO) || a[0] || null; }, mineW = c => mineAll(c).find(i => i.status === 'wanted') || null, priceOf = c => c.price == null ? '' : money(c.currency || '€', Number(c.price)) + (c.was_price != null && Number(c.was_price) > Number(c.price) ? ' (was ' + money(c.currency || '€', Number(c.was_price)) + ')' : ''), res = st.catRes || [];
+    const mineOf = c => { const a = mineAll(c); return a.find(isO) || a[0] || null; }, mineW = c => mineAll(c).find(i => i.status === 'wanted') || null, priceOf = c0 => { const c = catPx(c0); return c.price == null ? '' : money(c.currency || '€', Number(c.price)) + (c.was_price != null && Number(c.was_price) > Number(c.price) ? ' (was ' + money(c.currency || '€', Number(c.was_price)) + ')' : ''); }, res = st.catRes || [];
     const chip = (label, a, fn) => ({ label, bg: a ? ACC : '#2c2c2e', color: a ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.08); fn(); } });
     const CF = st.catF || {}, toEur = c => { const p = Number(c.price); if (!(p > 0)) return null; const cur = c.currency || '€'; return FX[cur] && FX['€'] ? p * FX[cur] / FX['€'] : p; };
     const inDisc = (st.sheet === 'cdisc' || st.sheet === 'cfilt') && this.catSearching(), raw = st.catRes || [];
@@ -4186,7 +4189,7 @@ class Component extends DCLogic {
     const c0 = st.catP, cr = st.catRp, c = c0 && cr && cr.id === c0.id ? Object.assign({}, c0, { price: cr.p, was_price: cr.w, currency: cr.c, low_price: null }) : c0; let pr = {}, fx = {}, rp = {};
     if (c) { const m = mineOf(c), ph = (c.photos || []).filter(Boolean), fr = st.catFr, frN = (fr || []).length, cur = c.currency || '€';
       const low = c.low_price != null && c.price != null && Number(c.low_price) < Number(c.price) ? 'lowest ' + money(cur, Number(c.low_price)) + (c.low_at ? ' in ' + MON[+String(c.low_at).slice(5, 7) - 1] : '') : '';
-      pr = { fromSearch: st.catFrom === 'form', back: () => this.setState({ sheet: 'form' }), photos: ph.map(src => ({ src, w: ph.length > 1 ? '78%' : '100%' })), noPhoto: !ph.length && !!c.name, initial: (c.name || '?').charAt(0).toUpperCase(),
+      pr = { checking: st.catRpBusy === c.id, checkTxt: 'Checking the shop’s price in ' + PCUR + '…', fromSearch: st.catFrom === 'form', back: () => this.setState({ sheet: 'form' }), photos: ph.map(src => ({ src, w: ph.length > 1 ? '78%' : '100%' })), noPhoto: !ph.length && !!c.name, initial: (c.name || '?').charAt(0).toUpperCase(),
         meta: [c.brand, c.category, matFull({ materials: c.materials || [], latexMm: c.latex_mm || '' })].filter(Boolean).join(' · '), name: c.name || 'Loading…', price: c.name ? (c.price == null ? 'No price yet' : money(cur, Number(c.price))) : '', low: c.was_price != null && c.price != null && Number(c.was_price) > Number(c.price) ? 'was ' + money(cur, Number(c.was_price)) + ' · −' + Math.round((1 - Number(c.price) / Number(c.was_price)) * 100) + '% on sale' : low,
         hasPill: ['pending', 'gone', 'hidden'].includes(c.status), pill: c.status === 'pending' ? 'Waiting for approval' : c.status === 'gone' ? 'No longer sold' : 'Hidden while it’s checked', pillDot: c.status === 'gone' ? '#8e8e93' : '#ff9f0a',
         url: c.url || '', domain: c.domain || '', linkSub: c.status === 'gone' ? 'The shop page is gone' : 'Open the shop page',
@@ -4248,7 +4251,7 @@ class Component extends DCLogic {
       const miss = this.cvarMiss();
       vr.foot = miss.length ? 'Pick ' + (miss.length > 1 ? miss.slice(0, -1).join(', ') + ' and ' + miss[miss.length - 1] : miss[0]) + (V.own ? ' you have.' : ' you want, or tap Not sure yet.') : V.own ? 'Next you add what you paid, the condition and your own photos.' : (V.sizes || []).length > 1 ? 'You’ll hear about sales and restocks in all ' + V.sizes.length + ' sizes.' : 'Pick more than one size if you’d take either. You can change these later.'; }
     const D0 = st.disc, offOf = x => x.was_price != null && Number(x.was_price) > Number(x.price) ? Math.round((1 - Number(x.price) / Number(x.was_price)) * 100) : 0;
-    const cardOf = x => { const o = offOf(x), ph = (x.photos || [])[0] || ''; return { name: x.name, photo: ph, hasPhoto: !!ph, hasOff: o > 0, off: '−' + o + '%', price: x.price != null ? money(x.currency || '€', Number(x.price)) : '', priceColor: o > 0 ? '#30d158' : '#f5f5f7', brand: (x.price != null ? ' · ' : '') + (x.brand || x.domain || ''), open: () => this.openCat(x, 'disc') }; };
+    const cardOf = x0 => { const x = catPx(x0), o = offOf(x), ph = (x.photos || [])[0] || ''; return { name: x.name, photo: ph, hasPhoto: !!ph, hasOff: o > 0, off: '−' + o + '%', price: x.price != null ? money(x.currency || '€', Number(x.price)) : '', priceColor: o > 0 ? '#30d158' : '#f5f5f7', brand: (x.price != null ? ' · ' : '') + (x.brand || x.domain || ''), open: () => this.openCat(x, 'disc') }; };
     const home = { show: !!(D0 && on), hasItems: !!(D0 && (D0.sale || []).length), title: D0 && (D0.sale || []).length ? 'On sale in the catalog' : 'The catalog', items: D0 ? (D0.sale || []).slice(0, 10).map(x => Object.assign(cardOf(x), { open: () => { this.openDisc(); setTimeout(() => this.openCat(x, 'disc'), 0); } })) : [], open: () => this.openDisc(null) };
     const dc = { loading: !D0, empty: !!D0 && !(D0.sale || []).length && !(D0.trending || []).length && !(D0.pairs || []).length, browsing: !this.catSearching(), addNew: () => { const fs = st.discFor || 'wanted'; this.openForm(null, fs); this.setState({ formDisc: fs }); }, forAdd: !!st.discFor,
       hasTiles: (st.tiles || []).some(x => x.n >= 1), tiles: Object.keys(TILE_NAMES).map(k => (st.tiles || []).find(x => x.tile === k)).filter(x => x && x.n >= 1).map(x => ({ name: TILE_NAMES[x.tile], count: plural(x.n, 'item'), photo: x.photo || '', hasPhoto: !!x.photo, open: () => this.openTile(x.tile) })),
