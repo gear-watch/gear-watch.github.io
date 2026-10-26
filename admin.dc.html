@@ -74,6 +74,12 @@
               <input value="{{ bq }}" onChange="{{ onBq }}" placeholder="Search name, brand, category or link" type="search" autocomplete="off" style="width:100%;box-sizing:border-box;background:#1c1c1e;border:0;border-radius:9999px;padding:9px 16px;font-size:15px;color:#f5f5f7;outline:none;">
               <div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ bStats }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.onTap }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:{{ c.color }};background:{{ c.bg }};" style-active="transform:scale(0.95);">{{ c.label }}</button></sc-for></div>
             </div>
+            <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:10px 20px;border-bottom:1px solid #1c1c1e;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;">
+                <span style="font-size:14px;color:#a1a1a6;">{{ rpTxt }}</span>
+                <button onClick="{{ rpGo }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:#000;background:#ffd60a;font-weight:600;" style-active="transform:scale(0.95);">{{ rpLbl }}</button>
+              </div>
+            </sc-if>
             <div style="padding:10px 20px;border-bottom:1px solid #1c1c1e;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;">
               <span style="font-size:14px;color:{{ gp.selColor }};">{{ gp.selTxt }}</span>
               <button onClick="{{ gp.selAll }}" style="border:0;border-radius:9999px;padding:6px 12px;font-size:13px;cursor:pointer;color:#f5f5f7;background:#2c2c2e;" style-active="transform:scale(0.95);">{{ gp.selAllLbl }}</button>
@@ -769,6 +775,23 @@ class Component extends DCLogic {
   async merge(src, dst, label) { const G = window.GWSync; if (!this._mArm || this._mArm !== src + dst) { this._mArm = src + dst; clearTimeout(this._mT); this._mT = setTimeout(() => { this._mArm = null; this.forceUpdate(); }, 4000); this.forceUpdate(); this.say('Tap again to merge into “' + label + '”'); return; }
     this._mArm = null; try { await G.cat('catalog_merge', { src, dst }); this.say('Merged'); this.setState({ openKey: null, ed: null }); await this.load(); if (this.state.page === 'dupes') this.loadDupes(); if (this.state.page === 'browse') this.browse(); } catch (e) { this.say((e && e.message) || 'Couldn’t merge'); } }
   edMergeSearch(v) { const G = window.GWSync; this.setEd({ mq: v }); clearTimeout(this._mqT); if (!v.trim()) { this.setEd({ mres: [] }); return; } this._mqT = setTimeout(() => G.cat('catalog_admin_search', { q: v.trim(), st: '', lim: 6 }).then(r => this.setEd({ mres: (r || []).filter(x => this.state.ed && x.id !== this.state.ed.cid) })).catch(() => {}), 300); }
+  // Admin: re-check every catalog entry's shop price (skips saved results), 4 links per request. Tap again to stop.
+  async refreshPrices() { const G = window.GWSync, api = String(window.GW_PRICE_API || '').trim(); if (!G || !api) { this.say('The price helper isn’t set up'); return; }
+    if (this.state.rp && this.state.rp.busy) { this._rpStop = true; return; }
+    let list; try { list = (await G.cat('catalog_price_targets')) || []; } catch (e) { this.say(/catalog_price_targets/.test((e && e.message) || '') ? 'Run supabase/refresh-prices.sql first' : (e && e.message) || 'Couldn’t load the catalog'); return; }
+    if (!list.length) { this.say('Nothing to check'); return; }
+    const key = u => { try { const x = new URL(u), q = ['product_id', 'variant'].filter(k => x.searchParams.get(k)).map(k => k + '=' + x.searchParams.get(k)).join('&'); return x.hostname.replace(/^www\./, '') + x.pathname.replace(/\/+$/, '') + (q ? '?' + q : ''); } catch (e) { return ''; } };
+    this._rpStop = false; const n = list.length; let done = 0, upd = 0, bad = 0, stop = '';
+    this.setState({ rp: { busy: true, done, n, upd, bad } });
+    for (let i = 0; i < n && !this._rpStop; i += 4) { const part = list.slice(i, i + 4), tok = G.token ? await G.token() : null; if (!tok) { stop = 'Sign in again'; break; }
+      let j = null; try { const r = await fetch(api, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ items: part.map(c => ({ url: c.url, currency: c.currency || '€' })), force: true }) }); j = await r.json(); if (!r.ok) { stop = (j && j.error) || 'The price helper said no'; break; } } catch (e) { stop = 'Couldn’t reach the price helper'; break; }
+      for (const c of part) { const e = (j.items || {})[key(c.url)]; if (!e || !e.ok || e.price == null || e.stale) { bad++; continue; }
+        const cur = ['€', '$', '£'].includes(e.currency) ? e.currency : c.currency || '€', was = e.was != null && e.was > e.price ? e.was : null;
+        if (Number(c.price) === e.price && (c.was_price == null ? null : Number(c.was_price)) === was && c.currency === cur) continue;
+        try { await G.cat('catalog_submit', { p: { url: c.url, name: c.name, price: e.price, was, currency: cur } }); upd++; } catch (er) { bad++; } }
+      done = Math.min(n, i + part.length); this.setState({ rp: { busy: true, done, n, upd, bad } }); }
+    this.setState({ rp: { busy: false, done, n, upd, bad } });
+    this.say(stop || (this._rpStop ? 'Stopped' : 'Checked ' + done + ' entries · ' + upd + ' new prices')); if (this.state.page === 'browse') this.browse(); }
   async run(name, args, msg) { const G = window.GWSync; try { await G.cat(name, args); if (msg) this.say(msg); await this.load(); if (this.state.page === 'browse') this.browse(); } catch (e) { this.say((e && e.message) || 'That didn’t work'); } }
   renderVals() { const v = this.renderVals0(), st = this.state, nar = !!st.nar, close = f => () => { this.setState({ menu: false }); f(); };
     const pl = (v.pages || []).find(t => t.bg !== 'transparent'), fl = (v.filters || []).find(t => t.bg !== 'transparent');
@@ -888,6 +911,8 @@ class Component extends DCLogic {
         swapLbl: s.role === 'admin' ? 'Make moderator' : 'Make admin', swap: () => this.run('catalog_staff_set', { uname: s.username, r: s.role === 'admin' ? 'moderator' : 'admin' }, 'Role changed'),
         remove: () => this.run('catalog_staff_set', { uname: s.username, r: '' }, '@' + s.username + ' removed') }, pill(s.role))),
       isLog: page === 'log', log: (info.log || []).map(l => { const d = l.detail || {}; return { at: fmt(l.at), by: l.by ? '@' + l.by : 'auto', text: [l.action, l.item ? '“' + l.item + '”' : '', d.domain || '', d.username ? at(d.username) : '', d.field ? d.field + (d.value ? ' → ' + d.value : '') : ''].filter(Boolean).join(' · ') }; }),
+      rpGo: () => this.refreshPrices(), rpLbl: (st.rp || {}).busy ? 'Stop' : 'Refresh all prices',
+      rpTxt: (r => r.busy ? 'Checking prices · ' + r.done + ' of ' + r.n + (r.upd ? ' · ' + r.upd + ' changed' : '') : r.n ? 'Last run: ' + r.done + ' of ' + r.n + ' checked · ' + r.upd + ' changed' + (r.bad ? ' · ' + r.bad + ' couldn’t be read' : '') : 'Check every entry’s shop price now.')(st.rp || {}),
       hasToast: !!st.toast, toast: st.toast
     };
   }

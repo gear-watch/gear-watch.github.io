@@ -455,6 +455,15 @@ async function signedIn(req, env, ctx) {
   ctx.waitUntil(cache.put(ck, new Response(u.id, { headers: { 'cache-control': 'max-age=300' } })));
   return { uid: u.id };
 }
+// Admins (staff table, role admin) skip the limits, so the admin panel can refresh the whole catalog. Remembered for 10 minutes.
+async function isAdmin(req, env, ctx, uid) {
+  const SB = String((env && env.SUPABASE_URL) || '').trim().replace(/\/+$/, ''), K = String((env && env.SUPABASE_ANON_KEY) || '').trim();
+  const tok = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim(); if (!SB || !K || !tok || !uid) return false;
+  const cache = caches.default, ck = new Request('https://gearwatch-cache/is-admin/' + uid), hit = await cache.match(ck); if (hit) return (await hit.text()) === '1';
+  let ok = false; try { const r = await fetch(SB + '/rest/v1/rpc/is_admin', { method: 'POST', headers: { apikey: K, Authorization: 'Bearer ' + tok, 'content-type': 'application/json' }, body: '{}' }); if (r.ok) ok = (await r.json()) === true; } catch (e) {}
+  ctx.waitUntil(cache.put(ck, new Response(ok ? '1' : '0', { headers: { 'cache-control': 'max-age=600' } })));
+  return ok;
+}
 // Rough per-person limits so one account can't burn the quota: 150 links per 10 minutes, 1500 a day.
 async function underLimit(uid, n, ctx) {
   const cache = caches.default, now = Date.now();
@@ -593,7 +602,7 @@ export default {
     if (req.method !== 'POST') return json({ error: 'Use GET or POST' }, 405);
     let body; try { body = await req.json(); } catch { return json({ error: 'Bad JSON' }, 400); }
     const list = (body.items || []).filter(x => x && /^https?:\/\//.test(x.url || '')).slice(0, 40), force = !!body.force;
-    if (!admin && !(await underLimit(who.uid, body.lookup ? 1 : Math.max(1, list.length), ctx))) return json({ error: 'Too many checks. Try again in a few minutes.' }, 429);
+    if (!admin && !(await isAdmin(req, env, ctx, who.uid)) && !(await underLimit(who.uid, body.lookup ? 1 : Math.max(1, list.length), ctx))) return json({ error: 'Too many checks. Try again in a few minutes.' }, 429);
     if (body.lookup) return json(await lookupOne(String(body.lookup), ctx, codeOf(body.want)));
     const items = {};
     for (let i = 0; i < list.length; i += 5) {
