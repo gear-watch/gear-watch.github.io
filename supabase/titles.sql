@@ -113,18 +113,27 @@ begin perform public.title_checks(new.id); return null; end $$;
 drop trigger if exists titles_avatar on public.profiles;
 create trigger titles_avatar after update of avatar on public.profiles for each row execute function public.titles_avatar_trg();
 
+-- Who can still say who invited them: new accounts in their first 7 days, and everyone until the end of 2026,
+-- so people who joined before invites existed can add theirs too.
+create or replace function public.can_claim(uid uuid) returns boolean language sql stable security definer set search_path = public as $$
+  select not exists (select 1 from public.invites where invitee = uid)
+    and (now() < timestamptz '2027-01-01' or coalesce((select created_at > now() - interval '7 days' from auth.users where id = uid), false))
+$$;
+revoke all on function public.can_claim(uuid) from public, anon, authenticated;
+
 -- The app calls this once after sign-up: ref is the inviter's username or id (from the invite link, or picked by hand).
--- Only in your first 7 days, only once, never yourself. You become friends straight away.
+-- Only once, never yourself, and only someone who joined before you. You become friends straight away.
 create or replace function public.claim_invite(ref text, manual boolean default false) returns jsonb language plpgsql security definer set search_path = public as $$
 declare me uuid := auth.uid(); inv uuid; made timestamptz; r text := trim(coalesce(ref, ''));
 begin
   if me is null then raise exception 'Sign in first'; end if;
   if exists (select 1 from public.invites where invitee = me) then return jsonb_build_object('ok', false, 'why', 'already'); end if;
+  if not public.can_claim(me) then return jsonb_build_object('ok', false, 'why', 'old'); end if;
   select created_at into made from auth.users where id = me;
-  if made is null or made < now() - interval '7 days' then return jsonb_build_object('ok', false, 'why', 'old'); end if;
   if r ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then select id into inv from public.profiles where id = r::uuid;
   else select id into inv from public.profiles where username = lower(regexp_replace(r, '^@', '')); end if;
   if inv is null or inv = me then return jsonb_build_object('ok', false, 'why', 'nobody'); end if;
+  if (select created_at from auth.users where id = inv) > made then return jsonb_build_object('ok', false, 'why', 'newer'); end if;
   insert into public.invites (invitee, inviter, how) values (me, inv, case when manual then 'manual' else 'link' end) on conflict do nothing;
   insert into public.follows (follower, followee, status) values (me, inv, 'accepted'), (inv, me, 'accepted')
     on conflict (follower, followee) do update set status = 'accepted';
@@ -149,8 +158,7 @@ create or replace function public.title_status() returns jsonb language sql stab
     'joined', (select count(*) from public.invites where inviter = auth.uid()),
     'counted', (select count(*) from public.invites where inviter = auth.uid() and counted_at is not null),
     'invitedBy', (select p.username from public.invites i join public.profiles p on p.id = i.inviter where i.invitee = auth.uid()),
-    'canClaim', coalesce((select u.created_at > now() - interval '7 days' from auth.users u where u.id = auth.uid()), false)
-                and not exists (select 1 from public.invites where invitee = auth.uid()))
+    'canClaim', public.can_claim(auth.uid()))
 $$;
 
 revoke all on function public.give_title(uuid, text) from public, anon, authenticated;
