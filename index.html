@@ -247,14 +247,18 @@ input::placeholder{color:#6e6e73;}
 </sc-if>
 
 <sc-if value="{{ isCollection }}" hint-placeholder-val="{{ false }}">
-  <div data-anim="fade" style="padding:8px 20px 0;font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ profileName }}</div>
+  <div style="padding:8px 16px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <span data-anim="fade" style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;">{{ profileName }}</span>
+    <button data-anim="pop" onClick="{{ openAddOwned }}" aria-label="Add something you own" style="width:36px;height:36px;border:0;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;cursor:pointer;flex:none;" style-active="transform:scale(0.95);">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg>
+    </button>
+  </div>
   <div data-anim="up" style="padding:0 20px;font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.18;letter-spacing:-0.374px;">Collection</div>
   <div data-anim="up" style="margin:12px 16px 0;display:flex;background:#2c2c2e;border-radius:8px;padding:2px;gap:2px;">
     <sc-for list="{{ collTabs }}" as="t" hint-placeholder-count="2"><button onClick="{{ t.onTap }}" style="flex:1;border:0;border-radius:7px;padding:6px 0;font-size:14px;cursor:pointer;color:#f5f5f7;background:{{ t.bg }};transition:background .25s;">{{ t.label }}</button></sc-for>
   </div>
   <sc-if value="{{ collItems }}" hint-placeholder-val="{{ true }}">
-  <div data-anim="up" style="padding:12px 16px 0;display:flex;"><button onClick="{{ openAddOwned }}" style="border:0;background:#1c1c1e;color:var(--gw-accent,#ffd60a);border-radius:9999px;padding:8px 16px;font-size:14px;letter-spacing:-0.224px;cursor:pointer;display:flex;align-items:center;gap:6px;" style-active="transform:scale(0.95);"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 2v10M2 7h10"></path></svg><span>Add something you own</span></button></div>
-  <sc-if value="{{ cMatShow }}" hint-placeholder-val="{{ false }}"><div data-anim="up" style="padding:12px 16px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;"><sc-for list="{{ cMatChips }}" as="m" hint-placeholder-count="4"><button onClick="{{ m.onTap }}" style="flex:none;white-space:nowrap;border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ m.color }};background:{{ m.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ m.label }}</button></sc-for></div></sc-if>
+    <sc-if value="{{ cMatShow }}" hint-placeholder-val="{{ false }}"><div data-anim="up" style="padding:12px 16px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;"><sc-for list="{{ cMatChips }}" as="m" hint-placeholder-count="4"><button onClick="{{ m.onTap }}" style="flex:none;white-space:nowrap;border:0;border-radius:9999px;padding:6px 14px;font-size:14px;cursor:pointer;color:{{ m.color }};background:{{ m.bg }};transition:background .25s,color .25s;" style-active="transform:scale(0.95);">{{ m.label }}</button></sc-for></div></sc-if>
   <sc-if value="{{ hasUnsure }}" hint-placeholder-val="{{ false }}">
     <button data-anim="up" onClick="{{ sortUnsure }}" style="width:calc(100% - 32px);margin:16px 16px 0;border:0;background:#1c1c1e;border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;color:#f5f5f7;cursor:pointer;text-align:left;" style-active="transform:scale(0.98);">
       <span style="width:8px;height:8px;border-radius:9999px;background:#ff9f0a;flex:none;"></span>
