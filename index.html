@@ -39,10 +39,7 @@ input::placeholder{color:#6e6e73;}
 
 <sc-if value="{{ isWish }}" hint-placeholder-val="{{ true }}">
   <div style="padding:8px 16px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-    <button data-anim="fade" onClick="{{ openProfiles }}" style="border:0;background:none;padding:0;display:flex;align-items:center;gap:6px;cursor:pointer;color:#a1a1a6;font-size:14px;letter-spacing:-0.224px;">
-      <span>{{ profileName }}</span>
-      <svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-    </button>
+    <span></span>
     <button data-anim="pop" onClick="{{ openAdd }}" aria-label="Add item" style="width:36px;height:36px;border:0;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;display:grid;place-items:center;cursor:pointer;flex:none;" style-active="transform:scale(0.95);">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg>
     </button>
@@ -1829,6 +1826,7 @@ input::placeholder{color:#6e6e73;}
 
     <sc-if value="{{ isSheetProfiles }}" hint-placeholder-val="{{ false }}">
       <sc-if value="{{ acctOn }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ hasUsername }}" hint-placeholder-val="{{ false }}"><button data-anim="up" onClick="{{ viewProfile }}" style="margin:8px 16px 0;width:calc(100% - 32px);border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;" style-active="transform:scale(0.97);"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="7" r="3.2"></circle><path d="M3.5 17c.9-3 3.4-4.6 6.5-4.6s5.6 1.6 6.5 4.6"></path></svg><span>View profile</span></button></sc-if>
         <div data-anim="up" style="margin:8px 16px 16px;background:#2c2c2e;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ acctHandle }}</span><span style="flex:none;display:flex;align-items:center;gap:6px;font-size:12px;color:{{ syncColor }};"><span style="width:6px;height:6px;border-radius:9999px;background:{{ syncColor }};"></span>{{ syncTxt }}</span></div>
           <span style="font-size:14px;color:#a1a1a6;letter-spacing:-0.224px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ acctEmail }}</span>
@@ -4947,7 +4945,7 @@ class Component extends DCLogic {
       groupTabs: [['rank', 'Rank'], ['brand', 'Brand'], ['cat', 'Category']].map(([k, l]) => ({ label: l, bg: st.group === k ? '#636366' : 'transparent', onTap: () => this.setState({ group: k }) })),
       hasOnWay: onWay.length > 0, onWay, onWayCount: onWay.length, hasOwned: owned.length > 0, noOwned: !owned.length, owned,
       openAdd: e => { if (e && e.currentTarget) this.bump(e.currentTarget, 1.15); this.openDisc('wanted'); },
-      openProfiles: () => this.setState({ sheet: 'profiles', newProfile: '', soArm: false }), phoneGear: !wide,
+      openProfiles: () => this.setState({ sheet: 'profiles', newProfile: '', soArm: false }), viewProfile: () => this.closeSheet(() => this.openMyProfile()), hasUsername: !!((window.GWSync && window.GWSync.state && window.GWSync.state().username) || (st.acct && st.acct.username)), phoneGear: !wide,
       openBudget: () => { const b = p.budget || {}, day = b.payday || 1, k = isoD(payPeriod(day).start), sp = (b.extra || {})[k]; this.setState({ sheet: 'budget', budgetKind: b.kind || 'monthly', budgetIn: b.amount ? String(fromE(b.amount)) : '', paydayIn: String(day), spentIn: sp ? String(fromE(sp)) : '' }); },
 
       hasSession, noSession: !hasSession, measuredAgo: days <= 0 ? 'Measured today' : days === 1 ? 'Measured yesterday' : 'Measured ' + days + ' days ago',
