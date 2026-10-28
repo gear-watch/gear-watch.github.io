@@ -471,7 +471,7 @@ class Component extends DCLogic {
     this.onVis = () => { if (document.visibilityState === 'visible' && this.loadedFor) this.load(); };
     document.addEventListener('visibilitychange', this.onVis);
     this.onImgErr = e => { const t = e.target, ed = this.state.ed; if (!t || t.tagName !== 'IMG' || !ed || !ed.photos) return; const s = t.getAttribute('src'); if (s && ed.photos.some(p => p.src === s) && !(this.state.badImg || {})[s]) this.setState(st => ({ badImg: Object.assign({}, st.badImg, { [s]: 1 }) })); }; document.addEventListener('error', this.onImgErr, true);
-    this.poll = setInterval(() => { if (this.loadedFor && document.visibilityState === 'visible') this.load(); }, 60000);
+    this.poll = setInterval(() => { if (this.loadedFor && document.visibilityState === 'visible') this.load(); }, 300000);
     this.onPaste = e => { if (this.state.page === 'covers' && this.state.coverFocus && e.clipboardData) { const fl = Array.from(e.clipboardData.files || []).find(z => /^image\//.test(z.type)); if (fl) { e.preventDefault(); this.setCover(this.state.coverFocus, fl); return; } } const ed = this.state.ed; if (!ed || !ed.ready) return; const t = e.target; const inField = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA'); const cd = e.clipboardData; if (!cd) return;
       const files = Array.from(cd.files || []).filter(f => /^image\//.test(f.type)); if (files.length) { e.preventDefault(); this.edAddFiles(files); return; }
       if (!inField) { const urls = this.urlsFrom(cd.getData('text')); if (urls.length) { e.preventDefault(); this.addPhotoSrcs(urls); } } };

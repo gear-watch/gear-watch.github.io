@@ -2843,7 +2843,9 @@ const pkeyOf = (u, pick) => { const k = normUrl(u); return k && pick && pick.k &
 function bestShop(it) { const L = (it.shops || []).filter(x => x && x.p != null).map(x => ({ p: x.p, c: x.c || '€', u: x.u, w: x.w })); if (!L.length) return null; if (it.price != null) L.push({ p: it.price, c: it.currency || '€', u: it.url, w: it.shopWas, main: true }); return L.sort((a, b) => a.p * (FX[a.c] || 1) - b.p * (FX[b.c] || 1))[0]; }
 const eurOf = it => { const b = !it.status || it.status === 'wanted' ? bestShop(it) : null; if (b) return b.p * (FX[b.c] || 1); return it.price == null ? null : it.price * (FX[it.currency] || 1); };
 const paidEur = it => it.paid != null ? it.paid * (FX[it.paidCur || '€'] || 1) : (eurOf(it) || 0);
-function dropOf(it) { const h = it.history || []; if (h.length < 2 || it.price == null) return 0; const max = Math.max.apply(null, h.slice(0, -1).map(x => x.price)); return max > it.price ? (max - it.price) / max : 0; }
+// A price only counts as a sale when it's at least 5% under the old price.
+const SALE_MIN = 0.05, isSale = (p, w) => { p = Number(p); w = Number(w); return p > 0 && w > 0 && (w - p) / w >= SALE_MIN - 1e-9; };
+function dropOf(it) { const h = it.history || []; if (h.length < 2 || it.price == null) return 0; const max = Math.max.apply(null, h.slice(0, -1).map(x => x.price)); const d = max > it.price ? (max - it.price) / max : 0; return d >= SALE_MIN - 1e-9 ? d : 0; }
 const scoreOf = it => (it.rating || 0) + Math.min(1.5, dropOf(it) * 10);
 const toNum = s => { const n = parseFloat(String(s || '').replace(',', '.')); return isNaN(n) ? 0 : n; };
 
@@ -2965,7 +2967,7 @@ class Component extends DCLogic {
       if (it.status === 'wanted') (it.shops || []).forEach(sh => { const e = take(sh.u, sh.pick); if (!e || !e.checked || (sh.chk && e.checked <= sh.chk)) return; changed = true; sh.chk = e.checked;
         if (!e.ok || e.price == null) { sh.err = /blocked/i.test(e.error || '') ? 'Shop blocked the check' : 'Couldn’t read the price'; return; } sh.err = null;
         sh.cands = e.cands || null; sh.need = !!e.cands && !sh.pick; sh.gone = !!e.pickGone; if (sh.gone) return;
-        sh.p = e.price; sh.c = ['€', '$', '£'].includes(e.currency) ? e.currency : sh.c || '€'; sh.w = e.was != null && e.was > e.price ? e.was : null; });
+        sh.p = e.price; sh.c = ['€', '$', '£'].includes(e.currency) ? e.currency : sh.c || '€'; sh.w = isSale(e.price, e.was) ? e.was : null; });
       if (it.pick && it.pick.k === 'manual') return;
       let e = take(it.url, it.pick); if (!e || !e.checked || (it.checked && e.checked <= it.checked)) return; changed = true;
       it.checked = e.checked; it.checkErr = null;
@@ -2978,8 +2980,8 @@ class Component extends DCLogic {
       let ep = e.price; if (e.currency && it.currency && e.currency !== it.currency && FX[e.currency] && FX[it.currency]) { it.checkNote = 'Shop showed ' + e.currency + num(e.price) + ', converted'; ep = Math.round(e.price * FX[e.currency] / FX[it.currency] * 100) / 100; e = Object.assign({}, e, { price: ep, currency: it.currency }); }
       if (e.currency && it.currency && e.currency !== it.currency) { it.checkErr = 'Shop shows ' + e.currency + e.price; return; }
       const np = Math.round(e.price * (1 + (it.surcharge || 0)) * 100) / 100;
-      it.shopWas = w0 != null && p0 > 0 && w0 > p0 ? Math.round(w0 * np / p0 * 100) / 100 : null;
-      if (it.catalogId && it.status === 'wanted' && (it.price !== np || (it.shopWas || null) !== (w0 != null && p0 > 0 && w0 > p0 ? Math.round(w0 * np / p0 * 100) / 100 : null))) (this._catPush = this._catPush || []).push({ url: it.url, name: it.name, price: p0, was: w0 != null && w0 > p0 ? w0 : null, currency: cur0 || it.currency });
+      it.shopWas = isSale(p0, w0) ? Math.round(w0 * np / p0 * 100) / 100 : null;
+      if (it.catalogId && it.status === 'wanted' && (it.price !== np || (it.shopWas || null) !== (isSale(p0, w0) ? Math.round(w0 * np / p0 * 100) / 100 : null))) (this._catPush = this._catPush || []).push({ url: it.url, name: it.name, price: p0, was: w0 != null && w0 > p0 ? w0 : null, currency: cur0 || it.currency });
       if (it.price !== np) { if (!(it.history || []).length && it.price != null) it.history = [{ date: it.added || e.checked.slice(0, 10), price: it.price }]; it.history = (it.history || []).concat({ date: e.checked.slice(0, 10), price: np }); it.price = np; }
     }));
     if (changed) this.save(data, true);
@@ -3002,11 +3004,11 @@ class Component extends DCLogic {
     if (P.ret === 'form') { this.setState(z => ({ sheet: 'form', pp: null, form: Object.assign({}, z.form, { price: String(c.p), currency: sym, onSale: !!c.w, was: c.w ? String(c.w) : '', pick }) })); return; }
     const t0 = todayISO();
     this.closeSheet(() => { this.mutItem(P.id, it => {
-        if (P.si >= 0) { const sh = (it.shops || [])[P.si]; if (!sh) return; sh.pick = pick; sh.p = c.p; sh.c = sym; sh.w = c.w || null; sh.gone = false; sh.need = false; return; }
+        if (P.si >= 0) { const sh = (it.shops || [])[P.si]; if (!sh) return; sh.pick = pick; sh.p = c.p; sh.c = sym; sh.w = isSale(c.p, c.w) ? c.w : null; sh.gone = false; sh.need = false; return; }
         it.pick = pick; it.pickGone = false; it.needPick = false; it.checkNote = null;
         if (it.currency !== sym) { it.history = []; it.currency = sym; it.price = null; }
         if (it.price !== c.p) { if (!(it.history || []).length && it.price != null) it.history = [{ date: it.added || t0, price: it.price }]; it.history = (it.history || []).filter(h => h.date !== t0).concat({ date: t0, price: c.p }); it.price = c.p; }
-        it.shopWas = c.w || null; });
+        it.shopWas = isSale(c.p, c.w) ? c.w : null; });
       this.setState({ pp: null }); this.toast('Using ' + sym + num(c.p) + '. We’ll keep checking that one.'); }); }
   pickManual() { const P = this.state.pp; if (!P) return;
     if (P.ret === 'form') { this.setState(z => ({ sheet: 'form', pp: null, form: Object.assign({}, z.form, { pick: { k: 'manual' } }) })); this.toast('Type the price in. We won’t change it.'); return; }
@@ -3083,7 +3085,7 @@ class Component extends DCLogic {
       if (window.visualViewport && !this.onVV) { const vv = window.visualViewport; this.onVV = () => { const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)), v = kb > 80 ? kb : 0; if (Math.abs(v - (this.state.kbH || 0)) > 10) this.setState({ kbH: v }); }; vv.addEventListener('resize', this.onVV); vv.addEventListener('scroll', this.onVV); }
       this.unsubCat = G.on(s => { if (s.user && s.firstDone && !this._catKick) { this._catKick = true; this.catSoon(5000); setTimeout(() => this.catSyncCopies(), 1500); setTimeout(() => this.catOcats(), 800); setTimeout(() => this.catCatRemaps(), 2500); this.staffCheck(true); setTimeout(() => this.loadDisc(), 3000); } if (!s.user) { this._catKick = false; if (this.state.staffRole) this.setState({ staffRole: null, staffQ: 0 }); } });
       document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { this.catSyncCopies(); this.catOcats(); this.catCatRemaps(); if (this.state.staffRole) this.staffCheck(); } });
-      this.catSyncT = setInterval(() => { if (document.visibilityState === 'visible') { this.catSyncCopies(); this.catOcats(); this.catCatRemaps(); this.shopFitSoon(8000); } }, 120000); this.shopFitSoon(10000);
+      this.catSyncT = setInterval(() => { if (document.visibilityState === 'visible' && Date.now() - (this._act || 0) < 600000) { this.catSyncCopies(); this.catOcats(); this.catCatRemaps(); this.shopFitSoon(8000); } }, 600000); this.shopFitSoon(10000);
       G.init(); return true; };
     this.onVis = () => { if (document.visibilityState === 'visible') { this.loadSocial(true); this.forceUpdate(); } }; document.addEventListener('visibilitychange', this.onVis); window.addEventListener('focus', this.onVis);
     this.onRs = () => { this.svMeasure(); this.scMeasure(); const w = window.innerWidth; if ((w >= 900) !== ((this.state.vw || 0) >= 900)) this.setState({ vw: w }); }; window.addEventListener('resize', this.onRs);
@@ -3114,7 +3116,9 @@ class Component extends DCLogic {
       if (s.friend) { this.closeFriend(); return; }
       if (s.detail) { this.closeDetail(); return; } };
     window.addEventListener('keydown', this.onKey);
-    this.socPoll = setInterval(() => { if (document.visibilityState === 'visible') this.loadSocial(true); }, 30000);
+    // Background refresh: every 3 minutes, only while the app is on screen and someone used it in the last 10 minutes (keeps server logs small).
+    this._act = Date.now(); this.onAct = () => { this._act = Date.now(); }; ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev => window.addEventListener(ev, this.onAct, { passive: true }));
+    this.socPoll = setInterval(() => { if (document.visibilityState === 'visible' && Date.now() - this._act < 600000) this.loadSocial(true); }, 180000);
     if (!hook()) { let n = 0; this.syPoll = setInterval(() => { if (hook() || ++n > 50) clearInterval(this.syPoll); }, 100); }
     if (!window.FITLOG_BRANDS) { let n = 0; this.brPoll = setInterval(() => { if (window.FITLOG_BRANDS || ++n > 50) { clearInterval(this.brPoll); this.forceUpdate(); } }, 100); }
     const sh = readShare(); if (sh && sh.n) this.setState({ shared: sh }); this.loadShort();
@@ -3194,7 +3198,7 @@ class Component extends DCLogic {
     window.addEventListener('touchmove', this._gMove, { passive: false });
     window.addEventListener('touchend', this._gEnd); window.addEventListener('touchcancel', this._gEnd);
   }
-  componentWillUnmount() { window.removeEventListener('wheel', this._gWheel); window.removeEventListener('touchstart', this._gStart); window.removeEventListener('touchmove', this._gMove); window.removeEventListener('touchend', this._gEnd); window.removeEventListener('touchcancel', this._gEnd); cancelAnimationFrame(this._gRaf); clearInterval(this.catSyncT); cancelAnimationFrame(this.svRaf); if (this.onPaste) window.removeEventListener('paste', this.onPaste); window.removeEventListener('pointerdown', this.dsDown, true); window.removeEventListener('pointermove', this.dsMove); window.removeEventListener('pointerup', this.dsUp); window.removeEventListener('pointercancel', this.dsUp); window.removeEventListener('dragstart', this.dsDrag, true); if (this.onRs) window.removeEventListener('resize', this.onRs); if (this.unsubSync) this.unsubSync(); if (this.onKey) window.removeEventListener('keydown', this.onKey); clearTimeout(this.vwTapT); clearInterval(this.socPoll); if (this.onVis) { document.removeEventListener('visibilitychange', this.onVis); window.removeEventListener('focus', this.onVis); } clearInterval(this.syPoll); if (this.onHash) window.removeEventListener('hashchange', this.onHash); clearInterval(this.tick); if (this.mo) this.mo.disconnect(); [this.t1, this.t2, this.t3, this.t4, this.t5].forEach(clearTimeout); }
+  componentWillUnmount() { if (this.onAct) ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev => window.removeEventListener(ev, this.onAct)); window.removeEventListener('wheel', this._gWheel); window.removeEventListener('touchstart', this._gStart); window.removeEventListener('touchmove', this._gMove); window.removeEventListener('touchend', this._gEnd); window.removeEventListener('touchcancel', this._gEnd); cancelAnimationFrame(this._gRaf); clearInterval(this.catSyncT); cancelAnimationFrame(this.svRaf); if (this.onPaste) window.removeEventListener('paste', this.onPaste); window.removeEventListener('pointerdown', this.dsDown, true); window.removeEventListener('pointermove', this.dsMove); window.removeEventListener('pointerup', this.dsUp); window.removeEventListener('pointercancel', this.dsUp); window.removeEventListener('dragstart', this.dsDrag, true); if (this.onRs) window.removeEventListener('resize', this.onRs); if (this.unsubSync) this.unsubSync(); if (this.onKey) window.removeEventListener('keydown', this.onKey); clearTimeout(this.vwTapT); clearInterval(this.socPoll); if (this.onVis) { document.removeEventListener('visibilitychange', this.onVis); window.removeEventListener('focus', this.onVis); } clearInterval(this.syPoll); if (this.onHash) window.removeEventListener('hashchange', this.onHash); clearInterval(this.tick); if (this.mo) this.mo.disconnect(); [this.t1, this.t2, this.t3, this.t4, this.t5].forEach(clearTimeout); }
 
   isFramed() { return !!this.props.framed && this.props.framed !== 'false'; }
   introOn() { return !(this.props.intro === false || this.props.intro === 'false'); }
@@ -3724,7 +3728,7 @@ class Component extends DCLogic {
   loadFof(id, force) { const G = window.GWSync; if (!G || !G.friendsOf || !id) return; const cur = (this.state.fof || {})[id]; if (cur && cur.busy) return; if (cur && cur.list && !force && Date.now() - (cur.at || 0) < 60000) return;
     const put = v => this.setState(s => ({ fof: Object.assign({}, s.fof, { [id]: v }) })); put(Object.assign({}, cur, { busy: true, err: '' }));
     G.friendsOf(id).then(list => put({ list: list || [], at: Date.now() })).catch(e => put({ list: (cur && cur.list) || null, err: (e && e.message) || 'Couldn’t load their friends.' })); }
-  loadMayKnow() { const G = window.GWSync; if (!G || !G.suggestions) return; G.suggestions().then(l => this.setState({ mayKnow: l || [] })).catch(() => {}); }
+  loadMayKnow() { const G = window.GWSync; if (!G || !G.suggestions) return; if (Date.now() - (this._mkAt || 0) < 1800000 && this.state.mayKnow) return; this._mkAt = Date.now(); G.suggestions().then(l => this.setState({ mayKnow: l || [] })).catch(() => {}); }
   openComposer(pre) { setTimeout(() => this.scMeasure(), 60); this.setState({ storyAsk: null, sc: { files: [], idx: 0, caption: '', items: (pre && pre.items) || [], poll: null, audience: 'all', blur: false, busy: false, prog: 0, panel: null } }, () => {
       const el = this.scRef.current; if (el && el.animate && !this.reduce) el.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' });
       ((pre && pre.photos) || []).forEach(src => fetch(src).then(r => r.blob()).then(b => this.scAdd([b])).catch(() => {})); }); }
@@ -4179,7 +4183,7 @@ class Component extends DCLogic {
     let j = null; try { const r = await fetch(api, { method: 'POST', headers: hd, body: JSON.stringify({ lookup: c.url }) }); j = await r.json(); } catch (e) {} if (!j || !j.ok || j.price == null) return;
     const cur = ['€', '$', '£'].includes(j.currency) ? j.currency : c.currency;
     try { await G.cat('catalog_submit', { p: { url: c.url, name: c.name, price: j.price, was: j.was, currency: cur } }); } catch (e) { return; }
-    const P = this.state.catP; if (P && P.id === c.id) this.setState({ catP: Object.assign({}, P, { price: j.price, was_price: j.was != null && j.was > j.price ? j.was : null, currency: cur }) }); }
+    const P = this.state.catP; if (P && P.id === c.id) this.setState({ catP: Object.assign({}, P, { price: j.price, was_price: isSale(j.price, j.was) ? j.was : null, currency: cur }) }); }
   async catPushRun() { const G = window.GWSync, list = (this._catPush || []).splice(0); if (!G || !G.cat || !list.length) return;
     for (const x of list) { try { await G.cat('catalog_submit', { p: x }); } catch (e) { if (/database update/.test((e && e.message) || '')) return; } } }
   catFitVals(it) { const d = this.state.catDet; if (!it || !d || d.cid !== it.catalogId || d.off) return { show: false };
@@ -4270,14 +4274,14 @@ class Component extends DCLogic {
     this._vals = vals;
     const st = this.state, G = window.GWSync, A = st.acct || {}, on = !!(G && G.cat && A.user), mine = this.catMine(p), plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
     const mineAll = c => mine['id:' + c.id] || (c.url ? mine['u:' + this.catNorm(c.url)] : null) || [], isO = i => i.status === 'owned' || i.status === 'ordered';
-    const mineOf = c => { const a = mineAll(c); return a.find(isO) || a[0] || null; }, mineW = c => mineAll(c).find(i => i.status === 'wanted') || null, priceOf = c0 => { const c = catPx(c0); return c.price == null ? '' : money(c.currency || '€', Number(c.price)) + (c.was_price != null && Number(c.was_price) > Number(c.price) ? ' (was ' + money(c.currency || '€', Number(c.was_price)) + ')' : ''); }, res = st.catRes || [];
+    const mineOf = c => { const a = mineAll(c); return a.find(isO) || a[0] || null; }, mineW = c => mineAll(c).find(i => i.status === 'wanted') || null, priceOf = c0 => { const c = catPx(c0); return c.price == null ? '' : money(c.currency || '€', Number(c.price)) + (isSale(c.price, c.was_price) ? ' (was ' + money(c.currency || '€', Number(c.was_price)) + ')' : ''); }, res = st.catRes || [];
     const chip = (label, a, fn) => ({ label, bg: a ? ACC : '#2c2c2e', color: a ? '#000' : '#f5f5f7', onTap: e => { this.bump(e.currentTarget, 1.08); fn(); } });
     const CF = st.catF || {}, toEur = c => { const p = Number(c.price); if (!(p > 0)) return null; const cur = c.currency || '€'; return FX[cur] && FX['€'] ? p * FX[cur] / FX['€'] : p; };
     const inDisc = (st.sheet === 'cdisc' || st.sheet === 'cfilt') && this.catSearching(), raw = st.catRes || [];
     const SUBS = st.catTile && !/^c:/.test(st.catTile) ? (st.subTiles || []).filter(x => x.tile === st.catTile) : [], subKey = c => 'c:' + cnorm(c.category), subKeys = new Set(SUBS.map(x => x.key));
     const inSub = (c, k) => k === '_other' ? !subKeys.has(subKey(c)) : subKey(c) === k;
     const PR = [['', 'Any'], ['u150', 'Under €150'], ['150-300', '€150–300'], ['300-500', '€300–500'], ['o500', '€500+']], SO = [['owned', 'Most owned'], ['low', 'Price ↑'], ['high', 'Price ↓'], ['new', 'Newest']];
-    const passes = c => { if (CF.sale && !(c.was_price != null && Number(c.was_price) > Number(c.price))) return false; if (CF.brand && (c.brand || c.domain) !== CF.brand) return false; if (CF.sub && !inSub(c, CF.sub)) return false; if (CF.mat && !(c.materials || []).includes(CF.mat)) return false;
+    const passes = c => { if (CF.sale && !isSale(c.price, c.was_price)) return false; if (CF.brand && (c.brand || c.domain) !== CF.brand) return false; if (CF.sub && !inSub(c, CF.sub)) return false; if (CF.mat && !(c.materials || []).includes(CF.mat)) return false;
       if (CF.price) { const e = toEur(c); if (e == null) return false; if (CF.price === 'u150' && !(e < 150)) return false; if (CF.price === '150-300' && !(e >= 150 && e <= 300)) return false; if (CF.price === '300-500' && !(e >= 300 && e <= 500)) return false; if (CF.price === 'o500' && !(e > 500)) return false; }
       { const mm = mineAll(c); if (CF.noWish && mm.some(i => i.status === 'wanted')) return false; if (CF.noOwn && mm.some(isO)) return false; }
       if (CF.mine) { const fz = this.catFitSize(c), zs = cleanSizes((c.options || {}).sizes); if (zs.length && !fz) return false; } return true; };
@@ -4315,7 +4319,7 @@ class Component extends DCLogic {
     if (c) { const m = mineOf(c), ph = (c.photos || []).filter(Boolean), fr = st.catFr, frN = (fr || []).length, cur = c.currency || '€';
       const low = c.low_price != null && c.price != null && Number(c.low_price) < Number(c.price) ? 'lowest ' + money(cur, Number(c.low_price)) + (c.low_at ? ' in ' + MON[+String(c.low_at).slice(5, 7) - 1] : '') : '';
       pr = { checking: st.catRpBusy === c.id, checkTxt: 'Checking the shop’s price in ' + PCUR + '…', ...(() => { const sc = c.currency || '€', conv = c.price != null && sc !== PCUR && st.catRpBusy !== c.id, h = catRp()[c.id + '|' + PCUR], why = /libidex\.com/i.test(c.url || '') ? ' Libidex charges in pounds.' : h && h.p == null ? ' The shop has no ' + PCUR + ' price.' : ''; return { hasConv: conv, convTxt: conv ? 'Converted from ' + sc + num(Number(c.price)) + '.' + why : '' }; })(), fromSearch: st.catFrom === 'form', back: () => this.setState({ sheet: 'form' }), photos: ph.map(src => ({ src, w: ph.length > 1 ? '78%' : '100%' })), noPhoto: !ph.length && !!c.name, initial: (c.name || '?').charAt(0).toUpperCase(),
-        meta: [c.brand, c.category, matFull({ materials: c.materials || [], latexMm: c.latex_mm || '' })].filter(Boolean).join(' · '), name: c.name || 'Loading…', price: c.name ? (c.price == null ? 'No price yet' : money(cur, Number(c.price))) : '', low: c.was_price != null && c.price != null && Number(c.was_price) > Number(c.price) ? 'was ' + money(cur, Number(c.was_price)) + ' · −' + Math.round((1 - Number(c.price) / Number(c.was_price)) * 100) + '% on sale' : low,
+        meta: [c.brand, c.category, matFull({ materials: c.materials || [], latexMm: c.latex_mm || '' })].filter(Boolean).join(' · '), name: c.name || 'Loading…', price: c.name ? (c.price == null ? 'No price yet' : money(cur, Number(c.price))) : '', low: isSale(c.price, c.was_price) ? 'was ' + money(cur, Number(c.was_price)) + ' · −' + Math.round((1 - Number(c.price) / Number(c.was_price)) * 100) + '% on sale' : low,
         hasPill: ['pending', 'gone', 'hidden'].includes(c.status), pill: c.status === 'pending' ? 'Waiting for approval' : c.status === 'gone' ? 'No longer sold' : 'Hidden while it’s checked', pillDot: c.status === 'gone' ? '#8e8e93' : '#ff9f0a',
         url: c.url || '', domain: c.domain || '', linkSub: c.status === 'gone' ? 'The shop page is gone' : 'Open the shop page',
         hasFr: frN > 0, frAv: (fr || []).slice(0, 3).map((x, i) => ({ initial: (x.username || '?').charAt(0).toUpperCase(), av: x.avatar || '', hasAv: !!x.avatar, ml: i ? '-8px' : '0' })),
@@ -4375,7 +4379,7 @@ class Component extends DCLogic {
       if (!V.own) { if (vr.hasColors) vr.colors.push(later('color', !!V.lcolor)); if (vr.hasSizes) vr.sizes.push(later('size', !!V.lsize)); if (vr.hasEnt) vr.ents.push(later('zip', !!V.lzip)); if (vr.hasMm) vr.mms.push(later('mm', !!V.lmm)); }
       const miss = this.cvarMiss();
       vr.foot = miss.length ? 'Pick ' + (miss.length > 1 ? miss.slice(0, -1).join(', ') + ' and ' + miss[miss.length - 1] : miss[0]) + (V.own ? ' you have.' : ' you want, or tap Not sure yet.') : V.own ? 'Next you add what you paid, the condition and your own photos.' : (V.sizes || []).length > 1 ? 'You’ll hear about sales and restocks in all ' + V.sizes.length + ' sizes.' : 'Pick more than one size if you’d take either. You can change these later.'; }
-    const D0 = st.disc, offOf = x => x.was_price != null && Number(x.was_price) > Number(x.price) ? Math.round((1 - Number(x.price) / Number(x.was_price)) * 100) : 0;
+    const D0 = st.disc, offOf = x => isSale(x.price, x.was_price) ? Math.round((1 - Number(x.price) / Number(x.was_price)) * 100) : 0;
     const cardOf = x0 => { const x = catPx(x0), o = offOf(x), ph = (x.photos || [])[0] || ''; return { name: x.name, photo: ph, hasPhoto: !!ph, hasOff: o > 0, off: '−' + o + '%', price: x.price != null ? money(x.currency || '€', Number(x.price)) : '', priceColor: o > 0 ? '#30d158' : '#f5f5f7', brand: (x.price != null ? ' · ' : '') + (x.brand || x.domain || ''), open: () => this.openCat(x, 'disc') }; };
     const home = { show: !!(D0 && on), hasItems: !!(D0 && (D0.sale || []).length), title: D0 && (D0.sale || []).length ? 'On sale in the catalog' : 'The catalog', items: D0 ? (D0.sale || []).slice(0, 10).map(x => Object.assign(cardOf(x), { open: () => { this.openDisc(); setTimeout(() => this.openCat(x, 'disc'), 0); } })) : [], open: () => this.openDisc(null) };
     const dc = { loading: !D0, empty: !!D0 && !(D0.sale || []).length && !(D0.trending || []).length && !(D0.pairs || []).length, browsing: !this.catSearching(), addNew: () => { const fs = st.discFor || 'wanted'; this.openForm(null, fs); this.setState({ formDisc: fs }); }, forAdd: !!st.discFor,
@@ -4394,7 +4398,7 @@ class Component extends DCLogic {
     const photos = (f.found || []).filter(x => x.on).map(x => x.src).concat(f.photos || []);
     const size = f.m2m ? 'Made to measure' : (f.size === 'Made to measure' ? '' : f.size), sizesOk = f.status === 'wanted' && !f.m2m ? (f.sizesOk || []).filter(z => z && z !== 'Made to measure') : [];
     const base = { sizesOk: sizesOk.length > 1 ? sizesOk : [], url: f.url.trim(), name: f.name.trim(), brand: f.brand.trim(), category: f.category, currency: f.currency, size, colour: f.colour, m2m: f.m2m, rating: f.rating, rec: f.rec || 0, notes: (f.notes || '').trim(), zip: ZIP_CATS.includes(f.category) ? f.zip || '' : '', handmade: !!f.handmade, modified: !!f.modified, mods: f.modified ? (f.mods || '').trim() : '', secondHand: !!f.secondHand, boughtFrom: f.secondHand ? (f.boughtFrom || '').trim() : '', condition: f.secondHand ? f.condition || '' : '', brandUnknown: !!f.brandUnknown, priceUnknown: !!f.priceUnknown, approx: !f.priceUnknown && !!f.approx, gotMonth: f.preGw ? '' : f.gotMonth || '', preGw: !!f.preGw, materials: (f.materials || []).slice(), latexMm: (f.materials || []).includes('Latex') ? f.latexMm || '' : '', chlor: (f.materials || []).includes('Latex') && !!f.chlor, origs: (f.origs || []).filter(x => photos.includes(x.c)), photos, pick: f.pick || null };
-    { const wN = parseFloat(String(f.was || '').replace(',', '.')), pN = parseFloat(String(f.price || '').replace(',', '.')); base.shopWas = f.status !== 'owned' && f.onSale && wN > pN ? Math.round(wN * 100) / 100 : null; }
+    { const wN = parseFloat(String(f.was || '').replace(',', '.')), pN = parseFloat(String(f.price || '').replace(',', '.')); base.shopWas = f.status !== 'owned' && f.onSale && isSale(pN, wN) ? Math.round(wN * 100) / 100 : null; }
     if (f.catalogId) { base.catalogId = f.catalogId; base.catSt = f.catSt || 'live'; }
     if (f.catalogId && f.status === 'wanted') base.notSure = [!base.size && !base.m2m ? 'size' : '', !String(base.colour || '').trim() ? 'colour' : '', !base.zip ? 'zip' : '', !base.latexMm ? 'mm' : ''].filter(Boolean);
     if (f.id && f.catalogId && f.catSt === 'pending' && window.GWSync && window.GWSync.cat) window.GWSync.cat('catalog_update_mine', { cid: f.catalogId, p: { name: base.name, brand: base.brandUnknown ? '' : base.brand, category: base.category, materials: base.materials, latexMm: base.latexMm } }).catch(() => {});
@@ -4791,7 +4795,7 @@ class Component extends DCLogic {
           const eu = x => x.p == null ? Infinity : x.p * (FX[x.c] || 1), srt = L.slice().sort((a, b) => eu(a) - eu(b)), best = L.length > 1 ? srt[0] : null;
           return { shopsHead: L.length > 1 ? 'Sold at ' + L.length + ' shops' : 'Shop', shopsSub: L.length > 1 ? 'Cheapest first' : 'Add more to compare prices',
             shops: srt.map(x => { const h = hostOf(x.u) || 'Shop', isB = !!best && x === best, warn = x.gone || x.need; return { url: x.u, host: h, initial: (h.charAt(0) || '?').toUpperCase(), price: x.p == null ? '—' : x.c + num(x.p), eur: x.p != null && x.c !== PCUR && FX[x.c] && FX[PCUR] ? '≈ ' + PCUR + Math.round(x.p * FX[x.c] / FX[PCUR]) : '', priceColor: isB ? '#30d158' : '#f5f5f7',
-              sub: warn ? (x.gone ? 'Your price is gone. Pick again.' : 'Several prices. Pick one.') : x.err ? x.err : [x.main ? 'Your link' : '', isB ? 'Cheapest' : '', x.w && x.p != null && x.w > x.p ? 'On sale' : ''].filter(Boolean).join(' · ') || ' ', subColor: warn || x.err ? '#ff9f0a' : isB ? '#30d158' : '#a1a1a6',
+              sub: warn ? (x.gone ? 'Your price is gone. Pick again.' : 'Several prices. Pick one.') : x.err ? x.err : [x.main ? 'Your link' : '', isB ? 'Cheapest' : '', isSale(x.p, x.w) ? 'On sale' : ''].filter(Boolean).join(' · ') || ' ', subColor: warn || x.err ? '#ff9f0a' : isB ? '#30d158' : '#a1a1a6',
               canPick: !x.main && !!warn, onPick: () => this.openPick(dIt, x.i), canRemove: !x.main, onRemove: () => { this.mutItem(dIt.id, it => { it.shops = (it.shops || []).filter((_, j) => j !== x.i); }); this.toast('Removed ' + h); } }; }) }; })(),
         showCheck: dIt.status === 'wanted', checkColor: dIt.checked && !dIt.checkErr ? '#30d158' : dIt.checkErr ? '#ff9f0a' : '#6e6e73',
         isWanted: dIt.status === 'wanted', showAfford: dIt.status === 'wanted' && !p.budgetOff, afford: a.txt, affordDot: a.dot, needBudget: !!a.need,
@@ -5055,7 +5059,7 @@ class Component extends DCLogic {
       f, fetchMsg: st.fetchMsg, fetching: st.fetching,
       fUrl: e => this.setF('url', e.target.value), fName: e => this.setF('name', e.target.value), fBrand: e => this.setF('brand', e.target.value),
       fPrice: e => this.setF('price', e.target.value), fWas: e => this.setF('was', e.target.value), fSaleShow: f.status !== 'owned' && !(f.status === 'wanted' && this.formLock(f)), fSaleOn: f.status !== 'owned' && !!f.onSale && !(f.status === 'wanted' && this.formLock(f)),
-      fPL: (() => { const on = f.status === 'wanted' && !!this.formLock(f); if (!on) return { on: false, off0: true }; const it = (this.prof().items || []).find(x => x.id === f.id) || {}, p = it.price != null ? it.price : parseFloat(String(f.price || '').replace(',', '.')), w = it.shopWas, cur = it.currency || f.currency, has = p != null && !isNaN(p), sale = has && w != null && w > p;
+      fPL: (() => { const on = f.status === 'wanted' && !!this.formLock(f); if (!on) return { on: false, off0: true }; const it = (this.prof().items || []).find(x => x.id === f.id) || {}, p = it.price != null ? it.price : parseFloat(String(f.price || '').replace(',', '.')), w = it.shopWas, cur = it.currency || f.currency, has = p != null && !isNaN(p), sale = has && isSale(p, w);
         return { on: true, off0: false, price: has ? money(cur, p) : 'Not checked yet', sale, was: sale ? money(cur, w) : '', off: sale ? '−' + Math.round((1 - p / w) * 100) + '%' : '', note: it.checkErr ? it.checkErr : it.checked ? 'From the shop · checked ' + agoTxt(it.checked) : 'From the shop. Checked automatically.' }; })(), fSaleToggle: () => this.setF('onSale', !f.onSale), fSaleTrack: f.onSale ? '#30d158' : '#39393d', fSaleKnob: f.onSale ? '20px' : '0px',
       fOff: (() => { const p = parseFloat(String(f.price || '').replace(',', '.')), w = parseFloat(String(f.was || '').replace(',', '.')); return p > 0 && w > p ? '−' + Math.round((1 - p / w) * 100) + '%' : ''; })(), fSize: e => this.setF('size', e.target.value), fColour: e => this.setF('colour', e.target.value),
       fillFromLink: e => { this.bump(e.currentTarget, 1.08); this.fillFromLink(); }, toggleM2M: () => this.setF('m2m', !f.m2m),
