@@ -4357,7 +4357,7 @@ class Component extends DCLogic {
     if (f.catalogId) { base.catalogId = f.catalogId; base.catSt = f.catSt || 'live'; }
     if (f.catalogId && f.status === 'wanted') base.notSure = [!base.size && !base.m2m ? 'size' : '', !String(base.colour || '').trim() ? 'colour' : '', !base.zip ? 'zip' : '', !base.latexMm ? 'mm' : ''].filter(Boolean);
     if (f.id && f.catalogId && f.catSt === 'pending' && window.GWSync && window.GWSync.cat) window.GWSync.cat('catalog_update_mine', { cid: f.catalogId, p: { name: base.name, brand: base.brandUnknown ? '' : base.brand, category: base.category, materials: base.materials, latexMm: base.latexMm } }).catch(() => {});
-    const isNew = !f.id, nid = uid(), pubAsk = isNew && /^https?:\/\//i.test(base.url) && !base.catalogId && !base.handmade;
+    const isNew = !f.id, nid = uid(), pubAsk = isNew && /^https?:\/\//i.test(base.url) && (!base.catalogId || base.catSt === 'pending') && !base.handmade;
     this.closeSheet(() => {
       this.mutate(p => {
         if (!isNew) { const it = p.items.find(x => x.id === f.id); if (!it) return;
@@ -4974,7 +4974,6 @@ class Component extends DCLogic {
         const isShoeZ = z => /^(EU|UK|US) /.test(z), normOn = !P.nosize && (P.grpNorm != null ? P.grpNorm : P.sizes.some(z => NORM.includes(z))), shoeOn = !P.nosize && (P.grpShoe != null ? P.grpShoe : P.sizes.some(isShoeZ));
         const szT = z => { const on = P.sizes.includes(z); return chip(z, on, () => this.setPub({ sizes: on ? P.sizes.filter(x => x !== z) : P.sizes.concat(z), nosize: false })); };
         const bw = String(it.brand || '').toLowerCase().split(/\s+/)[0] || '', sets = bw.length > 2 ? (P.sets || []).filter(s => String(s.name || '').toLowerCase().includes(bw)).slice(0, 4) : [];
-        const presetsX = sets.map(s => ({ label: s.name, onTap: () => this.setPub({ sizes: P.sizes.concat((s.sizes || []).filter(x => !P.sizes.includes(x))), m2m: P.m2m || !!s.m2m, nosize: false }) })).concat((shoe ? [['EU 36–47', [36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47].map(n => 'EU ' + n)], ['UK 3–12', [3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => 'UK ' + n)], ['US W 5–12', [5, 6, 7, 8, 9, 10, 11, 12].map(n => 'US W ' + n)]] : [['XS–XXL', ['XS', 'S', 'M', 'L', 'XL', 'XXL']], ['S–XL', ['S', 'M', 'L', 'XL']]]).map(([label, list]) => ({ label, onTap: addAll(list) })));
         const ph = (it.photos || []).find(Boolean) || '';
         return { ask: P.step === 'ask', fill: P.step === 'fill', name: it.name, sub: [it.brandUnknown ? '' : it.brand, it.category].filter(Boolean).join(' · '), hasImg: !!ph, img: ph,
           askTxt: 'Others can then find it, see who owns it and follow its price. You add the details a moderator would check, so they only have to approve it.', askNeed: 'Takes about a minute: ' + ['sizes', 'colours'].concat(ZIP_CATS.includes(it.category) ? ['zip and entry'] : []).join(', ') + '.',
