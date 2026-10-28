@@ -1562,7 +1562,7 @@ input::placeholder{color:#6e6e73;}
   </div>
 </sc-if>
 <sc-if value="{{ hasSheet }}" hint-placeholder-val="{{ false }}">
-  <div ref="{{ backdropRef }}" data-anim="fade" data-delay="0" onClick="{{ closeSheet }}" style="position:absolute;inset:0;z-index:40;background:rgba(0,0,0,0.6);"></div>
+  <div ref="{{ backdropRef }}" data-anim="fade" data-delay="0" onPointerDown="{{ backdropDown }}" onClick="{{ backdropClick }}" style="position:absolute;inset:0;z-index:40;background:rgba(0,0,0,0.6);"></div>
   <div ref="{{ sheetRef }}" data-anim="sheet" data-delay="0" style="position:absolute;left:0;right:0;bottom:{{ sheetKb }};z-index:41;max-height:{{ sheetMax }};height:{{ sheetH }};box-sizing:border-box;overflow-y:auto;transition:bottom .2s,max-height .2s;scrollbar-width:none;background:#1c1c1e;border-radius:18px 18px 0 0;padding:0 0 32px;">
     <div style="position:sticky;top:0;z-index:1;background:#1c1c1e;padding:8px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;">
       <button onClick="{{ closeSheet }}" style="justify-self:start;border:0;background:none;color:var(--gw-accent,#ffd60a);font-size:17px;padding:8px;cursor:pointer;">{{ cancelLabel }}</button>
@@ -4983,6 +4983,9 @@ class Component extends DCLogic {
       deleteItem: () => { if (!st.delArm) { this.setState({ delArm: true }); return; } const id = st.detail; this.closeDetail(() => { this.mutate(pp => { pp.items = pp.items.filter(x => x.id !== id); (pp.outfits || []).forEach(o => { o.itemIds = (o.itemIds || []).filter(x => x !== id); if (o.pos) delete o.pos[id]; }); }); this.toast('Deleted'); }); },
 
       sheetKb: (st.kbH || 0) + 'px', sheetMax: st.kbH ? 'calc(100% - ' + (st.kbH + 48) + 'px)' : '92%', sheetH: this.catSearching() || st.sheet === 'cdisc' || st.sheet === 'cfilt' || st.sheet === 'cprod' ? (st.kbH ? 'calc(100% - ' + (st.kbH + 48) + 'px)' : '92%') : 'auto',
+      // Only close when the tap started on the dimmed area. On iPhone the keyboard closing can slide the sheet away under a tap that began inside it.
+      backdropDown: e => { this._bdDown = e.target === e.currentTarget ? Date.now() : 0; },
+      backdropClick: e => { const ok = e.target === e.currentTarget && this._bdDown && Date.now() - this._bdDown < 800; this._bdDown = 0; if (!ok) return; if (st.sheet === 'ppick' && st.pp && st.pp.ret === 'form') this.setState({ sheet: 'form', pp: null }); else this.closeSheet(); },
       hasSheet: !!st.sheet, closeSheet: () => (st.sheet === 'ppick' && st.pp && st.pp.ret === 'form' ? this.setState({ sheet: 'form', pp: null }) : this.closeSheet()), sheetTitle: sheetMeta[0], hasSheetAction: !!sheetMeta[1], actionLabel: sheetMeta[1] || '',
       cancelLabel: st.sheet === 'pub' ? 'Not now' : st.sheet === 'cfilt' ? '‹ ' + (TILE_NAMES[st.catTile] || 'Results') : st.sheet === 'cdisc' && this.catSearching() ? '‹ Catalog' : st.sheet === 'cprod' && ['form', 'act', 'disc'].includes(st.catFrom) ? ({ act: '‹ Activity', disc: '‹ Catalog' }[st.catFrom] || '‹ Results') : sheetMeta[1] ? 'Cancel' : 'Done', actionColor: canSave ? ACC : '#636366',
       sheetAction: () => {
