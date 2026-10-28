@@ -100,6 +100,7 @@
     if (!out.profiles.find(p => p.id === out.activeId)) out.activeId = (out.profiles[0] || {}).id;
     return out;
   }
+  let flc = {}, flcU = null;
   function schedule(ms) { clearTimeout(timer); timer = setTimeout(sync, ms == null ? 1500 : ms); }
 
   let upFails = 0, upMsg = '';
@@ -147,12 +148,16 @@
       const uid = S.user.id, m = meta(), known = m.uid === uid;
       let gw = host.get(); const before = gw.mod || 0, fl = localStorage.getItem(FL);
       let lmod = before; if (known && hash(fl) !== m.flHash) lmod = Math.max(lmod, Date.now());
-      const { data: row, error } = await sb.from('user_data').select('data').eq('user_id', uid).maybeSingle(); if (error) throw error;
-      const rmod = row && row.data ? row.data.mod || 0 : 0, base = known ? m.base || 0 : 0;
+      // Ask only for the change stamp first; the whole wardrobe is downloaded only when it actually needs pulling.
+      const { data: head, error } = await sb.from('user_data').select('mod:data->mod').eq('user_id', uid).maybeSingle(); if (error) throw error;
+      let row = null; const full = async () => { const r = await sb.from('user_data').select('data').eq('user_id', uid).maybeSingle(); if (r.error) throw r.error; row = r.data; };
+      const rmod = head ? Number(head.mod) || 0 : 0, base = known ? m.base || 0 : 0;
       let action = 'none';
-      if (!row) action = 'push';
-      else if (!known) { const sg = row.data && row.data.gw; action = !hasStuff(sg) ? (hasStuff(gw) ? 'push' : 'pull') : !hasStuff(gw) ? 'pull' : 'merge'; }
+      if (!head) action = 'push';
+      else if (!known) { await full(); const sg = row && row.data && row.data.gw; action = !hasStuff(sg) ? (hasStuff(gw) ? 'push' : 'pull') : !hasStuff(gw) ? 'pull' : 'merge'; }
       else { const ld = lmod > base, rd = rmod > base; action = ld && rd ? (lmod >= rmod ? 'push' : 'pull') : ld ? 'push' : rd ? 'pull' : 'none'; }
+      if ((action === 'pull' || action === 'merge') && !row) await full();
+      if (action === 'pull' && !(row && row.data)) action = 'push';
       if (action === 'pull') {
         const d = row.data; if (d.gw) host.apply(d.gw);
         if (d.fitlog != null) { try { localStorage.setItem(FL, d.fitlog); } catch (e) {} }
@@ -163,7 +168,8 @@
         if ((host.get().mod || 0) === before) host.apply(gw); else again = true;
         const now = new Date().toISOString();
         const r = await sb.from('user_data').upsert({ user_id: uid, data: { v: 1, mod: gw.mod, gw, fitlog: fl }, updated_at: now }); if (r.error) throw r.error;
-        await sb.from('public_lists').upsert({ user_id: uid, list: publicList(gw), updated_at: now });
+        { const pl = publicList(gw), ph = hash(JSON.stringify(pl)), hk = 'gearwatch.plhash.' + uid; let old = null; try { old = localStorage.getItem(hk); } catch (e) {}
+          if (old !== ph) { const r2 = await sb.from('public_lists').upsert({ user_id: uid, list: pl, updated_at: now }); if (!r2.error) { try { localStorage.setItem(hk, ph); } catch (e) {} } } }
         setMeta({ uid, base: gw.mod, flHash: hash(fl) });
       }
       if (action === 'none' || action === 'pull') { try { const pl = publicList(host.get()), ph = hash(JSON.stringify(pl)); if (localStorage.getItem('gearwatch.plhash.' + uid) !== ph && !JSON.stringify(((host.get().profiles || []).find(x => x.id === host.get().activeId) || {}).items || []).includes('"data:image')) { const r2 = await sb.from('public_lists').upsert({ user_id: uid, list: pl, updated_at: new Date().toISOString() }); if (!r2.error) localStorage.setItem('gearwatch.plhash.' + uid, ph); } } catch (e) {} }
@@ -187,7 +193,13 @@
     const out = a.data || [], inc = b.data || [], ids = [...new Set(out.map(x => x.followee).concat(inc.map(x => x.follower)))], names = {}, avs = {}, tts = {}, lists = {};
     if (ids.length) { const r = await profSel(c => sb.from('profiles').select(c).in('id', ids)); if (r.error) throw new Error(r.error.message); (r.data || []).forEach(x => { names[x.id] = x.username; avs[x.id] = x.avatar || null; tts[x.id] = x.title || null; }); }
     const acc = out.filter(x => x.status === 'accepted').map(x => x.followee);
-    if (acc.length) { const r = await sb.from('public_lists').select('user_id,list,updated_at').in('user_id', acc); if (r.error) throw new Error(r.error.message); (r.data || []).forEach(x => { lists[x.user_id] = Object.assign({}, x.list, { _up: x.updated_at || null }); }); }
+    // Friends' lists: check the change times first, then download only the lists that changed since last time.
+    if (acc.length) { const h = await sb.from('public_lists').select('user_id,updated_at').in('user_id', acc); if (h.error) throw new Error(h.error.message);
+      const LK = 'gearwatch.flists.' + me; if (flcU !== me) { flcU = me; try { flc = JSON.parse(localStorage.getItem(LK)) || {}; } catch (e) { flc = {}; } }
+      const rows = h.data || [], need = rows.filter(x => !flc[x.user_id] || flc[x.user_id].u !== x.updated_at).map(x => x.user_id);
+      if (need.length) { const r = await sb.from('public_lists').select('user_id,list,updated_at').in('user_id', need); if (r.error) throw new Error(r.error.message); (r.data || []).forEach(x => { flc[x.user_id] = { u: x.updated_at, l: x.list }; }); }
+      const keep = {}; rows.forEach(x => { const c = flc[x.user_id]; if (c) { keep[x.user_id] = c; lists[x.user_id] = Object.assign({}, c.l, { _up: c.u || null }); } });
+      if (need.length || Object.keys(keep).length !== Object.keys(flc).length) { flc = keep; try { localStorage.setItem(LK, JSON.stringify(keep)); } catch (e) { try { localStorage.removeItem(LK); } catch (e2) {} } } }
     return {
       following: out.map(x => { const ib = inc.find(z => z.follower === x.followee), acceptedAt = x.status === 'accepted' && ib && ib.created_at && x.created_at && ib.created_at > x.created_at ? ib.created_at : null; return { id: x.followee, username: names[x.followee] || 'unknown', avatar: avs[x.followee] || null, title: tts[x.followee] || null, status: x.status, acceptedAt }; }),
       requests: inc.filter(x => x.status === 'pending').map(x => ({ id: x.follower, username: names[x.follower] || 'unknown', avatar: avs[x.follower] || null, title: tts[x.follower] || null, at: x.created_at || null })),

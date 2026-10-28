@@ -482,7 +482,8 @@ class Component extends DCLogic {
   componentWillUnmount() { window.removeEventListener('resize', this.onMq); window.removeEventListener('orientationchange', this.onMq); document.removeEventListener('paste', this.onPaste); if (this.unsub) this.unsub(); clearTimeout(this.tt); clearInterval(this.poll); document.removeEventListener('visibilitychange', this.onVis); }
   say(t) { clearTimeout(this.tt); this.setState({ toast: t }); this.tt = setTimeout(() => this.setState({ toast: '' }), 2600); }
   async load() { const G = window.GWSync; if (!G || !G.cat) return; this.setState({ loading: true }); this.loadOcats();
-    try { const [q, info] = await Promise.all([G.cat('catalog_queue'), G.cat('catalog_admin_info')]); this.setState({ q, info, err: '', loading: false }); this.fillPhotos(); }
+    try { const [q, info] = await Promise.all([G.cat('catalog_queue'), G.cat('catalog_admin_info')]); this.setState({ q, info, err: '', loading: false }); this.fillPhotos();
+      try { localStorage.setItem('gw-admin-seen', JSON.stringify(((q && q.items) || []).concat((q && q.flags) || []).map(x => String(x.id)))); } catch (e) {} }
     catch (e) { this.setState({ err: (e && e.message) || 'Couldn’t load', loading: false }); } }
   // Entries without photos: read the shop page and save its photos to the entry.
   async fillPhotos() {
