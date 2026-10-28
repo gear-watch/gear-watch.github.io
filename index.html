@@ -1637,6 +1637,14 @@ input::placeholder{color:#6e6e73;}
         <div style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;gap:12px;"><span style="flex:none;width:72px;color:#a1a1a6;">Name</span><input value="{{ f.name }}" onChange="{{ fName }}" placeholder="Required" style="flex:1;min-width:0;background:none;border:0;font-size:17px;color:#f5f5f7;padding:0;"></div>
         <div style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;gap:12px;"><span style="flex:none;width:72px;color:#a1a1a6;">Brand</span><input value="{{ f.brand }}" onChange="{{ fBrand }}" placeholder="Kinkfox" style="flex:1;min-width:0;background:none;border:0;font-size:17px;color:#f5f5f7;padding:0;"></div>
         </sc-if>
+        <sc-if value="{{ fm.show }}" hint-placeholder-val="{{ false }}"><div data-anim="up" style="background:#2c2c2e;padding:12px 16px;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;"><span style="display:flex;flex-direction:column;gap:2px;min-width:0;"><span style="font-size:15px;font-weight:600;color:var(--gw-accent,#ffd60a);">{{ fm.head }}</span><span style="font-size:12px;color:#a1a1a6;line-height:1.38;">Already in the catalog. Pick it so it isn’t added twice.</span></span><button onClick="{{ fm.hide }}" style="flex:none;border:0;background:none;color:#8e8e93;font-size:14px;cursor:pointer;padding:4px;font-family:inherit;">Not these</button></div>
+          <sc-for list="{{ fm.rows }}" as="m" hint-placeholder-count="1"><div onClick="{{ m.open }}" style="display:flex;align-items:center;gap:12px;cursor:pointer;">
+            <span style="flex:none;width:44px;height:44px;border-radius:8px;overflow:hidden;background:#3a3a3c;display:grid;place-items:center;font-weight:600;color:#a1a1a6;position:relative;">{{ m.initial }}<sc-if value="{{ m.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ m.photo }}" alt="" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ m.name }}</span><span style="font-size:12px;color:#a1a1a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ m.sub }}</span></span>
+            <button onClick="{{ m.use }}" style="flex:none;border:0;background:var(--gw-accent,#ffd60a);color:#000;border-radius:9999px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.95);">{{ m.useLbl }}</button>
+          </div></sc-for>
+        </div></sc-if>
         <sc-if value="{{ fPL.on }}" hint-placeholder-val="{{ false }}"><div style="background:#2c2c2e;padding:10px 16px;display:flex;align-items:center;gap:12px;">
           <span style="flex:none;width:72px;color:#6e6e73;display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="12" height="8.5" rx="2"></rect><path d="M6.8 9V6.5a3.2 3.2 0 0 1 6.4 0V9"></path></svg>Price</span>
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;"><span style="font-size:17px;color:#d1d1d6;">{{ fPL.price }}</span><sc-if value="{{ fPL.sale }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;color:#6e6e73;text-decoration:line-through;">{{ fPL.was }}</span><span style="background:#30d158;color:#000;border-radius:9999px;padding:1px 8px;font-size:12px;font-weight:600;">{{ fPL.off }}</span></sc-if></span><span style="font-size:12px;color:#6e6e73;">{{ fPL.note }}</span></div>
@@ -1761,6 +1769,19 @@ input::placeholder{color:#6e6e73;}
       </div>
       <div data-anim="up" style="padding:20px 20px 8px;font-size:14px;font-weight:600;color:#a1a1a6;letter-spacing:-0.224px;">Notes</div>
       <div style="padding:0 16px;"><textarea value="{{ f.notes }}" onChange="{{ fNotes }}" placeholder="{{ fNotesPh }}" rows="3" style="display:block;width:100%;box-sizing:border-box;background:#2c2c2e;border:1px solid #48484a;border-radius:18px;padding:12px 16px;font-size:17px;line-height:1.47;color:#f5f5f7;resize:none;outline:none;font-family:inherit;transition:border-color .2s;" style-focus="border-color:var(--gw-accent,#ffd60a);"></textarea></div>
+      <sc-if value="{{ dupPop }}" hint-placeholder-val="{{ false }}">
+        <div style="position:sticky;bottom:0;z-index:5;padding:12px 16px 16px;margin-top:16px;background:linear-gradient(180deg,rgba(28,28,30,0) 0%,#1c1c1e 30%);">
+          <div data-anim="up" style="background:#2c2c2e;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 -1px 0 #38383a, 0 12px 32px rgba(0,0,0,0.5);">
+            <div style="display:flex;align-items:flex-start;gap:10px;"><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-size:15px;font-weight:600;">Already in the catalog?</span><span style="font-size:14px;color:#d1d1d6;line-height:1.36;text-wrap:pretty;">This looks like the same item. Using it keeps the catalog free of doubles.</span></span><button onClick="{{ dup.close }}" aria-label="Hide" style="flex:none;border:0;background:none;color:#8e8e93;font-size:18px;line-height:1;cursor:pointer;padding:4px;">×</button></div>
+            <div style="display:flex;align-items:center;gap:12px;background:#1c1c1e;border-radius:12px;padding:10px;">
+              <span style="flex:none;width:48px;height:48px;border-radius:8px;overflow:hidden;background:#3a3a3c;display:grid;place-items:center;font-weight:600;color:#a1a1a6;position:relative;">{{ dup.initial }}<sc-if value="{{ dup.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ dup.photo }}" alt="" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></sc-if></span>
+              <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><span style="font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ dup.name }}</span><span style="font-size:12px;color:#a1a1a6;">{{ dup.sub }}</span></span>
+            </div>
+            <button onClick="{{ dup.use }}" style="border:0;border-radius:9999px;background:var(--gw-accent,#ffd60a);color:#000;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.97);">{{ dup.useLbl }}</button>
+            <button onClick="{{ dup.diff }}" style="border:0;border-radius:9999px;background:#3a3a3c;color:#f5f5f7;padding:13px 0;font-size:17px;cursor:pointer;font-family:inherit;" style-active="transform:scale(0.97);">No, mine is different</button>
+          </div>
+        </div>
+      </sc-if>
       <sc-if value="{{ allSetPop }}" hint-placeholder-val="{{ false }}">
         <div style="position:sticky;bottom:0;z-index:5;padding:12px 16px 16px;margin-top:16px;background:linear-gradient(180deg,rgba(28,28,30,0) 0%,#1c1c1e 30%);">
           <div data-anim="up" style="background:#2c2c2e;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 -1px 0 #38383a, 0 12px 32px rgba(0,0,0,0.5);">
@@ -3146,6 +3167,9 @@ class Component extends DCLogic {
   componentDidUpdate() {
     this.runSpent();
     const s = this.state;
+    { const f = s.form, k = s.sheet === 'form' && f && !f.id && !f.catalogId ? String(f.brand || '').trim().toLowerCase() + '|' + String(f.name || '').trim().toLowerCase() + '|' + this.catNorm(f.url) : '';
+      if (k !== this._fmKey) { this._fmKey = k; clearTimeout(this._fmT); if (k && String(f.name || '').trim().length >= 3) this._fmT = setTimeout(() => this.fmSearch(), 500); else if (s.fmRes) this.setState({ fmRes: null }); }
+      if (s.sheet !== 'form' && s.sheet !== 'cprod' && s.sheet !== 'cvar' && (s.fmHide || s.fmDiff || s.fmAsk)) this.setState({ fmHide: null, fmDiff: false, fmAsk: null }); }
     if (this._pf !== s.figTab || this._pt !== s.tab) { this._pf = s.figTab; this._pt = s.tab; this.drawFig(); }
     if (this._pg !== undefined && this._pg !== s.group) this.replay('[data-row]', 'up');
     this._pg = s.group;
@@ -4171,6 +4195,20 @@ class Component extends DCLogic {
       shareSubColor: this.state.shareArm ? '#ff453a' : '#a1a1a6' }; }
   openAct() { const G = window.GWSync; if (!G || !G.cat) return; if (this.sheetRef.current) this.sheetRef.current.scrollTop = 0; this.setState(s => ({ sheet: 'cact', cactBack: s.sheet && s.sheet !== 'cact' && s.sheet !== 'cprod' ? s.sheet : s.cactBack, cact: null }));
     G.cat('catalog_my_activity').then(r => this.setState({ cact: r || { added: [], flags: [], photos: [] } })).catch(e => { this.setState({ cact: { added: [], flags: [], photos: [] } }); this.toast((e && e.message) || 'Couldn’t load your activity'); }); }
+  // Possible duplicates while adding by hand: same name (and brand or shop) already in the catalog.
+  fmSearch() { const f = this.state.form, G = window.GWSync; if (!f || f.id || f.catalogId || !G || !G.cat) return; const name = String(f.name || '').trim(); if (name.length < 3) return; const tok = (this._fmTok = (this._fmTok || 0) + 1);
+    const words = s => String(s || '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, ' ').split(' ').filter(w => w.length > 1 && !['the', 'and', 'with', 'for', 'in', 'of', 'a'].includes(w));
+    const nb = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''), dom = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
+    G.cat('catalog_search', { q: name, cat: '', lim: 12 }).then(r => { if (tok !== this._fmTok) return; const F = this.state.form; if (!F || F.id || F.catalogId) return;
+      const A = words(F.name), b1 = nb(F.brand), d1 = dom(F.url);
+      const out = (r || []).filter(c => c && c.id && !['removed', 'hidden'].includes(c.status)).map(c => { const B = words(c.name), inter = A.filter(w => B.includes(w)).length, dice = A.length + B.length ? 2 * inter / (A.length + B.length) : 0;
+        const b2 = nb(c.brand), brandSame = !!b1 && !!b2 && (b1.includes(b2) || b2.includes(b1)), brandDiff = !!b1 && !!b2 && !brandSame, domSame = !!d1 && String(c.domain || '').replace(/^www\./, '') === d1;
+        const score = dice + (brandSame ? 0.25 : 0) + (domSame ? 0.25 : 0) - (brandDiff ? 0.35 : 0);
+        return { c, score, strong: dice >= 0.75 && (brandSame || domSame) }; }).filter(x => x.score >= 0.6).sort((a, b) => b.score - a.score).slice(0, 3);
+      this.setState({ fmRes: out }); }).catch(() => {}); }
+  fmList() { const st = this.state, hide = st.fmHide || []; return (st.fmRes || []).filter(x => !hide.includes(x.c.id)); }
+  fmStrong() { const f = this.state.form; if (!f || f.id || f.catalogId) return null; return this.fmList().find(x => x.strong) || null; }
+  fmUse(c) { const f = this.state.form || {}; this.setState({ fmAsk: null, fmRes: null }); if (f.status === 'owned') this.catOwn(c); else this.catWish(c); }
   catSearchSoon() { clearTimeout(this.catST); this.catST = setTimeout(() => this.catSearch(), 280); }
   catSearch() { const st = this.state, G = window.GWSync, q = (st.catQ || '').trim(), c = st.catCat || ''; if (!q && !c) { this.setState({ catRes: null, catBusy: false }); return; } if (!G || !G.cat) return; const tok = (this.catTok = (this.catTok || 0) + 1); this.setState({ catBusy: true, catErr: '' });
     G.cat('catalog_search', { q, cat: c, lim: 40 }).then(r => { if (tok === this.catTok) this.setState({ catRes: r || [], catBusy: false }); }).catch(e => { if (tok === this.catTok) this.setState({ catBusy: false, catRes: [], catErr: (e && e.message) || 'Couldn’t search' }); }); }
@@ -4941,7 +4979,7 @@ class Component extends DCLogic {
       cancelLabel: st.sheet === 'pub' ? 'Not now' : st.sheet === 'cfilt' ? '‹ ' + (TILE_NAMES[st.catTile] || 'Results') : st.sheet === 'cdisc' && this.catSearching() ? '‹ Catalog' : st.sheet === 'cprod' && ['form', 'act', 'disc'].includes(st.catFrom) ? ({ act: '‹ Activity', disc: '‹ Catalog' }[st.catFrom] || '‹ Results') : sheetMeta[1] ? 'Cancel' : 'Done', actionColor: canSave ? ACC : '#636366',
       sheetAction: () => {
         if (!canSave) return;
-        if (st.sheet === 'form') { this.saveForm(); return; }
+        if (st.sheet === 'form') { const d = !st.fmDiff && this.fmStrong(); if (d) { this.setState({ fmAsk: d.c.id }); return; } this.saveForm(); return; }
         if (st.sheet === 'cfilt') { this.setState({ sheet: 'cdisc' }); return; }
         if (st.sheet === 'pub') { this.pubSend(); return; }
         if (st.sheet === 'cshare') { this.catShareSend(); return; }
@@ -5040,6 +5078,12 @@ class Component extends DCLogic {
           missSize: () => { const id = f.catalogId; this.closeSheet(() => { this.openCatId(id); setTimeout(() => this.setState({ sheet: 'cfix', cfx: { f: 'size', v: '' } }), 400); }); },
           fix: () => { const id = f.catalogId; this.closeSheet(() => this.openCatId(id)); }, colChips: cs.length > 0, colFree: !cs.length || cust, colInLbl: cust ? 'Yours' : 'Colour', colInPh: cust ? 'Describe it, e.g. black with yellow trim' : 'Black, yellow trim', m2mShow: false,
           colors: cs.map(x => chip(x.name, !cust && f.colour === x.name, x.hex || guessHex(x.name) || '#3a3a3c', () => { this.setF('colour', x.name); this.setF('colourCustom', false); })).concat(custom ? [chip('Custom colour', cust, 'conic-gradient(#ff453a,#ff9f0a,#ffd60a,#30d158,#64d2ff,#5e5ce6,#bf5af2,#ff453a)', () => { this.setF('colourCustom', true); if (cs.some(x => x.name === f.colour)) this.setF('colour', ''); })] : []) }; })(),
+      ...(() => { if (st.sheet !== 'form' || !st.form || st.form.id || st.form.catalogId) return { fm: { show: false, rows: [] }, dupPop: false, dup: {} };
+        const own = st.form.status === 'owned', card = c => { const ph = (c.photos || [])[0] || ''; return { name: c.name, sub: [c.brand || c.domain, c.status === 'pending' ? 'Waiting for approval' : (c.own_n || 0) + ' own · ' + (c.want_n || 0) + ' want'].filter(Boolean).join(' · '), photo: ph, hasPhoto: !!ph, initial: (c.name || '?').charAt(0).toUpperCase() }; };
+        const L = this.fmList(), ask = st.fmAsk ? (st.fmRes || []).find(x => x.c.id === st.fmAsk) : null;
+        return { fm: { show: L.length > 0, head: L.length === 1 ? 'Is it this one?' : 'Is it one of these?', hide: () => this.setState(s => ({ fmHide: (s.fmHide || []).concat(L.map(x => x.c.id)) })),
+            rows: L.map(x => Object.assign(card(x.c), { open: () => this.openCat(x.c, 'form'), use: e => { e.stopPropagation(); this.fmUse(x.c); }, useLbl: own ? 'I own this' : 'Add this' })) },
+          dupPop: !!ask, dup: ask ? Object.assign(card(ask.c), { use: () => this.fmUse(ask.c), diff: () => this.setState({ fmDiff: true, fmAsk: null }, () => this.saveForm()), close: () => this.setState({ fmAsk: null }), useLbl: own ? 'Use this one' : 'Add this one instead' }) : {} }; })(),
       allSetPop: !!st.allSetPop && st.sheet === 'form', allSetHide: () => this.setState({ allSetPop: false }), allSetSave: () => { this.setState({ allSetPop: false }); this.saveForm(); },
       fPriceRing: st.focusF === 'price' ? ACC : '#48484a', fPriceFocus: () => this.setState({ focusF: 'price' }), fPriceBlur: () => this.setState({ focusF: null }),
       fWasRing: st.focusF === 'was' ? ACC : '#48484a', fWasFocus: () => this.setState({ focusF: 'was' }), fWasBlur: () => this.setState({ focusF: null }),
